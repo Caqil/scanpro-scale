@@ -7,10 +7,10 @@ set -e
 # - CloudFlare API token with Zone:Edit permissions
 
 # Configuration - Update these values
-CLOUDFLARE_API_TOKEN="your-cloudflare-api-token"
-CLOUDFLARE_ZONE_ID="your-cloudflare-zone-id"
-CLOUDFLARE_ZONE="example.com"
-SCANPRO_DOMAIN="scanpro.example.com"
+CLOUDFLARE_API_TOKEN="7JJ8bTmb5GbtrMc_u7C9k4wqvl53ZHePNx5wWLf0"
+CLOUDFLARE_ZONE_ID="b07f037fca32cce9a5a6bceb8197490c"
+CLOUDFLARE_ZONE="scanpro.cc"
+SCANPRO_DOMAIN="scanpro.cc"
 
 # Get the load balancer IP from Kubernetes
 LOAD_BALANCER_IP=$(kubectl -n ingress-nginx get service ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')

@@ -18,10 +18,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - scanpro.example.com
+        - scanpro.cc
       secretName: scanpro-tls
   rules:
-    - host: scanpro.example.com
+    - host: scanpro.cc
       http:
         paths:
           - path: /
