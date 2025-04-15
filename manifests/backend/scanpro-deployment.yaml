@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scanpro
+  namespace: scanpro
+  labels:
+    app: scanpro
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: scanpro
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: scanpro
+    spec:
+      containers:
+        - name: scanpro
+          image: scanpro/webapp:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-config
+                  key: NODE_ENV
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-config
+                  key: DATABASE_URL
+            - name: NEXT_PUBLIC_APP_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-config
+                  key: NEXT_PUBLIC_APP_URL
+            - name: UPSTASH_REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-config
+                  key: UPSTASH_REDIS_URL
+            - name: NEXTAUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-config
+                  key: NEXTAUTH_URL
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: NEXTAUTH_SECRET
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: OPENAI_API_KEY
+            - name: UPSTASH_REDIS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: UPSTASH_REDIS_TOKEN
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: SMTP_PASSWORD
+            - name: EMAIL_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: EMAIL_FROM
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: PAYPAL_CLIENT_ID
+            - name: PAYPAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: PAYPAL_CLIENT_SECRET
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: GOOGLE_CLIENT_SECRET
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: GITHUB_CLIENT_SECRET
+            - name: APPLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: APPLE_CLIENT_ID
+            - name: APPLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: scanpro-secret
+                  key: APPLE_CLIENT_SECRET
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+            - name: uploads-volume
+              mountPath: /app/uploads
+            - name: conversions-volume
+              mountPath: /app/public/conversions
+            - name: compressions-volume
+              mountPath: /app/public/compressions
+            - name: temp-volume
+              mountPath: /app/temp
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: uploads-volume
+          persistentVolumeClaim:
+            claimName: scanpro-uploads-pvc
+        - name: conversions-volume
+          persistentVolumeClaim:
+            claimName: scanpro-conversions-pvc
+        - name: compressions-volume
+          persistentVolumeClaim:
+            claimName: scanpro-compressions-pvc
+        - name: temp-volume
+          persistentVolumeClaim:
+            claimName: scanpro-temp-pvc
