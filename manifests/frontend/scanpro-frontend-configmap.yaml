@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scanpro-frontend-config
+  namespace: scanpro
+data:
+  NEXT_PUBLIC_API_URL: "https://scanpro.cc/api"
+  NEXT_PUBLIC_APP_URL: "https://scanpro.cc"
+  # Add other Next.js environment variables here

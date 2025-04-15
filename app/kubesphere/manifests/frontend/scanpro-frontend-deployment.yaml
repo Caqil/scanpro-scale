@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scanpro-frontend
+  namespace: scanpro
+  labels:
+    app: scanpro-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scanpro-frontend
+  template:
+    metadata:
+      labels:
+        app: scanpro-frontend
+    spec:
+      containers:
+        - name: scanpro-frontend
+          image: scanpro/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_APP_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-frontend-config
+                  key: NEXT_PUBLIC_APP_URL
+            - name: NEXT_PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-frontend-config
+                  key: NEXT_PUBLIC_API_URL
+            - name: NEXT_PUBLIC_GA_MEASUREMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-frontend-config
+                  key: NEXT_PUBLIC_GA_MEASUREMENT_ID
+            - name: NEXT_PUBLIC_GTM_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: scanpro-frontend-config
+                  key: NEXT_PUBLIC_GTM_ID
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"

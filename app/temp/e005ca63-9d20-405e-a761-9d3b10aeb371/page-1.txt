@@ -1,0 +1,52 @@
+Acquisition Agreement
+
+This Acquisition Agreement ("Agreement") is made and entered into as of 29 June, by
+and between:
+
+Seller: adsfeed.io
+30 St Mary's Axe, London, England, EC3A 8BF
+support@adsfeed.io
+
+Buyer: FastTec B.V.
+Mattenbieslaan 105, 3452AD Vleuten
+tech@fasttec.net
+
+1. Sale and Purchase
+
+1.1 Assets to be Transferred: Seller agrees to sell, transfer, and assign to Buyer, and
+Buyer agrees to purchase from Seller, the following assets (collectively, the "Assets"):
+
+e Billion VPN (including all source code, documentation, trademarks, customer data,
+and other related intellectual property).
+
+e Thunder VPN (including all source code, documentation, trademarks, customer data,
+and other related intellectual property).
+
+1.2 Purchase Price: The total purchase price for the Assets shall be $12,500 (Twelve
+Thousand Five Hundred US Dollars) ("Purchase Price").
+
+2. Payment
+
+2.1 Payment Terms: The Purchase Price shall be paid by Buyer to Seller in two
+installments: - 50% ($6,250) upfront upon the execution of this Agreement. - 50%
+($6,250) upon delivery and completion of the transfer of the Assets.
+
+3. Transfer of Ownership
+
+3.1 Closing Date: The transfer of the Assets shall be completed by 1 July ("Closing
+Date").
+
+3.2 Transfer of Rights: Upon the receipt of the Purchase Price by Seller, Seller shall
+transfer all rights, title, and interest in and to the Assets to Buyer.
+
+4. Representations and Warranties
+4.1 Seller's Representations: Seller represents and warrants that:
+
+e Seller is the sole owner of the Assets.
+e The Assets are free from any license or encumbrances.
+e Seller has the full right and authority to sell and transfer the Assets.
+
+4.2 Buyer's Representations: Buyer represents and warrants that:
+
+e Buyer has the full right and authority to purchase the Assets.
+

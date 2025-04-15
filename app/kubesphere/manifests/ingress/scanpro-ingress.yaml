@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scanpro-ingress
+  namespace: scanpro
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Add Cloudflare specific annotations
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      real_ip_header CF-Connecting-IP;
+    # For WebSockets support
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  tls:
+    - hosts:
+        - scanpro.cc
+      secretName: scanpro-tls
+  rules:
+    - host: scanpro.cc
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: scanpro
+                port:
+                  number: 80
