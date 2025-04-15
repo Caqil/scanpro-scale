@@ -5,23 +5,23 @@
 .yarn/install-state.gz
 # Environment Variables
 
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+/app/.env
+/app/.env.local
+/app/.env.development.local
+/app/.env.test.local
+/app/.env.production.local
 
 # Testing
-/coverage
-/chatsessions
+/app/coverage
+/app/chatsessions
 # Next.js
 /app/.next/
 /out/
 
 # Production
-/build
-/public
-/temp
+/app/build
+/app/public
+/app/temp
 # Misc
 .DS_Store
 *.pem
@@ -31,12 +31,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Vercel
 .vercel
@@ -46,12 +40,12 @@ yarn-error.log*
 next-env.d.ts
 
 # PDF Converter specific
-/uploads
-/uploads/*
-/public/conversions
-/public/conversions/*
-/temp-conversions
-/temp-conversions/*
+/app/uploads
+/app/uploads/*
+/app/public/conversions
+/app/public/conversions/*
+/app/temp-conversions
+/app/temp-conversions/*
 
 # Logs
 /logs
