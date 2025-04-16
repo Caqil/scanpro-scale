@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: scanpro-frontend
-          image: your-registry/scanpro-frontend:latest
+          image: cakr/scanpro-frontend:latest
           ports:
             - containerPort: 3000
           envFrom:

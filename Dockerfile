@@ -29,16 +29,17 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir ocrmypdf PyPDF2
 
-# Copy package.json, package-lock.json and scripts first
+# Copy package.json and package-lock.json (if it exists)
 COPY package.json package-lock.json* ./
-COPY scripts ./scripts/
+
+# Copy scripts
+COPY / *(optional, depending on your project structure)* ./scripts/
 
 # Create directory structure for tesseract.js
 RUN mkdir -p node_modules/tesseract.js/tessdata
 
-# Install dependencies with legacy peer deps flag to handle version conflicts
-# and ignore scripts to prevent errors during installation
-RUN npm ci --legacy-peer-deps
+# Install dependencies with fallback and legacy peer deps
+RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi
 
 # Run tessdata download script manually (if it exists)
 RUN if [ -f "scripts/download-tessdata.js" ]; then node scripts/download-tessdata.js || true; fi
