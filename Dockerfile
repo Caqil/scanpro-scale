@@ -38,7 +38,7 @@ RUN mkdir -p node_modules/tesseract.js/tessdata
 
 # Install dependencies with legacy peer deps flag to handle version conflicts
 # and ignore scripts to prevent errors during installation
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 # Run tessdata download script manually (if it exists)
 RUN if [ -f "scripts/download-tessdata.js" ]; then node scripts/download-tessdata.js || true; fi
