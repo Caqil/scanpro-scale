@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-config
+  namespace: cloudflare-tunnel
+data:
+  config.yaml: |
+    tunnel: fcd24762-5891-4c15-8300-eb0a2a33eacf
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    ingress:
+      - hostname: scanpro.cc
+        service: http://scanpro.scanpro:3000
+      - hostname: "*.scanpro.cc"
+        service: http://scanpro.scanpro:3000
+      - service: http_status:404
