@@ -24,9 +24,17 @@ fi
 echo "Node IP: $NODE_IP"
 echo "HTTP Port: $HTTP_PORT"
 
+# Check if IP is private (basic check for 10.x.x.x, 192.168.x.x, 172.16-31.x.x)
+if [[ $NODE_IP =~ ^10\. ]] || [[ $NODE_IP =~ ^192\.168\. ]] || [[ $NODE_IP =~ ^172\.(1[6-9]|2[0-9]|3[0-1])\. ]]; then
+    echo "Warning: $NODE_IP is a private IP. Disabling CloudFlare proxy mode."
+    PROXIED=false
+else
+    PROXIED=true
+fi
+
 # Create DNS record in CloudFlare
 echo "Creating DNS record in CloudFlare..."
-curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns_records" \
+RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns_records" \
      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
      -H "Content-Type: application/json" \
      --data '{
@@ -34,12 +42,17 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns
         "name": "'${SCANPRO_DOMAIN%%.*}'",
         "content": "'$NODE_IP'",
         "ttl": 120,
-        "proxied": true
-     }'
+        "proxied": '$PROXIED'
+     }')
+
+if [[ $(echo "$RESPONSE" | grep -c '"success":true') -eq 0 ]]; then
+    echo "Failed to create DNS record: $RESPONSE"
+    exit 1
+fi
 
 echo "Setting up CloudFlare Page Rules..."
 # Create Page Rule for caching static assets
-curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pagerules" \
+RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pagerules" \
      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
      -H "Content-Type: application/json" \
      --data '{
@@ -64,10 +77,15 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pag
         ],
         "status": "active",
         "priority": 1
-     }'
+     }')
+
+if [[ $(echo "$RESPONSE" | grep -c '"success":true') -eq 0 ]]; then
+    echo "Failed to create static assets page rule: $RESPONSE"
+    exit 1
+fi
 
 # Create Page Rule for API endpoints (no caching)
-curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pagerules" \
+RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pagerules" \
      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
      -H "Content-Type: application/json" \
      --data '{
@@ -88,24 +106,39 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/pag
         ],
         "status": "active",
         "priority": 2
-     }'
+     }')
+
+if [[ $(echo "$RESPONSE" | grep -c '"success":true') -eq 0 ]]; then
+    echo "Failed to create API page rule: $RESPONSE"
+    exit 1
+fi
 
 echo "Setting up CloudFlare SSL/TLS settings..."
 # Set SSL mode to Full (Strict)
-curl -X PATCH "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/settings/ssl" \
+RESPONSE=$(curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/settings/ssl" \
      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
      -H "Content-Type: application/json" \
      --data '{
         "value": "strict"
-     }'
+     }')
+
+if [[ $(echo "$RESPONSE" | grep -c '"success":true') -eq 0 ]]; then
+    echo "Failed to set SSL settings: $RESPONSE"
+    exit 1
+fi
 
 # Enable Always Use HTTPS
-curl -X PATCH "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/settings/always_use_https" \
+RESPONSE=$(curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/settings/always_use_https" \
      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
      -H "Content-Type: application/json" \
      --data '{
         "value": "on"
-     }'
+     }')
+
+if [[ $(echo "$RESPONSE" | grep -c '"success":true') -eq 0 ]]; then
+    echo "Failed to enable Always Use HTTPS: $RESPONSE"
+    exit 1
+fi
 
 echo "CloudFlare setup completed successfully!"
 echo "ScanPro is now accessible at: https://$SCANPRO_DOMAIN"
