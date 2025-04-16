@@ -30,8 +30,8 @@ RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir ocrmypdf PyPDF2
 
 # Copy package.json, package-lock.json and scripts first
-COPY /app/package.json package-lock.json* ./
-COPY /app/scripts ./scripts/
+COPY app/package.json package-lock.json* ./
+COPY app/scripts ./scripts/
 
 # Create directory structure for tesseract.js
 RUN mkdir -p node_modules/tesseract.js/tessdata
