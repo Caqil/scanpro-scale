@@ -1,57 +1,3 @@
-# Use Node.js as base image with Ubuntu
-FROM node:18 AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies for PDF processing
-RUN apt-get update && apt-get install -y \
-    ghostscript \
-    libreoffice \
-    poppler-utils \
-    qpdf \
-    pdftk \
-    tesseract-ocr \
-    tesseract-ocr-eng \
-    python3-full \
-    python3-venv \
-    build-essential \
-    wget \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create and activate a Python virtual environment
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Install Python packages in the virtual environment
-RUN pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir ocrmypdf PyPDF2
-
-# Copy package.json, package-lock.json and scripts first
-COPY app/package.json package-lock.json* ./
-COPY app/scripts ./scripts/
-
-# Create directory structure for tesseract.js
-RUN mkdir -p node_modules/tesseract.js/tessdata
-
-# Install dependencies with legacy peer deps flag to handle version conflicts
-# and ignore scripts to prevent errors during installation
-RUN npm ci
-
-# Run tessdata download script manually (if it exists)
-RUN if [ -f "scripts/download-tessdata.js" ]; then node scripts/download-tessdata.js || true; fi
-
-# Copy the rest of the app
-COPY . .
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build the application
-RUN npm run build
-
 # Production image
 FROM node:18
 
@@ -73,9 +19,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder stage
-COPY --from=builder /opt/venv /opt/venv
+# Create and activate a Python virtual environment
+RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python packages in the virtual environment
+RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir ocrmypdf PyPDF2
 
 # Create necessary directories with proper permissions
 RUN mkdir -p \
@@ -103,14 +53,14 @@ RUN mkdir -p \
     temp-conversions \
     public
 
-# Copy built app from builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.js ./next.config.js
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/scripts ./scripts
+# Copy pre-built app artifacts
+COPY ./node_modules ./node_modules
+COPY ./.next ./.next
+COPY ./public ./public
+COPY ./package.json ./package.json
+COPY ./next.config.js ./next.config.js
+COPY ./prisma ./prisma
+COPY ./scripts ./scripts
 
 # Expose the port
 EXPOSE 3000
