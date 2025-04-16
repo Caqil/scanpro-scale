@@ -12,15 +12,17 @@ CLOUDFLARE_ZONE_ID="b07f037fca32cce9a5a6bceb8197490c"
 CLOUDFLARE_ZONE="scanpro.cc"
 SCANPRO_DOMAIN="scanpro.cc"
 
-# Get the load balancer IP from Kubernetes
-LOAD_BALANCER_IP=$(kubectl -n ingress-nginx get service ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+# Get node IP and port
+NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+HTTP_PORT=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
 
-if [ -z "$LOAD_BALANCER_IP" ]; then
-    echo "Failed to get Load Balancer IP. Make sure the ingress-nginx service is running."
+if [ -z "$NODE_IP" ] || [ -z "$HTTP_PORT" ]; then
+    echo "Failed to get Node IP or HTTP Port. Make sure the ingress-nginx service is running."
     exit 1
 fi
 
-echo "Load Balancer IP: $LOAD_BALANCER_IP"
+echo "Node IP: $NODE_IP"
+echo "HTTP Port: $HTTP_PORT"
 
 # Create DNS record in CloudFlare
 echo "Creating DNS record in CloudFlare..."
@@ -30,7 +32,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns
      --data '{
         "type": "A",
         "name": "'${SCANPRO_DOMAIN%%.*}'",
-        "content": "'$LOAD_BALANCER_IP'",
+        "content": "'$NODE_IP'",
         "ttl": 120,
         "proxied": true
      }'
