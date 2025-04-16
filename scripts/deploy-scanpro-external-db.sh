@@ -39,7 +39,7 @@ kubectl apply -f manifests/database/scanpro-external-db-secret.yaml
 
 # Apply application configuration
 echo "Creating application configuration..."
-kubectl apply -f manifests/backend/scanpro-config.yaml
+kubectl apply -f manifests/backend/scanpro-configmap.yaml
 kubectl apply -f manifests/backend/scanpro-secret.yaml
 
 # Run database migrations
