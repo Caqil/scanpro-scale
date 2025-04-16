@@ -22,10 +22,11 @@ spec:
     spec:
       containers:
         - name: scanpro
-          image: scanpro/webapp:latest
+          image: cakr/scanpro-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+              name: http
           env:
             - name: NODE_ENV
               valueFrom:
@@ -34,8 +35,8 @@ spec:
                   key: NODE_ENV
             - name: DATABASE_URL
               valueFrom:
-                configMapKeyRef:
-                  name: scanpro-config
+                secretKeyRef:
+                  name: scanpro-secret
                   key: DATABASE_URL
             - name: NEXT_PUBLIC_APP_URL
               valueFrom:
@@ -151,13 +152,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /api/health
-              port: 3000
+              port: http
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 3000
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
