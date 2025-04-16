@@ -53,14 +53,14 @@ RUN mkdir -p \
     temp-conversions \
     public
 
-# Copy pre-built app artifacts
-COPY ./node_modules ./node_modules
-COPY ./.next ./.next
-COPY ./public ./public
-COPY ./package.json ./package.json
-COPY ./next.config.js ./next.config.js
-COPY ./prisma ./prisma
-COPY ./scripts ./scripts
+# Copy pre-built app artifacts from the app directory
+COPY app/node_modules ./node_modules
+COPY app/.next ./.next
+COPY app/public ./public
+COPY app/package.json ./package.json
+COPY app/next.config.js ./next.config.js
+COPY app/prisma ./prisma
+COPY app/scripts ./scripts
 
 # Expose the port
 EXPOSE 3000
