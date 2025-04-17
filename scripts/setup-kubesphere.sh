@@ -20,15 +20,15 @@ if ! kubectl cluster-info &> /dev/null; then
     exit 1
 fi
 
-# Verify Kubernetes version compatibility (minimum v1.19.0)
+# Verify Kubernetes version compatibility (minimum v1.22.0 for KubeSphere v4.0.0)
 K8S_VERSION=$(kubectl version --short | grep Server | awk '{print $3}' | cut -d'+' -f1)
-MIN_VERSION="v1.19.0"
+MIN_VERSION="v1.22.0"
 if [[ "$(printf '%s\n' "${K8S_VERSION}" "${MIN_VERSION}" | sort -V | head -n1)" != "${MIN_VERSION}" ]]; then
     echo "Kubernetes version ${K8S_VERSION} is not supported. Minimum required version is ${MIN_VERSION}"
     exit 1
 fi
 
-echo "Installing KubeSphere v3.4.1 with App Store..."
+echo "Installing KubeSphere v3.4.1 with App Store on traditional Kubernetes..."
 
 # Create namespace if it doesn't exist
 kubectl create namespace kubesphere-system --dry-run=client -o yaml | kubectl apply -f -
@@ -98,13 +98,13 @@ if kubectl get ingress -n kubesphere-system ks-console &>/dev/null; then
     INGRESS_HOST=$(kubectl get ingress -n kubesphere-system ks-console -o jsonpath='{.spec.rules[0].host}')
 fi
 
-echo "KubeSphere v3.4.1 installed successfully!"
+echo "KubeSphere v3.4.1installed successfully!"
 if [ -n "$INGRESS_HOST" ]; then
     echo "KubeSphere console: http://${INGRESS_HOST}/console/"
 else
     echo "KubeSphere console: http://${NODE_IP}:${NODEPORT}/console/"
 fi
-echo "App Store: http://${NODE_IP}:30880/apps"
+echo "App Store: Accessible via the KubeSphere console under 'App Store'"
 echo "Default credentials:"
 echo "Username: admin"
 echo "Password: P@88w0rd"
