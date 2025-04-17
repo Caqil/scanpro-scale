@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  basePath: '',
+  assetPrefix: 'https://scanpro.cc/',
   async headers() {
     return [
       {
