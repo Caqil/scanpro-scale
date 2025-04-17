@@ -9,7 +9,7 @@ data:
     credentials-file: /etc/cloudflared/creds/credentials.json
     ingress:
       - hostname: scanpro.cc
-        service: http://scanpro.scanpro:3000
+        service: http://scanpro.scanpro.svc.cluster.local:3000
       - hostname: "*.scanpro.cc"
-        service: http://scanpro.scanpro:3000
+        service: http://scanpro.scanpro.svc.cluster.local:3000
       - service: http_status:404
