@@ -18,8 +18,7 @@ on:
           - production
 
 env:
-  DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/scanpro
+  DOCKER_IMAGE: cakr/scanpro-frontend
 
 jobs:
   build-and-push:
