@@ -1,12 +1,13 @@
 // app/api/compress/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { writeFile, mkdir, readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { validateApiKey, trackApiUsage } from '@/lib/validate-key';
+import { PDFDocument } from 'pdf-lib';
 
 const execPromise = promisify(exec);
 
@@ -24,27 +25,37 @@ async function ensureDirectories() {
 }
 
 // Process PDF compression with different quality levels
-async function processPdfCompression(inputPath: string, outputPath: string, quality: 'low' | 'medium' | 'high') {
+async function processPdfCompression(inputPath: string, outputPath: string, quality: 'low' | 'medium' | 'high'): Promise<boolean> {
     try {
+        // Get the original file size for comparison
+        const originalBuffer = await readFile(inputPath);
+        const originalSize = originalBuffer.length;
+
         // Define quality parameters based on the quality level
         const qualitySettings = {
             low: {
                 dPDFSETTINGS: '/ebook', // Lower quality, smaller size
                 dCompatibilityLevel: '1.4',
-                dCompression: true,
-                dEmbedAllFonts: false,
+                colorImageResolution: 100,
+                grayImageResolution: 100,
+                monoImageResolution: 150,
+                jpegQuality: 60,
             },
             medium: {
                 dPDFSETTINGS: '/printer', // Medium quality
                 dCompatibilityLevel: '1.5',
-                dCompression: true,
-                dEmbedAllFonts: true,
+                colorImageResolution: 150,
+                grayImageResolution: 150,
+                monoImageResolution: 300,
+                jpegQuality: 80,
             },
             high: {
                 dPDFSETTINGS: '/prepress', // Higher quality, larger size
                 dCompatibilityLevel: '1.6',
-                dCompression: true,
-                dEmbedAllFonts: true,
+                colorImageResolution: 200,
+                grayImageResolution: 200,
+                monoImageResolution: 300,
+                jpegQuality: 95,
             }
         };
 
@@ -53,34 +64,97 @@ async function processPdfCompression(inputPath: string, outputPath: string, qual
         // Determine the correct Ghostscript command based on the platform
         const gsCommand = process.platform === 'win32' ? 'gswin64c' : 'gs';
 
-        // Construct Ghostscript command with quality parameters
-        const gsArgs = [
-            '-sDEVICE=pdfwrite',
-            `-dPDFSETTINGS=${settings.dPDFSETTINGS}`,
-            `-dCompatibilityLevel=${settings.dCompatibilityLevel}`,
-            '-dNOPAUSE',
-            '-dQUIET',
-            '-dBATCH',
-            settings.dCompression ? '-dCompressFonts=true' : '-dCompressFonts=false',
-            settings.dEmbedAllFonts ? '-dEmbedAllFonts=true' : '-dEmbedAllFonts=false',
-            '-dSubsetFonts=true',
-            '-dOptimize=true',
-            '-dDownsampleColorImages=true',
-            '-dColorImageResolution=150',
-            '-dGrayImageResolution=150',
-            '-dMonoImageResolution=150',
-            `-sOutputFile="${outputPath}"`,
-            `"${inputPath}"`
-        ];
+        // Try first method: Ghostscript
+        try {
+            // Construct Ghostscript command with quality parameters
+            const gsArgs = [
+                gsCommand,
+                '-sDEVICE=pdfwrite',
+                `-dPDFSETTINGS=${settings.dPDFSETTINGS}`,
+                `-dCompatibilityLevel=${settings.dCompatibilityLevel}`,
+                '-dNOPAUSE',
+                '-dQUIET',
+                '-dBATCH',
+                '-dCompressFonts=true',
+                '-dEmbedAllFonts=true',
+                '-dSubsetFonts=true',
+                '-dDetectDuplicateImages=true',
+                '-dOptimize=true',
+                '-dDownsampleColorImages=true',
+                `-dColorImageResolution=${settings.colorImageResolution}`,
+                `-dGrayImageResolution=${settings.grayImageResolution}`,
+                `-dMonoImageResolution=${settings.monoImageResolution}`,
+                `-dJPEGQ=${settings.jpegQuality}`,
+                // Properly quote the paths to handle spaces
+                `-sOutputFile="${outputPath}"`,
+                `"${inputPath}"`
+            ];
 
-        const gsCommand_full = `${gsCommand} ${gsArgs.join(' ')}`;
-        console.log('Executing Ghostscript command:', gsCommand_full);
+            const gsCommand_full = gsArgs.join(' ');
+            console.log('Executing Ghostscript command:', gsCommand_full);
 
-        // Execute Ghostscript
-        const { stdout, stderr } = await execPromise(gsCommand_full);
-        console.log('Ghostscript stdout:', stdout);
-        if (stderr) console.error('Ghostscript stderr:', stderr);
+            // Execute Ghostscript
+            const { stdout, stderr } = await execPromise(gsCommand_full);
+            
+            if (stderr && !stderr.toLowerCase().includes('warning')) {
+                console.error('Ghostscript stderr:', stderr);
+                throw new Error('Ghostscript reported an error');
+            }
 
+            // Check if output file exists and is smaller
+            if (existsSync(outputPath)) {
+                const compressedBuffer = await readFile(outputPath);
+                const compressedSize = compressedBuffer.length;
+                
+                if (compressedSize < originalSize) {
+                    console.log(`Compression successful: ${originalSize} -> ${compressedSize} bytes (${((1 - compressedSize / originalSize) * 100).toFixed(2)}% reduction)`);
+                    return true;
+                } else {
+                    console.log('Compression did not reduce file size. Using original file.');
+                    await writeFile(outputPath, originalBuffer); // Use original if compression didn't help
+                    return true;
+                }
+            }
+        } catch (gsError) {
+            console.error('Ghostscript compression failed:', gsError);
+            // Fall through to next method
+        }
+
+        // Try second method: pdf-lib (more compatible but less compression)
+        try {
+            console.log('Attempting compression with pdf-lib...');
+            const pdfDoc = await PDFDocument.load(originalBuffer);
+            
+            // Save with PDF-lib's compression
+            const compressedBytes = await pdfDoc.save({
+                addDefaultPage: false,
+                useObjectStreams: true,
+                // Don't update existing fields to keep file size smaller
+                updateFieldAppearances: false
+            });
+            
+            await writeFile(outputPath, compressedBytes);
+            
+            if (existsSync(outputPath)) {
+                const compressedBuffer = await readFile(outputPath);
+                const compressedSize = compressedBuffer.length;
+                
+                if (compressedSize < originalSize) {
+                    console.log(`pdf-lib compression successful: ${originalSize} -> ${compressedSize} bytes (${((1 - compressedSize / originalSize) * 100).toFixed(2)}% reduction)`);
+                    return true;
+                } else {
+                    console.log('pdf-lib compression did not reduce file size. Using original file.');
+                    await writeFile(outputPath, originalBuffer); // Use original if compression didn't help
+                    return true;
+                }
+            }
+        } catch (pdfLibError) {
+            console.error('pdf-lib compression failed:', pdfLibError);
+        }
+
+        // If we get here, both methods failed, but we'll use the original file as fallback
+        console.log('All compression methods failed. Using original file as fallback.');
+        await writeFile(outputPath, originalBuffer);
         return true;
     } catch (error) {
         console.error('PDF compression error:', error);
@@ -89,6 +163,8 @@ async function processPdfCompression(inputPath: string, outputPath: string, qual
 }
 
 export async function POST(request: NextRequest) {
+    let inputPath: string | null = null;
+    
     try {
         console.log('Starting PDF compression process...');
 
@@ -149,7 +225,7 @@ export async function POST(request: NextRequest) {
 
         // Create unique names for files
         const uniqueId = uuidv4();
-        const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+        inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
         const outputPath = join(COMPRESSION_DIR, `${uniqueId}-compressed.pdf`);
 
         // Write file to disk
@@ -179,7 +255,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: 'PDF compression successful',
+            message: `PDF compression successful with ${compressionRatio}% reduction`,
             fileUrl,
             filename: `${uniqueId}-compressed.pdf`,
             originalName: file.name,
@@ -197,5 +273,14 @@ export async function POST(request: NextRequest) {
             },
             { status: 500 }
         );
+    } finally {
+        // Clean up input file
+        if (inputPath && existsSync(inputPath)) {
+            try {
+                await unlink(inputPath);
+            } catch (cleanupError) {
+                console.warn('Failed to delete input file:', cleanupError);
+            }
+        }
     }
 }

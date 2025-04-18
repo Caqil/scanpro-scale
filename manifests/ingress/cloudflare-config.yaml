@@ -10,6 +10,11 @@ data:
     ingress:
       - hostname: scanpro.cc
         service: http://scanpro.scanpro.svc.cluster.local:3000
+
+      - hostname: grafana.scanpro.cc
+        service: http://grafana.monitoring.svc.cluster.local:3000
+
       - hostname: "*.scanpro.cc"
         service: http://scanpro.scanpro.svc.cluster.local:3000
+
       - service: http_status:404

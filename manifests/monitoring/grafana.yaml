@@ -35,7 +35,7 @@ spec:
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
             - name: GF_SERVER_ROOT_URL
-              value: "https://monitoring.scanpro.example.com/grafana"
+              value: "https://grafana.scanpro.cc"
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
@@ -143,10 +143,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - monitoring.scanpro.cc
+        - grafana.scanpro.cc
       secretName: grafana-tls
   rules:
-    - host: monitoring.scanpro.cc
+    - host: grafana.scanpro.cc
       http:
         paths:
           - path: /

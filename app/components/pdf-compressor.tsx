@@ -71,6 +71,8 @@ interface CompressedFile {
 }
 
 type FormValues = z.infer<typeof formSchema>;
+
+
 const compressPdfClientSide = async (
   file: File,
   quality: string
@@ -190,7 +192,7 @@ export function MultiPdfCompressor() {
       )
     );
     setProgress((prev) => ({ ...prev, [file.name]: 0 }));
-
+  
     try {
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
@@ -202,41 +204,47 @@ export function MultiPdfCompressor() {
           return { ...prev, [file.name]: currentProgress + 5 };
         });
       }, 300 + Math.random() * 300);
-
-      // Perform client-side compression
-      const { compressedData, originalSize, compressedSize } =
-        await compressPdfClientSide(file, quality);
-
+  
+      // Create a FormData instance
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("quality", quality);
+  
+      // Call the backend API
+      const response = await fetch("/api/compress", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Compression failed");
+      }
+  
+      const data = await response.json();
       clearInterval(progressInterval);
-
-      // Create a URL for the compressed file
-      const fileUrl = URL.createObjectURL(compressedData);
-      const compressionRatio = (
-        ((originalSize - compressedSize) / originalSize) *
-        100
-      ).toFixed(2);
-
+  
       setProgress((prev) => ({ ...prev, [file.name]: 100 }));
       setCompressedFiles((prev) => ({
         ...prev,
         [file.name]: {
-          originalSize,
-          compressedSize,
-          compressionRatio: `${compressionRatio}%`,
-          fileUrl,
-          filename: `${file.name.replace(/\.pdf$/, "")}-compressed.pdf`,
+          originalSize: data.originalSize,
+          compressedSize: data.compressedSize,
+          compressionRatio: data.compressionRatio,
+          fileUrl: data.fileUrl,
+          filename: data.filename,
           originalName: file.name,
         },
       }));
+      
       setFiles((prev) =>
         prev.map((f) =>
           f.file.name === file.name ? { ...f, status: "completed" as const } : f
         )
       );
+      
       toast.success(t("compressPdf.success"), {
-        description: `${file.name} ${t(
-          "compressPdf.reducedBy"
-        )} ${compressionRatio}%`,
+        description: `${file.name} ${t("compressPdf.reducedBy")} ${data.compressionRatio}`,
       });
     } catch (err) {
       setFiles((prev) =>
