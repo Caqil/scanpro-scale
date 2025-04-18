@@ -9,7 +9,7 @@ WORKDIR /app
 COPY app/package.json app/package-lock.json ./
 
 # Install dependencies with more verbose output and fallback to npm install
-RUN npm ci --verbose || npm install
+RUN npm install
 
 # Copy the rest of the application
 COPY app/ ./
