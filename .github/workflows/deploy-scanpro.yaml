@@ -22,58 +22,58 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/scanpro
 
 jobs:
- build-and-push:
-  name: Build and Push Docker Image
-  runs-on: ubuntu-latest
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-        cache: 'npm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    - name: Install Dependencies
-      run: npm ci
-      working-directory: ./app  # Adjust if your package.json is not in the 'app' folder
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./app  # Assumes package.json is in 'app' folder
 
-    - name: Build Next.js Application
-      run: npm run build
-      working-directory: ./app  # Adjust if your package.json is not in the 'app' folder
-      env:
-        NODE_ENV: production
+      - name: Build Next.js Application
+        run: npm run build
+        working-directory: ./app  # Assumes package.json is in 'app' folder
+        env:
+          NODE_ENV: production
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ env.DOCKER_REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata for Docker
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=sha,format=short
-          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-    - name: Build and Push Docker Image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     name: Deploy to Kubernetes
