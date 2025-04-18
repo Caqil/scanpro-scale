@@ -8,15 +8,17 @@ import {
   SignPdfFaqSection,
   RelatedToolsSection
 } from "./sign-content";
-import { SignPdfClient } from "./sign-pdf-client";
+import { SignPdfClientWrapper } from "./client-wrapper";
 import { SUPPORTED_LANGUAGES } from '@/src/lib/i18n/config';
 import { generatePageSeoMetadata } from "@/lib/seo/schemas";
+
+// Add this line to force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang: paramLang } = await params;
   const lang = SUPPORTED_LANGUAGES.includes(paramLang as any) ? paramLang : "en";
 
-  // Use the SEO metadata generator
   return generatePageSeoMetadata(lang as any, { 
     translationPrefix: 'signPdf', 
     canonicalPath: 'sign-pdf' 
@@ -30,24 +32,14 @@ export default function SignPdfPage() {
       
       {/* Main Tool Card */}
       <div className="mb-12">
-        <Suspense fallback={<div>Loading...</div>}>
-          <SignPdfClient />
-        </Suspense>
+        <SignPdfClientWrapper />
       </div>
       
-      {/* How It Works */}
+      {/* Other sections */}
       <HowToSignSection />
-      
-      {/* Benefits Section */}
       <BenefitsSection />
-      
-      {/* Use Cases Section */}
       <UseCasesSection />
-      
-      {/* FAQ Section */}
       <SignPdfFaqSection />
-      
-      {/* Related Tools Section */}
       <RelatedToolsSection />
     </div>
   );

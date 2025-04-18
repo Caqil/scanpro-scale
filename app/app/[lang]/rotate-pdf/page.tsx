@@ -1,7 +1,13 @@
 import { Metadata } from "next";
-import { RotatePdfClient } from "./rotate-pdf-client";
+import { Suspense } from "react";
 import { SUPPORTED_LANGUAGES } from '@/src/lib/i18n/config';
 import { generatePageSeoMetadata } from "@/lib/seo/schemas";
+import { BestPracticesSection, HowToRotateSection, RelatedToolsSection, RotateFaqSection, RotateHeaderSection, WhyRotateSection } from "./rotate-content";
+import { PdfRotator } from "@/components/pdf-rotator";
+import { RotatePdfClientWrapper } from "./client-wrapper";
+
+// Add this line to force dynamic rendering
+export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang: paramLang } = await params;
   const lang = SUPPORTED_LANGUAGES.includes(paramLang as any) ? paramLang : "en";
@@ -14,5 +20,30 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 export default function RotatePDFPage() {
-  return <RotatePdfClient />;
+  return (
+    <div className="container max-full">
+       <RotateHeaderSection />
+      
+            {/* Main Tool Card */}
+             <div className="mb-12">
+                    <RotatePdfClientWrapper />
+                  </div>
+      
+            {/* How It Works */}
+            <HowToRotateSection />
+      
+            {/* Benefits Section */}
+            <WhyRotateSection />
+      
+            {/* FAQ Section */}
+            <RotateFaqSection />
+      
+            {/* Best Practices Section */}
+            <BestPracticesSection />
+      
+            {/* Related Tools Section */}
+            <RelatedToolsSection />
+     
+    </div>
+  );
 }
