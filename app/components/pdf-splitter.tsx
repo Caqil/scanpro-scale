@@ -5,7 +5,6 @@ import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
@@ -31,7 +30,7 @@ import {
   UploadIcon,
   DownloadIcon,
 } from "@radix-ui/react-icons";
-import { AlertCircle, ScissorsIcon, FileTextIcon, Loader2 } from "lucide-react";
+import { AlertCircle, FileTextIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,6 +38,7 @@ import { z } from "zod";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import useFileUpload from "@/hooks/useFileUpload";
+
 // Form schema
 const formSchema = z.object({
   splitMethod: z.enum(["range", "extract", "every"]).default("range"),
@@ -100,6 +100,7 @@ export function PdfSplitter() {
     resetUpload,
     uploadStats,
   } = useFileUpload();
+
   // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -138,14 +139,14 @@ export function PdfSplitter() {
         setError(null);
         setJobId(null);
         setStatusUrl(null);
+        setIsPolling(false);
         resetUpload();
         // Estimate number of pages based on file size for better UX
         const fileSizeInMB = newFile.size / (1024 * 1024);
-        // Rough estimate: 1 MB ≈ 10 pages
         const estimatedPages = Math.max(1, Math.round(fileSizeInMB * 10));
         setTotalPages(estimatedPages);
 
-        // When a new file is uploaded, examine it to get actual page count
+        // Examine file to get actual page count
         examineFile(newFile);
       }
     },
@@ -169,7 +170,6 @@ export function PdfSplitter() {
         }
       }
     } catch (error) {
-      // Silently fail - we'll use the estimated page count if this fails
       console.error("Error getting PDF info:", error);
     }
   };
@@ -194,6 +194,7 @@ export function PdfSplitter() {
     setJobId(null);
     setStatusUrl(null);
     setIsPolling(false);
+    setProgress(0);
   };
 
   // Retry counter for status polling
@@ -211,13 +212,15 @@ export function PdfSplitter() {
 
       const status: JobStatus = await response.json();
 
-      // Update progress
-      setProgress(status.progress);
+      // Update progress for splitting phase (50–100%)
+      const splittingProgress = 50 + status.progress / 2; // Map 0–100 to 50–100
+      setProgress(splittingProgress);
 
       if (status.status === "completed") {
         // Job completed successfully
         setIsPolling(false);
         setIsProcessing(false);
+        setProgress(100);
 
         // Create a split result from job status
         const result: SplitResult = {
@@ -225,7 +228,7 @@ export function PdfSplitter() {
           message: `PDF split into ${status.results.length} files`,
           originalName: file?.name || "document.pdf",
           totalPages: totalPages,
-          results: status.results, // Use results property from status
+          results: status.results,
         };
 
         setSplitResult(result);
@@ -236,9 +239,10 @@ export function PdfSplitter() {
         // Job failed
         setIsPolling(false);
         setIsProcessing(false);
-        setError(status.error || "Processing failed");
+        setError(status.error || t("splitPdf.error.failed"));
+        setProgress(0);
         toast.error(t("splitPdf.error.failed"), {
-          description: status.error || "Unknown error",
+          description: status.error || t("splitPdf.error.unknown"),
         });
       } else {
         // Job still processing, continue polling
@@ -246,19 +250,15 @@ export function PdfSplitter() {
       }
     } catch (err) {
       console.error("Error polling job status:", err);
-      // If we can't get status, retry a few times then give up
       if (retryCount < 5) {
         setRetryCount((prev) => prev + 1);
         setTimeout(pollJobStatus, 3000);
       } else {
         setIsPolling(false);
         setIsProcessing(false);
-        setError(
-          "Failed to get processing status. The job may still be running."
-        );
-        toast.error(t("splitPdf.error.failed"), {
-          description: "Lost connection to the server",
-        });
+        setError(t("splitPdf.error.statusFailed"));
+        setProgress(0);
+        toast.error(t("splitPdf.error.failed"));
       }
     }
   }, [statusUrl, jobId, file, totalPages, t, retryCount]);
@@ -270,7 +270,6 @@ export function PdfSplitter() {
     }
 
     return () => {
-      // Cleanup function to prevent memory leaks
       setRetryCount(0);
     };
   }, [statusUrl, jobId, isPolling, pollJobStatus]);
@@ -282,13 +281,14 @@ export function PdfSplitter() {
       return;
     }
 
-    setIsProcessing(false); // Don't set processing yet - the upload will happen first
+    setIsProcessing(false);
     setProgress(0);
     setError(null);
     setSplitResult(null);
     setJobId(null);
     setStatusUrl(null);
     setIsPolling(false);
+    setRetryCount(0);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -300,85 +300,58 @@ export function PdfSplitter() {
       formData.append("everyNPages", values.everyNPages.toString());
     }
 
-    // Use the uploadFile method from the hook
     uploadFile(file, formData, {
       url: "/api/pdf/split",
       onProgress: (progress) => {
-        // Update progress for upload phase (0-50%)
-        setProgress(progress / 2); // First half is upload
+        // Update progress for upload phase (0–50%)
+        setProgress(progress / 2);
       },
       onSuccess: async (data) => {
         // Upload complete, start processing phase
         setIsProcessing(true);
 
-        // Simulate processing progress from 50% to 95%
-        let processingProgress = 50;
-        const progressInterval = setInterval(() => {
-          processingProgress += 2;
-          if (processingProgress >= 95) {
-            clearInterval(progressInterval);
-            processingProgress = 95;
-          }
-          setProgress(processingProgress);
-        }, 500);
-
-        // Check if this is a large job that requires status polling
         if (data.isLargeJob && data.jobId && data.statusUrl) {
-          clearInterval(progressInterval); // Clear interval as we'll use polling
-
-          // Start polling for status updates
+          // Large job: start polling
           setJobId(data.jobId);
           setStatusUrl(data.statusUrl);
           setIsPolling(true);
 
-          toast.info(
-            t("splitPdf.largeSplitStarted") || "Large PDF split started",
-            {
-              description:
-                t("splitPdf.largeSplitDesc") ||
-                "This may take a few minutes. You'll be notified when it's complete.",
-            }
-          );
+          toast.info(t("splitPdf.largeSplitStarted"), {
+            description: t("splitPdf.largeSplitDesc"),
+          });
         } else {
-          // Small job with immediate result
-          clearInterval(progressInterval);
+          // Small job: immediate result
           setProgress(100);
           setSplitResult(data);
+          setIsProcessing(false);
 
           toast.success(t("splitPdf.success"), {
             description: t("splitPdf.successDesc"),
           });
-
-          setIsProcessing(false);
         }
       },
       onError: (err) => {
         setError(err.message || t("splitPdf.error.unknown"));
+        setProgress(0);
+        setIsProcessing(false);
 
         toast.error(t("splitPdf.error.failed"), {
           description: err.message || t("splitPdf.error.unknown"),
         });
-
-        setIsProcessing(false);
       },
     });
   };
 
-  // Helper function to get split parts safely from different response formats
+  // Helper function to get split parts safely
   const getSplitParts = useCallback(
     (result: SplitResult | null): SplitPart[] => {
       if (!result) return [];
-
-      // Handle status API response format (has results property)
       if (result.results && Array.isArray(result.results)) {
         return result.results;
       }
-
-      // Handle direct API response format (has splitParts property)
       if (result.splitParts && Array.isArray(result.splitParts)) {
         return result.splitParts;
       }
-
       return [];
     },
     []
@@ -411,10 +384,14 @@ export function PdfSplitter() {
                   : file
                   ? "border-green-500 bg-green-50 dark:bg-green-950/20"
                   : "border-muted-foreground/25 hover:border-muted-foreground/50",
-                isProcessing && "pointer-events-none opacity-80"
+                (isUploading || isProcessing) &&
+                  "pointer-events-none opacity-80"
               )}
             >
-              <input {...getInputProps()} disabled={isProcessing} />
+              <input
+                {...getInputProps()}
+                disabled={isUploading || isProcessing}
+              />
 
               {file ? (
                 <div className="flex flex-col items-center gap-2">
@@ -424,14 +401,15 @@ export function PdfSplitter() {
                   <div>
                     <p className="text-sm font-medium">{file.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatFileSize(file.size)} • {totalPages} pages
+                      {formatFileSize(file.size)} • {totalPages}{" "}
+                      {t("splitPdf.pages")}
                     </p>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={isProcessing}
+                    disabled={isUploading || isProcessing}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRemoveFile();
@@ -466,7 +444,7 @@ export function PdfSplitter() {
             </div>
 
             {/* Split Options */}
-            {file && !splitResult && !isPolling && (
+            {file && !splitResult && (
               <div>
                 <FormField
                   control={form.control}
@@ -479,6 +457,7 @@ export function PdfSplitter() {
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
+                          disabled={isUploading || isProcessing}
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="range" id="range-option" />
@@ -530,7 +509,7 @@ export function PdfSplitter() {
                           <Input
                             placeholder="Example: 1-5, 8, 11-13"
                             {...field}
-                            disabled={isProcessing}
+                            disabled={isUploading || isProcessing}
                           />
                         </FormControl>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -563,7 +542,7 @@ export function PdfSplitter() {
                                 field.onChange(value);
                               }
                             }}
-                            disabled={isProcessing}
+                            disabled={isUploading || isProcessing}
                           />
                         </FormControl>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -578,27 +557,28 @@ export function PdfSplitter() {
             )}
 
             {/* Error Message */}
-            {error && (
+            {(error || uploadError) && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>uploadError</AlertDescription>
               </Alert>
             )}
 
             {/* Progress Indicator */}
-            {(isUploading || isProcessing) && (
+            {(isUploading || isProcessing || isPolling) && (
               <UploadProgress
                 progress={progress}
                 isUploading={isUploading}
-                isProcessing={isProcessing}
-                processingProgress={progress}
-                error={uploadError}
+                isProcessing={isProcessing || isPolling}
                 label={
                   isUploading
-                    ? t("watermarkPdf.uploading")
+                    ? t("splitPdf.uploading")
+                    : isPolling
+                    ? t("splitPdf.splittingLarge")
                     : t("splitPdf.splitting")
                 }
-                uploadStats={uploadStats}
+                error={uploadError}
+                uploadStats={isUploading ? uploadStats : undefined} // Only show stats during upload
               />
             )}
 
@@ -670,15 +650,17 @@ export function PdfSplitter() {
             )}
           </CardContent>
           <CardFooter className="flex justify-end">
-            {file && !splitResult && !isPolling && (
-              <Button type="submit" disabled={isProcessing || !file}>
-                {isProcessing
-                  ? t("ui.processing")
-                  : t("splitPdf.splitDocument")}
-              </Button>
-            )}
+            {file &&
+              !splitResult &&
+              !isUploading &&
+              !isProcessing &&
+              !isPolling && (
+                <Button type="submit" disabled={isUploading || isProcessing}>
+                  {t("splitPdf.splitDocument")}
+                </Button>
+              )}
 
-            {(splitResult || isPolling) && (
+            {(splitResult || isUploading || isProcessing || isPolling) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -687,9 +669,10 @@ export function PdfSplitter() {
                   setIsPolling(false);
                   setJobId(null);
                   setStatusUrl(null);
+                  setProgress(0);
                   form.reset();
                 }}
-                disabled={isProcessing}
+                disabled={isUploading || isProcessing}
               >
                 {t("ui.reupload")}
               </Button>

@@ -39,7 +39,7 @@ import useFileUpload from "@/hooks/useFileUpload";
 import { UploadProgress } from "./ui/upload-progress";
 
 // Initialize pdf.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
 interface PageRotation {
   pageNumber: number;
