@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files for efficient caching
 COPY app/package.json app/package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with more verbose output and fallback to npm install
+RUN npm ci --verbose || npm install
 
 # Copy the rest of the application
 COPY app/ ./
