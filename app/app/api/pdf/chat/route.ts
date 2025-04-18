@@ -13,7 +13,7 @@ import { sanitizeInput } from '@/lib/sanitize-input';
 import { log } from 'console';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || "invalid"
 });
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
