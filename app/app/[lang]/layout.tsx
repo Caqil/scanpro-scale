@@ -1,20 +1,20 @@
 // app/[lang]/layout.tsx
-import type React from "react"
-import type { Metadata } from "next"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { Footer } from "@/components/footer"
-import { ProHeader } from "@/components/pro-header"
-import { notFound } from "next/navigation"
+import type React from "react";
+import type { Metadata } from "next";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/footer";
+import { ProHeader } from "@/components/pro-header";
+import { notFound } from "next/navigation";
 import { Inter as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
-import "../globals.css"
-import { Analytics } from '@/lib/analytics'
+import "../globals.css";
+import { Analytics } from "@/lib/analytics";
 
 // Import language configuration
 import { SUPPORTED_LANGUAGES, getTranslation } from "@/src/lib/i18n/config";
-import { AuthProvider } from "./providers"
-import { CookieConsentBanner } from "@/components/cookie-banner-component"
+import { AuthProvider } from "./providers";
+import { CookieConsentBanner } from "@/components/cookie-banner-component";
 
 // Font configuration - optimize with display: swap
 export const fontSans = FontSans({
@@ -25,21 +25,25 @@ export const fontSans = FontSans({
 
 // For static generation of all language variants
 export function generateStaticParams() {
-  return SUPPORTED_LANGUAGES.map((lang) => ({ lang }))
+  return SUPPORTED_LANGUAGES.map((lang) => ({ lang }));
 }
 
 // Generate metadata based on language parameter
-export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
   // Await the params object before accessing its properties
-  const { lang } = await params
+  const { lang } = await params;
 
   // Validate language parameter
   if (!SUPPORTED_LANGUAGES.includes(lang)) {
-    notFound()
+    notFound();
   }
 
   // Create a translation function similar to t()
-  const t = (key: string) => getTranslation(lang, key)
+  const t = (key: string) => getTranslation(lang, key);
 
   return {
     title: {
@@ -47,42 +51,44 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
       template: t("metadata.template"),
     },
     description: t("metadata.description"),
-    keywords:t("metadata.keywords"),
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://scanpro.cc"),
+    keywords: t("metadata.keywords"),
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_APP_URL || "https://scanpro.cc"
+    ),
     alternates: {
       canonical: `/${lang}`,
       languages: Object.fromEntries(
-        SUPPORTED_LANGUAGES.map(code => [
-          code,
-          `/${code}`
-        ])
+        SUPPORTED_LANGUAGES.map((code) => [code, `/${code}`])
       ),
     },
-  }
+  };
 }
 
 export default async function Layout({
   children,
   params,
 }: Readonly<{
-  children: React.ReactNode
-  params: Promise<{ lang: string }>
+  children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }>) {
   // Await the params object before accessing its properties
-  const { lang } = await params
+  const { lang } = await params;
 
   // Validate language parameter
   if (!SUPPORTED_LANGUAGES.includes(lang)) {
-    notFound()
+    notFound();
   }
-  const isRTL = lang === 'ar';
-  
+  const isRTL = lang === "ar";
+
   return (
     <html lang={lang} dir={isRTL ? "rtl" : "ltr"} suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-      </head>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+      <head></head>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
+      >
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <div className="relative flex min-h-screen flex-col">
@@ -100,5 +106,5 @@ export default async function Layout({
         <Analytics />
       </body>
     </html>
-  )
+  );
 }

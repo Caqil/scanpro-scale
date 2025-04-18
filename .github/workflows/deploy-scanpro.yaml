@@ -19,7 +19,7 @@ on:
 
 env:
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/scanpro
+  IMAGE_NAME: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.IMAGE_NAME }}
 
 jobs:
   build-and-push:

@@ -1,0 +1,29 @@
+name: Scheduled Cleanup
+
+on:
+  schedule:
+    # Run every hour, at minute 0
+    - cron: "0 * * * *"
+  # Optional: Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Cleanup API
+        run: |
+          curl -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://scanpro.cc/api/admin/cleanup?maxAge=60"
+
+      - name: Check API Response
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://scanpro.cc/api/admin/cleanup?maxAge=60")
+          http_code=$(echo "$response" | tail -n1)
+          content=$(echo "$response" | sed '$d')
+          echo "HTTP Status Code: $http_code"
+          echo "Response content: $content"
+
+          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+            echo "API call failed with status code $http_code"
+            exit 1
+          fi
