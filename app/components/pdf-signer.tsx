@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { SignatureCanvas } from "./sign/signature-canvas";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
 export type ElementType =
   | "signature"

@@ -1,10 +1,16 @@
-# Production image
-FROM node:20
 
-# Set working directory
+
+# Build stage
+FROM node:20 AS builder
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-# Install system dependencies...
+# Production stage
+FROM node:20
+WORKDIR /app
 RUN apt-get update && apt-get install -y \
     ghostscript \
     libreoffice \
@@ -26,13 +32,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install Python packages in the virtual environment
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir ocrmypdf PyPDF2
-COPY app/.next/standalone ./
-COPY app/.next/static ./.next/static
-COPY app/public ./public
-
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 EXPOSE 3000
-
 ENV NODE_ENV=production
 ENV PORT=3000
-
 CMD ["node", "server.js"]
