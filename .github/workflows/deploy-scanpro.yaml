@@ -18,7 +18,8 @@ on:
           - production
 
 env:
-  DOCKER_IMAGE: cakr/scanpro-frontend
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: cakr/scanpro-frontend
 
 jobs:
   build-and-push:
