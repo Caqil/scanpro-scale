@@ -64,7 +64,7 @@ jobs:
     name: Deploy to Kubernetes
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'production' }}
+    environment: ${{ 'production' }}
 
     steps:
       - name: Checkout Code
