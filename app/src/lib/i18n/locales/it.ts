@@ -1186,7 +1186,7 @@ export default {
       viewAll: "Vedi tutti gli strumenti"
     }
   },
-  
+
   // Protect PDF Page
   protectPdf: {
     title: "Proteger PDF con Contraseña",
@@ -3012,6 +3012,85 @@ export default {
     relatedTools: {
       title: "Strumenti correlati"
     }
-  }
+  },
+  pdfChat: {
+    title: "Chiedi Qualsiasi Cosa PDF Chat",
+    description: "Carica un PDF e fai domande sul suo contenuto",
+    seo: {
+      title: "Chiedi Qualsiasi Cosa PDF Chat - Analisi Interattiva di Documenti PDF",
+      description: "Carica un documento PDF e fai domande in linguaggio naturale per ottenere rapidamente risposte, riassunti e approfondimenti da qualsiasi file PDF.",
+      keywords: "chat pdf, domande pdf, analisi pdf, ai documenti, assistente pdf, analisi documenti"
+    },
+    whatYouCanAsk: {
+      title: "Cosa Puoi Chiedere",
+      summary: {
+        title: "Ottieni Riassunti",
+        description: "Chiedi riassunti di sezioni specifiche o dell'intero documento."
+      },
+      find: {
+        title: "Trova Informazioni",
+        description: "Chiedi dove compaiono informazioni specifiche nel documento."
+      },
+      extract: {
+        title: "Estrai Punti Chiave",
+        description: "Chiedi elenchi di punti chiave, date, nomi o altre informazioni importanti."
+      },
+      explain: {
+        title: "Ottieni Spiegazioni",
+        description: "Chiedi spiegazioni di concetti complessi menzionati nel documento."
+      }
+    },
+    faq: {
+      title: "Domande Frequenti",
+      q1: {
+        question: "Quali tipi di PDF posso usare?",
+        answer: "Puoi usare qualsiasi file PDF che contenga testo. Il sistema funziona meglio con PDF digitali, ma può anche elaborare documenti scansionati con testo leggibile."
+      },
+      q2: {
+        question: "I miei dati PDF sono sicuri?",
+        answer: "Sì, il tuo PDF viene elaborato in modo sicuro. Non archiviamo permanentemente il contenuto dei tuoi documenti e tutta l'elaborazione avviene in un ambiente sicuro."
+      },
+      q3: {
+        question: "Ci sono limiti di dimensione?",
+        answer: "Sì, attualmente la dimensione massima del file è 50MB. Per documenti molto grandi, potresti dividerli in parti più piccole per una migliore elaborazione."
+      },
+      q4: {
+        question: "L'AI comprenderà tabelle e grafici?",
+        answer: "L'AI può estrarre e interpretare testo da tabelle, ma la comprensione di grafici o diagrammi complessi potrebbe essere limitata. Funziona meglio con contenuti testuali."
+      }
+    },
+    seoContent: {
+      title: "Migliora la Tua Analisi dei Documenti",
+      p1: "La nostra funzione \"Chiedi Qualsiasi Cosa\" utilizza un'AI avanzata per aiutarti a estrarre rapidamente approfondimenti da documenti PDF. Che tu stia analizzando articoli di ricerca, contratti legali, manuali tecnici o qualsiasi documento ricco di testo, questo strumento ti aiuta a trovare le informazioni di cui hai bisogno senza passare ore a leggere pagine di contenuti.",
+      p2: "L'assistente AI può comprendere il contesto delle tue domande e fornire informazioni pertinenti dal documento. Può identificare sezioni chiave, riassumere contenuti, spiegare termini complessi e persino trovare dettagli specifici come date, importi o clausole che potrebbero essere sepolti nel testo.",
+      p3: "Questa funzione è particolarmente utile per professionisti che devono analizzare documenti rapidamente, studenti che ricercano articoli accademici o chiunque voglia risparmiare tempo accedendo direttamente alle informazioni importanti nei propri PDF.",
+      p4: "Provalo ora caricando il tuo PDF e facendo una domanda!"
+    },
+    uploading: "Caricamento PDF...",
+    processing: "Elaborazione PDF...",
+    thinking: "Elaborazione...",
+    send: "Invia",
+    uploadPrompt: "Carica il tuo documento PDF",
+    askPrompt: "Fai una domanda sul documento...",
+    newPdf: "Nuovo PDF",
+    dropHereDesc: "Trascina il tuo file PDF qui o fai clic per sfogliare. Lo analizzerò in modo che tu possa fare domande sul contenuto.",
+    securityNote: "I tuoi file vengono elaborati in modo sicuro e non vengono archiviati permanentemente.",
+    poweredBy: "Supportato da OpenAI",
+    howItWorks: {
+      title: "Come Funziona",
+      step1: {
+        title: "Carica il tuo PDF",
+        description: "Basta trascinare e rilasciare il tuo file PDF nell'area di caricamento o fare clic per sfogliare i tuoi file."
+      },
+      step2: {
+        title: "L'AI elabora il contenuto",
+        description: "La nostra AI analizza rapidamente l'intero documento per comprenderne il contenuto e la struttura."
+      },
+      step3: {
+        title: "Fai domande",
+        description: "Chiedi qualsiasi cosa sul documento e ottieni risposte accurate tratte dal contenuto del PDF."
+      }
+    },
+  },
 
-};
+}

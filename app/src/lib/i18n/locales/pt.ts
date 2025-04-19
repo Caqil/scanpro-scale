@@ -2937,6 +2937,85 @@ export default {
     relatedTools: {
       title: "Ferramentas relacionadas"
     }
-  }
+  },
+  pdfChat: {
+    title: "Chat de PDF Pergunte Qualquer Coisa",
+    description: "Envie um PDF e faça perguntas sobre seu conteúdo",
+    seo: {
+      title: "Chat de PDF Pergunte Qualquer Coisa - Análise Interativa de Documentos PDF",
+      description: "Envie um documento PDF e faça perguntas em linguagem natural para obter rapidamente respostas, resumos e insights de qualquer arquivo PDF.",
+      keywords: "chat pdf, perguntas pdf, análise pdf, ia de documentos, assistente pdf, análise de documentos"
+    },
+    whatYouCanAsk: {
+      title: "O Que Você Pode Perguntar",
+      summary: {
+        title: "Obter Resumos",
+        description: "Peça resumos de seções específicas ou de todo o documento."
+      },
+      find: {
+        title: "Encontrar Informações",
+        description: "Pergunte onde informações específicas aparecem no documento."
+      },
+      extract: {
+        title: "Extrair Pontos Chave",
+        description: "Peça listas de pontos chave, datas, nomes ou outras informações importantes."
+      },
+      explain: {
+        title: "Obter Explicações",
+        description: "Peça explicações de conceitos complexos mencionados no documento."
+      }
+    },
+    faq: {
+      title: "Perguntas Frequentes",
+      q1: {
+        question: "Quais tipos de PDF posso usar?",
+        answer: "Você pode usar qualquer arquivo PDF que contenha texto. O sistema funciona melhor com PDFs digitais, mas também pode processar documentos digitalizados com texto legível."
+      },
+      q2: {
+        question: "Meus dados PDF estão seguros?",
+        answer: "Sim, seu PDF é processado com segurança. Não armazenamos permanentemente o conteúdo de seus documentos e todo o processamento é feito em um ambiente seguro."
+      },
+      q3: {
+        question: "Há limitações de tamanho?",
+        answer: "Sim, atualmente o tamanho máximo do arquivo é 50MB. Para documentos muito grandes, você pode dividi-los em partes menores para melhor processamento."
+      },
+      q4: {
+        question: "A IA entenderá tabelas e gráficos?",
+        answer: "A IA pode extrair e interpretar texto de tabelas, mas o entendimento de gráficos ou diagramas complexos pode ser limitado. Funciona melhor com conteúdo textual."
+      }
+    },
+    seoContent: {
+      title: "Melhore Sua Análise de Documentos",
+      p1: "Nosso recurso \"Pergunte Qualquer Coisa\" utiliza IA avançada para ajudá-lo a extrair rapidamente insights de documentos PDF. Seja analisando artigos de pesquisa, contratos legais, manuais técnicos ou qualquer documento com muito texto, esta ferramenta ajuda você a encontrar as informações necessárias sem gastar horas lendo páginas de conteúdo.",
+      p2: "O assistente de IA pode entender o contexto de suas perguntas e fornecer informações relevantes do documento. Pode identificar seções chave, resumir conteúdo, explicar termos complexos e até encontrar detalhes específicos como datas, valores ou cláusulas que podem estar enterrados no texto.",
+      p3: "Este recurso é particularmente útil para profissionais que precisam analisar documentos rapidamente, estudantes pesquisando artigos acadêmicos ou qualquer pessoa que queira economizar tempo indo direto às informações importantes em seus PDFs.",
+      p4: "Experimente agora enviando seu PDF e fazendo uma pergunta!"
+    },
+    uploading: "Enviando PDF...",
+    processing: "Processando PDF...",
+    thinking: "Processando...",
+    send: "Enviar",
+    uploadPrompt: "Envie seu documento PDF",
+    askPrompt: "Faça uma pergunta sobre o documento...",
+    newPdf: "Novo PDF",
+    dropHereDesc: "Arraste seu arquivo PDF aqui ou clique para procurar. Vou analisá-lo para que você possa fazer perguntas sobre o conteúdo.",
+    securityNote: "Seus arquivos são processados com segurança e não são armazenados permanentemente.",
+    poweredBy: "Desenvolvido por OpenAI",
+    howItWorks: {
+      title: "Como Funciona",
+      step1: {
+        title: "Envie seu PDF",
+        description: "Basta arrastar e soltar seu arquivo PDF na área de upload ou clicar para procurar seus arquivos."
+      },
+      step2: {
+        title: "IA processa o conteúdo",
+        description: "Nossa IA analisa rapidamente todo o documento para entender seu conteúdo e estrutura."
+      },
+      step3: {
+        title: "Faça perguntas",
+        description: "Pergunte qualquer coisa sobre o documento e obtenha respostas precisas extraídas do conteúdo do PDF."
+      }
+    },
+  },
 
 }

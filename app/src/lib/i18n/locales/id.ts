@@ -2943,6 +2943,85 @@ export default {
     relatedTools: {
       title: "Alat Terkait"
     }
-  }
+  },
+  pdfChat: {
+    title: "Tanya Apa Saja PDF Chat",
+    description: "Unggah PDF dan ajukan pertanyaan tentang isinya",
+    seo: {
+      title: "Tanya Apa Saja PDF Chat - Analisis Dokumen PDF Interaktif",
+      description: "Unggah dokumen PDF dan ajukan pertanyaan dalam bahasa alami untuk dengan cepat mendapatkan jawaban, ringkasan, dan wawasan dari file PDF apa pun.",
+      keywords: "chat pdf, tanya pdf, analisis pdf, ai dokumen, asisten pdf, analisis dokumen"
+    },
+    whatYouCanAsk: {
+      title: "Apa yang Dapat Anda Tanyakan",
+      summary: {
+        title: "Dapatkan Ringkasan",
+        description: "Minta ringkasan bagian tertentu atau seluruh dokumen."
+      },
+      find: {
+        title: "Temukan Informasi",
+        description: "Tanyakan di mana informasi tertentu muncul dalam dokumen."
+      },
+      extract: {
+        title: "Ekstrak Poin Penting",
+        description: "Minta daftar poin penting, tanggal, nama, atau informasi penting lainnya."
+      },
+      explain: {
+        title: "Dapatkan Penjelasan",
+        description: "Minta penjelasan tentang konsep kompleks yang disebutkan dalam dokumen."
+      }
+    },
+    faq: {
+      title: "Pertanyaan yang Sering Diajukan",
+      q1: {
+        question: "Jenis PDF apa yang bisa saya gunakan?",
+        answer: "Anda bisa menggunakan file PDF apa pun yang berisi konten teks. Sistem bekerja paling baik dengan PDF digital, tetapi juga dapat memproses dokumen yang dipindai dengan teks yang dapat dibaca."
+      },
+      q2: {
+        question: "Apakah data PDF saya aman?",
+        answer: "Ya, PDF Anda diproses dengan aman. Kami tidak menyimpan konten dokumen Anda secara permanen, dan semua pemrosesan dilakukan di lingkungan yang aman."
+      },
+      q3: {
+        question: "Apakah ada batasan ukuran?",
+        answer: "Ya, saat ini ukuran file maksimum adalah 50MB. Untuk dokumen yang sangat besar, Anda mungkin ingin membaginya menjadi bagian-bagian yang lebih kecil untuk pemrosesan yang lebih baik."
+      },
+      q4: {
+        question: "Apakah AI akan memahami tabel dan grafik?",
+        answer: "AI dapat mengekstrak dan menafsirkan teks dari tabel, tetapi pemahaman grafik atau diagram kompleks mungkin terbatas. Ini bekerja paling baik dengan konten teks."
+      }
+    },
+    seoContent: {
+      title: "Tingkatkan Analisis Dokumen Anda",
+      p1: "Fitur \"Tanya Apa Saja\" kami memanfaatkan AI canggih untuk membantu Anda dengan cepat mengekstrak wawasan dari dokumen PDF. Baik Anda menganalisis makalah penelitian, kontrak hukum, manual teknis, atau dokumen apa pun yang banyak teks, alat ini membantu Anda menemukan informasi yang Anda butuhkan tanpa menghabiskan berjam-jam membaca halaman konten.",
+      p2: "Asisten AI dapat memahami konteks pertanyaan Anda dan memberikan informasi relevan dari dokumen. Ini dapat mengidentifikasi bagian penting, merangkum konten, menjelaskan istilah kompleks, dan bahkan menemukan detail spesifik seperti tanggal, jumlah, atau klausa yang mungkin terkubur dalam teks.",
+      p3: "Fitur ini sangat berguna untuk profesional yang perlu menganalisis dokumen dengan cepat, siswa yang meneliti makalah akademik, atau siapa pun yang ingin menghemat waktu dengan langsung mendapatkan informasi penting dalam PDF mereka.",
+      p4: "Coba sekarang dengan mengunggah PDF Anda dan mengajukan pertanyaan!"
+    },
+    uploading: "Mengunggah PDF...",
+    processing: "Memproses PDF...",
+    thinking: "Memproses...",
+    send: "Kirim",
+    uploadPrompt: "Unggah dokumen PDF Anda",
+    askPrompt: "Ajukan pertanyaan tentang dokumen...",
+    newPdf: "PDF Baru",
+    dropHereDesc: "Letakkan file PDF Anda di sini atau klik untuk menelusuri. Saya akan menganalisisnya sehingga Anda dapat mengajukan pertanyaan tentang kontennya.",
+    securityNote: "File Anda diproses dengan aman dan tidak disimpan secara permanen.",
+    poweredBy: "Didukung oleh OpenAI",
+    howItWorks: {
+      title: "Cara Kerjanya",
+      step1: {
+        title: "Unggah PDF Anda",
+        description: "Cukup seret dan lepas file PDF Anda ke area unggahan atau klik untuk menelusuri file Anda."
+      },
+      step2: {
+        title: "AI Memproses Konten",
+        description: "AI kami dengan cepat menganalisis seluruh dokumen untuk memahami konten dan strukturnya."
+      },
+      step3: {
+        title: "Ajukan Pertanyaan",
+        description: "Tanyakan apa saja tentang dokumen dan dapatkan jawaban akurat yang diambil dari konten PDF."
+      }
+    },
+  },
 
 }

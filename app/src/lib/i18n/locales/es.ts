@@ -2938,6 +2938,85 @@ export default {
     relatedTools: {
       title: "Herramientas relacionadas"
     }
-  }
+  },
+  pdfChat: {
+    title: "Chat de Preguntas sobre PDF",
+    description: "Sube un PDF y haz preguntas sobre su contenido",
+    seo: {
+      title: "Chat de Preguntas sobre PDF - Análisis Interactivo de Documentos PDF",
+      description: "Sube un documento PDF y haz preguntas en lenguaje natural para obtener rápidamente respuestas, resúmenes y conocimientos de cualquier archivo PDF.",
+      keywords: "chat PDF, preguntas PDF, análisis PDF, IA de documentos, asistente PDF, análisis de documentos"
+    },
+    whatYouCanAsk: {
+      title: "Qué Puedes Preguntar",
+      summary: {
+        title: "Obtener Resúmenes",
+        description: "Pide resúmenes de secciones específicas o de todo el documento."
+      },
+      find: {
+        title: "Encontrar Información",
+        description: "Pregunta dónde aparece información específica en el documento."
+      },
+      extract: {
+        title: "Extraer Puntos Clave",
+        description: "Pide listas de puntos clave, fechas, nombres u otra información importante."
+      },
+      explain: {
+        title: "Obtener Explicaciones",
+        description: "Pide explicaciones de conceptos complejos mencionados en el documento."
+      }
+    },
+    faq: {
+      title: "Preguntas Frecuentes",
+      q1: {
+        question: "¿Qué tipos de PDF puedo usar?",
+        answer: "Puedes usar cualquier archivo PDF que contenga texto. El sistema funciona mejor con PDFs digitales, pero también puede procesar documentos escaneados con texto legible."
+      },
+      q2: {
+        question: "¿Mis datos PDF están seguros?",
+        answer: "Sí, tu PDF se procesa de forma segura. No almacenamos permanentemente el contenido de tus documentos y todo el procesamiento se realiza en un entorno seguro."
+      },
+      q3: {
+        question: "¿Hay límites de tamaño?",
+        answer: "Sí, actualmente el tamaño máximo de archivo es de 50MB. Para documentos muy grandes, puedes dividirlos en partes más pequeñas para un mejor procesamiento."
+      },
+      q4: {
+        question: "¿La IA entenderá tablas y gráficos?",
+        answer: "La IA puede extraer e interpretar texto de tablas, pero la comprensión de gráficos o diagramas complejos puede ser limitada. Funciona mejor con contenido textual."
+      }
+    },
+    seoContent: {
+      title: "Mejora tu Análisis de Documentos",
+      p1: "Nuestra función \"Pregunta lo que Quieras\" utiliza IA avanzada para ayudarte a extraer rápidamente conocimientos de documentos PDF. Ya sea que estés analizando trabajos de investigación, contratos legales, manuales técnicos o cualquier documento con mucho texto, esta herramienta te ayuda a encontrar la información que necesitas sin pasar horas leyendo páginas de contenido.",
+      p2: "El asistente de IA puede entender el contexto de tus preguntas y proporcionar información relevante del documento. Puede identificar secciones clave, resumir contenido, explicar términos complejos e incluso encontrar detalles específicos como fechas, cantidades o cláusulas que podrían estar enterradas en el texto.",
+      p3: "Esta función es especialmente útil para profesionales que necesitan analizar documentos rápidamente, estudiantes que investigan trabajos académicos o cualquier persona que quiera ahorrar tiempo yendo directamente a la información importante en sus PDFs.",
+      p4: "¡Pruébalo ahora subiendo tu PDF y haciendo una pregunta!"
+    },
+    uploading: "Subiendo PDF...",
+    processing: "Procesando PDF...",
+    thinking: "Pensando...",
+    send: "Enviar",
+    uploadPrompt: "Sube tu documento PDF",
+    askPrompt: "Haz una pregunta sobre el documento...",
+    newPdf: "Nuevo PDF",
+    dropHereDesc: "Arrastra tu archivo PDF aquí o haz clic para buscar. Lo analizaré para que puedas hacer preguntas sobre el contenido.",
+    securityNote: "Tus archivos se procesan de forma segura y no se almacenan permanentemente.",
+    poweredBy: "Desarrollado por OpenAI",
+    howItWorks: {
+      title: "Cómo Funciona",
+      step1: {
+        title: "Sube tu PDF",
+        description: "Simplemente arrastra y suelta tu archivo PDF en el área de carga o haz clic para buscar tus archivos."
+      },
+      step2: {
+        title: "La IA procesa el contenido",
+        description: "Nuestra IA analiza rápidamente todo el documento para entender su contenido y estructura."
+      },
+      step3: {
+        title: "Haz preguntas",
+        description: "Pregunta lo que quieras sobre el documento y obtén respuestas precisas basadas en el contenido del PDF."
+      }
+    },
+  },
 
 }

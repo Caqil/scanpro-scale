@@ -2940,6 +2940,85 @@ export default {
         relatedTools: {
             title: "相关工具"
         }
-    }
+    },
+    pdfChat: {
+        title: "PDF问答聊天",
+        description: "上传PDF并询问其内容相关问题",
+        seo: {
+            title: "PDF问答聊天 - 交互式PDF文档分析",
+            description: "上传PDF文档并通过自然语言提问，快速从任何PDF文件中获取答案、摘要和见解。",
+            keywords: "pdf聊天, pdf提问, pdf分析, 文档ai, pdf助手, 文档分析"
+        },
+        whatYouCanAsk: {
+            title: "您可以询问的内容",
+            summary: {
+                title: "获取摘要",
+                description: "请求特定章节或整个文档的摘要。"
+            },
+            find: {
+                title: "查找信息",
+                description: "询问特定信息在文档中出现的位置。"
+            },
+            extract: {
+                title: "提取关键点",
+                description: "请求关键点、日期、名称或其他重要信息的列表。"
+            },
+            explain: {
+                title: "获取解释",
+                description: "请求解释文档中提到的复杂概念。"
+            }
+        },
+        faq: {
+            title: "常见问题",
+            q1: {
+                question: "可以使用哪些类型的PDF？",
+                answer: "您可以使用任何包含文本内容的PDF文件。系统最适合处理数字PDF，但也可以处理带有可读文本的扫描文档。"
+            },
+            q2: {
+                question: "我的PDF数据安全吗？",
+                answer: "是的，您的PDF会被安全处理。我们不会永久存储您的文档内容，所有处理都在安全环境中完成。"
+            },
+            q3: {
+                question: "有大小限制吗？",
+                answer: "是的，目前最大文件大小为50MB。对于非常大的文档，您可能需要将其分成较小的部分以获得更好的处理效果。"
+            },
+            q4: {
+                question: "AI能理解表格和图表吗？",
+                answer: "AI可以从表格中提取和解释文本，但对复杂图表或图形的理解可能有限。最适合处理文本内容。"
+            }
+        },
+        seoContent: {
+            title: "增强您的文档分析",
+            p1: "我们的\"问答\"功能利用先进AI帮助您快速从PDF文档中提取见解。无论您是在分析研究论文、法律合同、技术手册还是任何文本密集的文档，此工具都能帮助您找到所需信息，而无需花费数小时阅读大量内容。",
+            p2: "AI助手可以理解您的问题背景，并从文档中提供相关信息。它可以识别关键部分、总结内容、解释复杂术语，甚至可以找到深埋在文本中的具体细节，如日期、金额或条款。",
+            p3: "此功能特别适合需要快速分析文档的专业人士、研究学术论文的学生，或任何希望通过直接获取PDF中重要信息来节省时间的人。",
+            p4: "立即上传您的PDF并提问试试吧！"
+        },
+        uploading: "正在上传PDF...",
+        processing: "正在处理PDF...",
+        thinking: "思考中...",
+        send: "发送",
+        uploadPrompt: "上传您的PDF文档",
+        askPrompt: "询问关于文档的问题...",
+        newPdf: "新建PDF",
+        dropHereDesc: "将PDF文件拖放到此处或点击浏览。我将分析它以便您可以就内容提问。",
+        securityNote: "您的文件会被安全处理且不会永久存储。",
+        poweredBy: "由OpenAI提供支持",
+        howItWorks: {
+            title: "工作原理",
+            step1: {
+                title: "上传您的PDF",
+                description: "只需将PDF文件拖放到上传区域或点击浏览您的文件。"
+            },
+            step2: {
+                title: "AI处理内容",
+                description: "我们的AI快速分析整个文档以理解其内容和结构。"
+            },
+            step3: {
+                title: "提出问题",
+                description: "询问有关文档的任何问题，并从PDF内容中获得准确答案。"
+            }
+        },
+    },
 
 }

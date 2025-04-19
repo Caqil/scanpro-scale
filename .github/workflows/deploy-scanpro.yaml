@@ -25,8 +25,6 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.meta.outputs.version }}
 
     steps:
       - name: Checkout Code
@@ -88,27 +86,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Decode Kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > kubeconfig
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          mv kubeconfig ~/.kube/config
+
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: "latest"
 
-      - name: Set up kubeconfig
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
-
       - name: Update Deployment Image
         run: |
-          IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          kubectl set image deployment/scanpro -n scanpro scanpro=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} --record
+          IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          kubectl set image deployment/scanpro -n scanpro scanpro=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG
+
           kubectl rollout status deployment/scanpro -n scanpro --timeout=300s
           echo "Deployment updated successfully!"
 
       - name: Run Database Migrations
         run: |
-          IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          IMAGE_TAG="sha-${GITHUB_SHA::7}"
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
           kind: Pod
@@ -119,7 +121,7 @@ jobs:
             restartPolicy: Never
             containers:
             - name: migrations
-              image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+              image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG
               command: ["sh", "-c", "npx prisma migrate deploy"]
               env:
               - name: DATABASE_URL
@@ -138,7 +140,6 @@ jobs:
           kubectl get deployment scanpro -n scanpro -o wide
           kubectl get pods -n scanpro -l app=scanpro
           kubectl get ingress -n scanpro
-          echo "Deployment verification completed"
 
   notify:
     name: Send Deployment Notification
@@ -153,8 +154,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: deployments
-          SLACK_TITLE: "ScanPro Deployment Successful 🚀"
-          SLACK_MESSAGE: 'ScanPro has been successfully deployed to ${{ inputs.environment || ''production'' }}!'
+          SLACK_TITLE: "✅ ScanPro Deployment Successful"
+          SLACK_MESSAGE: "ScanPro has been deployed to ${{ inputs.environment || 'production' }}."
           SLACK_COLOR: good
 
       - name: Send Slack notification on failure
@@ -163,6 +164,6 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: deployments
-          SLACK_TITLE: "ScanPro Deployment Failed ❌"
-          SLACK_MESSAGE: 'Deployment to ${{ inputs.environment || ''production'' }} failed. Please check the GitHub Actions logs.'
+          SLACK_TITLE: "❌ ScanPro Deployment Failed"
+          SLACK_MESSAGE: "Deployment to ${{ inputs.environment || 'production' }} failed. Please check the logs."
           SLACK_COLOR: danger

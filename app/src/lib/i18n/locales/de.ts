@@ -2936,6 +2936,85 @@ export default {
     relatedTools: {
       title: "Verwandte Tools"
     }
-  }
+  },
+  pdfChat: {
+    title: "Fragen Sie alles PDF-Chat",
+    description: "Laden Sie ein PDF hoch und stellen Sie Fragen zu dessen Inhalt",
+    seo: {
+      title: "Fragen Sie alles PDF-Chat - Interaktive PDF-Dokumentenanalyse",
+      description: "Laden Sie ein PDF-Dokument hoch und stellen Sie natürliche Sprachfragen, um schnell Antworten, Zusammenfassungen und Erkenntnisse aus jeder PDF-Datei zu erhalten.",
+      keywords: "PDF-Chat, PDF-Fragen stellen, PDF-Analyse, Dokumenten-KI, PDF-Assistent, Dokumentenanalyse"
+    },
+    whatYouCanAsk: {
+      title: "Was Sie fragen können",
+      summary: {
+        title: "Zusammenfassungen erhalten",
+        description: "Fragen Sie nach Zusammenfassungen bestimmter Abschnitte oder des gesamten Dokuments."
+      },
+      find: {
+        title: "Informationen finden",
+        description: "Fragen Sie, wo bestimmte Informationen im Dokument erscheinen."
+      },
+      extract: {
+        title: "Schlüsselpunkte extrahieren",
+        description: "Fragen Sie nach Listen mit Schlüsselpunkten, Daten, Namen oder anderen wichtigen Informationen."
+      },
+      explain: {
+        title: "Erklärungen erhalten",
+        description: "Fragen Sie nach Erklärungen zu komplexen Konzepten, die im Dokument erwähnt werden."
+      }
+    },
+    faq: {
+      title: "Häufig gestellte Fragen",
+      q1: {
+        question: "Welche Arten von PDFs kann ich verwenden?",
+        answer: "Sie können jede PDF-Datei verwenden, die Textinhalt enthält. Das System funktioniert am besten mit digitalen PDFs, kann aber auch gescannte Dokumente mit lesbarem Text verarbeiten."
+      },
+      q2: {
+        question: "Sind meine PDF-Daten sicher?",
+        answer: "Ja, Ihre PDF wird sicher verarbeitet. Wir speichern den Inhalt Ihrer Dokumente nicht dauerhaft und alle Verarbeitungen erfolgen in einer sicheren Umgebung."
+      },
+      q3: {
+        question: "Gibt es Größenbeschränkungen?",
+        answer: "Ja, derzeit beträgt die maximale Dateigröße 50 MB. Für sehr große Dokumente sollten Sie diese in kleinere Teile aufteilen, um eine bessere Verarbeitung zu ermöglichen."
+      },
+      q4: {
+        question: "Versteht die KI Tabellen und Diagramme?",
+        answer: "Die KI kann Text aus Tabellen extrahieren und interpretieren, aber das Verständnis komplexer Diagramme oder Grafiken kann eingeschränkt sein. Es funktioniert am besten mit Textinhalten."
+      }
+    },
+    seoContent: {
+      title: "Verbessern Sie Ihre Dokumentenanalyse",
+      p1: "Unsere \"Fragen Sie alles\"-Funktion nutzt fortschrittliche KI, um Ihnen zu helfen, schnell Erkenntnisse aus PDF-Dokumenten zu extrahieren. Egal, ob Sie Forschungsarbeiten, juristische Verträge, technische Handbücher oder andere textlastige Dokumente analysieren, dieses Tool hilft Ihnen, die gewünschten Informationen zu finden, ohne stundenlang Seiten mit Inhalten durchlesen zu müssen.",
+      p2: "Der KI-Assistent kann den Kontext Ihrer Fragen verstehen und relevante Informationen aus dem Dokument liefern. Er kann Schlüsselabschnitte identifizieren, Inhalte zusammenfassen, komplexe Begriffe erklären und sogar spezifische Details wie Daten, Beträge oder Klauseln finden, die tief im Text verborgen sein könnten.",
+      p3: "Diese Funktion ist besonders nützlich für Fachleute, die schnell Dokumente analysieren müssen, Studenten, die akademische Arbeiten recherchieren, oder jeden, der Zeit sparen möchte, indem er direkt zu den wichtigen Informationen in seinen PDFs gelangt.",
+      p4: "Probieren Sie es jetzt aus, indem Sie Ihr PDF hochladen und eine Frage stellen!"
+    },
+    uploading: "PDF wird hochgeladen...",
+    processing: "PDF wird verarbeitet...",
+    thinking: "Denken...",
+    send: "Senden",
+    uploadPrompt: "Laden Sie Ihr PDF-Dokument hoch",
+    askPrompt: "Stellen Sie eine Frage zum Dokument...",
+    newPdf: "Neues PDF",
+    dropHereDesc: "Ziehen Sie Ihre PDF-Datei hierher oder klicken Sie zum Durchsuchen. Ich werde sie analysieren, damit Sie Fragen zum Inhalt stellen können.",
+    securityNote: "Ihre Dateien werden sicher verarbeitet und nicht dauerhaft gespeichert.",
+    poweredBy: "Unterstützt von OpenAI",
+    howItWorks: {
+      title: "So funktioniert es",
+      step1: {
+        title: "Laden Sie Ihr PDF hoch",
+        description: "Ziehen Sie Ihre PDF-Datei einfach in den Upload-Bereich oder klicken Sie, um Ihre Dateien durchzusehen."
+      },
+      step2: {
+        title: "KI verarbeitet den Inhalt",
+        description: "Unsere KI analysiert schnell das gesamte Dokument, um dessen Inhalt und Struktur zu verstehen."
+      },
+      step3: {
+        title: "Stellen Sie Fragen",
+        description: "Fragen Sie alles über das Dokument und erhalten Sie genaue Antworten, die aus dem PDF-Inhalt gezogen werden."
+      }
+    },
+  },
 
 }

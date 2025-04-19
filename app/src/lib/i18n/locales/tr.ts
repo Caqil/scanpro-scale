@@ -2942,6 +2942,85 @@ export default {
         relatedTools: {
             title: "İlgili Araçlar"
         }
-    }
+    },
+    pdfChat: {
+        title: "PDF Sohbeti Her Şeyi Sor",
+        description: "Bir PDF yükleyin ve içeriği hakkında sorular sorun",
+        seo: {
+            title: "PDF Sohbeti Her Şeyi Sor - Etkileşimli PDF Belge Analizi",
+            description: "Bir PDF belgesi yükleyin ve doğal dilde sorular sorarak herhangi bir PDF dosyasından hızlıca cevaplar, özetler ve içgörüler elde edin.",
+            keywords: "pdf sohbet, pdf soruları, pdf analizi, belge ai, pdf asistanı, belge analizi"
+        },
+        whatYouCanAsk: {
+            title: "Neler Sorabilirsiniz",
+            summary: {
+                title: "Özetler Alın",
+                description: "Belirli bölümlerin veya tüm belgenin özetlerini isteyin."
+            },
+            find: {
+                title: "Bilgi Bulun",
+                description: "Belgede belirli bilgilerin nerede geçtiğini sorun."
+            },
+            extract: {
+                title: "Ana Noktaları Çıkarın",
+                description: "Ana noktalar, tarihler, isimler veya diğer önemli bilgilerin listesini isteyin."
+            },
+            explain: {
+                title: "Açıklamalar Alın",
+                description: "Belgede bahsedilen karmaşık kavramların açıklamalarını isteyin."
+            }
+        },
+        faq: {
+            title: "Sıkça Sorulan Sorular",
+            q1: {
+                question: "Hangi tür PDF'leri kullanabilirim?",
+                answer: "Metin içeren herhangi bir PDF dosyasını kullanabilirsiniz. Sistem dijital PDF'lerle en iyi şekilde çalışır, ancak okunabilir metin içeren taranmış belgeleri de işleyebilir."
+            },
+            q2: {
+                question: "PDF verilerim güvende mi?",
+                answer: "Evet, PDF'iniz güvenli şekilde işlenir. Belge içeriklerinizi kalıcı olarak saklamıyoruz ve tüm işlemler güvenli bir ortamda yapılır."
+            },
+            q3: {
+                question: "Boyut sınırlamaları var mı?",
+                answer: "Evet, şu anda maksimum dosya boyutu 50MB'dır. Çok büyük belgeler için daha iyi işlem için onları daha küçük parçalara bölebilirsiniz."
+            },
+            q4: {
+                question: "AI tabloları ve grafikleri anlayacak mı?",
+                answer: "AI tablolardan metin çıkarabilir ve yorumlayabilir, ancak karmaşık grafik veya diyagramları anlama yeteneği sınırlı olabilir. Metin içeriğiyle en iyi şekilde çalışır."
+            }
+        },
+        seoContent: {
+            title: "Belge Analizinizi Geliştirin",
+            p1: "\"Her Şeyi Sor\" özelliğimiz, PDF belgelerinden hızlıca içgörü çıkarmanıza yardımcı olmak için gelişmiş AI kullanır. Araştırma makaleleri, yasal sözleşmeler, teknik kılavuzlar veya metin yoğun belgeler analiz ediyor olsanız da, bu araç sayfalar dolusu içeriği okumaya saatler harcamadan ihtiyacınız olan bilgileri bulmanıza yardımcı olur.",
+            p2: "AI asistanı sorularınızın bağlamını anlayabilir ve belgeden ilgili bilgiler sağlayabilir. Ana bölümleri tanımlayabilir, içeriği özetleyebilir, karmaşık terimleri açıklayabilir ve hatta metinde derinlere gömülü tarihler, miktarlar veya maddeler gibi spesifik detayları bulabilir.",
+            p3: "Bu özellik, hızlı belge analizi yapması gereken profesyoneller, akademik makaleler araştıran öğrenciler veya PDF'lerindeki önemli bilgilere doğrudan ulaşarak zaman kazanmak isteyen herkes için özellikle kullanışlıdır.",
+            p4: "Şimdi PDF'nizi yükleyerek ve bir soru sorarak deneyin!"
+        },
+        uploading: "PDF yükleniyor...",
+        processing: "PDF işleniyor...",
+        thinking: "Düşünüyor...",
+        send: "Gönder",
+        uploadPrompt: "PDF belgenizi yükleyin",
+        askPrompt: "Belge hakkında bir soru sorun...",
+        newPdf: "Yeni PDF",
+        dropHereDesc: "PDF dosyanızı buraya bırakın veya gözatmak için tıklayın. İçerik hakkında soru sorabilmeniz için analiz edeceğim.",
+        securityNote: "Dosyalarınız güvenli şekilde işlenir ve kalıcı olarak saklanmaz.",
+        poweredBy: "OpenAI tarafından desteklenmektedir",
+        howItWorks: {
+            title: "Nasıl Çalışır",
+            step1: {
+                title: "PDF'nizi Yükleyin",
+                description: "PDF dosyanızı yükleme alanına sürükleyip bırakın veya dosyalarınıza gözatmak için tıklayın."
+            },
+            step2: {
+                title: "AI İçeriği İşler",
+                description: "AI'mız belgenin içeriğini ve yapısını anlamak için tüm belgeyi hızla analiz eder."
+            },
+            step3: {
+                title: "Sorular Sorun",
+                description: "Belge hakkında her şeyi sorun ve PDF içeriğinden doğru cevaplar alın."
+            }
+        },
+    },
 
 }
