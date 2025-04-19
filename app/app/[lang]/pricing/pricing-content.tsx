@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, XIcon, InfoIcon } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
@@ -37,34 +36,17 @@ export function PricingContent() {
   const { t } = useLanguageStore();
   const router = useRouter();
   const { data: session } = useSession();
-  const [isAnnual, setIsAnnual] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
-  // Monthly and annual pricing
+  // Monthly pricing only
   const pricing = {
-    monthly: {
-      basic: 9.99,
-      pro: 29.99,
-      enterprise: 99.99,
-    },
-    annual: {
-      basic: 7.99,
-      pro: 24.99,
-      enterprise: 79.99,
-    },
+    basic: 9.99,
+    pro: 29.99,
+    enterprise: 99.99,
   };
 
-  // Calculate savings
-  const getAnnualSavings = (plan: "basic" | "pro" | "enterprise") => {
-    const monthlyCost = pricing.monthly[plan] * 12;
-    const annualCost = pricing.annual[plan] * 12;
-    const savings = monthlyCost - annualCost;
-    const percentage = Math.round((savings / monthlyCost) * 100);
-    return { savings, percentage };
-  };
-
-  // Plan features table (unchanged from your provided code)
+  // Plan features table (unchanged)
   const planFeatures: PlanFeature[] = [
     { name: t('pricing.features.operations') || "Monthly operations", free: true, basic: true, pro: true, enterprise: true, tooltip: "Number of PDF operations you can perform per month" },
     { name: t('pricing.features.amount.free') || "100 operations", free: true, basic: false, pro: false, enterprise: false },
@@ -98,7 +80,7 @@ export function PricingContent() {
     { name: t('pricing.features.serviceLevel') || "Service Level Agreement", free: false, basic: false, pro: false, enterprise: true },
   ];
 
-  // Handle subscription purchase (unchanged)
+  // Handle subscription purchase
   const handleSubscribe = async (plan: string) => {
     if (plan === "free") {
       if (!session) {
@@ -122,7 +104,7 @@ export function PricingContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tier: plan,
-          interval: isAnnual ? "annual" : "monthly",
+          interval: "monthly",
         }),
       });
 
@@ -157,20 +139,6 @@ export function PricingContent() {
         <p className="mt-4 text-xl text-muted-foreground">
           {t("pricing.subtitle") || "Choose the plan that's right for you. All plans include our core PDF tools."}
         </p>
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <Label htmlFor="billing-toggle" className={isAnnual ? "text-muted-foreground" : "font-medium"}>
-            {t("pricing.monthly") || "Monthly"}
-          </Label>
-          <Switch id="billing-toggle" checked={isAnnual} onCheckedChange={setIsAnnual} />
-          <Label htmlFor="billing-toggle" className={!isAnnual ? "text-muted-foreground" : "font-medium"}>
-            {t("pricing.yearly") || "Yearly"}
-          </Label>
-          {isAnnual && (
-            <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
-              {t("pricing.saveUp") || "Save up to 20%"}
-            </Badge>
-          )}
-        </div>
       </div>
 
       {/* Pricing Cards Section - Mobile View */}
@@ -224,16 +192,11 @@ export function PricingContent() {
                 <CardDescription>{t('pricing.planDescriptions.basic')}</CardDescription>
                 <div className="mt-4">
                   <div className="text-4xl font-bold">
-                    ${isAnnual ? pricing.annual.basic : pricing.monthly.basic}
+                    ${pricing.basic}
                     <span className="text-base font-normal text-muted-foreground ml-1">
-                      /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                      /{t('pricing.monthly') || "month"}
                     </span>
                   </div>
-                  {isAnnual && (
-                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                      {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("basic").savings.toFixed(2)} ({getAnnualSavings("basic").percentage}%)
-                    </p>
-                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -262,16 +225,11 @@ export function PricingContent() {
                 <CardDescription>{t('pricing.planDescriptions.pro')}</CardDescription>
                 <div className="mt-4">
                   <div className="text-4xl font-bold">
-                    ${isAnnual ? pricing.annual.pro : pricing.monthly.pro}
+                    ${pricing.pro}
                     <span className="text-base font-normal text-muted-foreground ml-1">
-                      /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                      /{t('pricing.monthly') || "month"}
                     </span>
                   </div>
-                  {isAnnual && (
-                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                      {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("pro").savings.toFixed(2)} ({getAnnualSavings("pro").percentage}%)
-                    </p>
-                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -300,16 +258,11 @@ export function PricingContent() {
                 <CardDescription>{t('pricing.planDescriptions.enterprise')}</CardDescription>
                 <div className="mt-4">
                   <div className="text-4xl font-bold">
-                    ${isAnnual ? pricing.annual.enterprise : pricing.monthly.enterprise}
+                    ${pricing.enterprise}
                     <span className="text-base font-normal text-muted-foreground ml-1">
-                      /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                      /{t('pricing.monthly') || "month"}
                     </span>
                   </div>
-                  {isAnnual && (
-                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                      {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("enterprise").savings.toFixed(2)} ({getAnnualSavings("enterprise").percentage}%)
-                    </p>
-                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -379,16 +332,11 @@ export function PricingContent() {
               <CardDescription>{t('pricing.planDescriptions.basic')}</CardDescription>
               <div className="mt-4">
                 <div className="text-4xl font-bold">
-                  ${isAnnual ? pricing.annual.basic : pricing.monthly.basic}
+                  ${pricing.basic}
                   <span className="text-base font-normal text-muted-foreground ml-1">
-                    /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                    /{t('pricing.monthly') || "month"}
                   </span>
                 </div>
-                {isAnnual && (
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("basic").savings.toFixed(2)} ({getAnnualSavings("basic").percentage}%)
-                  </p>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -415,16 +363,11 @@ export function PricingContent() {
               <CardDescription>{t('pricing.planDescriptions.pro')}</CardDescription>
               <div className="mt-4">
                 <div className="text-4xl font-bold">
-                  ${isAnnual ? pricing.annual.pro : pricing.monthly.pro}
+                  ${pricing.pro}
                   <span className="text-base font-normal text-muted-foreground ml-1">
-                    /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                    /{t('pricing.monthly') || "month"}
                   </span>
                 </div>
-                {isAnnual && (
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("pro").savings.toFixed(2)} ({getAnnualSavings("pro").percentage}%)
-                  </p>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -451,16 +394,11 @@ export function PricingContent() {
               <CardDescription>{t('pricing.planDescriptions.enterprise')}</CardDescription>
               <div className="mt-4">
                 <div className="text-4xl font-bold">
-                  ${isAnnual ? pricing.annual.enterprise : pricing.monthly.enterprise}
+                  ${pricing.enterprise}
                   <span className="text-base font-normal text-muted-foreground ml-1">
-                    /{isAnnual ? t('pricing.yearly') || "mo, billed annually" : t('pricing.monthly') || "month"}
+                    /{t('pricing.monthly') || "month"}
                   </span>
                 </div>
-                {isAnnual && (
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    {t('pricing.saveUp') || "Save up to 20%"} ${getAnnualSavings("enterprise").savings.toFixed(2)} ({getAnnualSavings("enterprise").percentage}%)
-                  </p>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -611,26 +549,6 @@ export function PricingContent() {
           </LanguageLink>
         </div>
       </div>
-
-      {/* Login Dialog */}
-      <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("pricing.loginRequired") || "Sign in required"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("pricing.loginRequiredDesc") || "You need to sign in to your account before subscribing. Would you like to sign in now?"}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel") || "Cancel"}</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <LanguageLink href={`/login?callbackUrl=/pricing`}>
-                <Button>{t("auth.signIn") || "Sign In"}</Button>
-              </LanguageLink>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

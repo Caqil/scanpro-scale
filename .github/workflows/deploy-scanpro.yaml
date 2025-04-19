@@ -80,37 +80,51 @@ jobs:
     name: Deploy to Kubernetes
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'production' }}
+    environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Decode Kubeconfig
-        run: |
-          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > kubeconfig
-
-      - name: Set up kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          mv kubeconfig ~/.kube/config
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: "latest"
 
+      - name: Configure Kubernetes Access
+        run: |
+          # Create kubeconfig directory
+          mkdir -p ~/.kube
+          
+          # Decode the KUBE_CONFIG and save it
+          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
+          
+          # Ensure correct permissions
+          chmod 600 ~/.kube/config
+          
+          # Validate the connection to the cluster
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Update Deployment Image
         run: |
+          # Set image tag from commit SHA
           IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          echo "Using image tag: $IMAGE_TAG"
+          
+          # Update the deployment with the new image
           kubectl set image deployment/scanpro -n scanpro scanpro=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG
-
+          
+          # Wait for rollout to complete
           kubectl rollout status deployment/scanpro -n scanpro --timeout=300s
           echo "Deployment updated successfully!"
 
       - name: Run Database Migrations
         run: |
+          # Set image tag from commit SHA
           IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          
+          # Create a temporary pod for migrations
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
           kind: Pod
@@ -122,7 +136,7 @@ jobs:
             containers:
             - name: migrations
               image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG
-              command: ["sh", "-c", "npx prisma migrate deploy"]
+              command: ["sh", "-c", "cd /app && npx prisma migrate deploy"]
               env:
               - name: DATABASE_URL
                 valueFrom:
@@ -130,15 +144,31 @@ jobs:
                     name: scanpro-secret
                     key: DATABASE_URL
           EOF
-
-          kubectl wait --for=condition=Ready pod/scanpro-migrations -n scanpro --timeout=120s || true
+          
+          # Wait for the pod to start
+          kubectl wait --for=condition=Ready pod/scanpro-migrations -n scanpro --timeout=60s || true
+          
+          # Give the migration some time to run
+          sleep 20
+          
+          # Show migration logs
           kubectl logs scanpro-migrations -n scanpro
+          
+          # Clean up the migration pod
           kubectl delete pod scanpro-migrations -n scanpro --ignore-not-found
 
       - name: Verify Deployment
         run: |
+          echo "Deployment status:"
           kubectl get deployment scanpro -n scanpro -o wide
+          
+          echo "Pod status:"
           kubectl get pods -n scanpro -l app=scanpro
+          
+          echo "Service status:"
+          kubectl get svc -n scanpro
+          
+          echo "Ingress status:"
           kubectl get ingress -n scanpro
 
   notify:
@@ -155,7 +185,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: deployments
           SLACK_TITLE: "✅ ScanPro Deployment Successful"
-          SLACK_MESSAGE: "ScanPro has been deployed to ${{ inputs.environment || 'production' }}."
+          SLACK_MESSAGE: "ScanPro has been deployed to ${{ github.event.inputs.environment || 'production' }}."
           SLACK_COLOR: good
 
       - name: Send Slack notification on failure
@@ -165,5 +195,5 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: deployments
           SLACK_TITLE: "❌ ScanPro Deployment Failed"
-          SLACK_MESSAGE: "Deployment to ${{ inputs.environment || 'production' }} failed. Please check the logs."
+          SLACK_MESSAGE: "Deployment to ${{ github.event.inputs.environment || 'production' }} failed. Please check the logs."
           SLACK_COLOR: danger
