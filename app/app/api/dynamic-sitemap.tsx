@@ -41,15 +41,18 @@ export async function GET(req: NextRequest) {
       { url: '/split-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/compress-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/compress-file', changefreq: 'monthly', priority: 0.8 },
-      { url: '/rotate', changefreq: 'monthly', priority: 0.8 },
+      { url: '/rotate-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/watermark-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/repair-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/ocr', changefreq: 'monthly', priority: 0.8 },
-      
+      { url: '/ocr-pdf', changefreq: 'monthly', priority: 0.8 },
       // Security tools
       { url: '/protect-pdf', changefreq: 'monthly', priority: 0.7 },
       { url: '/unlock-pdf', changefreq: 'monthly', priority: 0.7 },
-      
+
+      { url: '/page-numbers-pdf', changefreq: 'monthly', priority: 0.8 },
+      { url: '/sign-pdf', changefreq: 'monthly', priority: 0.8 },
+      { url: '/ask-pdf', changefreq: 'monthly', priority: 0.8 },
       // Info pages
       { url: '/about', changefreq: 'monthly', priority: 0.6 },
       { url: '/features', changefreq: 'monthly', priority: 0.7 },

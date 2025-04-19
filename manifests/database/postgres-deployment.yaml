@@ -1,9 +1,10 @@
-# manifests/database/postgres-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
   namespace: scanpro
+  labels:
+    app: postgres
 spec:
   replicas: 1
   selector:
@@ -18,14 +19,22 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:14
+          image: postgres:15
           ports:
             - containerPort: 5432
-          envFrom:
-            - configMapRef:
-                name: postgres-config
-            - secretRef:
-                name: postgres-secret
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: scanprouser
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: scanprodb
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
@@ -55,4 +64,30 @@ spec:
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
-            claimName: postgres-data
+            claimName: scanpro-postgres-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: scanpro
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: scanpro
+type: Opaque
+data:
+  password: QXFzd2RlITEyMw==  # "Aqswde!123" encoded in base64

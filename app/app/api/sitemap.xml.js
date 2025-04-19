@@ -22,6 +22,7 @@ export default async function handler(req, res) {
             { url: '/compress-pdf', changefreq: 'monthly', priority: 0.8 },
             { url: '/watermark-pdf', changefreq: 'monthly', priority: 0.7 },
             { url: '/ocr', changefreq: 'monthly', priority: 0.8 },
+            { url: '/ocr-pdf', changefreq: 'monthly', priority: 0.8 },
             // Conversion tools - PDF to other formats
             { url: '/convert/pdf-to-docx', changefreq: 'monthly', priority: 0.8 },
             { url: '/convert/pdf-to-xlsx', changefreq: 'monthly', priority: 0.7 },
@@ -39,6 +40,10 @@ export default async function handler(req, res) {
             // Security tools
             { url: '/protect-pdf', changefreq: 'monthly', priority: 0.7 },
             { url: '/unlock-pdf', changefreq: 'monthly', priority: 0.7 },
+
+            { url: '/page-numbers-pdf', changefreq: 'monthly', priority: 0.8 },
+            { url: '/sign-pdf', changefreq: 'monthly', priority: 0.8 },
+            { url: '/ask-pdf', changefreq: 'monthly', priority: 0.8 },
             // Company pages
             { url: '/about', changefreq: 'monthly', priority: 0.6 },
             { url: '/features', changefreq: 'monthly', priority: 0.7 },
