@@ -82,7 +82,24 @@ export default {
         passwordResetSuccessMessage: "Şifreniz başarıyla sıfırlandı. Kısa süre içinde giriş sayfasına yönlendirileceksiniz.",
         passwordResetSuccessSubtext: "Otomatik olarak yönlendirilmezseniz, aşağıdaki düğmeye tıklayın.",
         resettingPassword: "Şifre sıfırlanıyor...",
-        resetPassword: "Şifreyi Sıfırla"
+        resetPassword: "Şifreyi Sıfırla",
+        verifyYourEmail: "E-postanızı doğrulayın",
+        checkYourInbox: "Kaydı tamamlamak için gelen kutunuzu kontrol edin",
+        verificationEmailSentTo: "Doğrulama e-postası gönderdik",
+        pleaseClickLink: " Hesabınızı doğrulamak için e-postadaki bağlantıya tıklayın.",
+        checkSpamFolder: "Spam klasörünüzü kontrol edin veya",
+        alreadyVerified: "Zaten doğrulandı mı?",
+        oAuthAccountNotLinked: "Bu e-posta zaten farklı bir giriş yöntemiyle ilişkilendirilmiş. Lütfen orijinal olarak kullandığınız yöntemle giriş yapın.",
+        accessDenied: "Erişim reddedildi. Bu kaynağa erişim izniniz yok.",
+        googleSignIn: "Google",
+        hidePassword: "Şifreyi gizle",
+        showPassword: "Şifreyi göster",
+    },
+    login: {
+        title: "Hesabınıza giriş yapın",
+        description: "Gösterge panelinize erişmek için kimlik bilgilerinizi girin",
+        termsAndPrivacy: "Giriş yaparak, <termsLink>Hizmet Şartları</termsLink> ve <privacyLink>Gizlilik Politikası</privacyLink>'nı kabul etmiş olursunuz.",
+        footer: "© 2025 ScanPro. Tüm hakları saklıdır."
     },
     dashboard: {
         title: "Kontrol Paneli",
@@ -2416,10 +2433,10 @@ export default {
         features: {
             operations: "Aylık işlemler",
             amount: {
-                free: "100 işlem",
-                basic: "1.000 işlem",
-                pro: "10.000 işlem",
-                enterprise: "100.000 işlem"
+                free: "500 işlem",
+                basic: "5.000 işlem",
+                pro: "50.000 işlem",
+                enterprise: "500.000 işlem"
             },
             apiAccess: "API Erişimi",
             apiKeys: {

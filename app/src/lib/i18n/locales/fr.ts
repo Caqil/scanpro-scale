@@ -83,6 +83,23 @@ export default {
         passwordResetSuccessSubtext: "Si vous n'êtes pas redirigé automatiquement, cliquez sur le bouton ci-dessous.",
         resettingPassword: "Réinitialisation du mot de passe...",
         resetPassword: "Réinitialiser le mot de passe",
+        verifyYourEmail: "Vérifiez votre e-mail",
+        checkYourInbox: "Consultez votre boîte de réception pour finaliser l'inscription",
+        verificationEmailSentTo: "Nous avons envoyé un e-mail de vérification à",
+        pleaseClickLink: " Veuillez cliquer sur le lien dans l'e-mail pour vérifier votre compte.",
+        checkSpamFolder: "Vérifiez votre dossier de spam ou",
+        alreadyVerified: "Déjà vérifié ?",
+        oAuthAccountNotLinked: "Cet e-mail est déjà associé à une autre méthode de connexion. Veuillez vous connecter avec la méthode que vous avez utilisée à l'origine.",
+        accessDenied: "Accès refusé. Vous n'avez pas la permission d'accéder à cette ressource.",
+        googleSignIn: "Google",
+        hidePassword: "Masquer le mot de passe",
+        showPassword: "Afficher le mot de passe",
+    },
+    login: {
+        title: "Connectez-vous à votre compte",
+        description: "Saisissez vos identifiants pour accéder à votre tableau de bord",
+        termsAndPrivacy: "En vous connectant, vous acceptez nos <termsLink>Conditions d'Utilisation</termsLink> et notre <privacyLink>Politique de Confidentialité</privacyLink>.",
+        footer: "© 2025 ScanPro. Tous droits réservés."
     },
     dashboard: {
         title: "Tableau de bord",
@@ -2413,10 +2430,10 @@ export default {
         features: {
             operations: "Opérations mensuelles",
             amount: {
-                free: "100 opérations",
-                basic: "1 000 opérations",
-                pro: "10 000 opérations",
-                enterprise: "100 000 opérations"
+                free: "500 opérations",
+                basic: "5 000 opérations",
+                pro: "50 000 opérations",
+                enterprise: "500 000 opérations"
             },
             apiAccess: "Accès API",
             apiKeys: {

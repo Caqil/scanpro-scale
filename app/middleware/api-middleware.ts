@@ -37,10 +37,10 @@ const rateLimits = {
 
 // Define usage limits by tier (operations per month)
 const usageLimits = {
-    free: 100,
-    basic: 1000,
-    pro: 10000,
-    enterprise: 100000,
+    free: 500,
+    basic: 5000,
+    pro: 50000,
+    enterprise: 500000,
 };
 
 // Web UI bypass check - this function identifies browser-based requests

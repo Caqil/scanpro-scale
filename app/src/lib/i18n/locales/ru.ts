@@ -82,8 +82,25 @@ export default {
         passwordResetSuccessMessage: "Ваш пароль был успешно сброшен. Вы будете перенаправлены на страницу входа в ближайшее время.",
         passwordResetSuccessSubtext: "Если вас не перенаправили автоматически, нажмите на кнопку ниже.",
         resettingPassword: "Сброс пароля...",
-        resetPassword: "Сбросить пароль"
-    },
+        resetPassword: "Сбросить пароль",
+        verifyYourEmail: "Подтвердите ваш email",
+        checkYourInbox: "Проверьте ваш почтовый ящик, чтобы завершить регистрацию",
+        verificationEmailSentTo: "Мы отправили письмо для подтверждения на",
+        pleaseClickLink: " Пожалуйста, перейдите по ссылке в письме, чтобы подтвердить ваш аккаунт.",
+        checkSpamFolder: "Проверьте папку спама или",
+        alreadyVerified: "Уже подтверждено?",
+        oAuthAccountNotLinked: "Этот email уже связан с другим способом входа. Пожалуйста, войдите с помощью того способа, который вы использовали изначально.",
+        accessDenied: "Доступ запрещен. У вас нет разрешения на доступ к этому ресурсу.",
+        googleSignIn: "Google",
+        hidePassword: "Скрыть пароль",
+        showPassword: "Показать пароль",
+      },
+      login: {
+        title: "Войдите в свой аккаунт",
+        description: "Введите свои учетные данные для доступа к панели управления",
+        termsAndPrivacy: "Входя в аккаунт, вы соглашаетесь с нашими <termsLink>Условиями обслуживания</termsLink> и <privacyLink>Политикой конфиденциальности</privacyLink>.",
+        footer: "© 2025 ScanPro. Все права защищены."
+      },
     dashboard: {
         title: "Панель управления",
         overview: "Обзор",
@@ -2415,10 +2432,10 @@ export default {
         features: {
             operations: "Ежемесячные операции",
             amount: {
-                free: "100 операций",
-                basic: "1 000 операций",
-                pro: "10 000 операций",
-                enterprise: "100 000 операций"
+                free: "500 операций",
+                basic: "5 000 операций",
+                pro: "50 000 операций",
+                enterprise: "500 000 операций"
             },
             apiAccess: "Доступ к API",
             apiKeys: {

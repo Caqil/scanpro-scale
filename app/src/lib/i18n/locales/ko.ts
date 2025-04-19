@@ -82,7 +82,24 @@ export default {
     passwordResetSuccessMessage: "비밀번호가 성공적으로 재설정되었습니다. 곧 로그인 페이지로 리디렉션됩니다.",
     passwordResetSuccessSubtext: "자동으로 리디렉션되지 않으면 아래 버튼을 클릭하세요.",
     resettingPassword: "비밀번호 재설정 중...",
-    resetPassword: "비밀번호 재설정"
+    resetPassword: "비밀번호 재설정",
+    verifyYourEmail: "이메일을 확인하세요",
+    checkYourInbox: "등록을 완료하려면 받은 편지함을 확인하세요",
+    verificationEmailSentTo: "확인 이메일을 보냈습니다",
+    pleaseClickLink: " 계정을 확인하려면 이메일의 링크를 클릭하세요.",
+    checkSpamFolder: "스팸 폴더를 확인하거나",
+    alreadyVerified: "이미 확인되었나요?",
+    oAuthAccountNotLinked: "이 이메일은 이미 다른 로그인 방법과 연결되어 있습니다. 원래 사용한 방법으로 로그인해 주세요.",
+    accessDenied: "접근이 거부되었습니다. 이 리소스에 접근할 권한이 없습니다.",
+    googleSignIn: "구글",
+    hidePassword: "비밀번호 숨기기",
+    showPassword: "비밀번호 표시",
+  },
+  login: {
+    title: "계정에 로그인",
+    description: "대시보드에 접근하려면 자격 증명을 입력하세요",
+    termsAndPrivacy: "로그인함으로써 당사의 <termsLink>서비스 약관</termsLink> 및 <privacyLink>개인정보 처리방침</privacyLink>에 동의하는 것으로 간주됩니다.",
+    footer: "© 2025 ScanPro. 모든 권리 보유."
   },
   dashboard: {
     title: "대시보드",
@@ -2415,10 +2432,10 @@ export default {
     features: {
       operations: "월간 작업",
       amount: {
-        free: "100 작업",
-        basic: "1,000 작업",
-        pro: "10,000 작업",
-        enterprise: "100,000 작업"
+        free: "500 작업",
+        basic: "5,000 작업",
+        pro: "50,000 작업",
+        enterprise: "500,000 작업"
       },
       apiAccess: "API 액세스",
       apiKeys: {

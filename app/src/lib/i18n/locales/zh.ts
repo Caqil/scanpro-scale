@@ -82,7 +82,24 @@ export default {
         passwordResetSuccessMessage: "您的密码已成功重置。您将很快被重定向到登录页面。",
         passwordResetSuccessSubtext: "如果您没有被自动重定向，请点击下面的按钮。",
         resettingPassword: "正在重置密码...",
-        resetPassword: "重置密码"
+        resetPassword: "重置密码",
+        verifyYourEmail: "验证您的电子邮件",
+        checkYourInbox: "检查您的收件箱以完成注册",
+        verificationEmailSentTo: "我们已发送一封验证邮件至",
+        pleaseClickLink: " 请点击邮件中的链接以验证您的账户。",
+        checkSpamFolder: "检查您的垃圾邮件文件夹或",
+        alreadyVerified: "已经验证？",
+        oAuthAccountNotLinked: "此电子邮件已关联到其他登录方式。请使用您最初使用的登录方式。",
+        accessDenied: "访问被拒绝。您无权访问此资源。",
+        googleSignIn: "谷歌",
+        hidePassword: "隐藏密码",
+        showPassword: "显示密码",
+    },
+    login: {
+        title: "登录您的账户",
+        description: "输入您的凭据以访问仪表板",
+        termsAndPrivacy: "登录即表示您同意我们的<termsLink>服务条款</termsLink>和<privacyLink>隐私政策</privacyLink>。",
+        footer: "© 2025 ScanPro。保留所有权利。"
     },
     dashboard: {
         title: "仪表板",
@@ -2414,10 +2431,10 @@ export default {
         features: {
             operations: "月度操作",
             amount: {
-                free: "100次操作",
-                basic: "1,000次操作",
-                pro: "10,000次操作",
-                enterprise: "100,000次操作"
+                free: "500次操作",
+                basic: "5,000次操作",
+                pro: "50,000次操作",
+                enterprise: "500,000次操作"
             },
             apiAccess: "API访问",
             apiKeys: {

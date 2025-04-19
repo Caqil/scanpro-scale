@@ -82,7 +82,24 @@ export default {
     passwordResetSuccessMessage: "パスワードが正常にリセットされました。まもなくログインページにリダイレクトされます。",
     passwordResetSuccessSubtext: "自動的にリダイレクトされない場合は、下のボタンをクリックしてください。",
     resettingPassword: "パスワードをリセット中...",
-    resetPassword: "パスワードをリセット"
+    resetPassword: "パスワードをリセット",
+    verifyYourEmail: "メールアドレスを確認してください",
+    checkYourInbox: "登録を完了するために受信トレイを確認してください",
+    verificationEmailSentTo: "確認メールを送信しました",
+    pleaseClickLink: " アカウントを確認するために、メール内のリンクをクリックしてください。",
+    checkSpamFolder: "スパムフォルダを確認するか",
+    alreadyVerified: "すでに確認済みですか？",
+    oAuthAccountNotLinked: "このメールアドレスは別のログイン方法ですでに使用されています。元のログイン方法でサインインしてください。",
+    accessDenied: "アクセスが拒否されました。このリソースにアクセスする権限がありません。",
+    googleSignIn: "Google",
+    hidePassword: "パスワードを非表示",
+    showPassword: "パスワードを表示",
+  },
+  login: {
+    title: "アカウントにサインイン",
+    description: "ダッシュボードにアクセスするには認証情報を入力してください",
+    termsAndPrivacy: "サインインすることにより、当社の<termsLink>利用規約</termsLink>および<privacyLink>プライバシーポリシー</privacyLink>に同意したものとみなされます。",
+    footer: "© 2025 ScanPro. 無断複写・転載を禁じます。"
   },
   dashboard: {
     title: "ダッシュボード",
@@ -2259,10 +2276,10 @@ export default {
     features: {
       operations: "月間操作数",
       amount: {
-        free: "100操作",
-        basic: "1,000操作",
-        pro: "10,000操作",
-        enterprise: "100,000操作"
+        free: "500操作",
+        basic: "5,000操作",
+        pro: "50,000操作",
+        enterprise: "500,000操作"
       },
       apiAccess: "APIアクセス",
       apiKeys: {

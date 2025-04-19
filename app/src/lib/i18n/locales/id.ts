@@ -83,6 +83,23 @@ export default {
     passwordResetSuccessSubtext: "Jika Anda tidak diarahkan secara otomatis, klik tombol di bawah ini.",
     resettingPassword: "Mengatur ulang kata sandi...",
     resetPassword: "Atur Ulang Kata Sandi",
+    verifyYourEmail: "Verifikasi Email Anda",
+    checkYourInbox: "Periksa kotak masuk Anda untuk menyelesaikan pendaftaran",
+    verificationEmailSentTo: "Kami telah mengirim email verifikasi ke",
+    pleaseClickLink: " Silakan klik tautan di email untuk memverifikasi akun Anda.",
+    checkSpamFolder: "Periksa folder spam Anda atau",
+    alreadyVerified: "Sudah diverifikasi?",
+    oAuthAccountNotLinked: "Email ini sudah terhubung dengan metode login yang berbeda. Silakan masuk dengan metode yang Anda gunakan sebelumnya.",
+    accessDenied: "Akses ditolak. Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+    googleSignIn: "Google",
+    hidePassword: "Sembunyikan kata sandi",
+    showPassword: "Tampilkan kata sandi",
+  },
+  login: {
+    title: "Masuk ke akun Anda",
+    description: "Masukkan kredensial Anda untuk mengakses dasbor",
+    termsAndPrivacy: "Dengan masuk, Anda menyetujui <termsLink>Ketentuan Layanan</termsLink> dan <privacyLink>Kebijakan Privasi</privacyLink> kami.",
+    footer: "© 2025 ScanPro. Hak cipta dilindungi."
   },
   dashboard: {
     title: "Dasbor",
@@ -2417,10 +2434,10 @@ export default {
     features: {
       operations: "Operasi bulanan",
       amount: {
-        free: "100 operasi",
-        basic: "1.000 operasi",
-        pro: "10.000 operasi",
-        enterprise: "100.000 operasi"
+        free: "500 operasi",
+        basic: "5.000 operasi",
+        pro: "50.000 operasi",
+        enterprise: "500.000 operasi"
       },
       apiAccess: "Akses API",
       apiKeys: {

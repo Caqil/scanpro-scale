@@ -83,6 +83,24 @@ export default {
     passwordResetSuccessSubtext: "Wenn Sie nicht automatisch weitergeleitet werden, klicken Sie auf die Schaltfläche unten.",
     resettingPassword: "Passwort wird zurückgesetzt...",
     resetPassword: "Passwort zurücksetzen",
+    verifyYourEmail: "Bestätigen Sie Ihre E-Mail",
+    checkYourInbox: "Überprüfen Sie Ihren Posteingang, um die Registrierung abzuschließen",
+    verificationEmailSentTo: "Wir haben eine Bestätigungs-E-Mail gesendet an",
+    pleaseClickLink: " Bitte klicken Sie auf den Link in der E-Mail, um Ihr Konto zu verifizieren.",
+    checkSpamFolder: "Überprüfen Sie Ihren Spam-Ordner oder",
+    alreadyVerified: "Bereits verifiziert?",
+
+      oAuthAccountNotLinked: "Diese E-Mail ist bereits mit einer anderen Anmeldemethode verknüpft. Bitte melden Sie sich mit der ursprünglich verwendeten Methode an.",
+    accessDenied: "Zugriff verweigert. Sie haben keine Berechtigung, auf diese Ressource zuzugreifen.",
+    googleSignIn: "Google",
+    hidePassword: "Passwort ausblenden",
+    showPassword: "Passwort anzeigen",
+  },
+  login: {
+    title: "Melden Sie sich bei Ihrem Konto an",
+    description: "Geben Sie Ihre Anmeldedaten ein, um auf Ihr Dashboard zuzugreifen",
+    termsAndPrivacy: "Durch die Anmeldung stimmen Sie unseren <termsLink>Nutzungsbedingungen</termsLink> und der <privacyLink>Datenschutzrichtlinie</privacyLink> zu.",
+    footer: "© 2025 ScanPro. Alle Rechte vorbehalten."
   },
   dashboard: {
     title: "Dashboard",
@@ -2410,10 +2428,10 @@ export default {
     features: {
       operations: "Monatliche Operationen",
       amount: {
-        free: "100 Operationen",
-        basic: "1.000 Operationen",
-        pro: "10.000 Operationen",
-        enterprise: "100.000 Operationen"
+        free: "500 Operationen",
+        basic: "5.000 Operationen",
+        pro: "50.000 Operationen",
+        enterprise: "500.000 Operationen"
       },
       apiAccess: "API-Zugang",
       apiKeys: {

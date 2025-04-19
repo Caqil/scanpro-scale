@@ -42,22 +42,19 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     if (errorParam) {
       switch (errorParam) {
         case "OAuthAccountNotLinked":
-          setError(
-            "This email is already associated with a different login method. " +
-            "Please sign in with the method you used originally."
-          );
+          setError(t('auth.oAuthAccountNotLinked') || "This email is already associated with a different login method. Please sign in with the method you used originally.");
           break;
         case "CredentialsSignin":
-          setError("Invalid email or password. Please try again.");
+          setError(t('auth.invalidCredentials') || "Invalid email or password. Please try again.");
           break;
         case "AccessDenied":
-          setError("Access denied. You do not have permission to access this resource.");
+          setError(t('auth.accessDenied') || "Access denied. You do not have permission to access this resource.");
           break;
         default:
-          setError(`An error occurred during sign in: ${errorParam}`);
+          setError(t('auth.unknownError') || `An error occurred during sign in: ${errorParam}`);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
   
   // Validate email format
   const validateEmail = (email: string): boolean => {
@@ -111,14 +108,11 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     setLoading(true);
     
     try {
-      console.log("Attempting sign in with callbackUrl:", callbackUrl);
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
-      
-      console.log("Sign in result:", result);
       
       if (result?.error) {
         setError(t('auth.invalidCredentials') || "Invalid email or password");
@@ -126,10 +120,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
         return;
       }
       
-      // Show success toast
       toast.success(t('auth.loginSuccess') || "Signed in successfully");
-      
-      // Fix: Use window.location.href to force a full page reload to the dashboard
       window.location.href = callbackUrl;
     } catch (error) {
       console.error("Login error:", error);
@@ -139,16 +130,10 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   };
   
   const handleOAuthSignIn = (provider: string) => {
-    console.log("OAuth sign in with provider:", provider, "callbackUrl:", callbackUrl);
-    // For Apple specifically, let's use form_post and minimize params to avoid PKCE issues
-    if (provider === "apple") {
-      signIn(provider, { 
-        callbackUrl,
-        redirect: true,
-      });
-    } else {
-      signIn(provider, { callbackUrl });
-    }
+    signIn(provider, { 
+      callbackUrl,
+      redirect: provider === "apple" ? true : undefined,
+    });
   };
   
   return (
@@ -168,20 +153,9 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
           disabled={loading}
         >
           <FaGoogle className="w-4 h-4 mr-2" />
-          <span>Google</span>
+          <span>{t('auth.googleSignIn') || "Google"}</span>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </Button>
-
-        {/* <Button 
-          variant="outline" 
-          onClick={() => handleOAuthSignIn("apple")} 
-          className="flex-1 relative overflow-hidden group h-11 transition-all"
-          disabled={loading}
-        >
-          <FaApple className="w-4 h-4 mr-2" />
-          <span>Apple</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-        </Button> */}
       </div>
 
       <div className="relative">
@@ -190,7 +164,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-2 text-xs text-muted-foreground uppercase tracking-wider">
-            or continue with email
+            {t('auth.orContinueWith') || "or continue with email"}
           </span>
         </div>
       </div>
@@ -198,7 +172,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
-            Email
+            {t('auth.email') || "Email"}
             {emailError && (
               <span className="text-destructive ml-1 text-xs">
                 ({emailError})
@@ -208,7 +182,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
           <Input
             id="email"
             type="email"
-            placeholder="name@example.com"
+            placeholder={t('auth.emailPlaceholder') || "name@example.com"}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -221,7 +195,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t('auth.password') || "Password"}
               {passwordError && (
                 <span className="text-destructive ml-1 text-xs">
                   ({passwordError})
@@ -236,6 +210,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
+              placeholder={t('auth.passwordPlaceholder') || "Your password"}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -256,7 +231,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
                 <Eye className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="sr-only">
-                {showPassword ? "Hide password" : "Show password"}
+                {showPassword ? t('auth.hidePassword') || "Hide password" : t('auth.showPassword') || "Show password"}
               </span>
             </Button>
           </div>

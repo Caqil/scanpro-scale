@@ -83,6 +83,12 @@ export default {
     passwordResetSuccessSubtext: "Se non vieni reindirizzato automaticamente, clicca sul pulsante qui sotto.",
     resettingPassword: "Reimpostazione della password...",
     resetPassword: "Reimposta Password",
+    verifyYourEmail: "Verifica la tua email",
+    checkYourInbox: "Controlla la tua casella di posta per completare la registrazione",
+    verificationEmailSentTo: "Abbiamo inviato un'email di verifica a",
+    pleaseClickLink: " Per favore, clicca sul link nell'email per verificare il tuo account.",
+    checkSpamFolder: "Controlla la tua cartella spam o",
+    alreadyVerified: "Già verificato?"
   },
   dashboard: {
     title: "Dashboard",
@@ -2486,10 +2492,10 @@ export default {
     features: {
       operations: "Operazioni mensili",
       amount: {
-        free: "100 operazioni",
-        basic: "1.000 operazioni",
-        pro: "10.000 operazioni",
-        enterprise: "100.000 operazioni"
+        free: "500 operazioni",
+        basic: "5.000 operazioni",
+        pro: "50.000 operazioni",
+        enterprise: "500.000 operazioni"
       },
       apiAccess: "Accesso API",
       apiKeys: {

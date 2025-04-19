@@ -7,73 +7,77 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CreditCardIcon, CheckIcon, XIcon } from "lucide-react";
+import { useLanguageStore } from "@/src/store/store";
 
 interface SubscriptionInfoProps {
   user: any;
 }
 
-// Pricing tiers
+
+
+export function SubscriptionInfo({ user }: SubscriptionInfoProps) {
+  const { t } = useLanguageStore();
+  const [loading, setLoading] = useState(false);
+  // Pricing tiers
 const pricingTiers = [
   {
-    name: "Free",
+    name: t('pricing.planDescriptions.free'),
     price: "$0",
     features: [
-      "100 operations per month",
-      "100 requests per hour",
-      "1 API key",
-      "Basic PDF operations"
+      t('pricing.features.amount.free'),
+      t('pricing.features.rateLimit.free'),
+      t('pricing.features.apiKeys.free'),
+      t('pricing.features.fileSize.free'),
+      t('pricing.features.support.free')
     ],
     limitations: [
-      "No watermarking",
-      "Limited OCR",
-      "No priority support"
+      t('pricing.features.watermarking'),
+      t('pricing.features.advancedProtection'),
+      t('pricing.features.bulkProcessing')
     ]
   },
   {
-    name: "Basic",
+    name: t('pricing.planDescriptions.basic'),
     price: "$9.99",
     features: [
-      "1,000 operations per month",
-      "1000 requests per hour",
-      "3 API keys",
-      "All PDF operations",
-      "Basic OCR"
+      t('pricing.features.amount.basic'),
+      t('pricing.features.rateLimit.basic'),
+      t('pricing.features.apiKeys.basic'),
+      t('pricing.features.fileSize.basic'),
+      t('pricing.features.support.free')
     ],
-    limitations: [
-      "No priority support"
-    ]
   },
   {
-    name: "Pro",
+    name: t('pricing.planDescriptions.pro'),
     price: "$29.99",
     features: [
-      "10,000 operations per month",
-      "2,000 requests per hour",
-      "10 API keys",
-      "Advanced OCR",
-      "Priority support",
-      "Custom watermarks"
+      t('pricing.features.amount.pro'),
+      t('pricing.features.rateLimit.pro'),
+      t('pricing.features.apiKeys.pro'),
+      t('pricing.features.fileSize.pro'),
+      t('pricing.features.ocr'),
+      t('pricing.features.support.priority'),
+      t('pricing.features.watermarking'),
+      t('pricing.features.advancedProtection'),
+      t('pricing.features.bulkProcessing')
     ],
     limitations: []
   },
   {
-    name: "Enterprise",
+    name: t('pricing.planDescriptions.enterprise'),
     price: "$99.99",
     features: [
-      "100,000 operations per month",
-      "5,000 requests per hour",
-      "50 API keys",
-      "Dedicated support",
-      "Custom integration help",
-      "White-label options"
+      t('pricing.features.amount.enterprise'),
+      t('pricing.features.rateLimit.enterprise'),
+      t('pricing.features.apiKeys.enterprise'),
+      t('pricing.features.fileSize.enterprise'),
+      t('pricing.features.support.dedicated'),
+      t('pricing.features.whiteLabel'),
+      t('pricing.features.serviceLevel')
     ],
     limitations: []
   }
 ];
-
-export function SubscriptionInfo({ user }: SubscriptionInfoProps) {
-  const [loading, setLoading] = useState(false);
-  
   // Format date for display
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
@@ -220,20 +224,6 @@ export function SubscriptionInfo({ user }: SubscriptionInfoProps) {
                   ))}
                 </ul>
               </div>
-              
-              {tier.limitations.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2">Limitations:</h4>
-                  <ul className="space-y-1">
-                    {tier.limitations.map((limitation, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <XIcon className="h-4 w-4 text-red-500 mt-0.5" />
-                        <span>{limitation}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </CardContent>
             <CardFooter>
               {currentTier === tier.name.toLowerCase() ? (

@@ -26,7 +26,6 @@ export default {
 
   },
   auth: {
-    // Login
     email: "Email",
     emailPlaceholder: "name@example.com",
     password: "Password",
@@ -77,7 +76,6 @@ export default {
     agreeToTerms: "Please agree to the terms of service",
     registrationFailed: "Registration failed",
     accountCreated: "Account created successfully",
-
     forgotInstructions: "Enter your email and we'll send you instructions to reset your password.",
     sendResetLink: "Send Reset Link",
     sending: "Sending...",
@@ -85,9 +83,25 @@ export default {
     checkYourEmail: "Check your email",
     resetInstructions: "If an account exists with that email, we've sent instructions to reset your password.",
     didntReceiveEmail: "Didn't receive an email?",
-    tryAgain: "Try again"
+    tryAgain: "Try again",
+    verifyYourEmail: "Verify Your Email",
+    checkYourInbox: "Check your inbox to complete registration",
+    verificationEmailSentTo: "We've sent a verification email to",
+    pleaseClickLink: " Please click the link in the email to verify your account.",
+    checkSpamFolder: "Check your spam folder or",
+    alreadyVerified: "Already verified?",
+    oAuthAccountNotLinked: "This email is already associated with a different login method. Please sign in with the method you used originally.",
+    accessDenied: "Access denied. You do not have permission to access this resource.",
+    googleSignIn: "Google",
+    hidePassword: "Hide password",
+    showPassword: "Show password",
   },
-
+  login: {
+    title: "Sign in to your account",
+    description: "Enter your credentials to access your dashboard",
+    termsAndPrivacy: "By signing in, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>.",
+    footer: "© 2025 ScanPro. All rights reserved."
+  },
   // Dashboard
   dashboard: {
     title: "Dashboard",
@@ -2609,10 +2623,10 @@ export default {
     features: {
       operations: "Monthly operations",
       amount: {
-        free: "100 operations",
-        basic: "1,000 operations",
-        pro: "10,000 operations",
-        enterprise: "100,000 operations"
+        free: "500 operations",
+        basic: "5,000 operations",
+        pro: "50,000 operations",
+        enterprise: "500,000 operations"
       },
       apiAccess: "API Access",
       apiKeys: {
@@ -3161,85 +3175,85 @@ export default {
     }
   },
 
-pdfChat: {
-  title: "Ask Anything PDF Chat",
-  description: "Upload a PDF and ask questions about its contents",
-  seo: {
-    title: "Ask Anything PDF Chat - Interactive PDF Document Analysis",
-    description: "Upload a PDF document and ask natural language questions to quickly get answers, summaries, and insights from any PDF file.",
-    keywords: "pdf chat, ask pdf questions, pdf analysis, document ai, pdf assistant, document analysis"
-  },
-  whatYouCanAsk: {
-    title: "What You Can Ask",
-    summary: {
-      title: "Get Summaries",
-      description: "Ask for summaries of specific sections or the entire document."
+  pdfChat: {
+    title: "Ask Anything PDF Chat",
+    description: "Upload a PDF and ask questions about its contents",
+    seo: {
+      title: "Ask Anything PDF Chat - Interactive PDF Document Analysis",
+      description: "Upload a PDF document and ask natural language questions to quickly get answers, summaries, and insights from any PDF file.",
+      keywords: "pdf chat, ask pdf questions, pdf analysis, document ai, pdf assistant, document analysis"
     },
-    find: {
-      title: "Find Information",
-      description: "Ask where specific information appears in the document."
+    whatYouCanAsk: {
+      title: "What You Can Ask",
+      summary: {
+        title: "Get Summaries",
+        description: "Ask for summaries of specific sections or the entire document."
+      },
+      find: {
+        title: "Find Information",
+        description: "Ask where specific information appears in the document."
+      },
+      extract: {
+        title: "Extract Key Points",
+        description: "Ask for lists of key points, dates, names, or other important information."
+      },
+      explain: {
+        title: "Get Explanations",
+        description: "Ask for explanations of complex concepts mentioned in the document."
+      }
     },
-    extract: {
-      title: "Extract Key Points",
-      description: "Ask for lists of key points, dates, names, or other important information."
+    faq: {
+      title: "Frequently Asked Questions",
+      q1: {
+        question: "What types of PDFs can I use?",
+        answer: "You can use any PDF file that contains text content. The system works best with digital PDFs, but can also process scanned documents with readable text."
+      },
+      q2: {
+        question: "Is my PDF data secure?",
+        answer: "Yes, your PDF is processed securely. We don't permanently store the content of your documents, and all processing is done in a secure environment."
+      },
+      q3: {
+        question: "Are there size limitations?",
+        answer: "Yes, currently the maximum file size is 50MB. For very large documents, you may want to split them into smaller parts for better processing."
+      },
+      q4: {
+        question: "Will the AI understand tables and charts?",
+        answer: "The AI can extract and interpret text from tables, but understanding complex charts or diagrams may be limited. It works best with textual content."
+      }
     },
-    explain: {
-      title: "Get Explanations",
-      description: "Ask for explanations of complex concepts mentioned in the document."
-    }
-  },
-  faq: {
-    title: "Frequently Asked Questions",
-    q1: {
-      question: "What types of PDFs can I use?",
-      answer: "You can use any PDF file that contains text content. The system works best with digital PDFs, but can also process scanned documents with readable text."
+    seoContent: {
+      title: "Enhance Your Document Analysis",
+      p1: "Our \"Ask Anything\" feature leverages advanced AI to help you quickly extract insights from PDF documents. Whether you're analyzing research papers, legal contracts, technical manuals, or any text-heavy document, this tool helps you find the information you need without spending hours reading through pages of content.",
+      p2: "The AI assistant can understand the context of your questions and provide relevant information from the document. It can identify key sections, summarize content, explain complex terms, and even find specific details like dates, amounts, or clauses that might be buried deep within the text.",
+      p3: "This feature is particularly useful for professionals who need to quickly analyze documents, students researching academic papers, or anyone who wants to save time by getting straight to the important information in their PDFs.",
+      p4: "Try it now by uploading your PDF and asking a question!"
     },
-    q2: {
-      question: "Is my PDF data secure?",
-      answer: "Yes, your PDF is processed securely. We don't permanently store the content of your documents, and all processing is done in a secure environment."
-    },
-    q3: {
-      question: "Are there size limitations?",
-      answer: "Yes, currently the maximum file size is 50MB. For very large documents, you may want to split them into smaller parts for better processing."
-    },
-    q4: {
-      question: "Will the AI understand tables and charts?",
-      answer: "The AI can extract and interpret text from tables, but understanding complex charts or diagrams may be limited. It works best with textual content."
-    }
-  },
-  seoContent: {
-    title: "Enhance Your Document Analysis",
-    p1: "Our \"Ask Anything\" feature leverages advanced AI to help you quickly extract insights from PDF documents. Whether you're analyzing research papers, legal contracts, technical manuals, or any text-heavy document, this tool helps you find the information you need without spending hours reading through pages of content.",
-    p2: "The AI assistant can understand the context of your questions and provide relevant information from the document. It can identify key sections, summarize content, explain complex terms, and even find specific details like dates, amounts, or clauses that might be buried deep within the text.",
-    p3: "This feature is particularly useful for professionals who need to quickly analyze documents, students researching academic papers, or anyone who wants to save time by getting straight to the important information in their PDFs.",
-    p4: "Try it now by uploading your PDF and asking a question!"
-  },
 
-  uploading: "Uploading PDF...",
-  processing: "Processing PDF...",
-  thinking: "Thinking...",
-  send: "Send",
-  uploadPrompt: "Upload your PDF document",
-  askPrompt: "Ask a question about the document...",
-  newPdf: "New PDF",
-  dropHereDesc: "Drop your PDF file here or click to browse. I'll analyze it so you can ask questions about the content.",
-  securityNote: "Your files are processed securely and not stored permanently.",
-  poweredBy: "Powered by OpenAI",
-  howItWorks: {
-    title: "How It Works",
-    step1: {
-      title: "Upload Your PDF",
-      description: "Simply drag and drop your PDF file into the upload area or click to browse your files."
+    uploading: "Uploading PDF...",
+    processing: "Processing PDF...",
+    thinking: "Thinking...",
+    send: "Send",
+    uploadPrompt: "Upload your PDF document",
+    askPrompt: "Ask a question about the document...",
+    newPdf: "New PDF",
+    dropHereDesc: "Drop your PDF file here or click to browse. I'll analyze it so you can ask questions about the content.",
+    securityNote: "Your files are processed securely and not stored permanently.",
+    poweredBy: "Powered by OpenAI",
+    howItWorks: {
+      title: "How It Works",
+      step1: {
+        title: "Upload Your PDF",
+        description: "Simply drag and drop your PDF file into the upload area or click to browse your files."
+      },
+      step2: {
+        title: "AI Processes the Content",
+        description: "Our AI quickly analyzes the entire document to understand its content and structure."
+      },
+      step3: {
+        title: "Ask Questions",
+        description: "Ask anything about the document and get accurate answers drawing from the PDF content."
+      }
     },
-    step2: {
-      title: "AI Processes the Content",
-      description: "Our AI quickly analyzes the entire document to understand its content and structure."
-    },
-    step3: {
-      title: "Ask Questions",
-      description: "Ask anything about the document and get accurate answers drawing from the PDF content."
-    }
   },
-},
 }
 

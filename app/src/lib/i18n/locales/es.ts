@@ -85,6 +85,23 @@ export default {
     passwordResetSuccessSubtext: "Si no es redirigido automáticamente, haga clic en el botón de abajo.",
     resettingPassword: "Restableciendo contraseña...",
     resetPassword: "Restablecer contraseña",
+    verifyYourEmail: "Verifica tu correo electrónico",
+    checkYourInbox: "Revisa tu bandeja de entrada para completar el registro",
+    verificationEmailSentTo: "Hemos enviado un correo electrónico de verificación a",
+    pleaseClickLink: " Por favor, haz clic en el enlace del correo para verificar tu cuenta.",
+    checkSpamFolder: "Revisa tu carpeta de spam o",
+    alreadyVerified: "¿Ya verificado?",
+    oAuthAccountNotLinked: "Este correo electrónico ya está asociado con otro método de inicio de sesión. Por favor, inicia sesión con el método que usaste originalmente.",
+    accessDenied: "Acceso denegado. No tienes permiso para acceder a este recurso.",
+    googleSignIn: "Google",
+    hidePassword: "Ocultar contraseña",
+    showPassword: "Mostrar contraseña",
+  },
+  login: {
+    title: "Inicia sesión en tu cuenta",
+    description: "Ingresa tus credenciales para acceder a tu panel",
+    termsAndPrivacy: "Al iniciar sesión, aceptas nuestros <termsLink>Términos de Servicio</termsLink> y <privacyLink>Política de Privacidad</privacyLink>.",
+    footer: "© 2025 ScanPro. Todos los derechos reservados."
   },
   dashboard: {
     title: "Tablero",
@@ -2412,10 +2429,10 @@ export default {
     features: {
       operations: "Operaciones mensuales",
       amount: {
-        free: "100 operaciones",
-        basic: "1,000 operaciones",
-        pro: "10,000 operaciones",
-        enterprise: "100,000 operaciones"
+        free: "500 operaciones",
+        basic: "5,000 operaciones",
+        pro: "50,000 operaciones",
+        enterprise: "500,000 operaciones"
       },
       apiAccess: "Acceso a API",
       apiKeys: {

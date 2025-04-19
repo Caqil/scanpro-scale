@@ -83,6 +83,24 @@ export default {
         passwordResetSuccessSubtext: "إذا لم يتم توجيهك تلقائيًا، انقر على الزر أدناه.",
         resettingPassword: "جارٍ إعادة تعيين كلمة المرور...",
         resetPassword: "إعادة تعيين كلمة المرور",
+        verifyYourEmail: "تحقق من بريدك الإلكتروني",
+        checkYourInbox: "تحقق من صندوق الوارد الخاص بك لإكمال التسجيل",
+        verificationEmailSentTo: "لقد أرسلنا بريدًا إلكترونيًا للتحقق إلى",
+        pleaseClickLink: " يرجى النقر على الرابط في البريد الإلكتروني للتحقق من حسابك.",
+        checkSpamFolder: "تحقق من مجلد البريد العشوائي أو",
+        alreadyVerified: "تم التحقق بالفعل؟",
+        oAuthAccountNotLinked: "هذا البريد الإلكتروني مرتبط بالفعل بطريقة تسجيل دخول مختلفة. يرجى تسجيل الدخول بالطريقة التي استخدمتها في الأصل.",
+        accessDenied: "تم الرفض. ليس لديك إذن للوصول إلى هذا المورد.",
+        googleSignIn: "جوجل",
+        hidePassword: "إخفاء كلمة المرور",
+        showPassword: "إظهار كلمة المرور",
+    },
+    login: {
+        title: "تسجيل الدخول إلى حسابك",
+        description: "أدخل بيانات الاعتماد الخاصة بك للوصول إلى لوحة التحكم",
+        termsAndPrivacy: "بمجرد تسجيل الدخول، فإنك توافق على <termsLink>شروط الخدمة</termsLink> و <privacyLink>سياسة الخصوصية</privacyLink> الخاصة بنا.",
+        footer: "© 2025 ScanPro. جميع الحقوق محفوظة."
+
     },
     dashboard: {
         title: "لوحة التحكم",
@@ -2576,10 +2594,10 @@ export default {
         features: {
             operations: "العمليات الشهرية",
             amount: {
-                free: "100 عملية",
-                basic: "1,000 عملية",
-                pro: "10,000 عملية",
-                enterprise: "100,000 عملية"
+                free: "500 عملية",
+                basic: "5,000 عملية",
+                pro: "50,000 عملية",
+                enterprise: "500,000 عملية"
             },
             apiAccess: "الوصول إلى API",
             apiKeys: {

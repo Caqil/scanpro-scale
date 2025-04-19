@@ -256,26 +256,14 @@ export function RegisterForm() {
         <Button 
           variant="outline" 
           onClick={() => handleOAuthSignIn("google")} 
-          className="flex-1 relative overflow-hidden group"
+          className="flex-1 relative overflow-hidden group h-11 transition-all"
           disabled={loading}
         >
           <FaGoogle className="w-4 h-4 mr-2" />
           <span>Google</span>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </Button>
-        
-        <Button 
-          variant="outline" 
-          onClick={() => handleOAuthSignIn("apple")} 
-          className="flex-1 relative overflow-hidden group"
-          disabled={loading}
-        >
-          <FaApple className="w-4 h-4 mr-2" />
-          <span>Apple</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-        </Button>
       </div>
-
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <Separator className="w-full" />

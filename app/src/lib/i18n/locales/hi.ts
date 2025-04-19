@@ -83,6 +83,24 @@ export default {
         passwordResetSuccessSubtext: "यदि आप स्वचालित रूप से रीडायरेक्ट नहीं होते हैं, तो नीचे दिए गए बटन पर क्लिक करें।",
         resettingPassword: "पासवर्ड रीसेट हो रहा है...",
         resetPassword: "पासवर्ड रीसेट करें",
+        verifyYourEmail: "अपना ईमेल सत्यापित करें",
+        checkYourInbox: "पंजीकरण पूरा करने के लिए अपना इनबॉक्स जांचें",
+        verificationEmailSentTo: "हमने एक सत्यापन ईमेल भेजा है",
+        pleaseClickLink: " कृपया अपने खाते को सत्यापित करने के लिए ईमेल में लिंक पर क्लिक करें।",
+        checkSpamFolder: "अपना स्पैम फ़ोल्डर जांचें या",
+        alreadyVerified: "पहले से सत्यापित?",
+
+        oAuthAccountNotLinked: "यह ईमेल पहले से ही एक अलग लॉगिन विधि से जुड़ा हुआ है। कृपया उस विधि से साइन इन करें जिसे आपने मूल रूप से उपयोग किया था।",
+        accessDenied: "एक्सेस अस्वीकृत। आपके पास इस संसाधन तक पहुंचने की अनुमति नहीं है।",
+        googleSignIn: "गूगल",
+        hidePassword: "पासवर्ड छुपाएं",
+        showPassword: "पासवर्ड दिखाएं",
+    },
+    login: {
+        title: "अपने खाते में साइन इन करें",
+        description: "अपने डैशबोर्ड तक पहुंचने के लिए अपनी साख दर्ज करें",
+        termsAndPrivacy: "साइन इन करके, आप हमारी <termsLink>सेवा की शर्तें</termsLink> और <privacyLink>गोपनीयता नीति</privacyLink> से सहमत होते हैं।",
+        footer: "© 2025 ScanPro. सर्वाधिकार सुरक्षित।"
     },
     dashboard: {
         title: "डैशबोर्ड",
@@ -2413,10 +2431,10 @@ export default {
         features: {
             operations: "मासिक संचालन",
             amount: {
-                free: "100 संचालन",
-                basic: "1,000 संचालन",
-                pro: "10,000 संचालन",
-                enterprise: "100,000 संचालन"
+                free: "500 संचालन",
+                basic: "5,000 संचालन",
+                pro: "50,000 संचालन",
+                enterprise: "500,000 संचालन"
             },
             apiAccess: "API पहुँच",
             apiKeys: {
