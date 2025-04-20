@@ -720,7 +720,7 @@ export default {
       title: "Domande frequenti sulla divisione dei PDF",
       q1: {
         question: "Cosa succede ai miei file PDF dopo la divisione?",
-        answer: "Tutti i file caricati e generati vengono automaticamente eliminati dai nostri server dopo 24 ore per la tua privacy e sicurezza."
+        answer: "Tutti i file caricati e generati vengono automaticamente eliminati dai nostri server dopo 1 ore per la tua privacy e sicurezza."
       },
       q2: {
         question: "C’è un limite al numero di pagine che posso dividere?",
@@ -1481,7 +1481,7 @@ export default {
       },
       secure: {
         question: "I miei dati PDF sono al sicuro durante la compressione?",
-        answer: "Sì, i tuoi dati sono al sicuro. Tutti i file PDF vengono elaborati online in modo sicuro e cancellati automaticamente dopo 24 ore. Sia che tu utilizzi Windows o Linux, il tuo file è crittografato e mai condiviso."
+        answer: "Sì, i tuoi dati sono al sicuro. Tutti i file PDF vengono elaborati online in modo sicuro e cancellati automaticamente dopo 1 ore. Sia che tu utilizzi Windows o Linux, il tuo file è crittografato e mai condiviso."
       },
       fileLimits: {
         question: "Quali sono i limiti di dimensione dei file?",
@@ -1687,7 +1687,7 @@ export default {
     successful: "Conversión Exitosa",
     successDesc: "Tu archivo ha sido convertido con éxito y ahora está listo para descargar.",
     download: "Descargar Archivo Convertido",
-    filesSecurity: "Los archivos se eliminan automáticamente después de 24 horas por privacidad y seguridad."
+    filesSecurity: "Los archivos se eliminan automáticamente después de 1 horas por privacidad y seguridad."
   },
 
   // Common UI elements
@@ -1724,7 +1724,7 @@ export default {
     new: "¡Nuevo!",
     phone: "Teléfono",
     address: "Dirección",
-    filesSecurity: "Los archivos se eliminan automáticamente después de 24 horas por privacidad y seguridad."
+    filesSecurity: "Los archivos se eliminan automáticamente después de 1 horas por privacidad y seguridad."
   },
 
   contact: {
@@ -1763,7 +1763,7 @@ export default {
       title: "Preguntas Frecuentes",
       responseTime: {
         question: "¿Cuánto tiempo toma obtener una respuesta?",
-        answer: "Nuestro objetivo es responder a todas las consultas dentro de 24-48 horas hábiles. Durante períodos de alta demanda, puede tomar hasta 72 horas."
+        answer: "Nuestro objetivo es responder a todas las consultas dentro de 1-48 horas hábiles. Durante períodos de alta demanda, puede tomar hasta 72 horas."
       },
       technicalSupport: {
         question: "¿Puedo obtener soporte para un problema técnico?",
@@ -1853,7 +1853,7 @@ export default {
     },
     dataUse: {
       title: "Cómo Usamos Tus Datos",
-      description: "Procesamos tus archivos solo para proporcionar el servicio que solicitaste. Todos los archivos se eliminan automáticamente después de 24 horas."
+      description: "Procesamos tus archivos solo para proporcionar el servicio que solicitaste. Todos los archivos se eliminan automáticamente después de 1 horas."
     },
     cookies: {
       title: "Cookies y Seguimiento",
@@ -2090,7 +2090,7 @@ export default {
       question2: "Devo creare un account per usare ScanPro?",
       answer2: "No, puoi utilizzare i nostri strumenti PDF di base senza registrarti. Tuttavia, creare un account gratuito ti offre vantaggi come la cronologia salvata, limiti di dimensione dei file più alti e accesso a funzionalità aggiuntive.",
       question3: "I miei dati sono al sicuro su ScanPro?",
-      answer3: "Sì, tutti i file vengono elaborati in modo sicuro sui nostri server con crittografia. Non condividiamo i tuoi file con terze parti e i file vengono automaticamente eliminati dai nostri server dopo l'elaborazione (entro 24 ore). Per maggiori dettagli, consulta la nostra Politica sulla Privacy.",
+      answer3: "Sì, tutti i file vengono elaborati in modo sicuro sui nostri server con crittografia. Non condividiamo i tuoi file con terze parti e i file vengono automaticamente eliminati dai nostri server dopo l'elaborazione (entro 1 ore). Per maggiori dettagli, consulta la nostra Politica sulla Privacy.",
       question4: "Quali dispositivi e browser supporta ScanPro?",
       answer4: "ScanPro funziona su tutti i browser moderni, inclusi Chrome, Firefox, Safari ed Edge. La nostra piattaforma è completamente responsive e funziona su desktop, tablet e dispositivi mobili."
     },
@@ -2181,7 +2181,7 @@ export default {
       },
       temporaryStorage: {
         title: "Archiviazione temporanea",
-        description: "I file vengono eliminati automaticamente entro 24 ore dall'elaborazione. Non conserviamo i tuoi documenti più a lungo del necessario."
+        description: "I file vengono eliminati automaticamente entro 1 ore dall'elaborazione. Non conserviamo i tuoi documenti più a lungo del necessario."
       },
       access: {
         title: "Controlli di accesso",
@@ -2251,7 +2251,7 @@ export default {
       description: "Seguiamo rigorose pratiche di minimizzazione dei dati. Ecco per quanto tempo conserviamo diversi tipi di dati:",
       documents: {
         title: "Documenti caricati",
-        description: "I file vengono eliminati automaticamente dai nostri server entro 24 ore dall'elaborazione. Non conserviamo copie dei tuoi documenti a meno che tu non scelga esplicitamente le funzionalità di archiviazione disponibili per i piani a pagamento."
+        description: "I file vengono eliminati automaticamente dai nostri server entro 1 ore dall'elaborazione. Non conserviamo copie dei tuoi documenti a meno che tu non scelga esplicitamente le funzionalità di archiviazione disponibili per i piani a pagamento."
       },
       account: {
         title: "Informazioni sull'account",
@@ -2277,7 +2277,7 @@ export default {
       },
       documentStorage: {
         question: "Per quanto tempo conservate i miei documenti?",
-        answer: "I documenti vengono eliminati automaticamente dai nostri server dopo l'elaborazione, generalmente entro 24 ore. Per gli abbonati a pagamento, sono disponibili opzioni di archiviazione documenti, ma queste sono solo funzionalità opt-in."
+        answer: "I documenti vengono eliminati automaticamente dai nostri server dopo l'elaborazione, generalmente entro 1 ore. Per gli abbonati a pagamento, sono disponibili opzioni di archiviazione documenti, ma queste sono solo funzionalità opt-in."
       },
       thirdParty: {
         question: "Condividete i miei dati con terze parti?",
@@ -2731,7 +2731,7 @@ export default {
     benefit4Description: 'Analizza il contenuto del documento con l\'estrazione del testo e l\'elaborazione dei dati',
     faqTitle: 'Domande frequenti',
     faq1Question: 'I miei dati sono al sicuro durante l\'elaborazione OCR?',
-    faq1Answer: 'Sì, prendiamo molto sul serio la sicurezza dei dati. Tutti i caricamenti e l\'elaborazione dei file avvengono su server sicuri. I tuoi file vengono eliminati automaticamente dopo 24 ore e non utilizziamo i tuoi documenti per nessun altro scopo se non quello di fornire il servizio OCR.',
+    faq1Answer: 'Sì, prendiamo molto sul serio la sicurezza dei dati. Tutti i caricamenti e l\'elaborazione dei file avvengono su server sicuri. I tuoi file vengono eliminati automaticamente dopo 1 ore e non utilizziamo i tuoi documenti per nessun altro scopo se non quello di fornire il servizio OCR.',
     relatedToolsTitle: 'Strumenti PDF correlati',
     tool1Href: '/compress-pdf',
     tool1Title: 'Comprimi PDF',

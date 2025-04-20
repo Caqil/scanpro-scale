@@ -16,6 +16,14 @@ const DIRECTORIES = [
   'public/protected',
   'public/unlocked',
   'public/edited',
+  'public/pagenumbers',
+  'public/status',
+  'public/signatures',
+  'public/ocr',
+  'public/processed',
+  'public/unwatermarked',
+  'public/redacted',
+  'public/repaired',
   'temp',
 ];
 

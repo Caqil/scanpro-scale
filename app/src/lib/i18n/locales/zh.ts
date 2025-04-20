@@ -731,7 +731,7 @@ export default {
             title: "关于分割 PDF 的常见问题",
             q1: {
                 question: "分割后我的 PDF 文件会怎么样？",
-                answer: "为了您的隐私和安全，所有上传和生成的文件将在 24 小时后从我们的服务器自动删除。"
+                answer: "为了您的隐私和安全，所有上传和生成的文件将在 1 小时后从我们的服务器自动删除。"
             },
             q2: {
                 question: "我可以分割的页面数量有限制吗？",
@@ -1422,7 +1422,7 @@ export default {
             },
             secure: {
                 question: "压缩时我的PDF数据安全吗？",
-                answer: "是的，您的数据是安全的。所有PDF文件均在线安全处理，并在24小时后自动删除。无论您使用Windows还是Linux，您的文件都会被加密且永不共享。"
+                answer: "是的，您的数据是安全的。所有PDF文件均在线安全处理，并在1小时后自动删除。无论您使用Windows还是Linux，您的文件都会被加密且永不共享。"
             },
             fileLimits: {
                 question: "文件大小限制是多少？",
@@ -1629,7 +1629,7 @@ export default {
         successful: "转换成功",
         successDesc: "您的文件已成功转换，现在可以下载。",
         download: "下载转换后的文件",
-        filesSecurity: "文件在24小时后自动删除，以确保隐私和安全。"
+        filesSecurity: "文件在1小时后自动删除，以确保隐私和安全。"
     },
 
     // 常用UI元素
@@ -1666,7 +1666,7 @@ export default {
         new: "新！",
         phone: "电话",
         address: "地址",
-        filesSecurity: "文件在24小时后自动删除，以确保隐私和安全。"
+        filesSecurity: "文件在1小时后自动删除，以确保隐私和安全。"
     },
 
     contact: {
@@ -1705,7 +1705,7 @@ export default {
             title: "常见问题",
             responseTime: {
                 question: "回复需要多长时间？",
-                answer: "我们旨在在24-48个工作小时内回复所有询问。在高峰期，可能需要最多72小时。"
+                answer: "我们旨在在1-48个工作小时内回复所有询问。在高峰期，可能需要最多72小时。"
             },
             technicalSupport: {
                 question: "我可以获得技术支持吗？",
@@ -1793,7 +1793,7 @@ export default {
         },
         dataUse: {
             title: "我们如何使用您的数据",
-            description: "我们仅处理您的文件以提供您请求的服务。所有文件在24小时后自动删除。"
+            description: "我们仅处理您的文件以提供您请求的服务。所有文件在1小时后自动删除。"
         },
         cookies: {
             title: "Cookie和追踪",
@@ -2030,7 +2030,7 @@ export default {
             question2: "我需要创建账户才能使用ScanPro吗？",
             answer2: "不需要，您可以不注册就使用我们的基本PDF工具。但是，创建一个免费账户可以享受保存历史记录、更高的文件大小限制和访问附加功能等好处。",
             question3: "我的数据在ScanPro上安全吗？",
-            answer3: "是的，所有文件都在我们的服务器上通过加密安全处理。我们不会与第三方共享您的文件，文件在处理后（24小时内）会从我们的服务器自动删除。详情请查看我们的隐私政策。",
+            answer3: "是的，所有文件都在我们的服务器上通过加密安全处理。我们不会与第三方共享您的文件，文件在处理后（1小时内）会从我们的服务器自动删除。详情请查看我们的隐私政策。",
             question4: "ScanPro支持哪些设备和浏览器？",
             answer4: "ScanPro可在所有现代浏览器上运行，包括Chrome、Firefox、Safari和Edge。我们的平台完全响应式，适用于桌面、平板和移动设备。"
         },
@@ -2120,7 +2120,7 @@ export default {
             },
             temporaryStorage: {
                 title: "临时存储",
-                description: "文件在处理后24小时内自动删除。我们不会不必要地保留您的文档。"
+                description: "文件在处理后1小时内自动删除。我们不会不必要地保留您的文档。"
             },
             access: {
                 title: "访问控制",
@@ -2190,7 +2190,7 @@ export default {
             description: "我们遵循严格的数据最小化实践。以下是我们保留不同类型数据的时间：",
             documents: {
                 title: "上传的文档",
-                description: "文件在处理后24小时内从我们的服务器自动删除。除非您明确选择付费计划提供的存储功能，否则我们不会保留您文档的副本。"
+                description: "文件在处理后1小时内从我们的服务器自动删除。除非您明确选择付费计划提供的存储功能，否则我们不会保留您文档的副本。"
             },
             account: {
                 title: "账户信息",
@@ -2216,7 +2216,7 @@ export default {
             },
             documentStorage: {
                 question: "你们存储我的文档多久？",
-                answer: "文档通常在处理后24小时内从我们的服务器自动删除。付费订阅用户可使用文档存储选项，但这些仅是可选功能。"
+                answer: "文档通常在处理后1小时内从我们的服务器自动删除。付费订阅用户可使用文档存储选项，但这些仅是可选功能。"
             },
             thirdParty: {
                 question: "你们会与第三方共享我的数据吗？",
@@ -2670,7 +2670,7 @@ export default {
         benefit4Description: '通过文本提取和数据处理分析文档内容',
         faqTitle: '常见问题',
         faq1Question: '在OCR处理期间我的数据安全吗？',
-        faq1Answer: '是的，我们非常重视数据安全。所有文件上传和处理都在安全服务器上进行。您的文件将在24小时后自动删除，我们不会将您的文档用于除提供OCR服务之外的任何其他用途。',
+        faq1Answer: '是的，我们非常重视数据安全。所有文件上传和处理都在安全服务器上进行。您的文件将在1小时后自动删除，我们不会将您的文档用于除提供OCR服务之外的任何其他用途。',
         relatedToolsTitle: '相关PDF工具',
         tool1Href: '/compress-pdf',
         tool1Title: '压缩PDF',

@@ -729,7 +729,7 @@ export default {
       title: "Perguntas Frequentes Sobre a Divisão de PDFs",
       q1: {
         question: "O que acontece com meus arquivos PDF após a divisão?",
-        answer: "Todos os arquivos enviados e gerados são automaticamente excluídos de nossos servidores após 24 horas para sua privacidade e segurança."
+        answer: "Todos os arquivos enviados e gerados são automaticamente excluídos de nossos servidores após 1 horas para sua privacidade e segurança."
       },
       q2: {
         question: "Há um limite para quantas páginas eu posso dividir?",
@@ -1420,7 +1420,7 @@ export default {
       },
       secure: {
         question: "Meus dados PDF estão seguros ao compactar?",
-        answer: "Sim, seus dados estão seguros. Todos os arquivos PDF são processados online com segurança e excluídos automaticamente após 24 horas. Seja no Windows ou Linux, seu arquivo é criptografado e nunca compartilhado."
+        answer: "Sim, seus dados estão seguros. Todos os arquivos PDF são processados online com segurança e excluídos automaticamente após 1 horas. Seja no Windows ou Linux, seu arquivo é criptografado e nunca compartilhado."
       },
       fileLimits: {
         question: "Quais são os limites de tamanho de arquivo?",
@@ -1502,7 +1502,7 @@ export default {
     successful: "Conversão Bem-Sucedida",
     successDesc: "Seu arquivo foi convertido com sucesso e agora está pronto para download.",
     download: "Baixar Arquivo Convertido",
-    filesSecurity: "Os arquivos são automaticamente excluídos após 24 horas por motivos de privacidade e segurança."
+    filesSecurity: "Os arquivos são automaticamente excluídos após 1 horas por motivos de privacidade e segurança."
   },
 
   // Elementos Comuns de UI
@@ -1539,7 +1539,7 @@ export default {
     new: "Novo!",
     phone: "Telefone",
     address: "Endereço",
-    filesSecurity: "Os arquivos são automaticamente excluídos após 24 horas por motivos de privacidade e segurança."
+    filesSecurity: "Os arquivos são automaticamente excluídos após 1 horas por motivos de privacidade e segurança."
   },
 
   contact: {
@@ -1578,7 +1578,7 @@ export default {
       title: "Perguntas Frequentes",
       responseTime: {
         question: "Quanto tempo leva para obter uma resposta?",
-        answer: "Nosso objetivo é responder a todas as consultas dentro de 24-48 horas úteis. Em períodos de pico, pode levar até 72 horas."
+        answer: "Nosso objetivo é responder a todas as consultas dentro de 1-48 horas úteis. Em períodos de pico, pode levar até 72 horas."
       },
       technicalSupport: {
         question: "Posso obter suporte para um problema técnico?",
@@ -1667,7 +1667,7 @@ export default {
     },
     dataUse: {
       title: "Como Usamos Seus Dados",
-      description: "Processamos seus arquivos apenas para fornecer o serviço solicitado. Todos os arquivos são automaticamente excluídos após 24 horas."
+      description: "Processamos seus arquivos apenas para fornecer o serviço solicitado. Todos os arquivos são automaticamente excluídos após 1 horas."
     },
     cookies: {
       title: "Cookies e Rastreamento",
@@ -2027,7 +2027,7 @@ export default {
       question2: "Preciso criar uma conta para usar o ScanPro?",
       answer2: "Não, você pode usar nossas ferramentas básicas de PDF sem se registrar. No entanto, criar uma conta gratuita oferece benefícios como histórico salvo, limites maiores de tamanho de arquivo e acesso a recursos adicionais.",
       question3: "Meus dados estão seguros no ScanPro?",
-      answer3: "Sim, todos os arquivos são processados com segurança em nossos servidores com criptografia. Não compartilhamos seus arquivos com terceiros, e eles são automaticamente excluídos de nossos servidores após o processamento (dentro de 24 horas). Para mais detalhes, consulte nossa Política de Privacidade.",
+      answer3: "Sim, todos os arquivos são processados com segurança em nossos servidores com criptografia. Não compartilhamos seus arquivos com terceiros, e eles são automaticamente excluídos de nossos servidores após o processamento (dentro de 1 horas). Para mais detalhes, consulte nossa Política de Privacidade.",
       question4: "Quais dispositivos e navegadores o ScanPro suporta?",
       answer4: "O ScanPro funciona em todos os navegadores modernos, incluindo Chrome, Firefox, Safari e Edge. Nossa plataforma é totalmente responsiva e funciona em desktops, tablets e dispositivos móveis."
     },
@@ -2117,7 +2117,7 @@ export default {
       },
       temporaryStorage: {
         title: "Armazenamento temporário",
-        description: "Arquivos são excluídos automaticamente em 24 horas após o processamento. Não mantemos seus documentos por mais tempo que o necessário."
+        description: "Arquivos são excluídos automaticamente em 1 horas após o processamento. Não mantemos seus documentos por mais tempo que o necessário."
       },
       access: {
         title: "Controles de acesso",
@@ -2187,7 +2187,7 @@ export default {
       description: "Seguimos práticas rigorosas de minimização de dados. Veja por quanto tempo mantemos diferentes tipos de dados:",
       documents: {
         title: "Documentos enviados",
-        description: "Arquivos são excluídos automaticamente de nossos servidores em 24 horas após o processamento. Não mantemos cópias de seus documentos, a menos que você opte explicitamente por recursos de armazenamento disponíveis em planos pagos."
+        description: "Arquivos são excluídos automaticamente de nossos servidores em 1 horas após o processamento. Não mantemos cópias de seus documentos, a menos que você opte explicitamente por recursos de armazenamento disponíveis em planos pagos."
       },
       account: {
         title: "Informações da conta",
@@ -2213,7 +2213,7 @@ export default {
       },
       documentStorage: {
         question: "Por quanto tempo vocês armazenam meus documentos?",
-        answer: "Documentos são excluídos automaticamente de nossos servidores após o processamento, geralmente em 24 horas. Para assinantes pagos, opções de armazenamento de documentos estão disponíveis, mas são apenas recursos opcionais."
+        answer: "Documentos são excluídos automaticamente de nossos servidores após o processamento, geralmente em 1 horas. Para assinantes pagos, opções de armazenamento de documentos estão disponíveis, mas são apenas recursos opcionais."
       },
       thirdParty: {
         question: "Vocês compartilham meus dados com terceiros?",
@@ -2667,7 +2667,7 @@ export default {
     benefit4Description: 'Analise o conteúdo do documento com extração de texto e processamento de dados',
     faqTitle: 'Perguntas frequentes',
     faq1Question: 'Meus dados estão seguros durante o processamento OCR?',
-    faq1Answer: 'Sim, levamos a segurança dos dados muito a sério. Todos os uploads e processamento de arquivos ocorrem em servidores seguros. Seus arquivos são automaticamente excluídos após 24 horas e não usamos seus documentos para nenhum outro propósito além de fornecer o serviço OCR.',
+    faq1Answer: 'Sim, levamos a segurança dos dados muito a sério. Todos os uploads e processamento de arquivos ocorrem em servidores seguros. Seus arquivos são automaticamente excluídos após 1 horas e não usamos seus documentos para nenhum outro propósito além de fornecer o serviço OCR.',
     relatedToolsTitle: 'Ferramentas PDF relacionadas',
     tool1Href: '/compress-pdf',
     tool1Title: 'Comprimir PDF',

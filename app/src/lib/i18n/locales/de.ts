@@ -730,7 +730,7 @@ export default {
       title: "Häufig gestellte Fragen zum Teilen von PDFs",
       q1: {
         question: "Was passiert mit meinen PDF-Dateien nach dem Teilen?",
-        answer: "Alle hochgeladenen und generierten Dateien werden nach 24 Stunden automatisch von unseren Servern gelöscht, um Ihre Privatsphäre und Sicherheit zu gewährleisten."
+        answer: "Alle hochgeladenen und generierten Dateien werden nach 1 Stunden automatisch von unseren Servern gelöscht, um Ihre Privatsphäre und Sicherheit zu gewährleisten."
       },
       q2: {
         question: "Gibt es eine Begrenzung, wie viele Seiten ich teilen kann?",
@@ -1420,7 +1420,7 @@ export default {
       },
       secure: {
         question: "Sind meine PDF-Daten bei der Komprimierung sicher?",
-        answer: "Ja, Ihre Daten sind sicher. Alle PDF-Dateien werden sicher online verarbeitet und nach 24 Stunden automatisch gelöscht. Egal, ob Sie Windows oder Linux verwenden, Ihre Datei ist verschlüsselt und wird niemals weitergegeben."
+        answer: "Ja, Ihre Daten sind sicher. Alle PDF-Dateien werden sicher online verarbeitet und nach 1 Stunden automatisch gelöscht. Egal, ob Sie Windows oder Linux verwenden, Ihre Datei ist verschlüsselt und wird niemals weitergegeben."
       },
       fileLimits: {
         question: "Welche Dateigrößenbeschränkungen gibt es?",
@@ -1627,7 +1627,7 @@ export default {
     successful: "Konvertierung erfolgreich",
     successDesc: "Ihre Datei wurde erfolgreich konvertiert und ist jetzt zum Download bereit.",
     download: "Konvertierte Datei herunterladen",
-    filesSecurity: "Dateien werden automatisch nach 24 Stunden für Datenschutz und Sicherheit gelöscht."
+    filesSecurity: "Dateien werden automatisch nach 1 Stunden für Datenschutz und Sicherheit gelöscht."
   },
 
   // Allgemeine UI-Elemente
@@ -1664,7 +1664,7 @@ export default {
     new: "Neu!",
     phone: "Telefon",
     address: "Adresse",
-    filesSecurity: "Dateien werden automatisch nach 24 Stunden für Datenschutz und Sicherheit gelöscht."
+    filesSecurity: "Dateien werden automatisch nach 1 Stunden für Datenschutz und Sicherheit gelöscht."
   },
 
   contact: {
@@ -1703,7 +1703,7 @@ export default {
       title: "Häufig gestellte Fragen",
       responseTime: {
         question: "Wie lange dauert es, bis ich eine Antwort erhalte?",
-        answer: "Wir bemühen uns, alle Anfragen innerhalb von 24-48 Geschäftsstunden zu beantworten. In Stoßzeiten kann es bis zu 72 Stunden dauern."
+        answer: "Wir bemühen uns, alle Anfragen innerhalb von 1-48 Geschäftsstunden zu beantworten. In Stoßzeiten kann es bis zu 72 Stunden dauern."
       },
       technicalSupport: {
         question: "Kann ich Support für ein technisches Problem erhalten?",
@@ -1791,7 +1791,7 @@ export default {
     },
     dataUse: {
       title: "Wie wir Ihre Daten verwenden",
-      description: "Wir verarbeiten Ihre Dateien nur, um den von Ihnen angeforderten Service bereitzustellen. Alle Dateien werden automatisch nach 24 Stunden gelöscht."
+      description: "Wir verarbeiten Ihre Dateien nur, um den von Ihnen angeforderten Service bereitzustellen. Alle Dateien werden automatisch nach 1 Stunden gelöscht."
     },
     cookies: {
       title: "Cookies und Tracking",
@@ -2028,7 +2028,7 @@ export default {
       question2: "Muss ich ein Konto erstellen, um ScanPro zu nutzen?",
       answer2: "Nein, Sie können unsere grundlegenden PDF-Tools ohne Registrierung nutzen. Ein kostenloses Konto bietet jedoch Vorteile wie gespeicherten Verlauf, höhere Dateigrößenlimits und Zugriff auf zusätzliche Funktionen.",
       question3: "Sind meine Daten auf ScanPro sicher?",
-      answer3: "Ja, alle Dateien werden auf unseren Servern mit Verschlüsselung sicher verarbeitet. Wir geben Ihre Dateien nicht an Dritte weiter, und sie werden nach der Verarbeitung automatisch von unseren Servern gelöscht (innerhalb von 24 Stunden). Weitere Details finden Sie in unserer Datenschutzrichtlinie.",
+      answer3: "Ja, alle Dateien werden auf unseren Servern mit Verschlüsselung sicher verarbeitet. Wir geben Ihre Dateien nicht an Dritte weiter, und sie werden nach der Verarbeitung automatisch von unseren Servern gelöscht (innerhalb von 1 Stunden). Weitere Details finden Sie in unserer Datenschutzrichtlinie.",
       question4: "Welche Geräte und Browser unterstützt ScanPro?",
       answer4: "ScanPro funktioniert auf allen modernen Browsern wie Chrome, Firefox, Safari und Edge. Unsere Plattform ist vollständig responsiv und läuft auf Desktops, Tablets und Mobilgeräten."
     },
@@ -2118,7 +2118,7 @@ export default {
       },
       temporaryStorage: {
         title: "Temporäre Speicherung",
-        description: "Dateien werden automatisch innerhalb von 24 Stunden nach der Verarbeitung gelöscht. Wir bewahren Ihre Dokumente nicht länger als nötig auf."
+        description: "Dateien werden automatisch innerhalb von 1 Stunden nach der Verarbeitung gelöscht. Wir bewahren Ihre Dokumente nicht länger als nötig auf."
       },
       access: {
         title: "Zugriffskontrollen",
@@ -2188,7 +2188,7 @@ export default {
       description: "Wir befolgen strenge Data-Minimierung-Praktiken. Hier ist, wie lange wir verschiedene Datentypen aufbewahren:",
       documents: {
         title: "Hochgeladene Dokumente",
-        description: "Dateien werden automatisch innerhalb von 24 Stunden nach der Verarbeitung von unseren Servern gelöscht. Wir bewahren keine Kopien Ihrer Dokumente auf, es sei denn, Sie wählen explizit Speicheroptionen, die für kostenpflichtige Pläne verfügbar sind."
+        description: "Dateien werden automatisch innerhalb von 1 Stunden nach der Verarbeitung von unseren Servern gelöscht. Wir bewahren keine Kopien Ihrer Dokumente auf, es sei denn, Sie wählen explizit Speicheroptionen, die für kostenpflichtige Pläne verfügbar sind."
       },
       account: {
         title: "Kontoinformationen",
@@ -2214,7 +2214,7 @@ export default {
       },
       documentStorage: {
         question: "Wie lange bewahren Sie meine Dokumente auf?",
-        answer: "Dokumente werden automatisch nach der Verarbeitung von unseren Servern gelöscht, in der Regel innerhalb von 24 Stunden. Für kostenpflichtige Abonnenten stehen Dokumentenspeicheroptionen zur Verfügung, dies sind jedoch nur optionale Funktionen."
+        answer: "Dokumente werden automatisch nach der Verarbeitung von unseren Servern gelöscht, in der Regel innerhalb von 1 Stunden. Für kostenpflichtige Abonnenten stehen Dokumentenspeicheroptionen zur Verfügung, dies sind jedoch nur optionale Funktionen."
       },
       thirdParty: {
         question: "Geben Sie meine Daten an Dritte weiter?",
@@ -2667,7 +2667,7 @@ export default {
     benefit4Description: 'Analysieren Sie den Dokumentinhalt mit Textextraktion und Datenverarbeitung',
     faqTitle: 'Häufig gestellte Fragen',
     faq1Question: 'Sind meine Daten während der OCR-Verarbeitung sicher?',
-    faq1Answer: 'Ja, wir nehmen die Datensicherheit sehr ernst. Alle Datei-Uploads und die Verarbeitung erfolgen auf sicheren Servern. Ihre Dateien werden automatisch nach 24 Stunden gelöscht, und wir verwenden Ihre Dokumente für keinen anderen Zweck als die Bereitstellung des OCR-Dienstes.',
+    faq1Answer: 'Ja, wir nehmen die Datensicherheit sehr ernst. Alle Datei-Uploads und die Verarbeitung erfolgen auf sicheren Servern. Ihre Dateien werden automatisch nach 1 Stunden gelöscht, und wir verwenden Ihre Dokumente für keinen anderen Zweck als die Bereitstellung des OCR-Dienstes.',
     relatedToolsTitle: 'Verwandte PDF-Tools',
     tool1Href: '/compress-pdf',
     tool1Title: 'PDF komprimieren',

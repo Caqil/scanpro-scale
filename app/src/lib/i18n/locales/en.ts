@@ -740,7 +740,7 @@ export default {
       title: "Frequently Asked Questions About Splitting PDFs",
       q1: {
         question: "What happens to my PDF files after splitting?",
-        answer: "All uploaded and generated files are automatically deleted from our servers after 24 hours for your privacy and security."
+        answer: "All uploaded and generated files are automatically deleted from our servers after 1 hours for your privacy and security."
       },
       q2: {
         question: "Is there a limit to how many pages I can split?",
@@ -1605,7 +1605,7 @@ export default {
       },
       secure: {
         question: "Is my PDF data secure when compressing?",
-        answer: "Yes, your data is safe. All PDF files are processed securely online and automatically deleted after 24 hours. Whether you use Windows or Linux, your file is encrypted and never shared."
+        answer: "Yes, your data is safe. All PDF files are processed securely online and automatically deleted after 1 hours. Whether you use Windows or Linux, your file is encrypted and never shared."
       },
       fileLimits: {
         question: "What are the file size limits?",
@@ -1811,7 +1811,7 @@ export default {
     successful: "Conversion Successful",
     successDesc: "Your file has been successfully converted and is now ready for download.",
     download: "Download Converted File",
-    filesSecurity: "Files are automatically deleted after 24 hours for privacy and security."
+    filesSecurity: "Files are automatically deleted after 1 hours for privacy and security."
   },
 
   // Common UI elements
@@ -1848,7 +1848,7 @@ export default {
     new: "New!",
     phone: "Phone",
     address: "Address",
-    filesSecurity: "Files are automatically deleted after 24 hours for privacy and security."
+    filesSecurity: "Files are automatically deleted after 1 hours for privacy and security."
   },
 
   contact: {
@@ -1887,7 +1887,7 @@ export default {
       title: "Frequently Asked Questions",
       responseTime: {
         question: "How long does it take to get a response?",
-        answer: "We aim to respond to all inquiries within 24-48 business hours. During peak times, it may take up to 72 hours."
+        answer: "We aim to respond to all inquiries within 1-48 business hours. During peak times, it may take up to 72 hours."
       },
       technicalSupport: {
         question: "Can I get support for a technical issue?",
@@ -1976,7 +1976,7 @@ export default {
     },
     dataUse: {
       title: "How We Use Your Data",
-      description: "We process your files only to provide the service you requested. All files are automatically deleted after 24 hours."
+      description: "We process your files only to provide the service you requested. All files are automatically deleted after 1 hours."
     },
     cookies: {
       title: "Cookies and Tracking",
@@ -2221,7 +2221,7 @@ export default {
       question2: "Do I need to create an account to use ScanPro?",
       answer2: "No, you can use our basic PDF tools without registering. However, creating a free account gives you benefits like saved history, higher file size limits, and access to additional features.",
       question3: "Is my data secure on ScanPro?",
-      answer3: "Yes, all files are processed securely on our servers with encryption. We don't share your files with third parties, and files are automatically deleted from our servers after processing (within 24 hours). For more details, please see our Privacy Policy.",
+      answer3: "Yes, all files are processed securely on our servers with encryption. We don't share your files with third parties, and files are automatically deleted from our servers after processing (within 1 hours). For more details, please see our Privacy Policy.",
       question4: "What devices and browsers does ScanPro support?",
       answer4: "ScanPro works on all modern browsers including Chrome, Firefox, Safari, and Edge. Our platform is fully responsive and works on desktop, tablet, and mobile devices."
     },
@@ -2311,7 +2311,7 @@ export default {
       },
       temporaryStorage: {
         title: "Temporary Storage",
-        description: "Files are automatically deleted within 24 hours of processing. We don't keep your documents longer than necessary."
+        description: "Files are automatically deleted within 1 hours of processing. We don't keep your documents longer than necessary."
       },
       access: {
         title: "Access Controls",
@@ -2381,7 +2381,7 @@ export default {
       description: "We follow strict data minimization practices. Here's how long we keep different types of data:",
       documents: {
         title: "Uploaded Documents",
-        description: "Files are automatically deleted from our servers within 24 hours of processing. We don't keep copies of your documents unless you explicitly opt into storage features available for paid plans."
+        description: "Files are automatically deleted from our servers within 1 hours of processing. We don't keep copies of your documents unless you explicitly opt into storage features available for paid plans."
       },
       account: {
         title: "Account Information",
@@ -2407,7 +2407,7 @@ export default {
       },
       documentStorage: {
         question: "How long do you store my documents?",
-        answer: "Documents are automatically deleted from our servers after processing, typically within 24 hours. For paid subscribers, document storage options are available, but these are opt-in features only."
+        answer: "Documents are automatically deleted from our servers after processing, typically within 1 hours. For paid subscribers, document storage options are available, but these are opt-in features only."
       },
       thirdParty: {
         question: "Do you share my data with third parties?",
@@ -2868,7 +2868,7 @@ export default {
     benefit4Description: 'Analyze document content with text extraction and data processing',
     faqTitle: 'Frequently Asked Questions',
     faq1Question: 'Is my data secure during OCR processing?',
-    faq1Answer: 'Yes, we take data security seriously. All file uploads and processing occur on secure servers. Your files are automatically deleted after 24 hours, and we don\'t use your documents for any purpose other than providing the OCR service.',
+    faq1Answer: 'Yes, we take data security seriously. All file uploads and processing occur on secure servers. Your files are automatically deleted after 1 hours, and we don\'t use your documents for any purpose other than providing the OCR service.',
     relatedToolsTitle: 'Related PDF Tools',
     tool1Href: '/compress-pdf',
     tool1Title: 'Compress PDF',

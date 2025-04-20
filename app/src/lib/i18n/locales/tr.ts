@@ -731,7 +731,7 @@ export default {
             title: "PDF Bölme Hakkında Sıkça Sorulan Sorular",
             q1: {
                 question: "PDF dosyalarım bölündükten sonra ne oluyor?",
-                answer: "Gizliliğiniz ve güvenliğiniz için tüm yüklenen ve oluşturulan dosyalar 24 saat sonra sunucularımızdan otomatik olarak silinir."
+                answer: "Gizliliğiniz ve güvenliğiniz için tüm yüklenen ve oluşturulan dosyalar 1 saat sonra sunucularımızdan otomatik olarak silinir."
             },
             q2: {
                 question: "Bölebileceğim sayfa sayısında bir sınır var mı?",
@@ -1422,7 +1422,7 @@ export default {
             },
             secure: {
                 question: "PDF verilerim sıkıştırılırken güvende mi?",
-                answer: "Evet, verileriniz güvende. Tüm PDF dosyaları güvenli şekilde çevrimiçi işlenir ve 24 saat sonra otomatik silinir. Windows veya Linux kullanıyor olun, dosyanız şifrelenir ve asla paylaşılmaz."
+                answer: "Evet, verileriniz güvende. Tüm PDF dosyaları güvenli şekilde çevrimiçi işlenir ve 1 saat sonra otomatik silinir. Windows veya Linux kullanıyor olun, dosyanız şifrelenir ve asla paylaşılmaz."
             },
             fileLimits: {
                 question: "Dosya boyutu sınırları nedir?",
@@ -1629,7 +1629,7 @@ export default {
         successful: "Dönüşüm başarıyla tamamlandı",
         successDesc: "Dosyanız başarıyla dönüştürüldü ve indirmeye hazır.",
         download: "Dönüştürülen Dosyayı İndir",
-        filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 24 saat sonra otomatik olarak silinir."
+        filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 1 saat sonra otomatik olarak silinir."
     },
 
     // Genel Kullanıcı Arayüzü Elemanları
@@ -1666,7 +1666,7 @@ export default {
         new: "Yeni!",
         phone: "Telefon",
         address: "Adres",
-        filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 24 saat sonra otomatik olarak silinir."
+        filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 1 saat sonra otomatik olarak silinir."
     },
 
     contact: {
@@ -1705,7 +1705,7 @@ export default {
             title: "Sıkça Sorulan Sorular",
             responseTime: {
                 question: "Yanıt ne kadar sürede gelir?",
-                answer: "Tüm taleplere 24-48 iş saati içinde yanıt vermeyi hedefliyoruz. Yoğun dönemlerde bu süre 72 saate kadar uzayabilir."
+                answer: "Tüm taleplere 1-48 iş saati içinde yanıt vermeyi hedefliyoruz. Yoğun dönemlerde bu süre 72 saate kadar uzayabilir."
             },
             technicalSupport: {
                 question: "Teknik bir sorun için destek alabilir miyim?",
@@ -1794,7 +1794,7 @@ export default {
         },
         dataUse: {
             title: "Verilerinizi Nasıl Kullanıyoruz",
-            description: "Dosyalarınızı yalnızca talep edilen hizmeti sağlamak için işleriz. Tüm dosyalar 24 saat sonra otomatik olarak silinir."
+            description: "Dosyalarınızı yalnızca talep edilen hizmeti sağlamak için işleriz. Tüm dosyalar 1 saat sonra otomatik olarak silinir."
         },
         cookies: {
             title: "Çerezler ve İzleme",
@@ -2031,7 +2031,7 @@ export default {
             question2: "ScanPro'yu kullanmak için hesap oluşturmam gerekiyor mu?",
             answer2: "Hayır, temel PDF araçlarımızı kaydolmadan kullanabilirsiniz. Ancak, ücretsiz bir hesap oluşturmak size geçmişin kaydedilmesi, daha yüksek dosya boyutu limitleri ve ek özelliklere erişim gibi avantajlar sağlar.",
             question3: "Verilerim ScanPro'da güvende mi?",
-            answer3: "Evet, tüm dosyalar şifreleme ile sunucularımızda güvenli bir şekilde işlenir. Dosyalarınızı üçüncü taraflarla paylaşmıyoruz ve işleme tamamlandıktan sonra (24 saat içinde) sunucularımızdan otomatik olarak siliniyor. Daha fazla ayrıntı için lütfen Gizlilik Politikamıza bakın.",
+            answer3: "Evet, tüm dosyalar şifreleme ile sunucularımızda güvenli bir şekilde işlenir. Dosyalarınızı üçüncü taraflarla paylaşmıyoruz ve işleme tamamlandıktan sonra (1 saat içinde) sunucularımızdan otomatik olarak siliniyor. Daha fazla ayrıntı için lütfen Gizlilik Politikamıza bakın.",
             question4: "ScanPro hangi cihazları ve tarayıcıları destekler?",
             answer4: "ScanPro, Chrome, Firefox, Safari ve Edge dahil tüm modern tarayıcılarda çalışır. Platformumuz tamamen duyarlıdır ve masaüstü, tablet ve mobil cihazlarda kullanılabilir."
         },
@@ -2121,7 +2121,7 @@ export default {
             },
             temporaryStorage: {
                 title: "Geçici Depolama",
-                description: "Dosyalar işlendikten sonra 24 saat içinde otomatik olarak silinir. Belgelerinizi gereğinden fazla saklamayız."
+                description: "Dosyalar işlendikten sonra 1 saat içinde otomatik olarak silinir. Belgelerinizi gereğinden fazla saklamayız."
             },
             access: {
                 title: "Erişim Kontrolleri",
@@ -2191,7 +2191,7 @@ export default {
             description: "Sıkı veri minimizasyonu uygulamaları izliyoruz. Farklı veri türlerini ne kadar süre sakladığımız aşağıda belirtilmiştir:",
             documents: {
                 title: "Yüklenen Belgeler",
-                description: "Dosyalar işlendikten sonra 24 saat içinde sunucularımızdan otomatik olarak silinir. Ücretli planlarda mevcut depolama özelliklerini açıkça seçmediğiniz sürece belge kopyalarını saklamayız."
+                description: "Dosyalar işlendikten sonra 1 saat içinde sunucularımızdan otomatik olarak silinir. Ücretli planlarda mevcut depolama özelliklerini açıkça seçmediğiniz sürece belge kopyalarını saklamayız."
             },
             account: {
                 title: "Hesap Bilgileri",
@@ -2217,7 +2217,7 @@ export default {
             },
             documentStorage: {
                 question: "Belgelerimi ne kadar süre saklıyorsunuz?",
-                answer: "Belgeler işlendikten sonra genellikle 24 saat içinde sunucularımızdan otomatik olarak silinir. Ücretli aboneler için belge depolama seçenekleri mevcuttur, ancak bunlar yalnızca opt-in özelliklerdir."
+                answer: "Belgeler işlendikten sonra genellikle 1 saat içinde sunucularımızdan otomatik olarak silinir. Ücretli aboneler için belge depolama seçenekleri mevcuttur, ancak bunlar yalnızca opt-in özelliklerdir."
             },
             thirdParty: {
                 question: "Verilerimi üçüncü taraflarla paylaşıyor musunuz?",
@@ -2672,7 +2672,7 @@ export default {
         benefit4Description: 'Metin çıkarma ve veri işleme ile belge içeriğini analiz edin',
         faqTitle: 'Sık Sorulan Sorular',
         faq1Question: 'OCR işlemi sırasında verilerim güvenli midir?',
-        faq1Answer: 'Evet, veri güvenliğini çok ciddiye alıyoruz. Tüm dosya yüklemeleri ve işlemleri güvenli sunucularda gerçekleşir. Dosyalarınız 24 saat sonra otomatik olarak silinir ve OCR hizmetini sağlamak dışında hiçbir amaçla kullanılmaz.',
+        faq1Answer: 'Evet, veri güvenliğini çok ciddiye alıyoruz. Tüm dosya yüklemeleri ve işlemleri güvenli sunucularda gerçekleşir. Dosyalarınız 1 saat sonra otomatik olarak silinir ve OCR hizmetini sağlamak dışında hiçbir amaçla kullanılmaz.',
         relatedToolsTitle: 'İlgili PDF Araçları',
         tool1Href: '/compress-pdf',
         tool1Title: 'PDF\'i Sıkıştır',

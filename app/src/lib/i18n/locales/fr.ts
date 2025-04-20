@@ -730,7 +730,7 @@ export default {
             title: "Questions fréquentes sur la division des PDF",
             q1: {
                 question: "Que deviennent mes fichiers PDF après la division ?",
-                answer: "Tous les fichiers téléchargés et générés sont automatiquement supprimés de nos serveurs après 24 heures pour votre confidentialité et sécurité."
+                answer: "Tous les fichiers téléchargés et générés sont automatiquement supprimés de nos serveurs après 1 heures pour votre confidentialité et sécurité."
             },
             q2: {
                 question: "Y a-t-il une limite au nombre de pages que je peux diviser ?",
@@ -1420,7 +1420,7 @@ export default {
             },
             secure: {
                 question: "Mes données PDF sont-elles sécurisées lors de la compression ?",
-                answer: "Oui, vos données sont sécurisées. Tous les fichiers PDF sont traités en ligne de manière sécurisée et supprimés automatiquement après 24 heures. Que vous utilisiez Windows ou Linux, votre fichier est chiffré et jamais partagé."
+                answer: "Oui, vos données sont sécurisées. Tous les fichiers PDF sont traités en ligne de manière sécurisée et supprimés automatiquement après 1 heures. Que vous utilisiez Windows ou Linux, votre fichier est chiffré et jamais partagé."
             },
             fileLimits: {
                 question: "Quelles sont les limites de taille des fichiers ?",
@@ -1627,7 +1627,7 @@ export default {
         successful: "Conversion Réussie",
         successDesc: "Votre fichier a été converti avec succès et est maintenant prêt à être téléchargé.",
         download: "Télécharger le Fichier Converti",
-        filesSecurity: "Les fichiers sont automatiquement supprimés après 24 heures pour des raisons de confidentialité et de sécurité."
+        filesSecurity: "Les fichiers sont automatiquement supprimés après 1 heures pour des raisons de confidentialité et de sécurité."
     },
 
     // Éléments d’Interface Communs
@@ -1664,7 +1664,7 @@ export default {
         new: "Nouveau !",
         phone: "Téléphone",
         address: "Adresse",
-        filesSecurity: "Les fichiers sont automatiquement supprimés après 24 heures pour des raisons de confidentialité et de sécurité."
+        filesSecurity: "Les fichiers sont automatiquement supprimés après 1 heures pour des raisons de confidentialité et de sécurité."
     },
 
     contact: {
@@ -1703,7 +1703,7 @@ export default {
             title: "Questions Fréquemment Posées",
             responseTime: {
                 question: "Combien de temps faut-il pour obtenir une réponse ?",
-                answer: "Nous visons à répondre à toutes les demandes dans un délai de 24 à 48 heures ouvrables. Pendant les périodes de pointe, cela peut prendre jusqu’à 72 heures."
+                answer: "Nous visons à répondre à toutes les demandes dans un délai de 1 à 48 heures ouvrables. Pendant les périodes de pointe, cela peut prendre jusqu’à 72 heures."
             },
             technicalSupport: {
                 question: "Puis-je obtenir un support pour un problème technique ?",
@@ -1791,7 +1791,7 @@ export default {
         },
         dataUse: {
             title: "Comment Nous Utilisons Vos Données",
-            description: "Nous traitons vos fichiers uniquement pour fournir le service que vous avez demandé. Tous les fichiers sont automatiquement supprimés après 24 heures."
+            description: "Nous traitons vos fichiers uniquement pour fournir le service que vous avez demandé. Tous les fichiers sont automatiquement supprimés après 1 heures."
         },
         cookies: {
             title: "Cookies et Suivi",
@@ -2028,7 +2028,7 @@ export default {
             question2: "Dois-je créer un compte pour utiliser ScanPro ?",
             answer2: "Non, vous pouvez utiliser nos outils PDF de base sans vous inscrire. Cependant, créer un compte gratuit vous offre des avantages tels que l'historique sauvegardé, des limites de taille de fichier plus élevées et l'accès à des fonctionnalités supplémentaires.",
             question3: "Mes données sont-elles sécurisées sur ScanPro ?",
-            answer3: "Oui, tous les fichiers sont traités de manière sécurisée sur nos serveurs avec cryptage. Nous ne partageons pas vos fichiers avec des tiers, et ils sont automatiquement supprimés de nos serveurs après traitement (dans les 24 heures). Pour plus de détails, consultez notre Politique de Confidentialité.",
+            answer3: "Oui, tous les fichiers sont traités de manière sécurisée sur nos serveurs avec cryptage. Nous ne partageons pas vos fichiers avec des tiers, et ils sont automatiquement supprimés de nos serveurs après traitement (dans les 1 heures). Pour plus de détails, consultez notre Politique de Confidentialité.",
             question4: "Quels appareils et navigateurs ScanPro prend-il en charge ?",
             answer4: "ScanPro fonctionne sur tous les navigateurs modernes, y compris Chrome, Firefox, Safari et Edge. Notre plateforme est entièrement responsive et fonctionne sur les ordinateurs de bureau, les tablettes et les appareils mobiles."
         },
@@ -2119,7 +2119,7 @@ export default {
             },
             temporaryStorage: {
                 title: "Stockage temporaire",
-                description: "Les fichiers sont automatiquement supprimés dans les 24 heures suivant leur traitement. Nous ne conservons pas vos documents plus longtemps que nécessaire."
+                description: "Les fichiers sont automatiquement supprimés dans les 1 heures suivant leur traitement. Nous ne conservons pas vos documents plus longtemps que nécessaire."
             },
             access: {
                 title: "Contrôles d'accès",
@@ -2189,7 +2189,7 @@ export default {
             description: "Nous suivons des pratiques strictes de minimisation des données. Voici combien de temps nous conservons différents types de données :",
             documents: {
                 title: "Documents téléchargés",
-                description: "Les fichiers sont automatiquement supprimés de nos serveurs dans les 24 heures suivant leur traitement. Nous ne conservons pas de copies de vos documents sauf si vous optez explicitement pour des fonctionnalités de stockage disponibles pour les abonnements payants."
+                description: "Les fichiers sont automatiquement supprimés de nos serveurs dans les 1 heures suivant leur traitement. Nous ne conservons pas de copies de vos documents sauf si vous optez explicitement pour des fonctionnalités de stockage disponibles pour les abonnements payants."
             },
             account: {
                 title: "Informations de compte",
@@ -2215,7 +2215,7 @@ export default {
             },
             documentStorage: {
                 question: "Combien de temps conservez-vous mes documents ?",
-                answer: "Les documents sont automatiquement supprimés de nos serveurs après traitement, généralement dans les 24 heures. Pour les abonnés payants, des options de stockage de documents sont disponibles, mais ce sont des fonctionnalités optionnelles uniquement."
+                answer: "Les documents sont automatiquement supprimés de nos serveurs après traitement, généralement dans les 1 heures. Pour les abonnés payants, des options de stockage de documents sont disponibles, mais ce sont des fonctionnalités optionnelles uniquement."
             },
             thirdParty: {
                 question: "Partagez-vous mes données avec des tiers ?",
@@ -2669,7 +2669,7 @@ export default {
         benefit4Description: 'Analysez le contenu des documents avec l\'extraction de texte et le traitement des données',
         faqTitle: 'Questions fréquentes',
         faq1Question: 'Mes données sont-elles sécurisées pendant le traitement OCR ?',
-        faq1Answer: 'Oui, nous prenons la sécurité des données très au sérieux. Tous les téléchargements et le traitement des fichiers sont effectués sur des serveurs sécurisés. Vos fichiers sont automatiquement supprimés après 24 heures, et nous n\'utilisons pas vos documents à d\'autres fins que de fournir le service OCR.',
+        faq1Answer: 'Oui, nous prenons la sécurité des données très au sérieux. Tous les téléchargements et le traitement des fichiers sont effectués sur des serveurs sécurisés. Vos fichiers sont automatiquement supprimés après 1 heures, et nous n\'utilisons pas vos documents à d\'autres fins que de fournir le service OCR.',
         relatedToolsTitle: 'Outils PDF associés',
         tool1Href: '/compress-pdf',
         tool1Title: 'Compresser PDF',

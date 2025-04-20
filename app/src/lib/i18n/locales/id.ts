@@ -731,7 +731,7 @@ export default {
       title: "Pertanyaan yang Sering Diajukan Tentang Memisahkan PDF",
       q1: {
         question: "Apa yang terjadi pada file PDF saya setelah dipisahkan?",
-        answer: "Semua file yang diunggah dan dihasilkan akan otomatis dihapus dari server kami setelah 24 jam demi privasi dan keamanan Anda."
+        answer: "Semua file yang diunggah dan dihasilkan akan otomatis dihapus dari server kami setelah 1 jam demi privasi dan keamanan Anda."
       },
       q2: {
         question: "Apakah ada batasan jumlah halaman yang bisa saya pisahkan?",
@@ -1422,7 +1422,7 @@ export default {
       },
       secure: {
         question: "Apakah data PDF saya aman saat dikompres?",
-        answer: "Ya, data Anda aman. Semua file PDF diproses secara online dengan aman dan dihapus otomatis setelah 24 jam. Baik Anda menggunakan Windows atau Linux, file Anda dienkripsi dan tidak pernah dibagikan."
+        answer: "Ya, data Anda aman. Semua file PDF diproses secara online dengan aman dan dihapus otomatis setelah 1 jam. Baik Anda menggunakan Windows atau Linux, file Anda dienkripsi dan tidak pernah dibagikan."
       },
       fileLimits: {
         question: "Apa batas ukuran file?",
@@ -1629,7 +1629,7 @@ export default {
     successful: "Konversi Berhasil",
     successDesc: "File Anda telah berhasil dikonversi dan sekarang siap untuk diunduh.",
     download: "Unduh File yang Dikonversi",
-    filesSecurity: "File akan otomatis dihapus setelah 24 jam demi privasi dan keamanan."
+    filesSecurity: "File akan otomatis dihapus setelah 1 jam demi privasi dan keamanan."
   },
 
   // Elemen UI Umum
@@ -1666,7 +1666,7 @@ export default {
     new: "Baru!",
     phone: "Telepon",
     address: "Alamat",
-    filesSecurity: "File akan otomatis dihapus setelah 24 jam demi privasi dan keamanan."
+    filesSecurity: "File akan otomatis dihapus setelah 1 jam demi privasi dan keamanan."
   },
 
   contact: {
@@ -1705,7 +1705,7 @@ export default {
       title: "Pertanyaan yang Sering Diajukan",
       responseTime: {
         question: "Berapa lama waktu yang dibutuhkan untuk mendapatkan respons?",
-        answer: "Kami berusaha merespons semua pertanyaan dalam waktu 24-48 jam kerja. Pada saat sibuk, mungkin memerlukan waktu hingga 72 jam."
+        answer: "Kami berusaha merespons semua pertanyaan dalam waktu 1-48 jam kerja. Pada saat sibuk, mungkin memerlukan waktu hingga 72 jam."
       },
       technicalSupport: {
         question: "Bisakah saya mendapatkan dukungan untuk masalah teknis?",
@@ -1794,7 +1794,7 @@ export default {
     },
     dataUse: {
       title: "Bagaimana Kami Menggunakan Data Anda",
-      description: "Kami memproses file Anda hanya untuk menyediakan layanan yang Anda minta. Semua file akan otomatis dihapus setelah 24 jam."
+      description: "Kami memproses file Anda hanya untuk menyediakan layanan yang Anda minta. Semua file akan otomatis dihapus setelah 1 jam."
     },
     cookies: {
       title: "Cookie dan Pelacakan",
@@ -2032,7 +2032,7 @@ export default {
       question2: "Apakah saya perlu membuat akun untuk menggunakan ScanPro?",
       answer2: "Tidak, Anda dapat menggunakan alat PDF dasar kami tanpa mendaftar. Namun, membuat akun gratis memberi Anda manfaat seperti riwayat tersimpan, batas ukuran file yang lebih tinggi, dan akses ke fitur tambahan.",
       question3: "Apakah data saya aman di ScanPro?",
-      answer3: "Ya, semua file diproses dengan aman di server kami dengan enkripsi. Kami tidak membagikan file Anda dengan pihak ketiga, dan file akan otomatis dihapus dari server kami setelah diproses (dalam waktu 24 jam). Untuk detail lebih lanjut, silakan lihat Kebijakan Privasi kami.",
+      answer3: "Ya, semua file diproses dengan aman di server kami dengan enkripsi. Kami tidak membagikan file Anda dengan pihak ketiga, dan file akan otomatis dihapus dari server kami setelah diproses (dalam waktu 1 jam). Untuk detail lebih lanjut, silakan lihat Kebijakan Privasi kami.",
       question4: "Perangkat dan browser apa yang didukung ScanPro?",
       answer4: "ScanPro bekerja di semua browser modern termasuk Chrome, Firefox, Safari, dan Edge. Platform kami sepenuhnya responsif dan berfungsi di desktop, tablet, dan perangkat seluler."
     },
@@ -2123,7 +2123,7 @@ export default {
       },
       temporaryStorage: {
         title: "Penyimpanan Sementara",
-        description: "File otomatis dihapus dalam 24 jam setelah pemrosesan. Kami tidak menyimpan dokumen Anda lebih lama dari yang diperlukan."
+        description: "File otomatis dihapus dalam 1 jam setelah pemrosesan. Kami tidak menyimpan dokumen Anda lebih lama dari yang diperlukan."
       },
       access: {
         title: "Kontrol Akses",
@@ -2193,7 +2193,7 @@ export default {
       description: "Kami mengikuti praktik minimisasi data yang ketat. Berikut berapa lama kami menyimpan berbagai jenis data:",
       documents: {
         title: "Dokumen yang Diunggah",
-        description: "File otomatis dihapus dari server kami dalam 24 jam setelah pemrosesan. Kami tidak menyimpan salinan dokumen Anda kecuali Anda secara eksplisit memilih fitur penyimpanan yang tersedia untuk paket berbayar."
+        description: "File otomatis dihapus dari server kami dalam 1 jam setelah pemrosesan. Kami tidak menyimpan salinan dokumen Anda kecuali Anda secara eksplisit memilih fitur penyimpanan yang tersedia untuk paket berbayar."
       },
       account: {
         title: "Informasi Akun",
@@ -2219,7 +2219,7 @@ export default {
       },
       documentStorage: {
         question: "Berapa lama Anda menyimpan dokumen saya?",
-        answer: "Dokumen otomatis dihapus dari server kami setelah pemrosesan, biasanya dalam 24 jam. Untuk pelanggan berbayar, opsi penyimpanan dokumen tersedia, tetapi ini hanya fitur opt-in."
+        answer: "Dokumen otomatis dihapus dari server kami setelah pemrosesan, biasanya dalam 1 jam. Untuk pelanggan berbayar, opsi penyimpanan dokumen tersedia, tetapi ini hanya fitur opt-in."
       },
       thirdParty: {
         question: "Apakah Anda membagikan data saya dengan pihak ketiga?",
@@ -2673,7 +2673,7 @@ export default {
     benefit4Description: 'Analisis konten dokumen dengan ekstraksi teks dan pemrosesan data',
     faqTitle: 'Pertanyaan yang Sering Diajukan',
     faq1Question: 'Apakah data saya aman selama pemrosesan OCR?',
-    faq1Answer: 'Ya, kami sangat memprioritaskan keamanan data. Semua unggahan file dan pemrosesan dilakukan di server yang aman. File Anda akan secara otomatis dihapus setelah 24 jam, dan kami tidak menggunakan dokumen Anda untuk tujuan apa pun selain memberikan layanan OCR.',
+    faq1Answer: 'Ya, kami sangat memprioritaskan keamanan data. Semua unggahan file dan pemrosesan dilakukan di server yang aman. File Anda akan secara otomatis dihapus setelah 1 jam, dan kami tidak menggunakan dokumen Anda untuk tujuan apa pun selain memberikan layanan OCR.',
     relatedToolsTitle: 'Alat PDF Terkait',
     tool1Href: '/compress-pdf',
     tool1Title: 'Kompres PDF',
