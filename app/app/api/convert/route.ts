@@ -1043,7 +1043,8 @@ export async function POST(request: NextRequest) {
         const headers = request.headers;
         const url = new URL(request.url);
         const apiKey = headers.get('x-api-key') || url.searchParams.get('api_key');
-
+        let userId: string | undefined;
+        let operation = 'convert'; // Specify the operation type
         // If this is a programmatic API call (not from web UI), validate the API key
         if (apiKey) {
             console.log('Validating API key for compression operation');
@@ -1058,8 +1059,14 @@ export async function POST(request: NextRequest) {
             }
 
             // Track usage (non-blocking)
-            if (validation.userId) {
-                trackApiUsage(validation.userId, 'convert');
+            if (userId) {
+                const tracked = await trackApiUsage(userId, operation);
+                if (!tracked) {
+                    console.error(`Failed to track usage for user ${userId}, operation ${operation}`);
+                    // Optionally, you could still return the result but log this error
+                } else {
+                    console.log(`Successfully tracked ${operation} operation for user ${userId}`);
+                }
             }
         }
         await ensureDirectories();
