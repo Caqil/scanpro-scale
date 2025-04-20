@@ -226,3 +226,104 @@ export const sendPasswordResetSuccessEmail = async (email: string, username?: st
     html
   });
 };
+
+/**
+ * Send a subscription renewal reminder email
+ */
+export async function sendSubscriptionRenewalReminderEmail(
+  email: string,
+  name: string,
+  tier: string,
+  expiryDate: Date
+): Promise<{ success: boolean; error?: string }> {
+  const formattedDate = expiryDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  const subject = `Your ScanPro ${tier} subscription is expiring soon`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center;">
+        <h1>ScanPro Subscription Reminder</h1>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e0e0e0;">
+        <p>Hello ${name || 'there'},</p>
+        
+        <p>This is a friendly reminder that your ScanPro <strong>${tier}</strong> subscription will expire on <strong>${formattedDate}</strong>.</p>
+        
+        <p>To maintain uninterrupted access to all features and benefits of your subscription, please renew before the expiration date.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/subscription" 
+             style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Renew Subscription
+          </a>
+        </div>
+        
+        <p>If you choose not to renew, your account will automatically be downgraded to the free tier with limited functionality.</p>
+        
+        <p>Thank you for using ScanPro!</p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
+        <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  return await sendEmail({ to: email, subject, html });
+}
+
+/**
+ * Send a subscription expired email
+ */
+export async function sendSubscriptionExpiredEmail(
+  email: string,
+  name: string,
+  previousTier: string
+): Promise<{ success: boolean; error?: string }> {
+  const subject = `Your ScanPro ${previousTier} subscription has expired`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center;">
+        <h1>ScanPro Subscription Update</h1>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e0e0e0;">
+        <p>Hello ${name || 'there'},</p>
+        
+        <p>This is to inform you that your ScanPro <strong>${previousTier}</strong> subscription has expired.</p>
+        
+        <p>Your account has been automatically downgraded to the free tier, which includes:</p>
+        
+        <ul>
+          <li>Limited to 500 operations per month</li>
+          <li>Basic PDF tools</li>
+          <li>Standard processing speed</li>
+        </ul>
+        
+        <p>To regain access to all the premium features you were enjoying, you can resubscribe at any time.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/subscription" 
+             style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Resubscribe Now
+          </a>
+        </div>
+        
+        <p>Thank you for your past support. We hope to welcome you back soon!</p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
+        <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  return await sendEmail({ to: email, subject, html });
+}

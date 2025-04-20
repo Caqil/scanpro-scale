@@ -51,20 +51,41 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String    @unique
-  tier                 String    @default("free")
-  status               String    @default("active")
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  canceledAt           DateTime?
-  currentPeriodEnd     DateTime?
-  currentPeriodStart   DateTime?
-  paypalPlanId         String?
-  paypalSubscriptionId String?   @unique
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                String    @default("free")
+  status              String    @default("active")
+  currentPeriodStart  DateTime  @default(now())
+  currentPeriodEnd    DateTime?
+  canceledAt          DateTime?
+  paypalSubscriptionId String?
+  paypalPlanId        String?
+  
+  // Add these new fields
+  lastPaymentDate     DateTime?
+  nextBillingDate     DateTime?
+  failedPaymentCount  Int       @default(0)
+  usageResetDate      DateTime  @default(now())
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Only include this if it doesn't already exist
+// If it exists, make sure it has all these fields
+model UsageStats {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operation String
+  count     Int      @default(0)
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, operation, date])
 }
 
 model VerificationToken {
@@ -78,24 +99,14 @@ model VerificationToken {
 model ApiKey {
   id          String    @id @default(cuid())
   userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   key         String    @unique
-  permissions String[]
+  permissions String[]  // List of allowed operations: ["convert", "compress", "merge", etc.] or ["*"] for all
   lastUsed    DateTime?
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model UsageStats {
-  id        String   @id @default(cuid())
-  userId    String
-  operation String
-  count     Int      @default(0)
-  date      DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, operation, date])
+  updatedAt   DateTime  @updatedAt
 }
 
 model PasswordResetToken {

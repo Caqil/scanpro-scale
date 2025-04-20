@@ -9,24 +9,19 @@ export const PAYPAL_PLAN_IDS: Record<string, string> = {
 };
 
 // Set up PayPal API base URLs
-const PAYPAL_API_BASE = 'https://api-m.paypal.com';
+export const PAYPAL_API_BASE =  'https://api-m.sandbox.paypal.com';
 
-// Get PayPal OAuth token
-async function getPayPalAccessToken(): Promise<string> {
+export async function getPayPalAccessToken(): Promise<string> {
   try {
     const clientId = process.env.PAYPAL_CLIENT_ID;
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-
-    console.log('Client ID:', clientId ? 'Set' : 'Missing');
-    console.log('Client Secret:', clientSecret ? 'Set' : 'Missing');
 
     if (!clientId || !clientSecret) {
       throw new Error('PayPal credentials are not configured');
     }
 
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    console.log('Auth Header:', `Basic ${auth}`);
-
+    
     const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
@@ -36,10 +31,9 @@ async function getPayPalAccessToken(): Promise<string> {
       body: 'grant_type=client_credentials',
     });
 
-    console.log('Response Status:', response.status);
     if (!response.ok) {
       const errorData = await response.json();
-      console.log('Error Data:', errorData);
+      console.error('PayPal token error:', errorData);
       throw new Error(`Failed to get PayPal access token: ${errorData.error_description || response.statusText}`);
     }
 
@@ -58,14 +52,17 @@ export async function createSubscription(userId: string, tier: string): Promise<
     const planId = PAYPAL_PLAN_IDS[tier];
 
     if (!planId) {
-      throw new Error(`No PayPal plan ID configured for tier: ${tier}. Please set PAYPAL_PLAN_${tier.toUpperCase()} environment variable.`);
+      throw new Error(`No PayPal plan ID configured for tier: ${tier}`);
     }
 
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
 
+    // Set the return and cancel URLs
+    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription/success`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription/cancel`;
+
     // Create subscription in PayPal
-    // Using the simplified format that PayPal requires
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
       method: 'POST',
       headers: {
@@ -75,23 +72,25 @@ export async function createSubscription(userId: string, tier: string): Promise<
       },
       body: JSON.stringify({
         plan_id: planId,
+        custom_id: userId, // Store our user ID for webhook processing
         application_context: {
           brand_name: "ScanPro",
           locale: "en-US",
           shipping_preference: "NO_SHIPPING",
           user_action: "SUBSCRIBE_NOW",
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/subscription/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/subscription/cancel`
+          return_url: returnUrl,
+          cancel_url: cancelUrl
         }
       })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      console.error('PayPal API error response:', data);
-      throw new Error(`PayPal API error: ${data.message || JSON.stringify(data)}`);
+      const errorData = await response.json();
+      console.error('PayPal API error response:', errorData);
+      throw new Error(`PayPal API error: ${errorData.message || JSON.stringify(errorData)}`);
     }
+
+    const data = await response.json();
 
     // Find approval URL
     const approvalUrl = data.links.find((link: any) => link.rel === 'approve')?.href;
@@ -99,6 +98,27 @@ export async function createSubscription(userId: string, tier: string): Promise<
     if (!approvalUrl) {
       throw new Error('No approval URL found in PayPal response');
     }
+
+    // Create pending subscription in our database
+    await prisma.subscription.upsert({
+      where: { userId },
+      update: {
+        tier,
+        status: 'pending',
+        paypalSubscriptionId: data.id,
+        paypalPlanId: planId,
+        currentPeriodStart: new Date(),
+        // Other fields will be updated when the subscription is activated
+      },
+      create: {
+        userId,
+        tier,
+        status: 'pending',
+        paypalSubscriptionId: data.id,
+        paypalPlanId: planId,
+        currentPeriodStart: new Date(),
+      }
+    });
 
     return {
       subscriptionId: data.id,
@@ -108,6 +128,242 @@ export async function createSubscription(userId: string, tier: string): Promise<
     console.error('Error creating PayPal subscription:', error);
     throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+// Add webhook handling function
+export async function handlePayPalWebhook(event: any): Promise<{ success: boolean; message: string }> {
+  try {
+    // Extract event type and resource data
+    const eventType = event.event_type;
+    const resource = event.resource;
+    
+    // Handle different PayPal events
+    switch (eventType) {
+      case 'BILLING.SUBSCRIPTION.CREATED':
+        await handleSubscriptionCreated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.ACTIVATED':
+        await handleSubscriptionActivated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.UPDATED':
+        await handleSubscriptionUpdated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.EXPIRED':
+      case 'BILLING.SUBSCRIPTION.CANCELLED':
+        await handleSubscriptionCanceled(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+        await handlePaymentFailed(resource);
+        break;
+      case 'PAYMENT.SALE.COMPLETED':
+        await handlePaymentCompleted(resource);
+        break;
+      default:
+        console.log(`Unhandled PayPal event type: ${eventType}`);
+    }
+    
+    return { success: true, message: `Successfully processed ${eventType}` };
+  } catch (error) {
+    console.error('Error processing PayPal webhook:', error);
+    throw new Error(`Failed to process webhook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+async function handleSubscriptionCreated(resource: any) {
+  const subscriptionId = resource.id;
+  const planId = resource.plan_id;
+  
+  // Find tier from plan ID
+  const tier = Object.keys(PAYPAL_PLAN_IDS).find(
+    key => PAYPAL_PLAN_IDS[key as keyof typeof PAYPAL_PLAN_IDS] === planId
+  ) || 'basic';
+  
+  // Find user from custom_id set during subscription creation
+  const userId = resource.custom_id;
+  
+  if (!userId) {
+    console.error('No user ID found in subscription created event');
+    return;
+  }
+  
+  // Update user subscription in database
+  await updateUserSubscription(userId, {
+    tier,
+    status: 'pending', // Will be updated to 'active' on first payment
+    paypalSubscriptionId: subscriptionId,
+    paypalPlanId: planId,
+    currentPeriodStart: new Date(),
+    // Next billing date will be set when payment is completed
+  });
+}
+
+async function handleSubscriptionActivated(resource: any) {
+  const subscriptionId = resource.id;
+  
+  // Find subscription in our database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { user: true }
+  });
+  
+  if (!subscription) {
+    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    return;
+  }
+  
+  // Update status to active
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: 'active',
+      // Reset usage on activation
+      usageResetDate: new Date(),
+    }
+  });
+}
+
+async function handleSubscriptionUpdated(resource: any) {
+  const subscriptionId = resource.id;
+  const status = resource.status.toLowerCase();
+  
+  // Find subscription in our database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId }
+  });
+  
+  if (!subscription) {
+    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    return;
+  }
+  
+  // Update subscription data
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: status === 'active' ? 'active' : 
+              status === 'cancelled' ? 'canceled' : 
+              status === 'suspended' ? 'suspended' : subscription.status,
+      // Update other fields as needed
+    }
+  });
+}
+
+async function handleSubscriptionCanceled(resource: any) {
+  const subscriptionId = resource.id;
+  
+  // Find subscription in our database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId }
+  });
+  
+  if (!subscription) {
+    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    return;
+  }
+  
+  // Update subscription as canceled
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: 'canceled',
+      canceledAt: new Date(),
+      // Let the user continue using the subscription until the end of their billing period
+    }
+  });
+}
+
+async function handlePaymentFailed(resource: any) {
+  const subscriptionId = resource.id;
+  
+  // Find subscription in our database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId }
+  });
+  
+  if (!subscription) {
+    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    return;
+  }
+  
+  // Increment failed payment count
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      failedPaymentCount: { increment: 1 },
+      // After too many failed payments, PayPal will trigger a cancellation event
+    }
+  });
+}
+
+async function handlePaymentCompleted(resource: any) {
+  // Extract billing agreement ID (subscription ID)
+  const subscriptionId = resource.billing_agreement_id;
+  
+  if (!subscriptionId) {
+    console.error('No subscription ID found in payment completed event');
+    return;
+  }
+  
+  // Find subscription in our database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId }
+  });
+  
+  if (!subscription) {
+    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    return;
+  }
+  
+  // Get subscription details to calculate next billing date
+  const details = await getSubscriptionDetails(subscriptionId);
+  
+  // Update subscription with new billing period
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: 'active',
+      lastPaymentDate: new Date(),
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
+      nextBillingDate: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
+      failedPaymentCount: 0, // Reset failed payment count
+      usageResetDate: new Date(), // Reset usage stats
+    }
+  });
+  
+  // Reset usage stats for the user
+  await resetUserUsageStats(subscription.userId);
+}
+
+// Helper function to get default billing end date (1 month from now)
+function getDefaultBillingEndDate(): Date {
+  const date = new Date();
+  date.setMonth(date.getMonth() + 1);
+  return date;
+}
+
+// Reset user usage stats
+async function resetUserUsageStats(userId: string): Promise<void> {
+  // Delete all usage stats for this user
+  await prisma.usageStats.deleteMany({
+    where: { userId }
+  });
+  
+  // Create initial zero counts for all operations
+  const operations = ['convert', 'compress', 'merge', 'split', 'protect', 'unlock', 'watermark', 'extract', 'edit', 'sign', 'repair', 'rotate'];
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Create zero counts for all operations
+  await Promise.all(operations.map(operation => 
+    prisma.usageStats.create({
+      data: {
+        userId,
+        operation,
+        count: 0,
+        date: today
+      }
+    })
+  ));
 }
 
 // Get subscription details from PayPal

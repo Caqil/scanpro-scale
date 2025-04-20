@@ -23,95 +23,136 @@ export const API_OPERATIONS = [
 ];
 
 // Define usage limits by tier (operations per month)
-const usageLimits = {
-    free: 1000,
-    basic: 10000,
-    pro: 100000,
-    enterprise: 1000000,
-};
+export const USAGE_LIMITS = {
+    free: 500,      // 500 operations total
+    basic: 5000,    // 5k operations
+    pro: 50000,     // 50k operations
+    enterprise: 100000 // 100k operations
+  };
 
 /**
  * Validates an API key and checks if it has permission to perform the specified operation
  * Also verifies that usage limits haven't been exceeded
  */
-export async function validateApiKey(apiKey: string, operation: string) {
+export async function validateApiKey(
+    apiKey: string,
+    operation: string
+  ): Promise<{ valid: boolean; userId?: string; error?: string }> {
     try {
-        // Look up the API key in the database
-        const keyRecord = await prisma.apiKey.findUnique({
-            where: { key: apiKey },
-            include: {
-                user: {
-                    include: { subscription: true }
-                }
-            }
-        });
-
-        if (!keyRecord) {
-            return { valid: false, error: 'Invalid API key' };
+      // Look up the key
+      const keyRecord = await prisma.apiKey.findUnique({
+        where: { key: apiKey },
+        include: {
+          user: {
+            include: { subscription: true }
+          }
         }
-
-        // Check if key is expired
-        if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
-            return { valid: false, error: 'API key has expired' };
-        }
-
-        // Check if the API key has permission for the requested operation
-        if (!keyRecord.permissions.includes(operation) && !keyRecord.permissions.includes('*')) {
-            return {
-                valid: false,
-                error: `This API key does not have permission to perform the '${operation}' operation`
-            };
-        }
-
-        // Get subscription tier
-        const tier = keyRecord.user.subscription?.tier || 'free';
-
-        // Check subscription status
-        if (keyRecord.user.subscription?.status !== 'active') {
-            return { valid: false, error: 'Subscription is not active' };
-        }
-
-        // Check monthly usage limit
-        const firstDayOfMonth = new Date();
-        firstDayOfMonth.setDate(1);
-        firstDayOfMonth.setHours(0, 0, 0, 0);
-
-        const monthlyUsage = await prisma.usageStats.aggregate({
-            where: {
-                userId: keyRecord.user.id,
-                date: { gte: firstDayOfMonth }
-            },
-            _sum: {
-                count: true
-            }
-        });
-
-        const totalUsage = monthlyUsage._sum.count || 0;
-        const usageLimit = usageLimits[tier as keyof typeof usageLimits];
-
-        if (totalUsage >= usageLimit) {
-            return {
-                valid: false,
-                error: `Monthly usage limit of ${usageLimit} operations reached for your ${tier} plan`
-            };
-        }
-
-        // Update last used timestamp
-        await prisma.apiKey.update({
-            where: { id: keyRecord.id },
-            data: { lastUsed: new Date() }
-        });
-
+      });
+  
+      if (!keyRecord) {
+        return { valid: false, error: 'Invalid API key' };
+      }
+  
+      // Check expiration
+      if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
+        return { valid: false, error: 'API key has expired' };
+      }
+  
+      // Check permissions
+      if (!keyRecord.permissions.includes(operation) && !keyRecord.permissions.includes('*')) {
         return {
-            valid: true,
-            userId: keyRecord.user.id,
-            tier
+          valid: false,
+          error: `This API key does not have permission to perform the '${operation}' operation`
         };
+      }
+  
+      // Check subscription status
+      const subscription = keyRecord.user.subscription;
+      if (!subscription) {
+        // Default to free tier if no subscription
+        const canProceed = await checkUsageLimit(keyRecord.user.id, 'free');
+        return canProceed 
+          ? { valid: true, userId: keyRecord.user.id }
+          : { valid: false, error: 'Free tier usage limit reached' };
+      }
+  
+      // Check if subscription is active
+      if (subscription.status !== 'active') {
+        // Allow usage of free tier even with inactive subscription
+        const canProceed = await checkUsageLimit(keyRecord.user.id, 'free');
+        return canProceed 
+          ? { valid: true, userId: keyRecord.user.id }
+          : { valid: false, error: 'Free tier usage limit reached' };
+      }
+  
+      // Check if subscription is expired
+      if (subscription.currentPeriodEnd && subscription.currentPeriodEnd < new Date()) {
+        // Automatically downgrade to free tier
+        await downgradeToFreeTier(keyRecord.user.id);
+        
+        // Check free tier usage
+        const canProceed = await checkUsageLimit(keyRecord.user.id, 'free');
+        return canProceed 
+          ? { valid: true, userId: keyRecord.user.id }
+          : { valid: false, error: 'Free tier usage limit reached' };
+      }
+  
+      // Check usage limit for their tier
+      const canProceed = await checkUsageLimit(keyRecord.user.id, subscription.tier);
+      return canProceed 
+        ? { valid: true, userId: keyRecord.user.id }
+        : { valid: false, error: `${subscription.tier} tier usage limit reached` };
+  
     } catch (error) {
-        console.error('Error validating API key:', error);
-        return { valid: false, error: 'Internal error validating API key' };
+      console.error('Error validating API key:', error);
+      return { valid: false, error: 'Internal server error' };
     }
-}
+  }
+  
+  // Check if the user has exceeded their usage limit
+  async function checkUsageLimit(userId: string, tier: string): Promise<boolean> {
+    try {
+      // Get the current month's usage
+      const firstDayOfMonth = new Date();
+      firstDayOfMonth.setDate(1);
+      firstDayOfMonth.setHours(0, 0, 0, 0);
+  
+      const usage = await prisma.usageStats.aggregate({
+        where: {
+          userId,
+          date: { gte: firstDayOfMonth }
+        },
+        _sum: {
+          count: true
+        }
+      });
+  
+      // Compare with the limit for their tier
+      const totalUsage = usage._sum.count || 0;
+      const limit = USAGE_LIMITS[tier as keyof typeof USAGE_LIMITS] || USAGE_LIMITS.free;
+  
+      return totalUsage < limit;
+    } catch (error) {
+      console.error('Error checking usage limit:', error);
+      // In case of an error, allow the operation to proceed
+      return true;
+    }
+  }
+  
+  // Downgrade a user to the free tier
+  async function downgradeToFreeTier(userId: string): Promise<void> {
+    try {
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          tier: 'free',
+          status: 'expired',
+        }
+      });
+    } catch (error) {
+      console.error('Error downgrading to free tier:', error);
+    }
+  }
 
 /**
  * Track API usage for a user
@@ -210,34 +251,5 @@ export async function getUserUsage(userId: string) {
             totalOperations: 0,
             operationCounts: {}
         };
-    }
-}
-
-/**
- * Check if a user has exceeded their usage limit
- * Returns true if the user is over their limit
- */
-export async function isUserOverUsageLimit(userId: string) {
-    try {
-        // Get user's subscription tier
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { subscription: true }
-        });
-
-        if (!user) {
-            return true; // No user found, treat as over limit
-        }
-
-        const tier = user.subscription?.tier || 'free';
-        const usageLimit = usageLimits[tier as keyof typeof usageLimits];
-
-        // Get current usage
-        const { totalOperations } = await getUserUsage(userId);
-
-        return totalOperations >= usageLimit;
-    } catch (error) {
-        console.error('Error checking usage limit:', error);
-        return false; // On error, allow operation to proceed
     }
 }

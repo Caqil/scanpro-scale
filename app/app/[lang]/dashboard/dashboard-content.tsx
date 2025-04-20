@@ -6,9 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfile } from "@/components/user-profile";
 import { ApiKeyManager } from "@/components/dashboard/api-key-manager";
 import { UsageStats } from "@/components/dashboard/usage-stats";
-import { SubscriptionInfo } from "@/components/dashboard/subscription-info";
 import { useSearchParams } from "next/navigation";
 import { EmailVerificationAlert, EmailVerifiedAlert } from "@/components/email-verification-alert";
+import SubscriptionInfo from "@/components/dashboard/subscription-info";
 
 interface DashboardContentProps {
   user: any;
@@ -65,7 +65,7 @@ export function DashboardContent({
         </TabsContent>
         
         <TabsContent value="subscription" className="space-y-6">
-          <SubscriptionInfo user={user} />
+          <SubscriptionInfo />
         </TabsContent>
         
         <TabsContent value="profile" className="space-y-6">
