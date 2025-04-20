@@ -39,29 +39,29 @@ export const SignatureCanvas = forwardRef<any, SignatureCanvasProps>((props, ref
   const lastWidth = useRef<number>(0);
   const isDrawing = useRef<boolean>(false);
   const prevPoint = useRef<Point | null>(null);
+// Initialize canvas
+const initCanvas = () => {
+  if (!canvasRef.current) return;
 
-  // Initialize canvas
-  const initCanvas = () => {
-    if (!canvasRef.current) return;
+  const canvas = canvasRef.current;
+  const rect = canvas.getBoundingClientRect();
 
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
 
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  // Clear canvas with transparency
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Set canvas styles
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = penColor;
 
-    // Set canvas styles
-    ctx.fillStyle = backgroundColor; // Use prop value
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = penColor;
-
-    contextRef.current = ctx;
-  };
+  contextRef.current = ctx;
+};
 
   // Handle window resize
   useEffect(() => {
@@ -266,10 +266,11 @@ export const SignatureCanvas = forwardRef<any, SignatureCanvasProps>((props, ref
   };
   const clear = () => {
     if (!contextRef.current || !canvasRef.current) return;
-
-    contextRef.current.fillStyle = backgroundColor; // Use current background color
-    contextRef.current.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    contextRef.current.strokeStyle = penColor; // Reset stroke color
+    
+    // Clear with transparency
+    contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    
+    // Reset state
     isDrawing.current = false;
     points.current = [];
     prevPoint.current = null;
@@ -279,8 +280,16 @@ export const SignatureCanvas = forwardRef<any, SignatureCanvasProps>((props, ref
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     clear,
-    toDataURL: (type = 'image/png', encoderOptions = 1) =>
-      canvasRef.current?.toDataURL(type, encoderOptions) || '',
+    toDataURL: (type = 'image/png', encoderOptions = 1) => {
+      if (!canvasRef.current) return '';
+      
+      // For PNG format, ensure transparency is preserved
+      if (type === 'image/png') {
+        return canvasRef.current.toDataURL('image/png');
+      }
+      
+      return canvasRef.current.toDataURL(type, encoderOptions);
+    },
     getCanvas: () => canvasRef.current,
   }));
 

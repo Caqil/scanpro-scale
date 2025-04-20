@@ -1,3 +1,4 @@
+// app/api/pdf/sign/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import { existsSync } from "fs";
@@ -121,9 +122,23 @@ async function createSearchablePdf(pdfPath: string, outputPath: string, language
   }
 }
 
-// Convert SVG string to PNG data URL
+// Convert SVG string to PNG data URL with transparency
 async function svgToPngDataUrl(svgString: string, width: number, height: number): Promise<string> {
   try {
+    // Ensure SVG has transparent background by adding background: transparent or by not specifying a background
+    if (!svgString.includes('background')) {
+      // Only add if not already specified
+      const svgOpenTag = svgString.match(/<svg[^>]*>/);
+      if (svgOpenTag) {
+        const styleAttr = svgOpenTag[0].includes('style=')
+          ? svgOpenTag[0].replace(/style="([^"]*)"/, (match, p1) => `style="${p1};background:transparent"`)
+          : svgOpenTag[0].replace(/>$/, ' style="background:transparent">');
+
+        svgString = svgString.replace(/<svg[^>]*>/, styleAttr);
+      }
+    }
+
+    // Process image with transparency support
     const buffer = await sharp(Buffer.from(svgString))
       .resize(width, height)
       .png()
@@ -136,9 +151,50 @@ async function svgToPngDataUrl(svgString: string, width: number, height: number)
   }
 }
 
+// Process image buffer to ensure transparency
+async function ensureTransparentBackground(imageBuffer: Buffer, isJpeg: boolean): Promise<Buffer> {
+  try {
+    if (isJpeg) {
+      // If JPEG (which doesn't support transparency), convert to PNG and make white transparent
+      return await sharp(imageBuffer)
+        .toFormat('png')
+        .ensureAlpha()  // Ensure alpha channel exists
+        .composite([
+          {
+            input: {
+              create: {
+                width: 1,
+                height: 1,
+                channels: 4,
+                background: { r: 0, g: 0, b: 0, alpha: 0 }
+              }
+            },
+            blend: 'dest-in',  // Use the source alpha
+            raw: {
+              width: 1,
+              height: 1,
+              channels: 4
+            }
+          }
+        ])
+        .png()
+        .toBuffer();
+    } else {
+      // If PNG, ensure alpha channel exists and is used
+      return await sharp(imageBuffer)
+        .ensureAlpha()
+        .png()
+        .toBuffer();
+    }
+  } catch (error) {
+    console.error("Error ensuring transparent background:", error);
+    return imageBuffer; // Return original on error
+  }
+}
+
 // Determine if a string is an SVG
 function isSvgString(str: string): boolean {
-  return str.trim().startsWith('<svg') || str.includes('<?xml') && str.includes('<svg');
+  return str.trim().startsWith('<svg') || (str.includes('<?xml') && str.includes('<svg'));
 }
 
 export async function POST(request: NextRequest) {
@@ -230,19 +286,18 @@ export async function POST(request: NextRequest) {
         const pdfX = element.position.x * scaleX;
         const pdfY = pdfPageHeight - (element.position.y * scaleY) - (element.size.height * scaleY);
 
-        if (element.type === "signature" || element.type === "image") {
+        if (element.type === "signature" || element.type === "image" || element.type === "drawing") {
           if (element.data.startsWith("data:image")) {
             const base64Data = element.data.split(",")[1];
             const buffer = Buffer.from(base64Data, "base64");
+            const isJpeg = element.data.includes("image/jpeg");
 
             try {
-              let elementImage;
-              if (element.data.includes("image/png")) {
-                elementImage = await pdfDoc.embedPng(buffer);
-              } else {
-                const jpegBuffer = await sharp(buffer).jpeg().toBuffer();
-                elementImage = await pdfDoc.embedJpg(jpegBuffer);
-              }
+              // Process image to ensure transparent background
+              const transparentBuffer = await ensureTransparentBackground(buffer, isJpeg);
+
+              // Embed the PNG with transparency
+              const elementImage = await pdfDoc.embedPng(transparentBuffer);
 
               page.drawImage(elementImage, {
                 x: pdfX,
@@ -253,9 +308,9 @@ export async function POST(request: NextRequest) {
                 opacity: element.scale || 1.0,
               });
 
-              console.log(`Added image/signature to page ${pageIndex + 1} at (${pdfX}, ${pdfY})`);
+              console.log(`Added ${element.type} to page ${pageIndex + 1} at (${pdfX}, ${pdfY})`);
             } catch (error) {
-              console.error(`Error embedding image/signature:`, error);
+              console.error(`Error embedding ${element.type}:`, error);
             }
           }
         } else if (element.type === "text" || element.type === "name" || element.type === "date") {
@@ -309,7 +364,7 @@ export async function POST(request: NextRequest) {
         } else if (element.type === "stamp") {
           try {
             if (isSvgString(element.data)) {
-              // Convert SVG to PNG for consistent rendering
+              // Convert SVG to PNG with transparent background
               const pngDataUrl = await svgToPngDataUrl(
                 element.data,
                 Math.round(element.size.width * 2), // Higher resolution for better quality
@@ -331,17 +386,14 @@ export async function POST(request: NextRequest) {
 
               console.log(`Added stamp (SVG converted to PNG) to page ${pageIndex + 1}`);
             } else if (element.data.startsWith("data:image")) {
-              // Handle image-based stamps the same way as regular images
+              // Handle image-based stamps
               const base64Data = element.data.split(",")[1];
               const buffer = Buffer.from(base64Data, "base64");
+              const isJpeg = element.data.includes("image/jpeg");
 
-              let stampImage;
-              if (element.data.includes("image/png")) {
-                stampImage = await pdfDoc.embedPng(buffer);
-              } else {
-                const jpegBuffer = await sharp(buffer).png().toBuffer();
-                stampImage = await pdfDoc.embedPng(jpegBuffer);
-              }
+              // Process stamp to ensure transparent background
+              const transparentBuffer = await ensureTransparentBackground(buffer, isJpeg);
+              const stampImage = await pdfDoc.embedPng(transparentBuffer);
 
               page.drawImage(stampImage, {
                 x: pdfX,
@@ -355,45 +407,10 @@ export async function POST(request: NextRequest) {
               console.log(`Added stamp (image) to page ${pageIndex + 1}`);
             } else {
               // Fall back to text-based stamp if no image data is available
-              // Rest of the code remains the same...
+              console.log(`No image data for stamp, skipping`);
             }
           } catch (error) {
             console.error(`Error adding stamp:`, error);
-          }
-
-        } else if (element.type === "drawing") {
-          try {
-            // For drawing elements, draw a placeholder or embed the drawing data
-            if (element.data.startsWith("data:image")) {
-              const base64Data = element.data.split(",")[1];
-              const buffer = Buffer.from(base64Data, "base64");
-
-              const drawingImage = await pdfDoc.embedPng(buffer);
-              page.drawImage(drawingImage, {
-                x: pdfX,
-                y: pdfY,
-                width: element.size.width * scaleX,
-                height: element.size.height * scaleY,
-                rotate: element.rotation ? degrees(element.rotation) : undefined,
-                opacity: element.scale || 1.0,
-              });
-            } else {
-              // Fallback if no drawing data is available
-              page.drawRectangle({
-                x: pdfX,
-                y: pdfY,
-                width: element.size.width * scaleX,
-                height: element.size.height * scaleY,
-                color: rgb(0.9, 0.9, 0.9),
-                borderColor: rgb(0, 0, 0),
-                borderWidth: 1,
-                rotate: element.rotation ? degrees(element.rotation) : undefined,
-                opacity: element.scale || 1.0,
-              });
-            }
-            console.log(`Added drawing placeholder to page ${pageIndex + 1} at (${pdfX}, ${pdfY})`);
-          } catch (error) {
-            console.error(`Error adding drawing:`, error);
           }
         }
       }

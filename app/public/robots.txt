@@ -4,7 +4,7 @@ Allow: /
 Disallow: /api/
 
 # Host
-Host: https://scanpro.cc
+Host: http://localhost:3001
 
 # Sitemaps
-Sitemap: https://scanpro.cc/sitemap.xml
+Sitemap: http://localhost:3001/sitemap.xml
