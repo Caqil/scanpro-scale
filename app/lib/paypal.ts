@@ -23,7 +23,7 @@ export async function getPayPalAccessToken(): Promise<string> {
     }
 
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    
+
     const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
@@ -139,9 +139,9 @@ export async function handlePayPalWebhook(event: any): Promise<{ success: boolea
     // Extract event type and resource data
     const eventType = event.event_type;
     const resource = event.resource;
-    
+
     console.log(`Processing PayPal webhook event: ${eventType}`);
-    
+
     // Handle different PayPal events
     switch (eventType) {
       case 'BILLING.SUBSCRIPTION.CREATED':
@@ -166,7 +166,7 @@ export async function handlePayPalWebhook(event: any): Promise<{ success: boolea
       default:
         console.log(`Unhandled PayPal event type: ${eventType}`);
     }
-    
+
     return { success: true, message: `Successfully processed ${eventType}` };
   } catch (error) {
     console.error('Error processing PayPal webhook:', error);
@@ -205,7 +205,7 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<an
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
   try {
     console.log(`Cancelling PayPal subscription: ${subscriptionId}`);
-    
+
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
 
@@ -229,7 +229,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<void> 
       } catch (e) {
         errorData = { message: errorText };
       }
-      
+
       console.error('PayPal cancellation error:', errorData);
       throw new Error(`Failed to cancel subscription: ${errorData.message || response.statusText}`);
     }
@@ -259,7 +259,7 @@ export async function updateUserSubscription(
 ): Promise<any> {
   try {
     console.log(`Updating subscription for user ${userId}:`, data);
-    
+
     // Check if user already has a subscription
     const existingSubscription = await prisma.subscription.findUnique({
       where: { userId }
@@ -289,20 +289,20 @@ export async function updateUserSubscription(
 async function handleSubscriptionCreated(resource: any) {
   const subscriptionId = resource.id;
   const planId = resource.plan_id;
-  
+
   // Find tier from plan ID
   const tier = Object.keys(PAYPAL_PLAN_IDS).find(
     key => PAYPAL_PLAN_IDS[key as keyof typeof PAYPAL_PLAN_IDS] === planId
   ) || 'basic';
-  
+
   // Find user from custom_id set during subscription creation
   const userId = resource.custom_id;
-  
+
   if (!userId) {
     console.error('No user ID found in subscription created event');
     return;
   }
-  
+
   // Update user subscription in database
   await updateUserSubscription(userId, {
     tier,
@@ -316,24 +316,23 @@ async function handleSubscriptionCreated(resource: any) {
 
 async function handleSubscriptionActivated(resource: any) {
   const subscriptionId = resource.id;
-  
+
   // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId },
     include: { user: true }
   });
-  
+
   if (!subscription) {
     console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
     return;
   }
-  
+
   // Update status to active
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       status: 'active',
-      // Reset usage on activation
       usageResetDate: new Date(),
     }
   });
@@ -342,24 +341,24 @@ async function handleSubscriptionActivated(resource: any) {
 async function handleSubscriptionUpdated(resource: any) {
   const subscriptionId = resource.id;
   const status = resource.status.toLowerCase();
-  
+
   // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
-  
+
   if (!subscription) {
     console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
     return;
   }
-  
+
   // Update subscription data
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
-      status: status === 'active' ? 'active' : 
-              status === 'cancelled' ? 'canceled' : 
-              status === 'suspended' ? 'suspended' : subscription.status,
+      status: status === 'active' ? 'active' :
+        status === 'cancelled' ? 'canceled' :
+          status === 'suspended' ? 'suspended' : subscription.status,
       // Update other fields as needed
     }
   });
@@ -367,17 +366,17 @@ async function handleSubscriptionUpdated(resource: any) {
 
 async function handleSubscriptionCanceled(resource: any) {
   const subscriptionId = resource.id;
-  
+
   // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
-  
+
   if (!subscription) {
     console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
     return;
   }
-  
+
   // Update subscription as canceled
   await prisma.subscription.update({
     where: { id: subscription.id },
@@ -391,17 +390,17 @@ async function handleSubscriptionCanceled(resource: any) {
 
 async function handlePaymentFailed(resource: any) {
   const subscriptionId = resource.id;
-  
+
   // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
-  
+
   if (!subscription) {
     console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
     return;
   }
-  
+
   // Increment failed payment count
   await prisma.subscription.update({
     where: { id: subscription.id },
@@ -415,25 +414,25 @@ async function handlePaymentFailed(resource: any) {
 async function handlePaymentCompleted(resource: any) {
   // Extract billing agreement ID (subscription ID)
   const subscriptionId = resource.billing_agreement_id;
-  
+
   if (!subscriptionId) {
     console.error('No subscription ID found in payment completed event');
     return;
   }
-  
+
   // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
-  
+
   if (!subscription) {
     console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
     return;
   }
-  
+
   // Get subscription details to calculate next billing date
   const details = await getSubscriptionDetails(subscriptionId);
-  
+
   // Update subscription with new billing period
   await prisma.subscription.update({
     where: { id: subscription.id },
@@ -447,7 +446,7 @@ async function handlePaymentCompleted(resource: any) {
       usageResetDate: new Date(), // Reset usage stats
     }
   });
-  
+
   // Reset usage stats for the user
   await resetUserUsageStats(subscription.userId);
 }
@@ -465,15 +464,15 @@ async function resetUserUsageStats(userId: string): Promise<void> {
   await prisma.usageStats.deleteMany({
     where: { userId }
   });
-  
+
   // Create initial zero counts for all operations
   const operations = ['convert', 'compress', 'merge', 'split', 'protect', 'unlock', 'watermark', 'extract', 'edit', 'sign', 'repair', 'rotate'];
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   // Create zero counts for all operations
-  await Promise.all(operations.map(operation => 
+  await Promise.all(operations.map(operation =>
     prisma.usageStats.create({
       data: {
         userId,

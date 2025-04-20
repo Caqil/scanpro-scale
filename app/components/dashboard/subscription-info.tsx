@@ -393,7 +393,7 @@ export default function SubscriptionInfo() {
                 <CardDescription className="text-2xl font-bold">
                   ${details.price}
                   <span className="text-sm font-normal">
-                    /{t("subscription.month") || "month"}
+                    /{t("subscription.monthly") || "month"}
                   </span>
                 </CardDescription>
               </CardHeader>

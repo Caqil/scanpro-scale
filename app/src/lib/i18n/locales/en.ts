@@ -157,7 +157,6 @@ export default {
     features: "Features",
     limitations: "Limitations",
     confirm: "Confirm",
-    cancel: "Cancel",
     subscriptionCanceled: "Subscription canceled successfully",
     upgradeSuccess: "Subscription upgraded successfully",
     pricingPlans: "Pricing Plans",
@@ -177,7 +176,28 @@ export default {
     noPrioritySupport: "No priority support",
     dedicatedSupport: "Dedicated support",
     customIntegration: "Custom integration help",
-    whiteLabel: "White-label options"
+    whiteLabel: "White-label options",
+    success: {
+      title: "Subscription Activated",
+      description: "Your subscription has been activated successfully",
+      message: "Thank you for subscribing to ScanPro! You now have access to all the features of your subscription tier.",
+      cta: "Go to Dashboard",
+      seo: {
+        title: "Subscription Activated Successfully - ScanPro",
+        description: "Your ScanPro subscription has been activated. Explore all the premium features now available to you."
+      }
+    },
+    cancel: {
+      title: "Subscription Canceled",
+      description: "Your subscription process was canceled",
+      message: "The subscription process was canceled. No changes have been made to your account. Feel free to try again when you're ready.",
+      cta: "Back to Plans",
+      seo: {
+        title: "Subscription Canceled - ScanPro",
+        description: "Your subscription process was canceled. You can always subscribe later when you're ready."
+      }
+
+    }
   },
   profile: {
     // Personal Information
