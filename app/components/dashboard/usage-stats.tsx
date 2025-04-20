@@ -20,12 +20,12 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
   // Determine limits based on subscription tier
   const usageLimit =
   user?.subscription?.tier === "enterprise"
-    ? 1000000  // Updated from 100000
+    ? 500000  // Updated from 100000
     : user?.subscription?.tier === "pro"
-    ? 100000   // Updated from 10000
+    ? 5000   // Updated from 10000
     : user?.subscription?.tier === "basic"
-    ? 10000    // Updated from 1000
-    : 1000;    // Updated from 100 (free tier)
+    ? 5000    // Updated from 1000
+    : 500;    // Updated from 100 (free tier)
   
   // Format operation name for display
   const formatOperation = (op: string): string => {

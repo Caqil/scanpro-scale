@@ -3,13 +3,15 @@ import { prisma } from '@/lib/prisma';
 
 // Define plan IDs for different subscription tiers
 export const PAYPAL_PLAN_IDS: Record<string, string> = {
-  basic: process.env.PAYPAL_PLAN_BASIC || '',
-  pro: process.env.PAYPAL_PLAN_PRO || '',
-  enterprise: process.env.PAYPAL_PLAN_ENTERPRISE || '',
+  basic: process.env.PAYPAL_PLAN_BASIC || 'plan_basic_default',
+  pro: process.env.PAYPAL_PLAN_PRO || 'plan_pro_default',
+  enterprise: process.env.PAYPAL_PLAN_ENTERPRISE || 'plan_enterprise_default',
 };
 
-// Set up PayPal API base URLs
-export const PAYPAL_API_BASE =  'https://api-m.sandbox.paypal.com';
+// Set up PayPal API base URLs based on environment
+export const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://api-m.paypal.com'
+  : 'https://api-m.sandbox.paypal.com';
 
 export async function getPayPalAccessToken(): Promise<string> {
   try {
@@ -32,9 +34,9 @@ export async function getPayPalAccessToken(): Promise<string> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error('PayPal token error:', errorData);
-      throw new Error(`Failed to get PayPal access token: ${errorData.error_description || response.statusText}`);
+      throw new Error(`Failed to get PayPal access token: ${response.status} - ${errorData.error_description || response.statusText}`);
     }
 
     const data = await response.json();
@@ -44,80 +46,80 @@ export async function getPayPalAccessToken(): Promise<string> {
     throw new Error(`PayPal authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-
-// Create a PayPal subscription
 export async function createSubscription(userId: string, tier: string): Promise<{ subscriptionId: string; approvalUrl: string }> {
   try {
-    // Get the appropriate plan ID based on the tier
     const planId = PAYPAL_PLAN_IDS[tier];
-
     if (!planId) {
       throw new Error(`No PayPal plan ID configured for tier: ${tier}`);
     }
 
-    // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Add locale prefix (e.g., 'en'); adjust based on your default locale
+    const returnUrl = `${appUrl}/en/dashboard/subscription/success`;
+    const cancelUrl = `${appUrl}/en/dashboard/subscription/cancel`;
 
-    // Set the return and cancel URLs
-    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription/success`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/subscription/cancel`;
+    console.log(`Creating PayPal subscription for user ${userId} with plan ${planId}`);
+    console.log(`App URL: ${appUrl}, Return URL: ${returnUrl}, Cancel URL: ${cancelUrl}`);
 
-    // Create subscription in PayPal
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-        'PayPal-Request-Id': `sub_${Date.now()}_${userId.substring(0, 8)}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "PayPal-Request-Id": `sub_${Date.now()}_${userId.substring(0, 8)}`,
       },
       body: JSON.stringify({
         plan_id: planId,
-        custom_id: userId, // Store our user ID for webhook processing
+        custom_id: userId,
         application_context: {
           brand_name: "ScanPro",
           locale: "en-US",
           shipping_preference: "NO_SHIPPING",
           user_action: "SUBSCRIBE_NOW",
           return_url: returnUrl,
-          cancel_url: cancelUrl
-        }
-      })
+          cancel_url: cancelUrl,
+        },
+      }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('PayPal API error response:', errorData);
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { message: errorText };
+      }
+      console.error("PayPal API error response:", errorData);
       throw new Error(`PayPal API error: ${errorData.message || JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
+    console.log("PayPal subscription created:", data.id);
 
-    // Find approval URL
-    const approvalUrl = data.links.find((link: any) => link.rel === 'approve')?.href;
-
+    const approvalUrl = data.links.find((link: any) => link.rel === "approve")?.href;
     if (!approvalUrl) {
-      throw new Error('No approval URL found in PayPal response');
+      throw new Error("No approval URL found in PayPal response");
     }
 
-    // Create pending subscription in our database
     await prisma.subscription.upsert({
       where: { userId },
       update: {
         tier,
-        status: 'pending',
+        status: "pending",
         paypalSubscriptionId: data.id,
         paypalPlanId: planId,
         currentPeriodStart: new Date(),
-        // Other fields will be updated when the subscription is activated
       },
       create: {
         userId,
         tier,
-        status: 'pending',
+        status: "pending",
         paypalSubscriptionId: data.id,
         paypalPlanId: planId,
         currentPeriodStart: new Date(),
-      }
+      },
     });
 
     return {
@@ -125,16 +127,20 @@ export async function createSubscription(userId: string, tier: string): Promise<
       approvalUrl,
     };
   } catch (error) {
-    console.error('Error creating PayPal subscription:', error);
-    throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Error creating PayPal subscription:", error);
+    throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
-// Add webhook handling function
+
+
+// Handle webhook events
 export async function handlePayPalWebhook(event: any): Promise<{ success: boolean; message: string }> {
   try {
     // Extract event type and resource data
     const eventType = event.event_type;
     const resource = event.resource;
+    
+    console.log(`Processing PayPal webhook event: ${eventType}`);
     
     // Handle different PayPal events
     switch (eventType) {
@@ -167,6 +173,119 @@ export async function handlePayPalWebhook(event: any): Promise<{ success: boolea
     throw new Error(`Failed to process webhook: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+
+// Get subscription details from PayPal
+export async function getSubscriptionDetails(subscriptionId: string): Promise<any> {
+  try {
+    // Get PayPal access token
+    const accessToken = await getPayPalAccessToken();
+
+    // Get subscription details from PayPal
+    const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to get subscription details: ${errorData.message || response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting subscription details:', error);
+    throw new Error(`PayPal subscription details failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Cancel a PayPal subscription
+export async function cancelSubscription(subscriptionId: string): Promise<void> {
+  try {
+    console.log(`Cancelling PayPal subscription: ${subscriptionId}`);
+    
+    // Get PayPal access token
+    const accessToken = await getPayPalAccessToken();
+
+    // Cancel subscription in PayPal
+    const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({
+        reason: 'Canceled by customer'
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { message: errorText };
+      }
+      
+      console.error('PayPal cancellation error:', errorData);
+      throw new Error(`Failed to cancel subscription: ${errorData.message || response.statusText}`);
+    }
+
+    console.log(`PayPal subscription ${subscriptionId} cancelled successfully`);
+    return;
+  } catch (error) {
+    console.error('Error cancelling subscription:', error);
+    throw new Error(`PayPal subscription cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Update user subscription in our database
+export async function updateUserSubscription(
+  userId: string,
+  data: {
+    tier: string;
+    status: string;
+    paypalSubscriptionId?: string | null;
+    paypalPlanId?: string | null;
+    currentPeriodStart?: Date;
+    currentPeriodEnd?: Date;
+    lastPaymentDate?: Date;
+    nextBillingDate?: Date;
+    canceledAt?: Date | null;
+  }
+): Promise<any> {
+  try {
+    console.log(`Updating subscription for user ${userId}:`, data);
+    
+    // Check if user already has a subscription
+    const existingSubscription = await prisma.subscription.findUnique({
+      where: { userId }
+    });
+
+    if (existingSubscription) {
+      // Update existing subscription
+      return await prisma.subscription.update({
+        where: { userId },
+        data
+      });
+    } else {
+      // Create new subscription
+      return await prisma.subscription.create({
+        data: {
+          userId,
+          ...data
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error updating user subscription in database:', error);
+    throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 async function handleSubscriptionCreated(resource: any) {
   const subscriptionId = resource.id;
   const planId = resource.plan_id;
@@ -364,101 +483,4 @@ async function resetUserUsageStats(userId: string): Promise<void> {
       }
     })
   ));
-}
-
-// Get subscription details from PayPal
-export async function getSubscriptionDetails(subscriptionId: string): Promise<any> {
-  try {
-    // Get PayPal access token
-    const accessToken = await getPayPalAccessToken();
-
-    // Get subscription details from PayPal
-    const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to get subscription details: ${errorData.message || response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error getting subscription details:', error);
-    throw new Error(`PayPal subscription details failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// Cancel a PayPal subscription
-export async function cancelSubscription(subscriptionId: string): Promise<void> {
-  try {
-    // Get PayPal access token
-    const accessToken = await getPayPalAccessToken();
-
-    // Cancel subscription in PayPal
-    const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({
-        reason: 'Canceled by customer'
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to cancel subscription: ${errorData.message || response.statusText}`);
-    }
-
-    return;
-  } catch (error) {
-    console.error('Error cancelling subscription:', error);
-    throw new Error(`PayPal subscription cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// Update user subscription in our database
-export async function updateUserSubscription(
-  userId: string,
-  data: {
-    tier: string;
-    status: string;
-    paypalSubscriptionId?: string | null;
-    paypalPlanId?: string | null;
-    currentPeriodStart?: Date;
-    currentPeriodEnd?: Date;
-    canceledAt?: Date | null;
-  }
-): Promise<any> {
-  try {
-    // Check if user already has a subscription
-    const existingSubscription = await prisma.subscription.findUnique({
-      where: { userId }
-    });
-
-    if (existingSubscription) {
-      // Update existing subscription
-      return await prisma.subscription.update({
-        where: { userId },
-        data
-      });
-    } else {
-      // Create new subscription
-      return await prisma.subscription.create({
-        data: {
-          userId,
-          ...data
-        }
-      });
-    }
-  } catch (error) {
-    console.error('Error updating user subscription in database:', error);
-    throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
 }

@@ -1,10 +1,24 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { LanguageLink } from "@/components/language-link";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import {
   FileText,
   DownloadCloud,
@@ -27,16 +41,19 @@ interface UserDashboardOverviewProps {
   usageStats: UsageStatsProps;
 }
 
-export function UserDashboardOverview({ user, usageStats }: UserDashboardOverviewProps) {
+export function UserDashboardOverview({
+  user,
+  usageStats,
+}: UserDashboardOverviewProps) {
   // Determine usage limits based on subscription tier
-  const usageLimit = 
-  user?.subscription?.tier === "enterprise"
-    ? 1000000  // Updated from 100000
-    : user?.subscription?.tier === "pro"
-    ? 100000   // Updated from 10000
-    : user?.subscription?.tier === "basic"
-    ? 10000    // Updated from 1000
-    : 1000;    // Updated from 100
+  const usageLimit =
+    user?.subscription?.tier === "enterprise"
+      ? 500000 // Updated from 100000
+      : user?.subscription?.tier === "pro"
+      ? 5000 // Updated from 10000
+      : user?.subscription?.tier === "basic"
+      ? 5000 // Updated from 1000
+      : 500; // Updated from 100 (free tier)
 
   // Format operation name for display
   const formatOperation = (op: string): string => {
@@ -44,10 +61,12 @@ export function UserDashboardOverview({ user, usageStats }: UserDashboardOvervie
   };
 
   // Create chart data from operation counts
-  const chartData = Object.entries(usageStats.operationCounts).map(([operation, count]) => ({
-    name: formatOperation(operation),
-    value: count,
-  }));
+  const chartData = Object.entries(usageStats.operationCounts).map(
+    ([operation, count]) => ({
+      name: formatOperation(operation),
+      value: count,
+    })
+  );
 
   // Get the most used operation
   const getMostUsedOperation = (): { operation: string; count: number } => {
@@ -139,9 +158,16 @@ export function UserDashboardOverview({ user, usageStats }: UserDashboardOvervie
             <UploadCloud className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usageStats.totalOperations}</div>
-            <p className="text-xs text-muted-foreground">of {usageLimit} operations this month</p>
-            <Progress value={(usageStats.totalOperations / usageLimit) * 100} className="mt-2" />
+            <div className="text-2xl font-bold">
+              {usageStats.totalOperations}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              of {usageLimit} operations this month
+            </p>
+            <Progress
+              value={(usageStats.totalOperations / usageLimit) * 100}
+              className="mt-2"
+            />
           </CardContent>
         </Card>
 
@@ -151,7 +177,9 @@ export function UserDashboardOverview({ user, usageStats }: UserDashboardOvervie
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{user?.subscription?.tier || "Free"}</div>
+            <div className="text-2xl font-bold capitalize">
+              {user?.subscription?.tier || "Free"}
+            </div>
             <p className="text-xs text-muted-foreground">
               {user?.subscription?.status === "active" ? "Active" : "Inactive"}
             </p>
@@ -165,20 +193,30 @@ export function UserDashboardOverview({ user, usageStats }: UserDashboardOvervie
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Most Used Operation</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Most Used Operation
+            </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatOperation(mostUsed.operation)}</div>
+            <div className="text-2xl font-bold">
+              {formatOperation(mostUsed.operation)}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {mostUsed.count} operations ({Math.round((mostUsed.count / usageStats.totalOperations) * 100) || 0}% of total)
+              {mostUsed.count} operations (
+              {Math.round(
+                (mostUsed.count / usageStats.totalOperations) * 100
+              ) || 0}
+              % of total)
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Account Status</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Account Status
+            </CardTitle>
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -223,7 +261,9 @@ export function UserDashboardOverview({ user, usageStats }: UserDashboardOvervie
       <Card>
         <CardHeader>
           <CardTitle>Recent Activities</CardTitle>
-          <CardDescription>Your recent operations and activities</CardDescription>
+          <CardDescription>
+            Your recent operations and activities
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

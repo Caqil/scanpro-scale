@@ -1,10 +1,9 @@
-// app/[lang]/dashboard/subscription/page.tsx
+// components/dashboard/subscription-info.tsx
 
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PayPalButtons } from "@paypal/react-paypal-js";
 import { toast } from "sonner";
 import {
   Card,
@@ -91,25 +90,33 @@ export default function SubscriptionInfo() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load subscription data
   useEffect(() => {
     const fetchSubscription = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
+        // Make sure to use the correct API endpoint
         const response = await fetch("/api/user/profile");
+
         if (!response.ok) {
-          console.error(
-            "Response status:",
-            response.status,
-            await response.text()
+          const errorText = await response.text();
+          console.error("Response status:", response.status, errorText);
+          throw new Error(
+            `Failed to fetch subscription data: ${response.status}`
           );
-          throw new Error("Failed to fetch subscription data");
         }
+
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
-          console.error("Non-JSON response:", await response.text());
+          const text = await response.text();
+          console.error("Non-JSON response:", text);
           throw new Error("Invalid response format");
         }
+
         const data = await response.json();
         const tier = data.tier || "free";
         const limit =
@@ -118,6 +125,7 @@ export default function SubscriptionInfo() {
           100,
           Math.round((data.operations / limit) * 100)
         );
+
         setSubscription({
           tier,
           status: data.status || "active",
@@ -128,6 +136,7 @@ export default function SubscriptionInfo() {
         });
       } catch (error) {
         console.error("Error fetching subscription:", error);
+        setError(error instanceof Error ? error.message : "Unknown error");
         toast.error("Failed to load subscription data");
       } finally {
         setIsLoading(false);
@@ -139,10 +148,11 @@ export default function SubscriptionInfo() {
 
   // Handle subscription upgrade
   const handleUpgrade = async (tier: string) => {
-    setUpgradeTarget(tier);
-
     try {
-      const response = await fetch("/api/user/subscription/create", {
+      setUpgradeTarget(tier);
+      setError(null);
+
+      const response = await fetch("/api/subscription", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,18 +160,34 @@ export default function SubscriptionInfo() {
         body: JSON.stringify({ tier }),
       });
 
-      if (!response.ok) throw new Error("Failed to create subscription");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          "Subscription creation failed:",
+          response.status,
+          errorText
+        );
+        throw new Error("Failed to create subscription");
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        const text = await response.text();
+        console.error("Non-JSON response:", text);
+        throw new Error("Invalid response format");
+      }
 
       const data = await response.json();
 
       // Redirect to PayPal approval URL
-      if (data.approvalUrl) {
-        window.location.href = data.approvalUrl;
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
       } else {
         throw new Error("No approval URL returned");
       }
     } catch (error) {
       console.error("Error creating subscription:", error);
+      setError(error instanceof Error ? error.message : "Unknown error");
       toast.error("Failed to upgrade subscription");
       setUpgradeTarget(null);
     }
@@ -180,12 +206,17 @@ export default function SubscriptionInfo() {
 
     try {
       setIsLoading(true);
+      setError(null);
 
-      const response = await fetch("/api/user/subscription/cancel", {
+      const response = await fetch("/api/subscription/cancel", {
         method: "POST",
       });
 
-      if (!response.ok) throw new Error("Failed to cancel subscription");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cancellation failed:", response.status, errorText);
+        throw new Error("Failed to cancel subscription");
+      }
 
       toast.success(
         t("subscription.cancelSuccess") || "Subscription canceled successfully"
@@ -195,11 +226,39 @@ export default function SubscriptionInfo() {
       router.refresh();
     } catch (error) {
       console.error("Error canceling subscription:", error);
+      setError(error instanceof Error ? error.message : "Unknown error");
       toast.error("Failed to cancel subscription");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Error Loading Subscription</CardTitle>
+          <CardDescription>
+            We encountered a problem loading your subscription information.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-destructive">{error}</p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <div className="container py-10">
@@ -214,7 +273,7 @@ export default function SubscriptionInfo() {
             {t("subscription.currentPlan") || "Current Plan"}
           </CardTitle>
           <CardDescription>
-            {t("subscription.currentTier", { tier: subscription.tier }) ||
+            {t(`subscription.currentTier.${subscription.tier}`) ||
               `You are currently on the ${subscription.tier} tier.`}
           </CardDescription>
         </CardHeader>
@@ -248,11 +307,7 @@ export default function SubscriptionInfo() {
               {subscription.currentPeriodEnd &&
                 subscription.status === "active" && (
                   <p className="text-sm text-muted-foreground">
-                    {t("subscription.renewsOn", {
-                      date: new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString(),
-                    }) ||
+                    {t("subscription.renewsOn") ||
                       `Renews on ${new Date(
                         subscription.currentPeriodEnd
                       ).toLocaleDateString()}`}
@@ -262,11 +317,7 @@ export default function SubscriptionInfo() {
               {subscription.currentPeriodEnd &&
                 subscription.status === "canceled" && (
                   <p className="text-sm text-muted-foreground">
-                    {t("subscription.expiresOn", {
-                      date: new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString(),
-                    }) ||
+                    {t("subscription.expiresOn") ||
                       `Access ends on ${new Date(
                         subscription.currentPeriodEnd
                       ).toLocaleDateString()}`}
@@ -321,99 +372,102 @@ export default function SubscriptionInfo() {
       </h2>
 
       <div className="grid md:grid-cols-4 gap-6">
-        {Object.entries(SUBSCRIPTION_TIERS).map(([tier, details]) => (
-          <Card
-            key={tier}
-            className={`${subscription.tier === tier ? "border-primary" : ""}`}
-          >
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{tier.charAt(0).toUpperCase() + tier.slice(1)}</span>
-                {subscription.tier === tier && (
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-                    {t("subscription.current") || "Current"}
+        {Object.entries(SUBSCRIPTION_TIERS).map(([tier, details]) => {
+          const capitalizedTier = tier.charAt(0).toUpperCase() + tier.slice(1);
+          return (
+            <Card
+              key={tier}
+              className={`${
+                subscription.tier === tier ? "border-primary" : ""
+              }`}
+            >
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>{capitalizedTier}</span>
+                  {subscription.tier === tier && (
+                    <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                      {t("subscription.current") || "Current"}
+                    </span>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-2xl font-bold">
+                  ${details.price}
+                  <span className="text-sm font-normal">
+                    /{t("subscription.month") || "month"}
                   </span>
-                )}
-              </CardTitle>
-              <CardDescription className="text-2xl font-bold">
-                ${details.price}
-                <span className="text-sm font-normal">
-                  /{t("subscription.month") || "month"}
-                </span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-6">
-                {details.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <svg
-                      className="h-5 w-5 text-green-500 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              {subscription.tier !== tier ? (
-                <Button
-                  className="w-full"
-                  onClick={() => handleUpgrade(tier)}
-                  disabled={
-                    isLoading || upgradeTarget === tier || tier === "free"
-                  }
-                >
-                  {upgradeTarget === tier ? (
-                    <span className="flex items-center gap-2">
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 mb-6">
+                  {details.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
                       <svg
-                        className="animate-spin h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-green-500 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
+                        stroke="currentColor"
                       >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
                         <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
-                      {t("subscription.processing") || "Processing..."}
-                    </span>
-                  ) : tier === "free" ? (
-                    t("subscription.currentPlan") || "Current Plan"
-                  ) : (
-                    t("subscription.upgradeTo", {
-                      tier: tier.charAt(0).toUpperCase() + tier.slice(1),
-                    }) ||
-                    `Upgrade to ${tier.charAt(0).toUpperCase() + tier.slice(1)}`
-                  )}
-                </Button>
-              ) : (
-                <Button className="w-full" disabled variant="outline">
-                  {t("subscription.currentPlan") || "Current Plan"}
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                {subscription.tier !== tier ? (
+                  <Button
+                    className="w-full"
+                    onClick={() => handleUpgrade(tier)}
+                    disabled={
+                      isLoading || upgradeTarget === tier || tier === "free"
+                    }
+                  >
+                    {upgradeTarget === tier ? (
+                      <span className="flex items-center gap-2">
+                        <svg
+                          className="animate-spin h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        {t("subscription.processing") || "Processing..."}
+                      </span>
+                    ) : tier === "free" ? (
+                      t("subscription.currentPlan") || "Current Plan"
+                    ) : (
+                      t(`subscription.upgradeTo${capitalizedTier}`) ||
+                      `Upgrade to ${capitalizedTier}`
+                    )}
+                  </Button>
+                ) : (
+                  <Button className="w-full" disabled variant="outline">
+                    {t("subscription.currentPlan") || "Current Plan"}
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

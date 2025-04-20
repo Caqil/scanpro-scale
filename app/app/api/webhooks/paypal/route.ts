@@ -5,11 +5,26 @@ import { handlePayPalWebhook } from '@/lib/paypal';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify PayPal webhook signature (in production)
-    // This would require implementing actual PayPal signature verification
+    console.log('Received PayPal webhook');
     
-    // Parse webhook payload
-    const payload = await request.json();
+    // Verify PayPal webhook authenticity
+    // In production, you should verify webhook authenticity using PayPal's API
+    // https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
+    
+    let payload;
+    try {
+      // Parse webhook payload
+      payload = await request.json();
+      console.log('Webhook payload received:', JSON.stringify(payload).substring(0, 200) + '...');
+    } catch (parseError) {
+      console.error('Failed to parse webhook payload:', parseError);
+      const rawText = await request.text();
+      console.error('Raw payload:', rawText.substring(0, 200) + '...');
+      return NextResponse.json(
+        { error: 'Invalid webhook payload' },
+        { status: 400 }
+      );
+    }
     
     // Process the webhook
     const result = await handlePayPalWebhook(payload);
