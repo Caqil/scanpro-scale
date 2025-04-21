@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { SUPPORTED_LANGUAGES } from "@/src/lib/i18n/config";
 import { generatePageSeoMetadata } from "@/lib/seo/schemas";
 import { SubscriptionSuccessContent } from "../subscription-content";
+import { Suspense } from "react";
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,10 @@ export async function generateMetadata({
 export default function SubscriptionSuccessPage() {
   return (
     <div className="container py-12">
-      <SubscriptionSuccessContent />
+          <Suspense>
+          <SubscriptionSuccessContent />
+    </Suspense>
+     
     </div>
   );
 }

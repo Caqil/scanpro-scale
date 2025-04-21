@@ -1,9 +1,9 @@
 // lib/paypal.ts
 import { prisma } from '@/lib/prisma';
-import { 
+import {
   sendSubscriptionInvoiceEmail,
-  sendSubscriptionRenewalReminderEmail, 
-  sendSubscriptionExpiredEmail 
+  sendSubscriptionRenewalReminderEmail,
+  sendSubscriptionExpiredEmail
 } from '@/lib/email';
 
 // Plan IDs configuration
@@ -351,10 +351,10 @@ async function handleSubscriptionActivated(resource: any) {
 
   // Get detailed subscription info from PayPal
   const details = await getSubscriptionDetails(subscriptionId);
-  
+
   // Calculate period dates
   const currentPeriodStart = new Date();
-  const currentPeriodEnd = details.billing_info?.next_billing_time 
+  const currentPeriodEnd = details.billing_info?.next_billing_time
     ? new Date(details.billing_info.next_billing_time)
     : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -426,8 +426,8 @@ async function handleSubscriptionUpdated(resource: any) {
     data: { status: newStatus }
   });
 
-  console.log('Subscription updated via webhook', { 
-    subscriptionId, 
+  console.log('Subscription updated via webhook', {
+    subscriptionId,
     oldStatus: subscription.status,
     newStatus
   });
@@ -501,7 +501,7 @@ async function handlePaymentFailed(resource: any) {
       failedPaymentCount: { increment: 1 }
     }
   });
-  
+
   console.log('Updated failed payment count', { subscriptionId });
 }
 
@@ -576,7 +576,7 @@ async function handlePaymentCompleted(resource: any) {
     }
   }
 
-  console.log('Payment completion processed successfully', { 
+  console.log('Payment completion processed successfully', {
     subscriptionId,
     userId: subscription.userId,
     nextBillingDate: nextBillingDate.toISOString()
@@ -625,7 +625,7 @@ async function handleSubscriptionRenewed(resource: any) {
   // Reset usage stats for the new billing period
   await resetUserUsageStats(subscription.userId);
 
-  console.log('Subscription renewed successfully', { 
+  console.log('Subscription renewed successfully', {
     subscriptionId,
     userId: subscription.userId,
     newPeriodEnd: currentPeriodEnd.toISOString()
@@ -645,11 +645,11 @@ async function resetUserUsageStats(userId: string): Promise<void> {
 
   // Create initial usage stats entries with zero counts
   const operations = [
-    'convert', 'compress', 'merge', 'split', 'protect', 
-    'unlock', 'watermark', 'sign', 'rotate', 'repair', 
+    'convert', 'compress', 'merge', 'split', 'protect',
+    'unlock', 'watermark', 'sign', 'rotate', 'repair',
     'edit', 'ocr', 'extract', 'chat'
   ];
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -709,7 +709,7 @@ export function scheduleSubscriptionJobs() {
         // @ts-ignore
         global._subscriptionJobIntervals.forEach((interval: NodeJS.Timeout) => clearInterval(interval));
       }
-      
+
       // @ts-ignore
       global._subscriptionJobIntervals = [
         checkExpiringInterval,
@@ -726,13 +726,13 @@ export function scheduleSubscriptionJobs() {
 export async function checkExpiringSubscriptions(): Promise<number> {
   try {
     console.log('Checking for expiring subscriptions...');
-    
+
     // Find subscriptions that expire in 7 days
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    
+
     const today = new Date();
-    
+
     const expiringSubscriptions = await prisma.subscription.findMany({
       where: {
         status: 'active',
@@ -745,9 +745,9 @@ export async function checkExpiringSubscriptions(): Promise<number> {
         user: true
       }
     });
-    
+
     console.log(`Found ${expiringSubscriptions.length} subscriptions expiring soon`);
-    
+
     // Send reminder emails
     let remindersSent = 0;
     for (const subscription of expiringSubscriptions) {
@@ -765,7 +765,7 @@ export async function checkExpiringSubscriptions(): Promise<number> {
         }
       }
     }
-    
+
     console.log(`Sent ${remindersSent} reminder emails`);
     return remindersSent;
   } catch (error) {
@@ -780,10 +780,10 @@ export async function checkExpiringSubscriptions(): Promise<number> {
 export async function processExpiredSubscriptions(): Promise<number> {
   try {
     console.log('Processing expired subscriptions...');
-    
+
     // Find expired subscriptions
     const today = new Date();
-    
+
     const expiredSubscriptions = await prisma.subscription.findMany({
       where: {
         status: 'active',
@@ -795,9 +795,9 @@ export async function processExpiredSubscriptions(): Promise<number> {
         user: true
       }
     });
-    
+
     console.log(`Found ${expiredSubscriptions.length} expired subscriptions`);
-    
+
     // Process each expired subscription
     let processedCount = 0;
     for (const subscription of expiredSubscriptions) {
@@ -809,7 +809,7 @@ export async function processExpiredSubscriptions(): Promise<number> {
           tier: 'free'
         }
       });
-      
+
       // Send notification email
       if (subscription.user?.email) {
         try {
@@ -822,10 +822,10 @@ export async function processExpiredSubscriptions(): Promise<number> {
           console.error('Failed to send expiration email:', error);
         }
       }
-      
+
       processedCount++;
     }
-    
+
     console.log(`Processed ${processedCount} expired subscriptions`);
     return processedCount;
   } catch (error) {
@@ -840,9 +840,9 @@ export async function processExpiredSubscriptions(): Promise<number> {
 export async function checkAndResetUsage(): Promise<number> {
   try {
     console.log('Checking for subscriptions needing usage reset...');
-    
+
     const now = new Date();
-    
+
     // Find subscriptions due for usage reset
     const subscriptionsToReset = await prisma.subscription.findMany({
       where: {
@@ -851,14 +851,14 @@ export async function checkAndResetUsage(): Promise<number> {
         }
       }
     });
-    
+
     console.log(`Found ${subscriptionsToReset.length} subscriptions needing usage reset`);
-    
+
     // Reset usage for each subscription
     let resetCount = 0;
     for (const subscription of subscriptionsToReset) {
       await resetUserUsageStats(subscription.userId);
-      
+
       // Calculate next reset date (typically end of current period)
       let nextResetDate;
       if (subscription.currentPeriodEnd && subscription.currentPeriodEnd > now) {
@@ -868,7 +868,7 @@ export async function checkAndResetUsage(): Promise<number> {
         nextResetDate = new Date();
         nextResetDate.setDate(nextResetDate.getDate() + 30);
       }
-      
+
       // Update the reset date
       await prisma.subscription.update({
         where: { id: subscription.id },
@@ -876,10 +876,10 @@ export async function checkAndResetUsage(): Promise<number> {
           usageResetDate: nextResetDate
         }
       });
-      
+
       resetCount++;
     }
-    
+
     console.log(`Reset usage for ${resetCount} subscriptions`);
     return resetCount;
   } catch (error) {
