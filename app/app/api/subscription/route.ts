@@ -23,6 +23,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Processing subscription request', {
+      userId: session.user.id,
+      tier
+    });
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { subscription: true },
@@ -35,6 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle downgrade to free tier
     if (tier === 'free') {
       if (user.subscription?.paypalSubscriptionId) {
         return NextResponse.json(
@@ -59,19 +65,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Handle upgrade or changing paid tiers
     try {
       const { subscriptionId, approvalUrl } = await createSubscription(user.id, tier);
-
-      // Use the requested tier instead of the current subscription tier
-      await updateUserSubscription(user.id, {
-        paypalSubscriptionId: subscriptionId,
-        tier, // Use the new tier
-        status: 'pending',
-      });
 
       return NextResponse.json({
         success: true,
         checkoutUrl: approvalUrl,
+        subscriptionId,
         message: 'Please complete the payment process on PayPal',
       });
     } catch (createError) {
@@ -91,6 +92,57 @@ export async function POST(request: NextRequest) {
         error: 'Failed to process subscription request',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
+      { status: 500 }
+    );
+  }
+}
+
+// Get subscription status
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    // Get subscription details
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId: session.user.id },
+    });
+    
+    // Get usage statistics
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    
+    const usage = await prisma.usageStats.aggregate({
+      where: {
+        userId: session.user.id,
+        date: { gte: firstDayOfMonth },
+      },
+      _sum: { count: true },
+    });
+    
+    // Default to free tier if no subscription exists
+    const tier = subscription?.tier || "free";
+    const operations = usage._sum.count || 0;
+    
+    return NextResponse.json({
+      tier,
+      status: subscription?.status || "active",
+      currentPeriodStart: subscription?.currentPeriodStart,
+      currentPeriodEnd: subscription?.currentPeriodEnd,
+      canceledAt: subscription?.canceledAt,
+      operations,
+      // Add usage limits based on tier
+      limit: tier === 'basic' ? 5000 : 
+             tier === 'pro' ? 50000 : 
+             tier === 'enterprise' ? 100000 : 500,
+    });
+  } catch (error) {
+    console.error("Error fetching subscription:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch subscription data" },
       { status: 500 }
     );
   }

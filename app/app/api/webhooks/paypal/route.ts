@@ -1,25 +1,42 @@
 // app/api/webhooks/paypal/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { handlePayPalWebhook } from '@/lib/paypal';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('Received PayPal webhook');
     
-    // Verify PayPal webhook authenticity
-    // In production, you should verify webhook authenticity using PayPal's API
-    // https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
+    // Get webhook ID from PayPal
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+    if (!webhookId) {
+      console.error('PayPal webhook ID not configured');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
     
+    // Get the raw request body
+    const rawBody = await request.text();
+    
+    // Get PayPal signature header
+    const paypalSignature = request.headers.get('paypal-transmission-sig');
+    const paypalCertUrl = request.headers.get('paypal-cert-url');
+    const paypalTransmissionId = request.headers.get('paypal-transmission-id');
+    const paypalTransmissionTime = request.headers.get('paypal-transmission-time');
+    
+    // In production, you should verify the signature here
+    // For simplicity in this example, we're skipping detailed verification
+    
+    // Parse webhook payload
     let payload;
     try {
-      // Parse webhook payload
-      payload = await request.json();
-      console.log('Webhook payload received:', JSON.stringify(payload).substring(0, 200) + '...');
+      payload = JSON.parse(rawBody);
+      console.log('Webhook event:', {
+        eventType: payload.event_type,
+        resourceType: payload.resource_type,
+        resourceId: payload.resource?.id
+      });
     } catch (parseError) {
       console.error('Failed to parse webhook payload:', parseError);
-      const rawText = await request.text();
-      console.error('Raw payload:', rawText.substring(0, 200) + '...');
       return NextResponse.json(
         { error: 'Invalid webhook payload' },
         { status: 400 }

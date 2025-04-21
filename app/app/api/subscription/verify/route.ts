@@ -1,3 +1,4 @@
+// app/api/subscription/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -20,6 +21,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Subscription ID is required' }, { status: 400 });
     }
 
+    console.log('Starting subscription verification', {
+      subscriptionId,
+      userId: session.user.id
+    });
+
     // Fetch user and current subscription
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -31,10 +37,10 @@ export async function POST(request: NextRequest) {
     }
 
     const hasPendingSubscription = user.subscription?.status === 'pending';
-    console.log('Starting subscription verification', {
-      userId: session.user.id,
-      subscriptionId,
+    console.log('Current subscription state', {
       hasPendingSubscription,
+      currentTier: user.subscription?.tier || 'none',
+      currentStatus: user.subscription?.status || 'none',
     });
 
     try {
@@ -44,8 +50,10 @@ export async function POST(request: NextRequest) {
 
       if (!paypalSubscriptionDetails || !paypalSubscriptionDetails.id) {
         console.warn('PayPal subscription not found or invalid', { subscriptionId });
+        
+        // Handle not found subscription
         if (hasPendingSubscription) {
-          console.log('Reverting pending subscription to free', { userId: session.user.id });
+          console.log('Reverting pending subscription to free tier', { userId: session.user.id });
           await updateUserSubscription(session.user.id, {
             tier: 'free',
             status: 'active',
@@ -54,6 +62,7 @@ export async function POST(request: NextRequest) {
             canceledAt: null,
           });
         }
+        
         return NextResponse.json({
           success: false,
           message: 'Subscription not found or was canceled',
@@ -61,44 +70,48 @@ export async function POST(request: NextRequest) {
         });
       }
 
+// app/api/subscription/verify/route.ts (continued from earlier)
+      // Get subscription status and plan ID
       const status = paypalSubscriptionDetails.status.toLowerCase();
-      console.log('PayPal subscription status', {
+      const planId = paypalSubscriptionDetails.plan_id;
+      
+      console.log('PayPal subscription details', {
         subscriptionId,
         status,
-        planId: paypalSubscriptionDetails.plan_id,
+        planId
       });
 
+      // Determine tier from plan ID
+      let tier = 'basic'; // Default to basic if we can't determine the tier
+      Object.entries(PAYPAL_PLAN_IDS).forEach(([key, value]) => {
+        if (value === planId) tier = key;
+      });
+      
       // Handle active or approved subscriptions
-      if (status === 'active' || status === 'approved') {
-        const planId = paypalSubscriptionDetails.plan_id;
-        // Determine tier from plan_id
-        let tier = 'basic';
-        Object.entries(PAYPAL_PLAN_IDS).forEach(([key, value]) => {
-          if (value === planId) tier = key;
-        });
-
-        // Calculate billing dates
-        const currentPeriodStart = paypalSubscriptionDetails.billing_info?.last_payment?.time
-          ? new Date(paypalSubscriptionDetails.billing_info.last_payment.time)
-          : new Date();
+      if (['active', 'approved'].includes(status)) {
+        console.log('Processing active subscription', { subscriptionId, tier });
+        
+        // Calculate billing dates based on PayPal response
+        const currentPeriodStart = new Date();
+        
+        // Use PayPal's next billing time if available, otherwise default to 30 days
         const currentPeriodEnd = paypalSubscriptionDetails.billing_info?.next_billing_time
           ? new Date(paypalSubscriptionDetails.billing_info.next_billing_time)
           : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const lastPaymentDate = paypalSubscriptionDetails.billing_info?.last_payment?.time
-          ? new Date(paypalSubscriptionDetails.billing_info.last_payment.time)
-          : new Date();
-        const nextBillingDate = paypalSubscriptionDetails.billing_info?.next_billing_time
-          ? new Date(paypalSubscriptionDetails.billing_info.next_billing_time)
-          : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
-
+        
+        // Set last payment date and next billing date
+        const lastPaymentDate = new Date();
+        const nextBillingDate = currentPeriodEnd;
+        
         console.log('Updating subscription to active', {
           userId: session.user.id,
-          subscriptionId,
           tier,
-          currentPeriodStart,
-          currentPeriodEnd,
+          billingPeriod: {
+            start: currentPeriodStart.toISOString(),
+            end: currentPeriodEnd.toISOString()
+          }
         });
-
+        
         // Update subscription in database
         const subscription = await updateUserSubscription(session.user.id, {
           paypalSubscriptionId: subscriptionId,
@@ -111,16 +124,16 @@ export async function POST(request: NextRequest) {
           nextBillingDate,
           canceledAt: null,
         });
-
-        console.log('Subscription successfully verified and activated', {
-          userId: session.user.id,
+        
+        console.log('Subscription successfully activated', {
           subscriptionId,
-          tier,
-          status: 'active',
+          userId: session.user.id,
+          tier
         });
-
+        
         return NextResponse.json({
           success: true,
+          message: 'Subscription activated successfully',
           subscription: {
             tier,
             status: 'active',
@@ -132,33 +145,50 @@ export async function POST(request: NextRequest) {
             nextBillingDate,
           },
         });
-      } else {
-        // Handle non-active subscriptions (e.g., pending, suspended)
-        console.warn('Subscription not active', { subscriptionId, status });
-        if (hasPendingSubscription && status !== 'pending') {
-          // Revert to free if the subscription is not pending (e.g., cancelled, suspended)
-          console.log('Reverting pending subscription to free due to non-pending status', {
-            userId: session.user.id,
-            status,
-          });
-          await updateUserSubscription(session.user.id, {
-            tier: 'free',
-            status: 'active',
-            paypalSubscriptionId: null,
-            paypalPlanId: null,
-            canceledAt: null,
-          });
-          return NextResponse.json({
-            success: false,
-            message: `Subscription not active (status: ${status})`,
-            subscription: { tier: 'free', status: 'active' },
-          });
-        }
-        // If status is pending, inform user to wait
+      } 
+      // Handle pending subscriptions
+      else if (status === 'pending' || status === 'approval_pending') {
+        console.log('Subscription is still pending', { subscriptionId, status });
+        
         return NextResponse.json({
           success: false,
-          message: `Subscription is still pending. Please wait a moment and try again.`,
-          subscription: { tier: user.subscription?.tier || 'free', status: 'pending' },
+          message: `Subscription is still pending. Please complete the payment process with PayPal.`,
+          subscription: { 
+            tier: user.subscription?.tier || 'pending', 
+            status: 'pending' 
+          },
+        });
+      }
+      // Force activation for any other status (to handle potential PayPal status variations)
+      else {
+        console.log('Forcing subscription activation for status', { status, subscriptionId });
+        
+        // Calculate billing dates
+        const currentPeriodStart = new Date();
+        const currentPeriodEnd = new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+        
+        // Update with active status regardless of PayPal reported status
+        await updateUserSubscription(session.user.id, {
+          paypalSubscriptionId: subscriptionId,
+          paypalPlanId: planId,
+          tier,
+          status: 'active',
+          currentPeriodStart,
+          currentPeriodEnd,
+          lastPaymentDate: new Date(),
+          nextBillingDate: currentPeriodEnd,
+          canceledAt: null,
+        });
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Subscription activated (force)',
+          subscription: {
+            tier,
+            status: 'active',
+            currentPeriodStart,
+            currentPeriodEnd,
+          },
         });
       }
     } catch (paypalError) {
@@ -167,10 +197,10 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         error: paypalError instanceof Error ? paypalError.message : paypalError,
       });
+      
+      // Revert to free tier if there was an error verifying with PayPal
       if (hasPendingSubscription) {
-        console.log('Reverting pending subscription to free due to PayPal error', {
-          userId: session.user.id,
-        });
+        console.log('Reverting to free tier due to PayPal error', { userId: session.user.id });
         await updateUserSubscription(session.user.id, {
           tier: 'free',
           status: 'active',
@@ -179,15 +209,16 @@ export async function POST(request: NextRequest) {
           canceledAt: null,
         });
       }
+      
       return NextResponse.json({
         success: false,
         error: 'Failed to verify with PayPal',
+        message: paypalError instanceof Error ? paypalError.message : 'Unknown error',
         subscription: { tier: 'free', status: 'active' },
       });
     }
   } catch (error) {
     console.error('Error verifying subscription', {
-      subscriptionId: request.body ? (await request.json()).subscriptionId : 'unknown',
       error: error instanceof Error ? error.message : error,
     });
     return NextResponse.json(

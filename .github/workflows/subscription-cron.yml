@@ -1,0 +1,59 @@
+# .github/workflows/subscription-cron.yml
+name: Subscription Management Cron Jobs
+
+on:
+  schedule:
+    # Check for expiring subscriptions daily at 9:00 UTC
+    - cron: "0 9 * * *"
+    # Process expired subscriptions daily at midnight UTC
+    - cron: "0 0 * * *"
+    # Reset usage stats hourly
+    - cron: "0 * * * *"
+
+  # Allow manual triggers for testing
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Job to run"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - check-expiring
+          - process-expired
+          - reset-usage
+
+jobs:
+  check-expiring:
+    name: Check Expiring Subscriptions
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9 * * *' || github.event.inputs.job == 'check-expiring' || github.event.inputs.job == 'all'
+    steps:
+      - name: Execute Expiring Subscriptions Check
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/subscriptions?job=check-expiring" \
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+          -H "Content-Type: application/json"
+
+  process-expired:
+    name: Process Expired Subscriptions
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event.inputs.job == 'process-expired' || github.event.inputs.job == 'all'
+    steps:
+      - name: Execute Expired Subscriptions Process
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/subscriptions?job=process-expired" \
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+          -H "Content-Type: application/json"
+
+  reset-usage:
+    name: Reset Usage Stats
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 * * * *' || github.event.inputs.job == 'reset-usage' || github.event.inputs.job == 'all'
+    steps:
+      - name: Execute Usage Reset
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/subscriptions?job=reset-usage" \
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+          -H "Content-Type: application/json"

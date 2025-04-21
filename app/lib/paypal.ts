@@ -1,23 +1,32 @@
 // lib/paypal.ts
 import { prisma } from '@/lib/prisma';
+import { 
+  sendSubscriptionInvoiceEmail,
+  sendSubscriptionRenewalReminderEmail, 
+  sendSubscriptionExpiredEmail 
+} from '@/lib/email';
 
-// Define plan IDs for different subscription tiers
+// Plan IDs configuration
 export const PAYPAL_PLAN_IDS: Record<string, string> = {
-  basic: process.env.PAYPAL_PLAN_BASIC || 'plan_basic_default',
-  pro: process.env.PAYPAL_PLAN_PRO || 'plan_pro_default',
-  enterprise: process.env.PAYPAL_PLAN_ENTERPRISE || 'plan_enterprise_default',
+  basic: process.env.PAYPAL_PLAN_BASIC || '',
+  pro: process.env.PAYPAL_PLAN_PRO || '',
+  enterprise: process.env.PAYPAL_PLAN_ENTERPRISE || '',
 };
 
-// Set up PayPal API base URLs based on environment
-export const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
+// API base URL based on environment
+export const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://api-m.paypal.com'
+  : 'https://api-m.sandbox.paypal.com';
 
+/**
+ * Get PayPal access token for API requests
+ */
 export async function getPayPalAccessToken(): Promise<string> {
   try {
     const clientId = process.env.PAYPAL_CLIENT_ID;
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      console.error('PayPal credentials missing');
       throw new Error('PayPal credentials are not configured');
     }
 
@@ -28,22 +37,17 @@ export async function getPayPalAccessToken(): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${auth}`,
+        'Authorization': `Basic ${auth}`,
       },
       body: 'grant_type=client_credentials',
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('PayPal token request failed:', {
-        status: response.status,
-        error: errorData
-      });
       throw new Error(`Failed to get PayPal access token: ${response.status} - ${errorData.error_description || response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('PayPal access token obtained successfully');
     return data.access_token;
   } catch (error) {
     console.error('Error getting PayPal access token:', error);
@@ -51,41 +55,41 @@ export async function getPayPalAccessToken(): Promise<string> {
   }
 }
 
+/**
+ * Create a new PayPal subscription
+ */
 export async function createSubscription(userId: string, tier: string): Promise<{ subscriptionId: string; approvalUrl: string }> {
   try {
     const planId = PAYPAL_PLAN_IDS[tier];
     if (!planId) {
-      console.error('Invalid tier specified:', tier);
       throw new Error(`No PayPal plan ID configured for tier: ${tier}`);
     }
 
-    console.log('Initiating subscription creation', { userId, tier, planId });
+    console.log('Creating PayPal subscription', { userId, tier, planId });
     const accessToken = await getPayPalAccessToken();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const returnUrl = `${appUrl}/en/dashboard/subscription/success`;
     const cancelUrl = `${appUrl}/en/dashboard/subscription/cancel`;
 
-    console.log('Subscription URLs', { appUrl, returnUrl, cancelUrl });
-
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-        "PayPal-Request-Id": `sub_${Date.now()}_${userId.substring(0, 8)}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'PayPal-Request-Id': `sub_${Date.now()}_${userId.substring(0, 8)}`
       },
       body: JSON.stringify({
         plan_id: planId,
         custom_id: userId,
         application_context: {
-          brand_name: "ScanPro",
-          locale: "en-US",
-          shipping_preference: "NO_SHIPPING",
-          user_action: "SUBSCRIBE_NOW",
+          brand_name: 'ScanPro',
+          locale: 'en-US',
+          shipping_preference: 'NO_SHIPPING',
+          user_action: 'SUBSCRIBE_NOW',
           return_url: returnUrl,
           cancel_url: cancelUrl,
-        },
-      }),
+        }
+      })
     });
 
     if (!response.ok) {
@@ -96,32 +100,23 @@ export async function createSubscription(userId: string, tier: string): Promise<
       } catch (e) {
         errorData = { message: errorText };
       }
-      console.error('PayPal subscription creation failed:', {
-        status: response.status,
-        error: errorData
-      });
-      throw new Error(`PayPal API error: ${errorData.message || JSON.stringify(errorData)}`);
+      throw new Error(`PayPal API error: ${errorData.message || response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('PayPal subscription created successfully', {
-      subscriptionId: data.id,
-      userId,
-      tier
-    });
+    console.log('PayPal subscription created', { subscriptionId: data.id });
 
-    const approvalUrl = data.links.find((link: any) => link.rel === "approve")?.href;
+    const approvalUrl = data.links.find((link: any) => link.rel === 'approve')?.href;
     if (!approvalUrl) {
-      console.error('No approval URL in PayPal response', data);
-      throw new Error("No approval URL found in PayPal response");
+      throw new Error('No approval URL found in PayPal response');
     }
 
-    console.log('Updating subscription in database', { userId, tier, subscriptionId: data.id });
+    // Create pending subscription in database
     await prisma.subscription.upsert({
       where: { userId },
       update: {
         tier,
-        status: "pending",
+        status: 'pending',
         paypalSubscriptionId: data.id,
         paypalPlanId: planId,
         currentPeriodStart: new Date(),
@@ -129,78 +124,26 @@ export async function createSubscription(userId: string, tier: string): Promise<
       create: {
         userId,
         tier,
-        status: "pending",
+        status: 'pending',
         paypalSubscriptionId: data.id,
         paypalPlanId: planId,
         currentPeriodStart: new Date(),
-      },
+      }
     });
 
     return {
       subscriptionId: data.id,
-      approvalUrl,
+      approvalUrl
     };
   } catch (error) {
-    console.error('Failed to create PayPal subscription:', {
-      userId,
-      tier,
-      error: error instanceof Error ? error.message : error
-    });
-    throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : "Unknown error"}`);
+    console.error('Failed to create PayPal subscription:', error);
+    throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-export async function handlePayPalWebhook(event: any): Promise<{ success: boolean; message: string }> {
-  try {
-    const eventType = event.event_type;
-    const resource = event.resource;
-
-    console.log('Received PayPal webhook', {
-      eventType,
-      resourceId: resource.id
-    });
-
-    switch (eventType) {
-      case 'BILLING.SUBSCRIPTION.CREATED':
-        console.log('Processing subscription created event', { subscriptionId: resource.id });
-        await handleSubscriptionCreated(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.ACTIVATED':
-        console.log('Processing subscription activated event', { subscriptionId: resource.id });
-        await handleSubscriptionActivated(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.UPDATED':
-        console.log('Processing subscription updated event', { subscriptionId: resource.id });
-        await handleSubscriptionUpdated(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.EXPIRED':
-      case 'BILLING.SUBSCRIPTION.CANCELLED':
-        console.log('Processing subscription canceled event', { subscriptionId: resource.id });
-        await handleSubscriptionCanceled(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-        console.log('Processing payment failed event', { subscriptionId: resource.id });
-        await handlePaymentFailed(resource);
-        break;
-      case 'PAYMENT.SALE.COMPLETED':
-        console.log('Processing payment completed event', { subscriptionId: resource.billing_agreement_id });
-        await handlePaymentCompleted(resource);
-        break;
-      default:
-        console.warn('Received unhandled PayPal event type', { eventType });
-    }
-
-    console.log('Webhook processed successfully', { eventType });
-    return { success: true, message: `Successfully processed ${eventType}` };
-  } catch (error) {
-    console.error('Failed to process PayPal webhook:', {
-      eventType: event?.event_type,
-      error: error instanceof Error ? error.message : error
-    });
-    throw new Error(`Failed to process webhook: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
+/**
+ * Get details of a PayPal subscription
+ */
 export async function getSubscriptionDetails(subscriptionId: string): Promise<any> {
   try {
     console.log('Fetching subscription details', { subscriptionId });
@@ -216,29 +159,23 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<an
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Failed to fetch subscription details:', {
-        subscriptionId,
-        status: response.status,
-        error: errorData
-      });
       throw new Error(`Failed to get subscription details: ${errorData.message || response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Subscription details retrieved', { subscriptionId, status: data.status });
     return data;
   } catch (error) {
-    console.error('Error getting subscription details:', {
-      subscriptionId,
-      error: error instanceof Error ? error.message : error
-    });
+    console.error('Error getting subscription details:', error);
     throw new Error(`PayPal subscription details failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
+/**
+ * Cancel a PayPal subscription
+ */
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
   try {
-    console.log('Initiating subscription cancellation', { subscriptionId });
+    console.log('Cancelling subscription', { subscriptionId });
     const accessToken = await getPayPalAccessToken();
 
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
@@ -260,25 +197,17 @@ export async function cancelSubscription(subscriptionId: string): Promise<void> 
       } catch (e) {
         errorData = { message: errorText };
       }
-      console.error('Subscription cancellation failed:', {
-        subscriptionId,
-        status: response.status,
-        error: errorData
-      });
       throw new Error(`Failed to cancel subscription: ${errorData.message || response.statusText}`);
     }
-
-    console.log('Subscription cancelled successfully', { subscriptionId });
-    return;
   } catch (error) {
-    console.error('Error cancelling subscription:', {
-      subscriptionId,
-      error: error instanceof Error ? error.message : error
-    });
+    console.error('Error cancelling subscription:', error);
     throw new Error(`PayPal subscription cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
+/**
+ * Update user subscription in database
+ */
 export async function updateUserSubscription(
   userId: string,
   data: {
@@ -294,57 +223,104 @@ export async function updateUserSubscription(
   }
 ): Promise<any> {
   try {
-    console.log('Updating user subscription in database', { userId, data });
+    console.log('Updating user subscription', { userId, data });
 
     const existingSubscription = await prisma.subscription.findUnique({
       where: { userId }
     });
 
-    let result;
     if (existingSubscription) {
-      console.log('Updating existing subscription', { userId });
-      result = await prisma.subscription.update({
+      return await prisma.subscription.update({
         where: { userId },
         data
       });
     } else {
-      console.log('Creating new subscription', { userId });
-      result = await prisma.subscription.create({
+      return await prisma.subscription.create({
         data: {
           userId,
           ...data
         }
       });
     }
-
-    console.log('Subscription update completed', { userId, status: data.status });
-    return result;
   } catch (error) {
-    console.error('Failed to update user subscription:', {
-      userId,
-      error: error instanceof Error ? error.message : error
-    });
+    console.error('Failed to update user subscription:', error);
     throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
+/**
+ * Handle PayPal webhook events
+ */
+export async function handlePayPalWebhook(event: any): Promise<{ success: boolean; message: string }> {
+  try {
+    const eventType = event.event_type;
+    const resource = event.resource;
+
+    console.log('Received PayPal webhook', { eventType, resourceId: resource?.id });
+
+    // Save webhook event to database for debugging/audit
+    await prisma.paymentWebhookEvent.create({
+      data: {
+        eventId: event.id,
+        eventType,
+        resourceType: event.resource_type,
+        resourceId: resource?.id || 'unknown',
+        rawData: JSON.stringify(event),
+      }
+    });
+
+    switch (eventType) {
+      case 'BILLING.SUBSCRIPTION.CREATED':
+        await handleSubscriptionCreated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.ACTIVATED':
+        await handleSubscriptionActivated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.UPDATED':
+        await handleSubscriptionUpdated(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.EXPIRED':
+      case 'BILLING.SUBSCRIPTION.CANCELLED':
+        await handleSubscriptionCanceled(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+        await handlePaymentFailed(resource);
+        break;
+      case 'PAYMENT.SALE.COMPLETED':
+        await handlePaymentCompleted(resource);
+        break;
+      case 'BILLING.SUBSCRIPTION.RENEWED':
+        await handleSubscriptionRenewed(resource);
+        break;
+    }
+
+    return { success: true, message: `Successfully processed ${eventType}` };
+  } catch (error) {
+    console.error('Failed to process PayPal webhook:', error);
+    throw new Error(`Failed to process webhook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Handle subscription created event
+ */
 async function handleSubscriptionCreated(resource: any) {
   const subscriptionId = resource.id;
   const planId = resource.plan_id;
   const userId = resource.custom_id;
 
-  console.log('Handling subscription created', { subscriptionId, planId, userId });
+  console.log('Handling subscription created webhook', { subscriptionId, planId, userId });
 
   if (!userId) {
-    console.error('Missing user ID in subscription created event', { subscriptionId });
+    console.error('Missing user ID in subscription created event');
     return;
   }
 
-  const tier = Object.keys(PAYPAL_PLAN_IDS).find(
-    key => PAYPAL_PLAN_IDS[key as keyof typeof PAYPAL_PLAN_IDS] === planId
-  ) || 'Basic';
+  // Determine tier from plan_id
+  const tier = Object.entries(PAYPAL_PLAN_IDS).find(
+    ([_, value]) => value === planId
+  )?.[0] || 'basic';
 
-  console.log('Updating subscription for created event', { userId, tier });
   await updateUserSubscription(userId, {
     tier,
     status: 'pending',
@@ -354,10 +330,116 @@ async function handleSubscriptionCreated(resource: any) {
   });
 }
 
+/**
+ * Handle subscription activated event
+ */
 async function handleSubscriptionActivated(resource: any) {
   const subscriptionId = resource.id;
 
-  console.log('Handling subscription activation', { subscriptionId });
+  console.log('Handling subscription activation webhook', { subscriptionId });
+
+  // Find subscription in database
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { user: true }
+  });
+
+  if (!subscription) {
+    console.error('Subscription not found for webhook activation', { subscriptionId });
+    return;
+  }
+
+  // Get detailed subscription info from PayPal
+  const details = await getSubscriptionDetails(subscriptionId);
+  
+  // Calculate period dates
+  const currentPeriodStart = new Date();
+  const currentPeriodEnd = details.billing_info?.next_billing_time 
+    ? new Date(details.billing_info.next_billing_time)
+    : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  // Update subscription to active
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: 'active',
+      currentPeriodStart,
+      currentPeriodEnd,
+      usageResetDate: currentPeriodEnd
+    }
+  });
+
+  // Send subscription confirmation email
+  if (subscription.user?.email) {
+    try {
+      await sendSubscriptionInvoiceEmail({
+        userEmail: subscription.user.email,
+        userName: subscription.user.name,
+        subscriptionTier: subscription.tier,
+        amount: getTierPrice(subscription.tier),
+        currency: 'USD',
+        invoiceNumber: `INV-${Date.now()}`,
+        subscriptionPeriod: {
+          start: currentPeriodStart,
+          end: currentPeriodEnd
+        }
+      });
+    } catch (emailError) {
+      console.error('Failed to send invoice email:', emailError);
+    }
+  }
+
+  console.log('Subscription activated successfully', {
+    subscriptionId,
+    userId: subscription.userId,
+    tier: subscription.tier
+  });
+}
+
+/**
+ * Handle subscription updated event
+ */
+async function handleSubscriptionUpdated(resource: any) {
+  const subscriptionId = resource.id;
+  const status = resource.status.toLowerCase();
+
+  console.log('Handling subscription update webhook', { subscriptionId, status });
+
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId }
+  });
+
+  if (!subscription) {
+    console.error('Subscription not found for webhook update', { subscriptionId });
+    return;
+  }
+
+  // Map PayPal status to our status
+  let newStatus;
+  if (status === 'active') newStatus = 'active';
+  else if (status === 'suspended' || status === 'approval_pending') newStatus = 'suspended';
+  else if (status === 'cancelled') newStatus = 'canceled';
+  else newStatus = subscription.status; // Keep existing status if not recognized
+
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: { status: newStatus }
+  });
+
+  console.log('Subscription updated via webhook', { 
+    subscriptionId, 
+    oldStatus: subscription.status,
+    newStatus
+  });
+}
+
+/**
+ * Handle subscription canceled event
+ */
+async function handleSubscriptionCanceled(resource: any) {
+  const subscriptionId = resource.id;
+
+  console.log('Handling subscription cancellation webhook', { subscriptionId });
 
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId },
@@ -365,80 +447,43 @@ async function handleSubscriptionActivated(resource: any) {
   });
 
   if (!subscription) {
-    console.error('Subscription not found for activation', { subscriptionId });
+    console.error('Subscription not found for webhook cancellation', { subscriptionId });
     return;
   }
 
-  console.log('Activating subscription', { userId: subscription.userId });
-  await prisma.subscription.update({
-    where: { id: subscription.id },
-    data: {
-      status: 'active',
-      usageResetDate: new Date(),
-    }
-  });
-
-  console.log('Subscription activated', { subscriptionId });
-}
-
-async function handleSubscriptionUpdated(resource: any) {
-  const subscriptionId = resource.id;
-  const status = resource.status.toLowerCase();
-
-  console.log('Handling subscription update', { subscriptionId, status });
-
-  const subscription = await prisma.subscription.findFirst({
-    where: { paypalSubscriptionId: subscriptionId }
-  });
-
-  if (!subscription) {
-    console.error('Subscription not found for update', { subscriptionId });
-    return;
-  }
-
-  console.log('Updating subscription status', { subscriptionId, newStatus: status });
-  await prisma.subscription.update({
-    where: { id: subscription.id },
-    data: {
-      status: status === 'active' ? 'active' :
-        status === 'cancelled' ? 'canceled' :
-          status === 'suspended' ? 'suspended' : subscription.status,
-    }
-  });
-
-  console.log('Subscription updated', { subscriptionId, status });
-}
-
-async function handleSubscriptionCanceled(resource: any) {
-  const subscriptionId = resource.id;
-
-  console.log('Handling subscription cancellation', { subscriptionId });
-
-  const subscription = await prisma.subscription.findFirst({
-    where: { paypalSubscriptionId: subscriptionId }
-  });
-
-  if (!subscription) {
-    console.error('Subscription not found for cancellation', { subscriptionId });
-    return;
-  }
-
-  console.log('Marking subscription as canceled', { subscriptionId });
+  // Update subscription in database
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       status: 'canceled',
       canceledAt: new Date(),
+      tier: 'free' // Downgrade to free tier
     }
   });
 
-  console.log('Subscription canceled', { subscriptionId });
+  // Send notification email
+  if (subscription.user?.email) {
+    try {
+      await sendSubscriptionExpiredEmail(
+        subscription.user.email,
+        subscription.user.name || '',
+        subscription.tier
+      );
+    } catch (emailError) {
+      console.error('Failed to send cancellation email:', emailError);
+    }
+  }
+
+  console.log('Subscription canceled via webhook', { subscriptionId });
 }
 
+/**
+ * Handle payment failed event
+ */
 async function handlePaymentFailed(resource: any) {
   const subscriptionId = resource.id;
 
-  console.log('Handling payment failure', { subscriptionId });
+  console.log('Handling payment failure webhook', { subscriptionId });
 
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
@@ -449,29 +494,33 @@ async function handlePaymentFailed(resource: any) {
     return;
   }
 
-  console.log('Incrementing failed payment count', { subscriptionId });
+  // Increment failed payment count
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
-      failedPaymentCount: { increment: 1 },
+      failedPaymentCount: { increment: 1 }
     }
   });
-
-  console.log('Payment failure processed', { subscriptionId });
+  
+  console.log('Updated failed payment count', { subscriptionId });
 }
 
+/**
+ * Handle payment completed event
+ */
 async function handlePaymentCompleted(resource: any) {
   const subscriptionId = resource.billing_agreement_id;
-
-  console.log('Handling payment completion', { subscriptionId });
 
   if (!subscriptionId) {
     console.error('Missing subscription ID in payment completed event');
     return;
   }
 
+  console.log('Handling payment completion webhook', { subscriptionId });
+
   const subscription = await prisma.subscription.findFirst({
-    where: { paypalSubscriptionId: subscriptionId }
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { user: true }
   });
 
   if (!subscription) {
@@ -479,48 +528,132 @@ async function handlePaymentCompleted(resource: any) {
     return;
   }
 
-  console.log('Fetching subscription details for payment', { subscriptionId });
+  // Get subscription details from PayPal
   const details = await getSubscriptionDetails(subscriptionId);
 
-  console.log('Updating subscription with payment details', { subscriptionId });
+  // Calculate billing dates
+  const lastPaymentDate = new Date();
+  const currentPeriodStart = lastPaymentDate;
+  const currentPeriodEnd = details.billing_info?.next_billing_time
+    ? new Date(details.billing_info.next_billing_time)
+    : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const nextBillingDate = currentPeriodEnd;
+
+  // Update subscription
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       status: 'active',
-      lastPaymentDate: new Date(),
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
-      nextBillingDate: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
+      lastPaymentDate,
+      currentPeriodStart,
+      currentPeriodEnd,
+      nextBillingDate,
       failedPaymentCount: 0,
-      usageResetDate: new Date(),
+      usageResetDate: currentPeriodEnd
     }
   });
 
-  console.log('Resetting user usage stats', { userId: subscription.userId });
+  // Reset usage stats for the new billing period
   await resetUserUsageStats(subscription.userId);
 
-  console.log('Payment completion processed', { subscriptionId });
+  // Send invoice email
+  if (subscription.user?.email) {
+    try {
+      await sendSubscriptionInvoiceEmail({
+        userEmail: subscription.user.email,
+        userName: subscription.user.name,
+        subscriptionTier: subscription.tier,
+        amount: getTierPrice(subscription.tier),
+        currency: 'USD',
+        invoiceNumber: `INV-${Date.now()}`,
+        subscriptionPeriod: {
+          start: currentPeriodStart,
+          end: currentPeriodEnd
+        }
+      });
+    } catch (emailError) {
+      console.error('Failed to send invoice email:', emailError);
+    }
+  }
+
+  console.log('Payment completion processed successfully', { 
+    subscriptionId,
+    userId: subscription.userId,
+    nextBillingDate: nextBillingDate.toISOString()
+  });
 }
 
-function getDefaultBillingEndDate(): Date {
-  const date = new Date();
-  date.setMonth(date.getMonth() + 1);
-  console.log('Calculated default billing end date', { date });
-  return date;
+/**
+ * Handle subscription renewed event
+ */
+async function handleSubscriptionRenewed(resource: any) {
+  const subscriptionId = resource.id;
+
+  console.log('Handling subscription renewal webhook', { subscriptionId });
+
+  const subscription = await prisma.subscription.findFirst({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { user: true }
+  });
+
+  if (!subscription) {
+    console.error('Subscription not found for renewal', { subscriptionId });
+    return;
+  }
+
+  // Get subscription details from PayPal
+  const details = await getSubscriptionDetails(subscriptionId);
+
+  // Calculate new billing period
+  const currentPeriodStart = new Date();
+  const currentPeriodEnd = details.billing_info?.next_billing_time
+    ? new Date(details.billing_info.next_billing_time)
+    : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  // Update subscription period
+  await prisma.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      currentPeriodStart,
+      currentPeriodEnd,
+      status: 'active',
+      lastPaymentDate: new Date(),
+      usageResetDate: currentPeriodEnd
+    }
+  });
+
+  // Reset usage stats for the new billing period
+  await resetUserUsageStats(subscription.userId);
+
+  console.log('Subscription renewed successfully', { 
+    subscriptionId,
+    userId: subscription.userId,
+    newPeriodEnd: currentPeriodEnd.toISOString()
+  });
 }
 
+/**
+ * Reset a user's usage statistics
+ */
 async function resetUserUsageStats(userId: string): Promise<void> {
   console.log('Resetting usage stats', { userId });
 
+  // Delete existing usage stats
   await prisma.usageStats.deleteMany({
     where: { userId }
   });
 
-  const operations = ['convert', 'compress', 'merge', 'split', 'protect', 'unlock', 'watermark', 'extract', 'edit', 'sign', 'repair', 'rotate'];
+  // Create initial usage stats entries with zero counts
+  const operations = [
+    'convert', 'compress', 'merge', 'split', 'protect', 
+    'unlock', 'watermark', 'sign', 'rotate', 'repair', 
+    'edit', 'ocr', 'extract', 'chat'
+  ];
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  console.log('Creating initial usage stats', { userId, operations });
+  // Create initial usage entries
   await Promise.all(operations.map(operation =>
     prisma.usageStats.create({
       data: {
@@ -534,3 +667,226 @@ async function resetUserUsageStats(userId: string): Promise<void> {
 
   console.log('Usage stats reset completed', { userId });
 }
+
+/**
+ * Get price for a subscription tier
+ */
+function getTierPrice(tier: string): number {
+  const prices: Record<string, number> = {
+    'basic': 9.99,
+    'pro': 19.99,
+    'enterprise': 49.99,
+    'free': 0
+  };
+
+  return prices[tier] || 0;
+}
+
+/**
+ * Schedule jobs to run tasks at specific intervals
+ */
+export function scheduleSubscriptionJobs() {
+  if (typeof global !== 'undefined') {
+    // Check for expiring subscriptions daily
+    const checkExpiringInterval = setInterval(async () => {
+      await checkExpiringSubscriptions();
+    }, 24 * 60 * 60 * 1000); // Once a day
+
+    // Process expired subscriptions daily
+    const processExpiredInterval = setInterval(async () => {
+      await processExpiredSubscriptions();
+    }, 24 * 60 * 60 * 1000); // Once a day
+
+    // Reset usage stats hourly
+    const resetUsageInterval = setInterval(async () => {
+      await checkAndResetUsage();
+    }, 60 * 60 * 1000); // Once an hour
+
+    // Clean up in development environment
+    if (process.env.NODE_ENV === 'development') {
+      // @ts-ignore
+      if (global._subscriptionJobIntervals) {
+        // @ts-ignore
+        global._subscriptionJobIntervals.forEach((interval: NodeJS.Timeout) => clearInterval(interval));
+      }
+      
+      // @ts-ignore
+      global._subscriptionJobIntervals = [
+        checkExpiringInterval,
+        processExpiredInterval,
+        resetUsageInterval
+      ];
+    }
+  }
+}
+
+/**
+ * Check for subscriptions that are about to expire and send reminders
+ */
+export async function checkExpiringSubscriptions(): Promise<number> {
+  try {
+    console.log('Checking for expiring subscriptions...');
+    
+    // Find subscriptions that expire in 7 days
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    
+    const today = new Date();
+    
+    const expiringSubscriptions = await prisma.subscription.findMany({
+      where: {
+        status: 'active',
+        currentPeriodEnd: {
+          gte: today,
+          lte: sevenDaysFromNow
+        }
+      },
+      include: {
+        user: true
+      }
+    });
+    
+    console.log(`Found ${expiringSubscriptions.length} subscriptions expiring soon`);
+    
+    // Send reminder emails
+    let remindersSent = 0;
+    for (const subscription of expiringSubscriptions) {
+      if (subscription.user?.email) {
+        try {
+          await sendSubscriptionRenewalReminderEmail(
+            subscription.user.email,
+            subscription.user.name || '',
+            subscription.tier,
+            subscription.currentPeriodEnd!
+          );
+          remindersSent++;
+        } catch (error) {
+          console.error('Failed to send reminder email:', error);
+        }
+      }
+    }
+    
+    console.log(`Sent ${remindersSent} reminder emails`);
+    return remindersSent;
+  } catch (error) {
+    console.error('Error checking expiring subscriptions:', error);
+    return 0;
+  }
+}
+
+/**
+ * Process expired subscriptions
+ */
+export async function processExpiredSubscriptions(): Promise<number> {
+  try {
+    console.log('Processing expired subscriptions...');
+    
+    // Find expired subscriptions
+    const today = new Date();
+    
+    const expiredSubscriptions = await prisma.subscription.findMany({
+      where: {
+        status: 'active',
+        currentPeriodEnd: {
+          lt: today
+        }
+      },
+      include: {
+        user: true
+      }
+    });
+    
+    console.log(`Found ${expiredSubscriptions.length} expired subscriptions`);
+    
+    // Process each expired subscription
+    let processedCount = 0;
+    for (const subscription of expiredSubscriptions) {
+      // Update subscription status
+      await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          status: 'expired',
+          tier: 'free'
+        }
+      });
+      
+      // Send notification email
+      if (subscription.user?.email) {
+        try {
+          await sendSubscriptionExpiredEmail(
+            subscription.user.email,
+            subscription.user.name || '',
+            subscription.tier
+          );
+        } catch (error) {
+          console.error('Failed to send expiration email:', error);
+        }
+      }
+      
+      processedCount++;
+    }
+    
+    console.log(`Processed ${processedCount} expired subscriptions`);
+    return processedCount;
+  } catch (error) {
+    console.error('Error processing expired subscriptions:', error);
+    return 0;
+  }
+}
+
+/**
+ * Check for subscriptions that need usage reset
+ */
+export async function checkAndResetUsage(): Promise<number> {
+  try {
+    console.log('Checking for subscriptions needing usage reset...');
+    
+    const now = new Date();
+    
+    // Find subscriptions due for usage reset
+    const subscriptionsToReset = await prisma.subscription.findMany({
+      where: {
+        usageResetDate: {
+          lt: now
+        }
+      }
+    });
+    
+    console.log(`Found ${subscriptionsToReset.length} subscriptions needing usage reset`);
+    
+    // Reset usage for each subscription
+    let resetCount = 0;
+    for (const subscription of subscriptionsToReset) {
+      await resetUserUsageStats(subscription.userId);
+      
+      // Calculate next reset date (typically end of current period)
+      let nextResetDate;
+      if (subscription.currentPeriodEnd && subscription.currentPeriodEnd > now) {
+        nextResetDate = subscription.currentPeriodEnd;
+      } else {
+        // If period end is in the past or not set, set reset date to 30 days from now
+        nextResetDate = new Date();
+        nextResetDate.setDate(nextResetDate.getDate() + 30);
+      }
+      
+      // Update the reset date
+      await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          usageResetDate: nextResetDate
+        }
+      });
+      
+      resetCount++;
+    }
+    
+    console.log(`Reset usage for ${resetCount} subscriptions`);
+    return resetCount;
+  } catch (error) {
+    console.error('Error checking and resetting usage:', error);
+    return 0;
+  }
+}
+
+// Start the scheduled jobs
+scheduleSubscriptionJobs();

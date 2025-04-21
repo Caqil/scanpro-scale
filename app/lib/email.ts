@@ -71,7 +71,70 @@ export const sendEmail = async ({ to, subject, html, text }: EmailOptions): Prom
   }
 };
 
-export async function sendSubscriptionInvoiceEmail(invoiceData: InvoiceData) {
+export const sendVerificationEmail = async (email: string, token: string, name?: string) => {
+  const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/verify-email?token=${token}`;
+
+  const htmlContent = welcomeTemplate({
+    name: name || 'there',
+    verificationUrl
+  });
+
+  return await sendEmail({
+    to: email,
+    subject: 'Verify Your Email Address for ScanPro',
+    html: htmlContent
+  });
+};
+// Function to send a password reset email
+export const sendPasswordResetEmail = async (email: string, token: string, username?: string): Promise<{ success: boolean; messageUrl?: string; error?: string }> => {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const resetUrl = `${baseUrl}/en/reset-password/${token}`;
+
+  // Use the template from email-templates.ts
+  const html = passwordResetTemplate({
+    resetUrl,
+    username
+  });
+
+  return sendEmail({
+    to: email,
+    subject: 'Reset Your ScanPro Password',
+    html
+  });
+};
+
+// Function to send a password reset success email
+export const sendPasswordResetSuccessEmail = async (email: string, username?: string): Promise<{ success: boolean; messageUrl?: string; error?: string }> => {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const loginUrl = `${baseUrl}/en/login`;
+
+  // Use the template from email-templates.ts
+  const html = passwordResetSuccessTemplate({
+    loginUrl,
+    username
+  });
+
+  return sendEmail({
+    to: email,
+    subject: 'Your ScanPro Password Has Been Reset',
+    html
+  });
+};
+/**
+ * Send a subscription invoice email
+ */
+export async function sendSubscriptionInvoiceEmail(data: {
+  userEmail: string;
+  userName?: string | null;
+  subscriptionTier: string;
+  amount: number;
+  currency: string;
+  invoiceNumber: string;
+  subscriptionPeriod: {
+    start: Date;
+    end: Date;
+  };
+}): Promise<{ success: boolean; error?: string }> {
   try {
     const {
       userEmail,
@@ -81,9 +144,9 @@ export async function sendSubscriptionInvoiceEmail(invoiceData: InvoiceData) {
       currency,
       invoiceNumber,
       subscriptionPeriod
-    } = invoiceData;
+    } = data;
 
-    // Format dates
+    // Format dates in a more readable format
     const formatDate = (date: Date) =>
       date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -159,13 +222,7 @@ export async function sendSubscriptionInvoiceEmail(invoiceData: InvoiceData) {
     const result = await sendEmail({
       to: userEmail,
       subject: `ScanPro Invoice - ${invoiceNumber}`,
-      html,
-      text: `ScanPro Invoice\n\n` +
-        `Invoice Number: ${invoiceNumber}\n` +
-        `Subscription Tier: ${subscriptionTier}\n` +
-        `Period: ${formatDate(subscriptionPeriod.start)} - ${formatDate(subscriptionPeriod.end)}\n` +
-        `Total Amount: ${currency} ${amount.toFixed(2)}\n\n` +
-        `View details at: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+      html
     });
 
     return result;
@@ -177,55 +234,6 @@ export async function sendSubscriptionInvoiceEmail(invoiceData: InvoiceData) {
     };
   }
 }
-export const sendVerificationEmail = async (email: string, token: string, name?: string) => {
-  const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/verify-email?token=${token}`;
-
-  const htmlContent = welcomeTemplate({
-    name: name || 'there',
-    verificationUrl
-  });
-
-  return await sendEmail({
-    to: email,
-    subject: 'Verify Your Email Address for ScanPro',
-    html: htmlContent
-  });
-};
-// Function to send a password reset email
-export const sendPasswordResetEmail = async (email: string, token: string, username?: string): Promise<{ success: boolean; messageUrl?: string; error?: string }> => {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const resetUrl = `${baseUrl}/en/reset-password/${token}`;
-
-  // Use the template from email-templates.ts
-  const html = passwordResetTemplate({
-    resetUrl,
-    username
-  });
-
-  return sendEmail({
-    to: email,
-    subject: 'Reset Your ScanPro Password',
-    html
-  });
-};
-
-// Function to send a password reset success email
-export const sendPasswordResetSuccessEmail = async (email: string, username?: string): Promise<{ success: boolean; messageUrl?: string; error?: string }> => {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const loginUrl = `${baseUrl}/en/login`;
-
-  // Use the template from email-templates.ts
-  const html = passwordResetSuccessTemplate({
-    loginUrl,
-    username
-  });
-
-  return sendEmail({
-    to: email,
-    subject: 'Your ScanPro Password Has Been Reset',
-    html
-  });
-};
 
 /**
  * Send a subscription renewal reminder email
@@ -324,6 +332,7 @@ export async function sendSubscriptionExpiredEmail(
       </div>
     </div>
   `;
+  
   
   return await sendEmail({ to: email, subject, html });
 }

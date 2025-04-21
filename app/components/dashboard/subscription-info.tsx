@@ -217,7 +217,8 @@ export default function SubscriptionInfo() {
       }
 
       toast.success(
-        t("subscription.cancelSuccess") || "Subscription canceled successfully"
+        t("subscription.subscriptionCanceled") ||
+          "Subscription canceled successfully"
       );
 
       // Refresh the subscription data
@@ -347,7 +348,7 @@ export default function SubscriptionInfo() {
               onClick={handleCancel}
               disabled={isLoading}
             >
-              {t("subscription.cancelPlan") || "Cancel Plan"}
+              {t("subscription.cancelSubscription") || "Cancel Plan"}
             </Button>
           )}
           {(subscription.status === "canceled" ||
