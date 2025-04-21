@@ -135,7 +135,16 @@ export default {
         copyAndClose: "复制并关闭",
         keyCopied: "API密钥已复制到剪贴板",
         lastUsed: "最后使用",
-        never: "从未"
+        never: "从未",
+        operationsThisMonth: "本月操作",
+status: {
+  active: "活跃",
+  inactive: "不活跃"
+},
+usageBreakdown: "您本月的 API 使用情况",
+none: "无",
+percentageOfTotal: "占总使用量的"
+
     },
     subscription: {
         currentPlan: "当前计划",
@@ -153,7 +162,6 @@ export default {
         features: "功能",
         limitations: "限制",
         confirm: "确认",
-        cancel: "取消",
         subscriptionCanceled: "订阅已成功取消",
         upgradeSuccess: "订阅已成功升级",
         pricingPlans: "定价计划",
@@ -173,7 +181,27 @@ export default {
         noPrioritySupport: "无优先支持",
         dedicatedSupport: "专属支持",
         customIntegration: "自定义集成帮助",
-        whiteLabel: "白标选项"
+        whiteLabel: "白标选项",
+        success: {
+            title: "订阅已激活",
+            description: "您的订阅已成功激活",
+            message: "感谢您订阅ScanPro！您现在可以访问订阅等级的所有功能。",
+            cta: "前往仪表板",
+            seo: {
+              title: "订阅成功激活 - ScanPro",
+              description: "您的ScanPro订阅已激活。立即探索所有可用的高级功能。"
+            }
+          },
+          cancel: {
+            title: "订阅已取消",
+            description: "您的订阅流程已取消",
+            message: "订阅流程已取消。您的账户未发生任何更改。准备好后随时可以重试。",
+            cta: "返回计划",
+            seo: {
+              title: "订阅已取消 - ScanPro",
+              description: "您的订阅流程已取消。您可以在准备好后随时订阅。"
+            }
+          }
     },
     profile: {
         // Personal Information

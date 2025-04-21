@@ -135,7 +135,16 @@ export default {
         copyAndClose: "Copier et fermer",
         keyCopied: "Clé API copiée dans le presse-papiers",
         lastUsed: "Dernière utilisation",
-        never: "Jamais"
+        never: "Jamais",
+        operationsThisMonth: "opérations ce mois-ci",
+status: {
+  active: "Actif",
+  inactive: "Inactif"
+},
+usageBreakdown: "Répartition de votre utilisation de l'API pour le mois en cours",
+none: "Aucun",
+percentageOfTotal: "de l'utilisation totale"
+
     },
     subscription: {
         currentPlan: "Plan actuel",
@@ -153,7 +162,6 @@ export default {
         features: "Fonctionnalités",
         limitations: "Limitations",
         confirm: "Confirmer",
-        cancel: "Annuler",
         subscriptionCanceled: "Abonnement annulé avec succès",
         upgradeSuccess: "Abonnement mis à niveau avec succès",
         pricingPlans: "Plans tarifaires",
@@ -173,7 +181,27 @@ export default {
         noPrioritySupport: "Pas de support prioritaire",
         dedicatedSupport: "Support dédié",
         customIntegration: "Aide à l'intégration personnalisée",
-        whiteLabel: "Options de marque blanche"
+        whiteLabel: "Options de marque blanche",
+        success: {
+            title: "Abonnement Activé",
+            description: "Votre abonnement a été activé avec succès",
+            message: "Merci de vous être abonné à ScanPro ! Vous avez maintenant accès à toutes les fonctionnalités de votre niveau d'abonnement.",
+            cta: "Aller au Tableau de bord",
+            seo: {
+              title: "Abonnement Activé avec Succès - ScanPro",
+              description: "Votre abonnement ScanPro a été activé. Découvrez toutes les fonctionnalités premium maintenant disponibles pour vous."
+            }
+          },
+          cancel: {
+            title: "Abonnement Annulé",
+            description: "Votre processus d'abonnement a été annulé",
+            message: "Le processus d'abonnement a été annulé. Aucune modification n'a été apportée à votre compte. N'hésitez pas à réessayer lorsque vous serez prêt.",
+            cta: "Retour aux Forfaits",
+            seo: {
+              title: "Abonnement Annulé - ScanPro",
+              description: "Votre processus d'abonnement a été annulé. Vous pouvez toujours vous abonner plus tard lorsque vous serez prêt."
+            }
+          }
     },
     profile: {
         // Personal Information

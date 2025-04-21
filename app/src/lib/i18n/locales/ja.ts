@@ -135,7 +135,16 @@ export default {
     copyAndClose: "コピーして閉じる",
     keyCopied: "APIキーがクリップボードにコピーされました",
     lastUsed: "最終使用",
-    never: "未使用"
+    never: "未使用",
+    operationsThisMonth: "今月の操作",
+status: {
+  active: "アクティブ",
+  inactive: "非アクティブ"
+},
+usageBreakdown: "今月のAPI使用状況の内訳",
+none: "なし",
+percentageOfTotal: "総使用量のうち"
+
   },
   subscription: {
     currentPlan: "現在のプラン",
@@ -153,7 +162,6 @@ export default {
     features: "機能",
     limitations: "制限",
     confirm: "確認",
-    cancel: "キャンセル",
     subscriptionCanceled: "サブスクリプションが正常にキャンセルされました",
     upgradeSuccess: "サブスクリプションが正常にアップグレードされました",
     pricingPlans: "価格プラン",
@@ -173,7 +181,27 @@ export default {
     noPrioritySupport: "優先サポートなし",
     dedicatedSupport: "専用サポート",
     customIntegration: "カスタム統合の支援",
-    whiteLabel: "ホワイトラベルオプション"
+    whiteLabel: "ホワイトラベルオプション",
+    success: {
+      title: "サブスクリプションが有効化されました",
+      description: "サブスクリプションが正常に有効化されました",
+      message: "ScanProへのご購読ありがとうございます！ ご購入のサブスクリプションティアのすべての機能にアクセスできます。",
+      cta: "ダッシュボードへ移動",
+      seo: {
+        title: "サブスクリプションの有効化が成功しました - ScanPro",
+        description: "ScanProのサブスクリプションが有効化されました。 今すぐ利用可能なすべてのプレミアム機能をご覧ください。"
+      }
+    },
+    cancel: {
+      title: "サブスクリプションがキャンセルされました",
+      description: "サブスクリプション処理がキャンセルされました",
+      message: "サブスクリプション処理がキャンセルされました。 アカウントに変更は加えられていません。 準備が整いましたら、お気軽に再試行してください。",
+      cta: "プランに戻る",
+      seo: {
+        title: "サブスクリプションがキャンセルされました - ScanPro",
+        description: "サブスクリプション処理がキャンセルされました。 準備が整いましたら、いつでも購読できます。"
+      }
+    }
   },
   profile: {
     // Personal Information

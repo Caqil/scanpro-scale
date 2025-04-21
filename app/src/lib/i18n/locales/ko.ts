@@ -135,7 +135,16 @@ export default {
     copyAndClose: "복사 후 닫기",
     keyCopied: "API 키가 클립보드에 복사되었습니다",
     lastUsed: "마지막 사용",
-    never: "사용 안 함"
+    never: "사용 안 함",
+    operationsThisMonth: "이번 달 작업",
+status: {
+  active: "활성",
+  inactive: "비활성"
+},
+usageBreakdown: "이번 달의 API 사용 내역",
+none: "없음",
+percentageOfTotal: "총 사용량 중"
+
   },
   subscription: {
     currentPlan: "현재 플랜",
@@ -153,7 +162,6 @@ export default {
     features: "기능",
     limitations: "제한",
     confirm: "확인",
-    cancel: "취소",
     subscriptionCanceled: "구독이 성공적으로 취소되었습니다",
     upgradeSuccess: "구독이 성공적으로 업그레이드되었습니다",
     pricingPlans: "가격 플랜",
@@ -173,7 +181,27 @@ export default {
     noPrioritySupport: "우선 지원 없음",
     dedicatedSupport: "전담 지원",
     customIntegration: "사용자 지정 통합 지원",
-    whiteLabel: "화이트 라벨 옵션"
+    whiteLabel: "화이트 라벨 옵션",
+    success: {
+      title: "구독 활성화됨",
+      description: "구독이 성공적으로 활성화되었습니다",
+      message: "ScanPro를 구독해 주셔서 감사합니다! 이제 구독 등급의 모든 기능을 이용할 수 있습니다.",
+      cta: "대시보드로 이동",
+      seo: {
+        title: "구독 성공적으로 활성화됨 - ScanPro",
+        description: "ScanPro 구독이 활성화되었습니다. 지금 사용할 수 있는 모든 프리미엄 기능을 탐색해보세요."
+      }
+    },
+    cancel: {
+      title: "구독 취소됨",
+      description: "구독 프로세스가 취소되었습니다",
+      message: "구독 프로세스가 취소되었습니다. 귀하의 계정에는 변경 사항이 없습니다. 준비가 되면 언제든지 다시 시도해 주세요.",
+      cta: "플랜으로 돌아가기",
+      seo: {
+        title: "구독 취소됨 - ScanPro",
+        description: "구독 프로세스가 취소되었습니다. 준비가 되면 언제든지 나중에 구독할 수 있습니다."
+      }
+    }
   },
   profile: {
     // Personal Information

@@ -124,7 +124,16 @@ export default {
     copyAndClose: "Copia e Chiudi",
     keyCopied: "Chiave API copiata negli appunti",
     lastUsed: "Ultimo utilizzo",
-    never: "Mai"
+    never: "Mai",
+    operationsThisMonth: "operazioni di questo mese",
+status: {
+  active: "Attivo",
+  inactive: "Inattivo"
+},
+usageBreakdown: "Ripartizione dell'utilizzo dell'API per il mese corrente",
+none: "Nessuno",
+percentageOfTotal: "del totale utilizzo"
+
   },
   subscription: {
     currentPlan: "Piano Attuale",
@@ -142,7 +151,6 @@ export default {
     features: "Funzionalità",
     limitations: "Limitazioni",
     confirm: "Conferma",
-    cancel: "Annulla",
     subscriptionCanceled: "Abbonamento annullato con successo",
     upgradeSuccess: "Abbonamento aggiornato con successo",
     pricingPlans: "Piani di Prezzo",
@@ -162,7 +170,27 @@ export default {
     noPrioritySupport: "Nessun supporto prioritario",
     dedicatedSupport: "Supporto dedicato",
     customIntegration: "Aiuto per integrazione personalizzata",
-    whiteLabel: "Opzioni white-label"
+    whiteLabel: "Opzioni white-label",
+    success: {
+      title: "Abbonamento Attivato",
+      description: "Il tuo abbonamento è stato attivato con successo",
+      message: "Grazie per esserti abbonato a ScanPro! Ora hai accesso a tutte le funzionalità del tuo livello di abbonamento.",
+      cta: "Vai alla Dashboard",
+      seo: {
+        title: "Abbonamento Attivato con Successo - ScanPro",
+        description: "Il tuo abbonamento a ScanPro è stato attivato. Esplora tutte le funzionalità premium ora disponibili per te."
+      }
+    },
+    cancel: {
+      title: "Abbonamento Annullato",
+      description: "Il processo di abbonamento è stato annullato",
+      message: "Il processo di abbonamento è stato annullato. Non sono state apportate modifiche al tuo account. Sentiti libero di riprovare quando sei pronto.",
+      cta: "Torna ai Piani",
+      seo: {
+        title: "Abbonamento Annullato - ScanPro",
+        description: "Il processo di abbonamento è stato annullato. Puoi sempre abbonarti più tardi quando sei pronto."
+      }
+    }
   },
   profile: {
     // Personal Information

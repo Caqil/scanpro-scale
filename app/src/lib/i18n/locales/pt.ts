@@ -135,7 +135,16 @@ export default {
     copyAndClose: "Copiar e Fechar",
     keyCopied: "Chave API copiada para a área de transferência",
     lastUsed: "Último uso",
-    never: "Nunca"
+    never: "Nunca",
+    operationsThisMonth: "operações deste mês",
+status: {
+  active: "Ativo",
+  inactive: "Inativo"
+},
+usageBreakdown: "Detalhamento do uso da API no mês atual",
+none: "Nenhum",
+percentageOfTotal: "do uso total"
+
   },
   subscription: {
     currentPlan: "Plano Atual",
@@ -153,7 +162,6 @@ export default {
     features: "Recursos",
     limitations: "Limitações",
     confirm: "Confirmar",
-    cancel: "Cancelar",
     subscriptionCanceled: "Assinatura cancelada com sucesso",
     upgradeSuccess: "Assinatura atualizada com sucesso",
     pricingPlans: "Planos de Preços",
@@ -173,7 +181,27 @@ export default {
     noPrioritySupport: "Sem suporte prioritário",
     dedicatedSupport: "Suporte dedicado",
     customIntegration: "Ajuda com integração personalizada",
-    whiteLabel: "Opções de marca branca"
+    whiteLabel: "Opções de marca branca",
+    success: {
+      title: "Assinatura Ativada",
+      description: "Sua assinatura foi ativada com sucesso",
+      message: "Obrigado por assinar o ScanPro! Agora você tem acesso a todos os recursos do seu nível de assinatura.",
+      cta: "Ir para o Painel",
+      seo: {
+        title: "Assinatura Ativada com Sucesso - ScanPro",
+        description: "Sua assinatura ScanPro foi ativada. Explore todos os recursos premium agora disponíveis para você."
+      }
+    },
+    cancel: {
+      title: "Assinatura Cancelada",
+      description: "Seu processo de assinatura foi cancelado",
+      message: "O processo de assinatura foi cancelado. Nenhuma alteração foi feita em sua conta. Sinta-se à vontade para tentar novamente quando estiver pronto.",
+      cta: "Voltar aos Planos",
+      seo: {
+        title: "Assinatura Cancelada - ScanPro",
+        description: "Seu processo de assinatura foi cancelado. Você sempre pode assinar mais tarde quando estiver pronto."
+      }
+    }
   },
   profile: {
     // Personal Information

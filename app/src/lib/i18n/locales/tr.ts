@@ -135,7 +135,16 @@ export default {
         copyAndClose: "Kopyala ve Kapat",
         keyCopied: "API anahtarı panoya kopyalandı",
         lastUsed: "Son Kullanım",
-        never: "Hiçbir Zaman"
+        never: "Hiçbir Zaman",
+        operationsThisMonth: "bu ayki işlemler",
+status: {
+  active: "Aktif",
+  inactive: "Pasif"
+},
+usageBreakdown: "Bu ayki API kullanım dökümü",
+none: "Yok",
+percentageOfTotal: "toplam kullanımın"
+
     },
     subscription: {
         currentPlan: "Mevcut Plan",
@@ -153,7 +162,6 @@ export default {
         features: "Özellikler",
         limitations: "Sınırlamalar",
         confirm: "Onayla",
-        cancel: "İptal",
         subscriptionCanceled: "Abonelik başarıyla iptal edildi",
         upgradeSuccess: "Abonelik başarıyla yükseltildi",
         pricingPlans: "Fiyatlandırma Planları",
@@ -173,7 +181,27 @@ export default {
         noPrioritySupport: "Öncelikli Destek Yok",
         dedicatedSupport: "Özel Destek",
         customIntegration: "Özel Entegrasyon Yardımı",
-        whiteLabel: "Beyaz Etiket Seçenekleri"
+        whiteLabel: "Beyaz Etiket Seçenekleri",
+        success: {
+            title: "Abonelik Etkinleştirildi",
+            description: "Aboneliğiniz başarıyla etkinleştirildi",
+            message: "ScanPro'ya abone olduğunuz için teşekkür ederiz! Artık abonelik seviyenizin tüm özelliklerine erişebilirsiniz.",
+            cta: "Panele Git",
+            seo: {
+              title: "Abonelik Başarıyla Etkinleştirildi - ScanPro",
+              description: "ScanPro aboneliğiniz etkinleştirildi. Şimdi sizin için mevcut olan tüm premium özellikleri keşfedin."
+            }
+          },
+          cancel: {
+            title: "Abonelik İptal Edildi",
+            description: "Abonelik işleminiz iptal edildi",
+            message: "Abonelik işlemi iptal edildi. Hesabınızda herhangi bir değişiklik yapılmadı. Hazır olduğunuzda tekrar denemekten çekinmeyin.",
+            cta: "Planlara Geri Dön",
+            seo: {
+              title: "Abonelik İptal Edildi - ScanPro",
+              description: "Abonelik işleminiz iptal edildi. Hazır olduğunuzda dilediğiniz zaman abone olabilirsiniz."
+            }
+          }
     },
     profile: {
         // Personal Information

@@ -136,7 +136,16 @@ export default {
         copyAndClose: "نسخ وإغلاق",
         keyCopied: "تم نسخ مفتاح API إلى الحافظة",
         lastUsed: "آخر استخدام",
-        never: "أبدًا"
+        never: "أبدًا",
+        operationsThisMonth: "العمليات هذا الشهر",
+status: {
+  active: "نشط",
+  inactive: "غير نشط"
+},
+usageBreakdown: "تفصيل استخدام واجهة برمجة التطبيقات لهذا الشهر",
+none: "لا شيء",
+percentageOfTotal: "من إجمالي الاستخدام"
+
     },
     subscription: {
         currentPlan: "الخطة الحالية",
@@ -154,7 +163,6 @@ export default {
         features: "الميزات",
         limitations: "القيود",
         confirm: "تأكيد",
-        cancel: "إلغاء",
         subscriptionCanceled: "تم إلغاء الاشتراك بنجاح",
         upgradeSuccess: "تمت ترقية الاشتراك بنجاح",
         pricingPlans: "خطط التسعير",
@@ -174,7 +182,27 @@ export default {
         noPrioritySupport: "لا يوجد دعم ذو أولوية",
         dedicatedSupport: "دعم مخصص",
         customIntegration: "مساعدة تكامل مخصصة",
-        whiteLabel: "خيارات العلامة البيضاء"
+        whiteLabel: "خيارات العلامة البيضاء",
+        success: {
+            title: "تم تفعيل الاشتراك",
+            description: "تم تفعيل اشتراكك بنجاح",
+            message: "شكرًا لك على الاشتراك في ScanPro! لديك الآن حق الوصول إلى جميع ميزات مستوى اشتراكك.",
+            cta: "انتقل إلى لوحة التحكم",
+            seo: {
+              title: "تم تفعيل الاشتراك بنجاح - ScanPro",
+              description: "تم تفعيل اشتراكك في ScanPro. استكشف جميع الميزات المميزة المتاحة لك الآن."
+            }
+          },
+          cancel: {
+            title: "تم إلغاء الاشتراك",
+            description: "تم إلغاء عملية الاشتراك الخاصة بك",
+            message: "تم إلغاء عملية الاشتراك. لم يتم إجراء أي تغييرات على حسابك. لا تتردد في المحاولة مرة أخرى عندما تكون مستعدًا.",
+            cta: "العودة إلى الخطط",
+            seo: {
+              title: "تم إلغاء الاشتراك - ScanPro",
+              description: "تم إلغاء عملية الاشتراك الخاصة بك. يمكنك دائمًا الاشتراك لاحقًا عندما تكون مستعدًا."
+            }
+          },
     },
     profile: {
         // Personal Information

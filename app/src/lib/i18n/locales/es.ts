@@ -137,7 +137,16 @@ export default {
     copyAndClose: "Copiar y cerrar",
     keyCopied: "Clave API copiada al portapapeles",
     lastUsed: "Último uso",
-    never: "Nunca"
+    never: "Nunca",
+    operationsThisMonth: "operaciones este mes",
+status: {
+  active: "Activo",
+  inactive: "Inactivo"
+},
+usageBreakdown: "Desglose del uso de la API para el mes actual",
+none: "Ninguno",
+percentageOfTotal: "del uso total"
+
   },
   subscription: {
     currentPlan: "Plan actual",
@@ -155,7 +164,6 @@ export default {
     features: "Características",
     limitations: "Limitaciones",
     confirm: "Confirmar",
-    cancel: "Cancelar",
     subscriptionCanceled: "Suscripción cancelada con éxito",
     upgradeSuccess: "Suscripción actualizada con éxito",
     pricingPlans: "Planes de precios",
@@ -175,7 +183,27 @@ export default {
     noPrioritySupport: "Sin soporte prioritario",
     dedicatedSupport: "Soporte dedicado",
     customIntegration: "Ayuda con integración personalizada",
-    whiteLabel: "Opciones de marca blanca"
+    whiteLabel: "Opciones de marca blanca",
+    success: {
+      title: "Suscripción Activada",
+      description: "Tu suscripción ha sido activada exitosamente",
+      message: "¡Gracias por suscribirte a ScanPro! Ahora tienes acceso a todas las funciones de tu nivel de suscripción.",
+      cta: "Ir al Panel",
+      seo: {
+        title: "Suscripción Activada Exitosamente - ScanPro",
+        description: "Tu suscripción a ScanPro ha sido activada. Explora todas las funciones premium ahora disponibles para ti."
+      }
+    },
+    cancel: {
+      title: "Suscripción Cancelada",
+      description: "Tu proceso de suscripción fue cancelado",
+      message: "El proceso de suscripción fue cancelado. No se han realizado cambios en tu cuenta. Siéntete libre de intentarlo nuevamente cuando estés listo.",
+      cta: "Volver a Planes",
+      seo: {
+        title: "Suscripción Cancelada - ScanPro",
+        description: "Tu proceso de suscripción fue cancelado. Siempre puedes suscribirte más tarde cuando estés listo."
+      }
+    }
   },
   profile: {
     // Personal Information

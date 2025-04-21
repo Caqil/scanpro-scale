@@ -136,7 +136,16 @@ export default {
         copyAndClose: "कॉपी करें और बंद करें",
         keyCopied: "API कुंजी क्लिपबोर्ड पर कॉपी की गई",
         lastUsed: "अंतिम उपयोग",
-        never: "कभी नहीं"
+        never: "कभी नहीं",
+        operationsThisMonth: "इस महीने के संचालन",
+status: {
+  active: "सक्रिय",
+  inactive: "निष्क्रिय"
+},
+usageBreakdown: "वर्तमान माह के लिए आपकी API उपयोग का विवरण",
+none: "कुछ नहीं",
+percentageOfTotal: "कुल उपयोग का"
+
     },
     subscription: {
         currentPlan: "वर्तमान योजना",
@@ -154,7 +163,6 @@ export default {
         features: "विशेषताएँ",
         limitations: "सीमाएँ",
         confirm: "पुष्टि करें",
-        cancel: "रद्द करें",
         subscriptionCanceled: "सदस्यता सफलतापूर्वक रद्द की गई",
         upgradeSuccess: "सदस्यता सफलतापूर्वक अपग्रेड की गई",
         pricingPlans: "मूल्य निर्धारण योजनाएँ",
@@ -174,7 +182,27 @@ export default {
         noPrioritySupport: "कोई प्राथमिकता समर्थन नहीं",
         dedicatedSupport: "समर्पित समर्थन",
         customIntegration: "कस्टम एकीकरण सहायता",
-        whiteLabel: "व्हाइट-लेबल विकल्प"
+        whiteLabel: "व्हाइट-लेबल विकल्प",
+        success: {
+            title: "सदस्यता सक्रिय",
+            description: "आपकी सदस्यता सफलतापूर्वक सक्रिय हो गई है",
+            message: "ScanPro की सदस्यता लेने के लिए धन्यवाद! अब आपके पास अपने सदस्यता स्तर की सभी सुविधाओं तक पहुंच है।",
+            cta: "डैशबोर्ड पर जाएं",
+            seo: {
+              title: "सदस्यता सफलतापूर्वक सक्रिय - ScanPro",
+              description: "आपका ScanPro सदस्यता सक्रिय हो गया है। अब आपके लिए उपलब्ध सभी प्रीमियम सुविधाओं का अन्वेषण करें।"
+            }
+          },
+          cancel: {
+            title: "सदस्यता रद्द",
+            description: "आपकी सदस्यता प्रक्रिया रद्द कर दी गई थी",
+            message: "सदस्यता प्रक्रिया रद्द कर दी गई थी। आपके खाते में कोई बदलाव नहीं किया गया है। जब आप तैयार हों, तो बेझिझक फिर से प्रयास करें।",
+            cta: "योजनाओं पर वापस जाएं",
+            seo: {
+              title: "सदस्यता रद्द - ScanPro",
+              description: "आपकी सदस्यता प्रक्रिया रद्द कर दी गई थी। आप हमेशा बाद में तैयार होने पर सदस्यता ले सकते हैं।"
+            }
+          }
     },
     profile: {
         // Personal Information

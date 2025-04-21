@@ -102,6 +102,7 @@ export default {
     termsAndPrivacy: "By signing in, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>.",
     footer: "© 2025 ScanPro. All rights reserved."
   },
+  
   // Dashboard
   dashboard: {
     title: "Dashboard",
@@ -137,7 +138,15 @@ export default {
     copyAndClose: "Copy and Close",
     keyCopied: "API key copied to clipboard",
     lastUsed: "Last used",
-    never: "Never"
+    never: "Never",
+    operationsThisMonth: "operations this month",
+    status: {
+      active: "Active",
+      inactive: "Inactive"
+    },
+    usageBreakdown: "Your API usage breakdown for the current month",
+    none: "None",
+    percentageOfTotal: "of total usage"
   },
 
   // Subscription

@@ -18,60 +18,58 @@ import { Progress } from "@/components/ui/progress";
 import { useLanguageStore } from "@/src/store/store";
 import { USAGE_LIMITS } from "@/lib/validate-key";
 
-// Subscription pricing and features
-const SUBSCRIPTION_TIERS = {
-  free: {
-    price: "0",
-    currency: "USD",
-    features: [
-      "500 operations per month",
-      "Basic PDF tools",
-      "Standard processing speed",
-      "1 API key",
-    ],
-  },
-  basic: {
-    price: "9.99",
-    currency: "USD",
-    features: [
-      "5,000 operations per month",
-      "All PDF tools",
-      "Faster processing speed",
-      "3 API keys",
-      "Priority email support",
-    ],
-  },
-  pro: {
-    price: "19.99",
-    currency: "USD",
-    features: [
-      "50,000 operations per month",
-      "All PDF tools",
-      "Maximum processing speed",
-      "10 API keys",
-      "Priority support",
-      "Advanced PDF editing",
-    ],
-  },
-  enterprise: {
-    price: "49.99",
-    currency: "USD",
-    features: [
-      "100,000 operations per month",
-      "All PDF tools",
-      "Maximum processing speed",
-      "Unlimited API keys",
-      "Dedicated support",
-      "Custom PDF solutions",
-    ],
-  },
-};
-
 // Subscription management page
 export default function SubscriptionInfo() {
   const { t } = useLanguageStore();
   const router = useRouter();
-
+  // Subscription pricing and features
+  const SUBSCRIPTION_TIERS = {
+    free: {
+      price: "0",
+      currency: "USD",
+      features: [
+        t("pricing.features.amount.free"), // "500 operations per month"
+        t("pricing.features.fileSize.free"), // "Basic PDF tools" (assuming this maps to file size or basic tools)
+        t("pricing.features.support.free"), // "Standard processing speed" (assuming basic support implies standard speed)
+        t("pricing.features.apiKeys.free"), // "1 API key"
+      ],
+    },
+    basic: {
+      price: "9.99",
+      currency: "USD",
+      features: [
+        t("pricing.features.amount.basic"), // "5,000 operations per month"
+        t("pricing.features.fileSize.basic"), // "All PDF tools"
+        t("pricing.features.bulkProcessing"), // "Faster processing speed" (assuming bulk processing implies faster speed)
+        t("pricing.features.apiKeys.basic"), // "3 API keys"
+        t("pricing.features.support.free"), // "Priority email support" (mapped to free support for consistency)
+      ],
+    },
+    pro: {
+      price: "29.99",
+      currency: "USD",
+      features: [
+        t("pricing.features.amount.pro"), // "50,000 operations per month"
+        t("pricing.features.fileSize.pro"), // "All PDF tools"
+        t("pricing.features.bulkProcessing"), // "Maximum processing speed" (assuming bulk processing implies max speed)
+        t("pricing.features.apiKeys.pro"), // "10 API keys"
+        t("pricing.features.support.priority"), // "Priority support"
+        t("pricing.features.ocr"), // "Advanced PDF editing" (assuming OCR relates to advanced editing)
+      ],
+    },
+    enterprise: {
+      price: "99.99",
+      currency: "USD",
+      features: [
+        t("pricing.features.amount.enterprise"), // "100,000 operations per month"
+        t("pricing.features.fileSize.enterprise"), // "All PDF tools"
+        t("pricing.features.bulkProcessing"), // "Maximum processing speed"
+        t("pricing.features.apiKeys.enterprise"), // "Unlimited API keys"
+        t("pricing.features.support.dedicated"), // "Dedicated support"
+        t("pricing.features.ocr"), // "Custom PDF solutions" (assuming OCR relates to custom solutions)
+      ],
+    },
+  };
   // Subscription state
   const [subscription, setSubscription] = useState<{
     tier: string;
@@ -263,7 +261,7 @@ export default function SubscriptionInfo() {
   return (
     <div className="container py-10">
       <h1 className="text-3xl font-bold mb-8">
-        {t("subscription.title") || "Subscription Management"}
+        {t("dashboard.subscription") || "Subscription Management"}
       </h1>
 
       {/* Current Subscription Card */}
@@ -273,7 +271,7 @@ export default function SubscriptionInfo() {
             {t("subscription.currentPlan") || "Current Plan"}
           </CardTitle>
           <CardDescription>
-            {t(`subscription.currentTier.${subscription.tier}`) ||
+            {t(`subscription.${subscription.tier}`) ||
               `You are currently on the ${subscription.tier} tier.`}
           </CardDescription>
         </CardHeader>
@@ -282,9 +280,7 @@ export default function SubscriptionInfo() {
             {/* Subscription status */}
             <div>
               <div className="flex justify-between mb-2">
-                <span className="font-medium">
-                  {t("subscription.status") || "Status"}
-                </span>
+                <span className="font-medium">{"Status"}</span>
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
                     subscription.status === "active"
@@ -295,12 +291,12 @@ export default function SubscriptionInfo() {
                   }`}
                 >
                   {subscription.status === "active"
-                    ? t("subscription.statusActive") || "Active"
+                    ? t("dashboard.active") || "Active"
                     : subscription.status === "canceled"
-                    ? t("subscription.statusCanceled") || "Canceled"
+                    ? t("dashboard.inactive") || "Canceled"
                     : subscription.status === "expired"
-                    ? t("subscription.statusExpired") || "Expired"
-                    : t("subscription.statusPending") || "Pending"}
+                    ? t("dashboard.inactive") || "Expired"
+                    : t("dashboard.inactive") || "Pending"}
                 </span>
               </div>
 
@@ -329,16 +325,17 @@ export default function SubscriptionInfo() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="font-medium">
-                  {t("subscription.monthlyUsage") || "Monthly Usage"}
+                  {t("dashboard.totalUsage") || "Monthly Usage"}
                 </span>
                 <span>
                   {subscription.operations} / {subscription.limit}{" "}
-                  {t("subscription.operations") || "operations"}
+                  {t("dashboard.operations") || "operations"}
                 </span>
               </div>
               <Progress value={subscription.usagePercent} className="h-2" />
               <p className="text-xs text-right mt-1 text-muted-foreground">
-                {subscription.usagePercent}% {t("subscription.used") || "used"}
+                {subscription.usagePercent}%{" "}
+                {t("dashboard.percentageOfTotal") || "used"}
               </p>
             </div>
           </div>
@@ -365,10 +362,9 @@ export default function SubscriptionInfo() {
             )}
         </CardFooter>
       </Card>
-
       {/* Subscription Plans */}
       <h2 className="text-2xl font-bold mb-6">
-        {t("subscription.availablePlans") || "Available Plans"}
+        {t("subscription.changePlan") || "Available Plans"}
       </h2>
 
       <div className="grid md:grid-cols-4 gap-6">
@@ -386,7 +382,7 @@ export default function SubscriptionInfo() {
                   <span>{capitalizedTier}</span>
                   {subscription.tier === tier && (
                     <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-                      {t("subscription.current") || "Current"}
+                      {t("subscription.currentPlan") || "Current"}
                     </span>
                   )}
                 </CardTitle>
@@ -455,7 +451,7 @@ export default function SubscriptionInfo() {
                     ) : tier === "free" ? (
                       t("subscription.currentPlan") || "Current Plan"
                     ) : (
-                      t(`subscription.upgradeTo${capitalizedTier}`) ||
+                      t(`subscription.upgrade`) ||
                       `Upgrade to ${capitalizedTier}`
                     )}
                   </Button>

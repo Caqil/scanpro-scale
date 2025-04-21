@@ -135,7 +135,17 @@ export default {
     copyAndClose: "Salin dan Tutup",
     keyCopied: "Kunci API disalin ke papan klip",
     lastUsed: "Terakhir digunakan",
-    never: "Tidak pernah"
+    never: "Tidak pernah",
+    operationsThisMonth: "operasi bulan ini",
+status: {
+  active: "Aktif",
+  inactive: "Tidak aktif"
+},
+usageBreakdown: "Rincian penggunaan API Anda untuk bulan ini",
+none: "Tidak ada",
+percentageOfTotal: "dari total penggunaan"
+
+    
   },
   subscription: {
     currentPlan: "Paket Saat Ini",
@@ -153,7 +163,6 @@ export default {
     features: "Fitur",
     limitations: "Batasan",
     confirm: "Konfirmasi",
-    cancel: "Batal",
     subscriptionCanceled: "Langganan berhasil dibatalkan",
     upgradeSuccess: "Langganan berhasil ditingkatkan",
     pricingPlans: "Paket Harga",
@@ -173,7 +182,27 @@ export default {
     noPrioritySupport: "Tanpa dukungan prioritas",
     dedicatedSupport: "Dukungan khusus",
     customIntegration: "Bantuan integrasi kustom",
-    whiteLabel: "Opsi label putih"
+    whiteLabel: "Opsi label putih",
+    success: {
+      title: "Langganan Diaktifkan",
+      description: "Langganan Anda telah berhasil diaktifkan",
+      message: "Terima kasih telah berlangganan ScanPro! Anda sekarang memiliki akses ke semua fitur dari tingkat langganan Anda.",
+      cta: "Pergi ke Dasbor",
+      seo: {
+        title: "Langganan Berhasil Diaktifkan - ScanPro",
+        description: "Langganan ScanPro Anda telah diaktifkan. Jelajahi semua fitur premium yang sekarang tersedia untuk Anda."
+      }
+    },
+    cancel: {
+      title: "Langganan Dibatalkan",
+      description: "Proses langganan Anda dibatalkan",
+      message: "Proses langganan dibatalkan. Tidak ada perubahan yang dilakukan pada akun Anda. Silakan coba lagi ketika Anda siap.",
+      cta: "Kembali ke Paket",
+      seo: {
+        title: "Langganan Dibatalkan - ScanPro",
+        description: "Proses langganan Anda dibatalkan. Anda selalu dapat berlangganan nanti ketika Anda siap."
+      }
+    }
   },
   profile: {
     // Personal Information

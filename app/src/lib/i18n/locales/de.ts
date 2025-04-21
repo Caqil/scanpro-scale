@@ -136,7 +136,16 @@ export default {
     copyAndClose: "Kopieren und schließen",
     keyCopied: "API-Schlüssel in die Zwischenablage kopiert",
     lastUsed: "Zuletzt verwendet",
-    never: "Nie"
+    never: "Nie",
+    operationsThisMonth: "Vorgänge in diesem Monat",
+status: {
+  active: "Aktiv",
+  inactive: "Inaktiv"
+},
+usageBreakdown: "Ihre API-Nutzungsaufstellung für den aktuellen Monat",
+none: "Keine",
+percentageOfTotal: "der Gesamtnutzung"
+
   },
   subscription: {
     currentPlan: "Aktueller Plan",
@@ -154,7 +163,6 @@ export default {
     features: "Funktionen",
     limitations: "Einschränkungen",
     confirm: "Bestätigen",
-    cancel: "Abbrechen",
     subscriptionCanceled: "Abonnement erfolgreich gekündigt",
     upgradeSuccess: "Abonnement erfolgreich aktualisiert",
     pricingPlans: "Preispläne",
@@ -174,7 +182,27 @@ export default {
     noPrioritySupport: "Kein priorisierter Support",
     dedicatedSupport: "Dedizierter Support",
     customIntegration: "Hilfe bei benutzerdefinierter Integration",
-    whiteLabel: "White-Label-Optionen"
+    whiteLabel: "White-Label-Optionen",
+    success: {
+      title: "Abonnement aktiviert",
+      description: "Ihr Abonnement wurde erfolgreich aktiviert",
+      message: "Vielen Dank für Ihr Abonnement bei ScanPro! Sie haben jetzt Zugriff auf alle Funktionen Ihres Abonnement-Tarifs.",
+      cta: "Zum Dashboard gehen",
+      seo: {
+        title: "Abonnement erfolgreich aktiviert - ScanPro",
+        description: "Ihr ScanPro-Abonnement wurde aktiviert. Entdecken Sie alle Premium-Funktionen, die Ihnen jetzt zur Verfügung stehen."
+      }
+    },
+    cancel: {
+      title: "Abonnement storniert",
+      description: "Ihr Abonnementvorgang wurde abgebrochen",
+      message: "Der Abonnementvorgang wurde abgebrochen. Es wurden keine Änderungen an Ihrem Konto vorgenommen. Sie können es gerne wieder versuchen, wenn Sie bereit sind.",
+      cta: "Zurück zu den Plänen",
+      seo: {
+        title: "Abonnement storniert - ScanPro",
+        description: "Ihr Abonnementvorgang wurde abgebrochen. Sie können jederzeit später ein Abonnement abschließen, wenn Sie bereit sind."
+      }
+    }
   },
   profile: {
     // Personal Information

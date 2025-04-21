@@ -9,9 +9,7 @@ export const PAYPAL_PLAN_IDS: Record<string, string> = {
 };
 
 // Set up PayPal API base URLs based on environment
-export const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com';
+export const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
 
 export async function getPayPalAccessToken(): Promise<string> {
   try {
