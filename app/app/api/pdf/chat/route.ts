@@ -10,14 +10,13 @@ import { PDFExtractionService } from '@/lib/pdf-extraction-service';
 import { ChatSessionsService } from '@/lib/chat-sessions-service';
 import { rateLimit } from '@/lib/rate-limit';
 import { sanitizeInput } from '@/lib/sanitize-input';
-import { log } from 'console';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "invalid"
 });
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
-const CHAT_SESSIONS_DIR = join(process.cwd(), 'chatsessions');
+const CHAT_SESSIONS_DIR = join(process.cwd(), 'public', 'chatsessions');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_MESSAGE_LENGTH = 5000; // Characters
 

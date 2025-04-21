@@ -9,7 +9,7 @@ export const PAYPAL_PLAN_IDS: Record<string, string> = {
 };
 
 // Set up PayPal API base URLs based on environment
-export const PAYPAL_API_BASE = 'https://api-m.paypal.com';
+export const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
 
 export async function getPayPalAccessToken(): Promise<string> {
   try {
@@ -17,9 +17,11 @@ export async function getPayPalAccessToken(): Promise<string> {
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
+      console.error('PayPal credentials missing');
       throw new Error('PayPal credentials are not configured');
     }
 
+    console.log('Requesting PayPal access token');
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
     const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
@@ -33,32 +35,37 @@ export async function getPayPalAccessToken(): Promise<string> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('PayPal token error:', errorData);
+      console.error('PayPal token request failed:', {
+        status: response.status,
+        error: errorData
+      });
       throw new Error(`Failed to get PayPal access token: ${response.status} - ${errorData.error_description || response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('PayPal access token obtained successfully');
     return data.access_token;
   } catch (error) {
     console.error('Error getting PayPal access token:', error);
     throw new Error(`PayPal authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+
 export async function createSubscription(userId: string, tier: string): Promise<{ subscriptionId: string; approvalUrl: string }> {
   try {
     const planId = PAYPAL_PLAN_IDS[tier];
     if (!planId) {
+      console.error('Invalid tier specified:', tier);
       throw new Error(`No PayPal plan ID configured for tier: ${tier}`);
     }
 
+    console.log('Initiating subscription creation', { userId, tier, planId });
     const accessToken = await getPayPalAccessToken();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    // Add locale prefix (e.g., 'en'); adjust based on your default locale
     const returnUrl = `${appUrl}/en/dashboard/subscription/success`;
     const cancelUrl = `${appUrl}/en/dashboard/subscription/cancel`;
 
-    console.log(`Creating PayPal subscription for user ${userId} with plan ${planId}`);
-    console.log(`App URL: ${appUrl}, Return URL: ${returnUrl}, Cancel URL: ${cancelUrl}`);
+    console.log('Subscription URLs', { appUrl, returnUrl, cancelUrl });
 
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
       method: "POST",
@@ -89,18 +96,27 @@ export async function createSubscription(userId: string, tier: string): Promise<
       } catch (e) {
         errorData = { message: errorText };
       }
-      console.error("PayPal API error response:", errorData);
+      console.error('PayPal subscription creation failed:', {
+        status: response.status,
+        error: errorData
+      });
       throw new Error(`PayPal API error: ${errorData.message || JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
-    console.log("PayPal subscription created:", data.id);
+    console.log('PayPal subscription created successfully', {
+      subscriptionId: data.id,
+      userId,
+      tier
+    });
 
     const approvalUrl = data.links.find((link: any) => link.rel === "approve")?.href;
     if (!approvalUrl) {
+      console.error('No approval URL in PayPal response', data);
       throw new Error("No approval URL found in PayPal response");
     }
 
+    console.log('Updating subscription in database', { userId, tier, subscriptionId: data.id });
     await prisma.subscription.upsert({
       where: { userId },
       update: {
@@ -125,60 +141,71 @@ export async function createSubscription(userId: string, tier: string): Promise<
       approvalUrl,
     };
   } catch (error) {
-    console.error("Error creating PayPal subscription:", error);
+    console.error('Failed to create PayPal subscription:', {
+      userId,
+      tier,
+      error: error instanceof Error ? error.message : error
+    });
     throw new Error(`Error creating subscription: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
-
-// Handle webhook events
 export async function handlePayPalWebhook(event: any): Promise<{ success: boolean; message: string }> {
   try {
-    // Extract event type and resource data
     const eventType = event.event_type;
     const resource = event.resource;
 
-    console.log(`Processing PayPal webhook event: ${eventType}`);
+    console.log('Received PayPal webhook', {
+      eventType,
+      resourceId: resource.id
+    });
 
-    // Handle different PayPal events
     switch (eventType) {
       case 'BILLING.SUBSCRIPTION.CREATED':
+        console.log('Processing subscription created event', { subscriptionId: resource.id });
         await handleSubscriptionCreated(resource);
         break;
       case 'BILLING.SUBSCRIPTION.ACTIVATED':
+        console.log('Processing subscription activated event', { subscriptionId: resource.id });
         await handleSubscriptionActivated(resource);
         break;
       case 'BILLING.SUBSCRIPTION.UPDATED':
+        console.log('Processing subscription updated event', { subscriptionId: resource.id });
         await handleSubscriptionUpdated(resource);
         break;
       case 'BILLING.SUBSCRIPTION.EXPIRED':
       case 'BILLING.SUBSCRIPTION.CANCELLED':
+        console.log('Processing subscription canceled event', { subscriptionId: resource.id });
         await handleSubscriptionCanceled(resource);
         break;
       case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+        console.log('Processing payment failed event', { subscriptionId: resource.id });
         await handlePaymentFailed(resource);
         break;
       case 'PAYMENT.SALE.COMPLETED':
+        console.log('Processing payment completed event', { subscriptionId: resource.billing_agreement_id });
         await handlePaymentCompleted(resource);
         break;
       default:
-        console.log(`Unhandled PayPal event type: ${eventType}`);
+        console.warn('Received unhandled PayPal event type', { eventType });
     }
 
+    console.log('Webhook processed successfully', { eventType });
     return { success: true, message: `Successfully processed ${eventType}` };
   } catch (error) {
-    console.error('Error processing PayPal webhook:', error);
+    console.error('Failed to process PayPal webhook:', {
+      eventType: event?.event_type,
+      error: error instanceof Error ? error.message : error
+    });
     throw new Error(`Failed to process webhook: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-// Get subscription details from PayPal
 export async function getSubscriptionDetails(subscriptionId: string): Promise<any> {
   try {
-    // Get PayPal access token
+    console.log('Fetching subscription details', { subscriptionId });
     const accessToken = await getPayPalAccessToken();
 
-    // Get subscription details from PayPal
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
       method: 'GET',
       headers: {
@@ -189,25 +216,31 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<an
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Failed to fetch subscription details:', {
+        subscriptionId,
+        status: response.status,
+        error: errorData
+      });
       throw new Error(`Failed to get subscription details: ${errorData.message || response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Subscription details retrieved', { subscriptionId, status: data.status });
+    return data;
   } catch (error) {
-    console.error('Error getting subscription details:', error);
+    console.error('Error getting subscription details:', {
+      subscriptionId,
+      error: error instanceof Error ? error.message : error
+    });
     throw new Error(`PayPal subscription details failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-// Cancel a PayPal subscription
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
   try {
-    console.log(`Cancelling PayPal subscription: ${subscriptionId}`);
-
-    // Get PayPal access token
+    console.log('Initiating subscription cancellation', { subscriptionId });
     const accessToken = await getPayPalAccessToken();
 
-    // Cancel subscription in PayPal
     const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
       method: 'POST',
       headers: {
@@ -227,20 +260,25 @@ export async function cancelSubscription(subscriptionId: string): Promise<void> 
       } catch (e) {
         errorData = { message: errorText };
       }
-
-      console.error('PayPal cancellation error:', errorData);
+      console.error('Subscription cancellation failed:', {
+        subscriptionId,
+        status: response.status,
+        error: errorData
+      });
       throw new Error(`Failed to cancel subscription: ${errorData.message || response.statusText}`);
     }
 
-    console.log(`PayPal subscription ${subscriptionId} cancelled successfully`);
+    console.log('Subscription cancelled successfully', { subscriptionId });
     return;
   } catch (error) {
-    console.error('Error cancelling subscription:', error);
+    console.error('Error cancelling subscription:', {
+      subscriptionId,
+      error: error instanceof Error ? error.message : error
+    });
     throw new Error(`PayPal subscription cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-// Update user subscription in our database
 export async function updateUserSubscription(
   userId: string,
   data: {
@@ -256,30 +294,36 @@ export async function updateUserSubscription(
   }
 ): Promise<any> {
   try {
-    console.log(`Updating subscription for user ${userId}:`, data);
+    console.log('Updating user subscription in database', { userId, data });
 
-    // Check if user already has a subscription
     const existingSubscription = await prisma.subscription.findUnique({
       where: { userId }
     });
 
+    let result;
     if (existingSubscription) {
-      // Update existing subscription
-      return await prisma.subscription.update({
+      console.log('Updating existing subscription', { userId });
+      result = await prisma.subscription.update({
         where: { userId },
         data
       });
     } else {
-      // Create new subscription
-      return await prisma.subscription.create({
+      console.log('Creating new subscription', { userId });
+      result = await prisma.subscription.create({
         data: {
           userId,
           ...data
         }
       });
     }
+
+    console.log('Subscription update completed', { userId, status: data.status });
+    return result;
   } catch (error) {
-    console.error('Error updating user subscription in database:', error);
+    console.error('Failed to update user subscription:', {
+      userId,
+      error: error instanceof Error ? error.message : error
+    });
     throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -287,46 +331,45 @@ export async function updateUserSubscription(
 async function handleSubscriptionCreated(resource: any) {
   const subscriptionId = resource.id;
   const planId = resource.plan_id;
-
-  // Find tier from plan ID
-  const tier = Object.keys(PAYPAL_PLAN_IDS).find(
-    key => PAYPAL_PLAN_IDS[key as keyof typeof PAYPAL_PLAN_IDS] === planId
-  ) || 'basic';
-
-  // Find user from custom_id set during subscription creation
   const userId = resource.custom_id;
 
+  console.log('Handling subscription created', { subscriptionId, planId, userId });
+
   if (!userId) {
-    console.error('No user ID found in subscription created event');
+    console.error('Missing user ID in subscription created event', { subscriptionId });
     return;
   }
 
-  // Update user subscription in database
+  const tier = Object.keys(PAYPAL_PLAN_IDS).find(
+    key => PAYPAL_PLAN_IDS[key as keyof typeof PAYPAL_PLAN_IDS] === planId
+  ) || 'Basic';
+
+  console.log('Updating subscription for created event', { userId, tier });
   await updateUserSubscription(userId, {
     tier,
-    status: 'pending', // Will be updated to 'active' on first payment
+    status: 'pending',
     paypalSubscriptionId: subscriptionId,
     paypalPlanId: planId,
     currentPeriodStart: new Date(),
-    // Next billing date will be set when payment is completed
   });
 }
 
 async function handleSubscriptionActivated(resource: any) {
   const subscriptionId = resource.id;
 
-  // Find subscription in our database
+  console.log('Handling subscription activation', { subscriptionId });
+
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId },
     include: { user: true }
   });
 
   if (!subscription) {
-    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    console.error('Subscription not found for activation', { subscriptionId });
     return;
   }
 
-  // Update status to active
+  console.log('Activating subscription', { userId: subscription.userId });
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
@@ -334,104 +377,112 @@ async function handleSubscriptionActivated(resource: any) {
       usageResetDate: new Date(),
     }
   });
+
+  console.log('Subscription activated', { subscriptionId });
 }
 
 async function handleSubscriptionUpdated(resource: any) {
   const subscriptionId = resource.id;
   const status = resource.status.toLowerCase();
 
-  // Find subscription in our database
+  console.log('Handling subscription update', { subscriptionId, status });
+
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
 
   if (!subscription) {
-    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    console.error('Subscription not found for update', { subscriptionId });
     return;
   }
 
-  // Update subscription data
+  console.log('Updating subscription status', { subscriptionId, newStatus: status });
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       status: status === 'active' ? 'active' :
         status === 'cancelled' ? 'canceled' :
           status === 'suspended' ? 'suspended' : subscription.status,
-      // Update other fields as needed
     }
   });
+
+  console.log('Subscription updated', { subscriptionId, status });
 }
 
 async function handleSubscriptionCanceled(resource: any) {
   const subscriptionId = resource.id;
 
-  // Find subscription in our database
+  console.log('Handling subscription cancellation', { subscriptionId });
+
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
 
   if (!subscription) {
-    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    console.error('Subscription not found for cancellation', { subscriptionId });
     return;
   }
 
-  // Update subscription as canceled
+  console.log('Marking subscription as canceled', { subscriptionId });
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       status: 'canceled',
       canceledAt: new Date(),
-      // Let the user continue using the subscription until the end of their billing period
     }
   });
+
+  console.log('Subscription canceled', { subscriptionId });
 }
 
 async function handlePaymentFailed(resource: any) {
   const subscriptionId = resource.id;
 
-  // Find subscription in our database
+  console.log('Handling payment failure', { subscriptionId });
+
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
 
   if (!subscription) {
-    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    console.error('Subscription not found for payment failure', { subscriptionId });
     return;
   }
 
-  // Increment failed payment count
+  console.log('Incrementing failed payment count', { subscriptionId });
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
       failedPaymentCount: { increment: 1 },
-      // After too many failed payments, PayPal will trigger a cancellation event
     }
   });
+
+  console.log('Payment failure processed', { subscriptionId });
 }
 
 async function handlePaymentCompleted(resource: any) {
-  // Extract billing agreement ID (subscription ID)
   const subscriptionId = resource.billing_agreement_id;
 
+  console.log('Handling payment completion', { subscriptionId });
+
   if (!subscriptionId) {
-    console.error('No subscription ID found in payment completed event');
+    console.error('Missing subscription ID in payment completed event');
     return;
   }
 
-  // Find subscription in our database
   const subscription = await prisma.subscription.findFirst({
     where: { paypalSubscriptionId: subscriptionId }
   });
 
   if (!subscription) {
-    console.error(`No subscription found for PayPal ID: ${subscriptionId}`);
+    console.error('Subscription not found for payment completion', { subscriptionId });
     return;
   }
 
-  // Get subscription details to calculate next billing date
+  console.log('Fetching subscription details for payment', { subscriptionId });
   const details = await getSubscriptionDetails(subscriptionId);
 
-  // Update subscription with new billing period
+  console.log('Updating subscription with payment details', { subscriptionId });
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {
@@ -440,36 +491,36 @@ async function handlePaymentCompleted(resource: any) {
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
       nextBillingDate: new Date(details.billing_info.next_billing_time || getDefaultBillingEndDate()),
-      failedPaymentCount: 0, // Reset failed payment count
-      usageResetDate: new Date(), // Reset usage stats
+      failedPaymentCount: 0,
+      usageResetDate: new Date(),
     }
   });
 
-  // Reset usage stats for the user
+  console.log('Resetting user usage stats', { userId: subscription.userId });
   await resetUserUsageStats(subscription.userId);
+
+  console.log('Payment completion processed', { subscriptionId });
 }
 
-// Helper function to get default billing end date (1 month from now)
 function getDefaultBillingEndDate(): Date {
   const date = new Date();
   date.setMonth(date.getMonth() + 1);
+  console.log('Calculated default billing end date', { date });
   return date;
 }
 
-// Reset user usage stats
 async function resetUserUsageStats(userId: string): Promise<void> {
-  // Delete all usage stats for this user
+  console.log('Resetting usage stats', { userId });
+
   await prisma.usageStats.deleteMany({
     where: { userId }
   });
 
-  // Create initial zero counts for all operations
   const operations = ['convert', 'compress', 'merge', 'split', 'protect', 'unlock', 'watermark', 'extract', 'edit', 'sign', 'repair', 'rotate'];
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Create zero counts for all operations
+  console.log('Creating initial usage stats', { userId, operations });
   await Promise.all(operations.map(operation =>
     prisma.usageStats.create({
       data: {
@@ -480,4 +531,6 @@ async function resetUserUsageStats(userId: string): Promise<void> {
       }
     })
   ));
+
+  console.log('Usage stats reset completed', { userId });
 }
