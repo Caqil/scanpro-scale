@@ -1,110 +1,108 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { getSubscriptionDetails, updateUserSubscription, PAYPAL_PLAN_IDS } from "@/lib/paypal";
+// app/api/subscription/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { createSubscription, updateUserSubscription } from '@/lib/paypal';
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
-    const { subscriptionId } = await request.json();
-    if (!subscriptionId) {
-      return NextResponse.json({ error: "Subscription ID is required" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { subscription: true },
-    });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const hasPendingSubscription = user.subscription?.status === "pending";
-
     try {
-      const paypalSubscriptionDetails = await getSubscriptionDetails(subscriptionId);
-      if (!paypalSubscriptionDetails || !paypalSubscriptionDetails.id) {
-        if (hasPendingSubscription) {
-          await updateUserSubscription(session.user.id, {
-            tier: "free",
-            status: "active",
-            paypalSubscriptionId: null,
-            paypalPlanId: null,
-          });
+        // Get the current session
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: 'Authentication required' },
+                { status: 401 }
+            );
         }
-        return NextResponse.json({
-          success: false,
-          message: "Subscription not found or was canceled",
-          subscription: { tier: "free", status: "active" },
-        });
-      }
 
-      const status = paypalSubscriptionDetails.status.toLowerCase();
-      if (status === "active" || status === "approved") {
-        const planId = paypalSubscriptionDetails.plan_id;
-        let tier = "basic";
-        Object.entries(PAYPAL_PLAN_IDS).forEach(([key, value]) => {
-          if (value === planId) tier = key;
-        });
+        // Get the request body
+        const { tier } = await request.json();
 
-        const currentPeriodStart = paypalSubscriptionDetails.billing_info.last_payment?.time
-          ? new Date(paypalSubscriptionDetails.billing_info.last_payment.time)
-          : new Date();
-        const currentPeriodEnd = paypalSubscriptionDetails.billing_info.next_billing_time
-          ? new Date(paypalSubscriptionDetails.billing_info.next_billing_time)
-          : new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-        const subscription = await updateUserSubscription(session.user.id, {
-          paypalSubscriptionId: subscriptionId,
-          paypalPlanId: planId,
-          tier,
-          status: "active",
-          currentPeriodStart,
-          currentPeriodEnd,
-        });
-
-        return NextResponse.json({ success: true, subscription });
-      } else {
-        if (hasPendingSubscription) {
-          await updateUserSubscription(session.user.id, {
-            tier: "free",
-            status: "active",
-            paypalSubscriptionId: null,
-            paypalPlanId: null,
-          });
+        if (!tier || !['basic', 'pro', 'enterprise', 'free'].includes(tier)) {
+            return NextResponse.json(
+                { error: 'Invalid subscription tier' },
+                { status: 400 }
+            );
         }
-        return NextResponse.json({
-          success: false,
-          message: "Subscription not active",
-          subscription: { tier: "free", status: "active" },
+
+        // Get the user with current subscription
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: { subscription: true },
         });
-      }
-    } catch (paypalError) {
-      console.error("PayPal verification error:", paypalError);
-      if (hasPendingSubscription) {
-        await updateUserSubscription(session.user.id, {
-          tier: "free",
-          status: "active",
-          paypalSubscriptionId: null,
-          paypalPlanId: null,
-        });
-      }
-      return NextResponse.json({
-        success: false,
-        error: "Failed to verify with PayPal",
-        subscription: { tier: "free", status: "active" },
-      });
+
+        if (!user) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        // If downgrading to free, handle separately
+        if (tier === 'free') {
+            if (user.subscription?.paypalSubscriptionId) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: 'Please cancel your existing subscription from the dashboard first'
+                    },
+                    { status: 400 }
+                );
+            }
+
+            // Update to free tier directly
+            await updateUserSubscription(user.id, {
+                tier: 'free',
+                status: 'active',
+                paypalSubscriptionId: null,
+                paypalPlanId: null,
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: 'Subscription downgraded to free tier',
+            });
+        }
+
+        try {
+            // Create PayPal subscription
+            const { subscriptionId, approvalUrl } = await createSubscription(user.id, tier);
+
+            // Mark subscription as pending until user completes PayPal flow
+            await updateUserSubscription(user.id, {
+                paypalSubscriptionId: subscriptionId,
+                tier: user.subscription?.tier || 'free', // Keep current tier
+                status: 'pending', // Mark as pending until confirmed
+            });
+
+            // Return the PayPal approval URL
+            return NextResponse.json({
+                success: true,
+                checkoutUrl: approvalUrl,
+                message: 'Please complete the payment process on PayPal',
+            });
+        } catch (createError) {
+            console.error('Error creating PayPal subscription:', createError);
+            
+            return NextResponse.json(
+                {
+                    error: 'Failed to create subscription with payment provider',
+                    message: createError instanceof Error ? createError.message : 'Unknown error'
+                },
+                { status: 500 }
+            );
+        }
+    } catch (error) {
+        console.error('Error processing subscription request:', error);
+
+        return NextResponse.json(
+            {
+                error: 'Failed to process subscription request',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            },
+            { status: 500 }
+        );
     }
-  } catch (error) {
-    console.error("Error verifying subscription:", error);
-    return NextResponse.json(
-      { error: "Failed to verify subscription", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
-  }
 }
