@@ -9,19 +9,13 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    # Add Cloudflare specific annotations
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      real_ip_header CF-Connecting-IP;
-    # For WebSockets support
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   tls:
     - hosts:
-        - scanpro.cc
-      secretName: scanpro-tls
+        - mega-pdf.com
+      secretName: mega-pdf-tls
   rules:
-    - host: scanpro.cc
+    - host: mega-pdf.com
       http:
         paths:
           - path: /

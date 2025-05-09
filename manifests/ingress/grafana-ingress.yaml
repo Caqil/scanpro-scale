@@ -16,10 +16,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - grafana.scanpro.cc
+        - grafana.mega-pdf.com
       secretName: grafana-tls
   rules:
-    - host: grafana.scanpro.cc
+    - host: grafana.mega-pdf.com
       http:
         paths:
           - path: /

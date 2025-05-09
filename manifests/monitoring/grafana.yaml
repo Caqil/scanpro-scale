@@ -35,7 +35,7 @@ spec:
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
             - name: GF_SERVER_ROOT_URL
-              value: "https://grafana.scanpro.cc"
+              value: "https://grafana.mega-pdf.com"
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
@@ -143,10 +143,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - grafana.scanpro.cc
+        - grafana.mega-pdf.com
       secretName: grafana-tls
   rules:
-    - host: grafana.scanpro.cc
+    - host: grafana.mega-pdf.com
       http:
         paths:
           - path: /
