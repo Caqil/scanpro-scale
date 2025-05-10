@@ -4,12 +4,11 @@ import { API_OPERATIONS } from './lib/validate-key';
 
 // Define API routes that require API key validation
 const API_ROUTES = [
-  '/api/convert',
-  '/api/compress',
-  '/api/merge',
-  '/api/split',
+  '/api/pdf/convert',
+  '/api/pdf/compress',
+  '/api/pdf/merge',
+  '/api/pdf/split',
   '/api/pdf/watermark',
-  '/api/rotate',
   '/api/pdf/protect',
   '/api/pdf/unlock',
   '/api/ocr',
@@ -51,10 +50,6 @@ const EXCLUDED_ROUTES = [
     `/${lang}/reset-password`,
   ]),
 
-  // Public file download/status routes
-  '/api/convert/status',
-  '/api/convert/download',
-  '/api/compress/download',
   '/api/file',  // Important! This enables file downloads from the web UI
   '/api/health', 
 ];
@@ -92,12 +87,12 @@ function isWebUIRequest(request: NextRequest): boolean {
 
 // Map API route patterns to operation types
 const ROUTE_TO_OPERATION_MAP: Record<string, string> = {
-  '/api/convert': 'convert',
-  '/api/compress': 'compress',
-  '/api/merge': 'merge',
-  '/api/split': 'split',
+  '/api/pdf/convert': 'convert',
+  '/api/pdf/compress': 'compress',
+  '/api/pdf/merge': 'merge',
+  '/api/pdf/split': 'split',
   '/api/pdf/watermark': 'watermark',
-  '/api/rotate': 'rotate',
+  '/api/pdf/rotate': 'rotate',
   '/api/pdf/protect': 'protect',
   '/api/pdf/unlock': 'unlock',
   '/api/ocr': 'ocr',

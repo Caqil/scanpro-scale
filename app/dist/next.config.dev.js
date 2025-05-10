@@ -5,33 +5,7 @@ var nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   basePath: '',
-  assetPrefix: 'https://mega-pdf.com/',
-  headers: function headers() {
-    return regeneratorRuntime.async(function headers$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            return _context.abrupt("return", [{
-              source: "/conversions/:path*",
-              headers: [{
-                key: "Cache-Control",
-                value: "no-store, no-cache"
-              }]
-            }, {
-              source: "/compressions/:path*",
-              headers: [{
-                key: "Cache-Control",
-                value: "no-store, no-cache"
-              }]
-            }]);
-
-          case 1:
-          case "end":
-            return _context.stop();
-        }
-      }
-    });
-  },
+  //assetPrefix: 'https://mega-pdf.com/',
   eslint: {
     ignoreDuringBuilds: true
   },

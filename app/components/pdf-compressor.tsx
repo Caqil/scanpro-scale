@@ -211,7 +211,7 @@ export function MultiPdfCompressor() {
       formData.append("quality", quality);
   
       // Call the backend API
-      const response = await fetch("/api/compress", {
+      const response = await fetch("/api/pdf/compress", {
         method: "POST",
         body: formData,
       });

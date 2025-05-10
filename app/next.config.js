@@ -3,19 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   basePath: '',
-  assetPrefix: 'https://mega-pdf.com/',
-  async headers() {
-    return [
-      {
-        source: "/conversions/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store, no-cache" }],
-      },
-      {
-        source: "/compressions/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store, no-cache" }],
-      },
-    ];
-  },
+  //assetPrefix: 'https://mega-pdf.com/',
   eslint: {
     ignoreDuringBuilds: true,
   },

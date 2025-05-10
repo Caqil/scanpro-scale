@@ -256,7 +256,7 @@ export function FileUploader({
       }, 300);
 
       // Make API request
-      const response = await fetch("/api/convert", {
+      const response = await fetch("/api/pdf/convert", {
         method: "POST",
         body: formData,
       });
