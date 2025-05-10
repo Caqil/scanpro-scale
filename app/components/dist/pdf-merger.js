@@ -323,7 +323,7 @@ function PdfMerger() {
                 React.createElement(alert_1.AlertDescription, null, error))),
             (isUploading || isProcessing) && (React.createElement(upload_progress_1.UploadProgress, { progress: progress, isUploading: isUploading, isProcessing: isProcessing, processingProgress: progress, error: uploadError, label: isUploading
                     ? t("watermarkPdf.uploading")
-                    : t("splitPdf.splitting"), uploadStats: uploadStats })),
+                    : t("mergePdf.ui.processingMerge"), uploadStats: uploadStats })),
             mergedFileUrl && (React.createElement("div", { className: "p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900/30" },
                 React.createElement("div", { className: "flex items-start gap-3" },
                     React.createElement("div", { className: "mt-1" },
