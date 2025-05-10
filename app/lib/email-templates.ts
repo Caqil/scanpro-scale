@@ -11,7 +11,7 @@ const baseTemplate = (content: string, footerContent?: string) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScanPro</title>
+  <title>MegaPDF</title>
   <style>
     /* Base styles */
     body {
@@ -208,7 +208,7 @@ const baseTemplate = (content: string, footerContent?: string) => `
     <div class="header">
       <div class="header-pattern"></div>
       <div class="logo-wrapper">
-        <div class="logo">ScanPro</div>
+        <div class="logo">MegaPDF</div>
         <p class="logo-tagline">Professional PDF Tools</p>
       </div>
     </div>
@@ -217,7 +217,7 @@ const baseTemplate = (content: string, footerContent?: string) => `
     </div>
     <div class="footer">
       ${footerContent || `
-        <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()} MegaPDF. All rights reserved.</p>
         <p>Our address: 123 PDF Lane, Document City, 45678</p>
         <div class="social-links">
           <a href="#" class="social-link">Twitter</a>
@@ -236,12 +236,12 @@ const baseTemplate = (content: string, footerContent?: string) => `
 // Password reset email template - enhanced professional version
 export const passwordResetTemplate = (data: { resetUrl: string; username?: string }) => {
   const userGreeting = data.username
-      ? `Hello, ${data.username}!`
-      : 'Hello!';
+    ? `Hello, ${data.username}!`
+    : 'Hello!';
 
   const content = `
     <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">${userGreeting}</h2>
-    <p>We received a request to reset your password for your ScanPro account. To create a new password, click the secure button below:</p>
+    <p>We received a request to reset your password for your MegaPDF account. To create a new password, click the secure button below:</p>
     
     <div class="text-center" style="padding: 16px 0;">
       <a href="${data.resetUrl}" class="button-primary">Reset My Password</a>
@@ -264,8 +264,8 @@ export const passwordResetTemplate = (data: { resetUrl: string; username?: strin
   `;
 
   const footerContent = `
-    <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
-    <p>To ensure delivery to your inbox, please add <span style="font-weight: 500;">noreply@scanpro.cc</span> to your contacts.</p>
+    <p>© ${new Date().getFullYear()} MegaPDF. All rights reserved.</p>
+    <p>To ensure delivery to your inbox, please add <span style="font-weight: 500;">noreply@mega-pdf.com</span> to your contacts.</p>
     <p><a href="#" class="link">Privacy Policy</a> • <a href="#" class="link">Terms of Service</a> • <a href="#" class="link">Help Center</a></p>
   `;
 
@@ -275,14 +275,14 @@ export const passwordResetTemplate = (data: { resetUrl: string; username?: strin
 // Password reset success confirmation email template - enhanced professional version
 export const passwordResetSuccessTemplate = (data: { loginUrl: string; username?: string }) => {
   const userGreeting = data.username
-      ? `Hello, ${data.username}!`
-      : 'Hello!';
+    ? `Hello, ${data.username}!`
+    : 'Hello!';
 
   const content = `
     <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Password Reset Successful</h2>
     <p>${userGreeting}</p>
     <div class="success-box">
-      <p style="margin: 0;"><strong>Success:</strong> Your ScanPro account password has been successfully reset.</p>
+      <p style="margin: 0;"><strong>Success:</strong> Your MegaPDF account password has been successfully reset.</p>
     </div>
     
     <p>You can now sign in to your account using your new password.</p>
@@ -305,15 +305,17 @@ export const passwordResetSuccessTemplate = (data: { loginUrl: string; username?
       <li class="feature-item">Never share your password with anyone</li>
     </ul>
     
-    <p class="text-small text-center" style="margin-top: 32px;">Thank you for using ScanPro for your PDF processing needs!</p>
+    <p class="text-small text-center" style="margin-top: 32px;">Thank you for using MegaPDF for your PDF processing needs!</p>
   `;
 
   return baseTemplate(content);
 };
 
 // Welcome email template - enhanced professional version
-export const welcomeTemplate = (data: { name: string;
-verificationUrl: string; }) => {
+export const welcomeTemplate = (data: {
+  name: string;
+  verificationUrl: string;
+}) => {
   const verifySection = data.verificationUrl ? `
     <p>To get started, please verify your email address by clicking the secure button below:</p>
     <div class="text-center">
@@ -328,14 +330,14 @@ verificationUrl: string; }) => {
   ` : '';
 
   const content = `
-    <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Welcome to ScanPro!</h2>
+    <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Welcome to MegaPDF!</h2>
     <p>Hello, ${data.name}!</p>
-    <p>Thank you for signing up for ScanPro. We're excited to have you join our community of users who trust us with their PDF management needs.</p>
+    <p>Thank you for signing up for MegaPDF. We're excited to have you join our community of users who trust us with their PDF management needs.</p>
     
     ${verifySection}
     
     <div class="success-box">
-      <p style="margin: 0;"><strong>Your account has been created successfully.</strong> You now have access to all the powerful PDF tools that ScanPro offers.</p>
+      <p style="margin: 0;"><strong>Your account has been created successfully.</strong> You now have access to all the powerful PDF tools that MegaPDF offers.</p>
     </div>
     
     <h3 style="font-size: 18px; font-weight: 600; margin-top: 30px;">Powerful PDF Tools at Your Fingertips</h3>
@@ -374,13 +376,13 @@ verificationUrl: string; }) => {
 // Account verification email template - enhanced professional version
 export const verificationTemplate = (data: { verifyUrl: string; username?: string }) => {
   const userGreeting = data.username
-      ? `Hello, ${data.username}!`
-      : 'Hello!';
+    ? `Hello, ${data.username}!`
+    : 'Hello!';
 
   const content = `
     <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Verify Your Email Address</h2>
     <p>${userGreeting}</p>
-    <p>Thank you for creating an account with ScanPro. To complete your registration and activate all features, please verify your email address by clicking the button below:</p>
+    <p>Thank you for creating an account with MegaPDF. To complete your registration and activate all features, please verify your email address by clicking the button below:</p>
     
     <div class="text-center" style="padding: 16px 0;">
       <a href="${data.verifyUrl}" class="button-primary">Verify Email Address</a>
@@ -390,7 +392,7 @@ export const verificationTemplate = (data: { verifyUrl: string; username?: strin
       <p style="margin-top: 0; margin-bottom: 0;"><strong>Note:</strong> This verification link will expire in 24 hours. If you don't verify within this time frame, you'll need to request a new verification link.</p>
     </div>
     
-    <p class="text-small">If you didn't create an account with ScanPro, you can safely ignore this email.</p>
+    <p class="text-small">If you didn't create an account with MegaPDF, you can safely ignore this email.</p>
     
     <hr class="divider">
     
@@ -422,13 +424,13 @@ export const invoiceTemplate = (data: {
   invoiceUrl?: string;
 }) => {
   const userGreeting = data.username
-      ? `Hello, ${data.username}!`
-      : 'Hello!';
+    ? `Hello, ${data.username}!`
+    : 'Hello!';
 
   const content = `
-    <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Your ScanPro Receipt</h2>
+    <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Your MegaPDF Receipt</h2>
     <p>${userGreeting}</p>
-    <p>Thank you for your subscription to ScanPro. This email confirms your payment has been processed successfully.</p>
+    <p>Thank you for your subscription to MegaPDF. This email confirms your payment has been processed successfully.</p>
     
     <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 24px 0;">
       <h3 style="margin-top: 0; font-size: 18px; font-weight: 600; color: #111827;">Payment Receipt</h3>
@@ -487,29 +489,29 @@ export const securityAlertTemplate = (data: {
   supportUrl?: string;
 }) => {
   const userGreeting = data.username
-      ? `Hello, ${data.username}!`
-      : 'Hello!';
+    ? `Hello, ${data.username}!`
+    : 'Hello!';
 
   let alertTitle = 'Security Alert';
-  let alertDescription = 'There has been a security event on your ScanPro account.';
+  let alertDescription = 'There has been a security event on your MegaPDF account.';
 
   switch (data.alertType) {
-      case 'login':
-          alertTitle = 'New Login Detected';
-          alertDescription = 'We detected a new login to your ScanPro account.';
-          break;
-      case 'password_change':
-          alertTitle = 'Password Changed';
-          alertDescription = 'The password for your ScanPro account was recently changed.';
-          break;
-      case 'email_change':
-          alertTitle = 'Email Address Changed';
-          alertDescription = 'The email address for your ScanPro account was recently changed.';
-          break;
-      case 'suspicious_activity':
-          alertTitle = 'Suspicious Activity Detected';
-          alertDescription = 'We detected potentially suspicious activity on your ScanPro account.';
-          break;
+    case 'login':
+      alertTitle = 'New Login Detected';
+      alertDescription = 'We detected a new login to your MegaPDF account.';
+      break;
+    case 'password_change':
+      alertTitle = 'Password Changed';
+      alertDescription = 'The password for your MegaPDF account was recently changed.';
+      break;
+    case 'email_change':
+      alertTitle = 'Email Address Changed';
+      alertDescription = 'The email address for your MegaPDF account was recently changed.';
+      break;
+    case 'suspicious_activity':
+      alertTitle = 'Suspicious Activity Detected';
+      alertDescription = 'We detected potentially suspicious activity on your MegaPDF account.';
+      break;
   }
 
   const content = `

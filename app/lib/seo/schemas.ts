@@ -120,12 +120,12 @@ export function generatePageSeoMetadata(
         title,
         description,
         keywords,
-        
+
         openGraph: {
             title,
             description,
             url: `/${lang}/${canonicalSegment}`,
-            siteName: "ScanPro",
+            siteName: "MegaPDF",
             locale: {
                 'en': 'en_US',
                 'id': 'id_ID',
@@ -178,20 +178,20 @@ export function generatePageSeoMetadata(
 }
 
 // Schemas for rich text SEO
-export function generateScanProSchemas() {
+export function generateMegaPDFSchemas() {
     return [
         {
             '@context': 'https://schema.org',
             '@type': 'WebSite',
-            name: 'ScanPro',
-            url: 'https://scanpro.cc',
+            name: 'MegaPDF',
+            url: 'https://mega-pdf.com',
             description: 'Comprehensive PDF and file management tools'
         },
         {
             '@context': 'https://schema.org',
             '@type': 'WebApplication',
-            name: 'ScanPro',
-            url: 'https://scanpro.cc',
+            name: 'MegaPDF',
+            url: 'https://mega-pdf.com',
             description: 'Online platform for PDF and file conversion, compression, and management',
             applicationCategory: 'Productivity'
         }

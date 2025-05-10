@@ -2,7 +2,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PDF Tools | ScanPro",
+  title: "PDF Tools | MegaPDF",
   description: "All the PDF tools you need in one place. Convert, edit, merge, split, compress, and more.",
 };
 

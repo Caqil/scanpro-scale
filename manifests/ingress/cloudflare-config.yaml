@@ -5,13 +5,20 @@ metadata:
   namespace: cloudflare-tunnel
 data:
   config.yaml: |
-    tunnel: 10120137-6d3f-4de7-b0c2-f23cf4ffcdf0
+    tunnel: 0402c9ec-a21b-4b53-ab38-5442cc70600b
     credentials-file: /etc/cloudflared/creds/credentials.json
+    
+    # Log level can be debug, info, warn, error, fatal
+    loglevel: info
+    
     ingress:
+      # Route traffic for mega-pdf.com to your mega-pdf service
       - hostname: mega-pdf.com
-        service: http://mega-pdf.mega-pdf.svc.cluster.local:3000
-
+        service: http://megapdf.megapdf.svc.cluster.local:3000
+      
+      # Route traffic for any subdomain to the same service
       - hostname: "*.mega-pdf.com"
-        service: http://mega-pdf.mega-pdf.svc.cluster.local:3000
-
+        service: http://megapdf.megapdf.svc.cluster.local:3000
+      
+      # Return 404 for anything else
       - service: http_status:404

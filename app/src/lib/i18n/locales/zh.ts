@@ -1,10 +1,10 @@
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
     metadata: {
-        title: "ScanPro - 免费PDF转换器、编辑器、OCR和解锁PDF",
-        template: "%s | ScanPro - PDF工具",
-        description: "使用ScanPro转换、编辑、解锁、压缩、合并、拆分和OCR PDF。免费、快速的在线PDF工具—无需下载。",
-        keywords: "PDF转换器, PDF编辑器, 在线OCR, 解锁PDF, 压缩PDF, 合并PDF, 拆分PDF, 免费PDF工具, 在线PDF编辑器, ScanPro"
+        title: "MegaPDF - 免费PDF转换器、编辑器、OCR和解锁PDF",
+        template: "%s | MegaPDF - PDF工具",
+        description: "使用MegaPDF转换、编辑、解锁、压缩、合并、拆分和OCR PDF。免费、快速的在线PDF工具—无需下载。",
+        keywords: "PDF转换器, PDF编辑器, 在线OCR, 解锁PDF, 压缩PDF, 合并PDF, 拆分PDF, 免费PDF工具, 在线PDF编辑器, MegaPDF"
     },
     nav: {
         tools: "工具",
@@ -15,7 +15,7 @@ export default {
         selectLanguage: "选择语言",
         downloadApp: "下载应用",
         getApp: "获取我们的移动应用，随时随地使用PDF工具",
-        appStores: "获取ScanPro应用",
+        appStores: "获取MegaPDF应用",
         mobileTools: "移动PDF工具",
         signIn: "登录",
         signUp: "注册",
@@ -99,7 +99,7 @@ export default {
         title: "登录您的账户",
         description: "输入您的凭据以访问仪表板",
         termsAndPrivacy: "登录即表示您同意我们的<termsLink>服务条款</termsLink>和<privacyLink>隐私政策</privacyLink>。",
-        footer: "© 2025 ScanPro。保留所有权利。"
+        footer: "© 2025 MegaPDF。保留所有权利。"
     },
     dashboard: {
         title: "仪表板",
@@ -137,13 +137,13 @@ export default {
         lastUsed: "最后使用",
         never: "从未",
         operationsThisMonth: "本月操作",
-status: {
-  active: "活跃",
-  inactive: "不活跃"
-},
-usageBreakdown: "您本月的 API 使用情况",
-none: "无",
-percentageOfTotal: "占总使用量的"
+        status: {
+            active: "活跃",
+            inactive: "不活跃"
+        },
+        usageBreakdown: "您本月的 API 使用情况",
+        none: "无",
+        percentageOfTotal: "占总使用量的"
 
     },
     subscription: {
@@ -185,23 +185,23 @@ percentageOfTotal: "占总使用量的"
         success: {
             title: "订阅已激活",
             description: "您的订阅已成功激活",
-            message: "感谢您订阅ScanPro！您现在可以访问订阅等级的所有功能。",
+            message: "感谢您订阅MegaPDF！您现在可以访问订阅等级的所有功能。",
             cta: "前往仪表板",
             seo: {
-              title: "订阅成功激活 - ScanPro",
-              description: "您的ScanPro订阅已激活。立即探索所有可用的高级功能。"
+                title: "订阅成功激活 - MegaPDF",
+                description: "您的MegaPDF订阅已激活。立即探索所有可用的高级功能。"
             }
-          },
-          cancel: {
+        },
+        cancel: {
             title: "订阅已取消",
             description: "您的订阅流程已取消",
             message: "订阅流程已取消。您的账户未发生任何更改。准备好后随时可以重试。",
             cta: "返回计划",
             seo: {
-              title: "订阅已取消 - ScanPro",
-              description: "您的订阅流程已取消。您可以在准备好后随时订阅。"
+                title: "订阅已取消 - MegaPDF",
+                description: "您的订阅流程已取消。您可以在准备好后随时订阅。"
             }
-          }
+        }
     },
     profile: {
         // Personal Information
@@ -425,12 +425,12 @@ percentageOfTotal: "占总使用量的"
 
     // 功能部分
     features: {
-        title: "高级PDF工具与功能 | ScanPro",
-        description: "探索ScanPro为文档管理、转换、编辑等提供的全面PDF工具和功能套件。",
+        title: "高级PDF工具与功能 | MegaPDF",
+        description: "探索MegaPDF为文档管理、转换、编辑等提供的全面PDF工具和功能套件。",
 
         hero: {
             title: "高级PDF工具与功能",
-            description: "发现使ScanPro成为您所有文档管理需求的终极解决方案的全面工具和功能套件。"
+            description: "发现使MegaPDF成为您所有文档管理需求的终极解决方案的全面工具和功能套件。"
         },
 
         overview: {
@@ -618,8 +618,8 @@ percentageOfTotal: "占总使用量的"
         },
 
         mobile: {
-            title: "ScanPro移动应用",
-            description: "随身携带ScanPro的强大PDF工具。我们的移动应用程序在便捷的移动友好界面中提供相同的强大功能。",
+            title: "MegaPDF移动应用",
+            description: "随身携带MegaPDF的强大PDF工具。我们的移动应用程序在便捷的移动友好界面中提供相同的强大功能。",
             feature1: {
                 title: "扫描与数字化文档",
                 description: "使用您的相机扫描物理文档并立即将其转换为高质量PDF。"
@@ -661,13 +661,13 @@ percentageOfTotal: "占总使用量的"
 
         testimonials: {
             title: "我们的用户怎么说",
-            quote1: "ScanPro彻底改变了我们团队处理文档的方式。OCR功能非常精确，批量处理每周为我们节省数小时。",
+            quote1: "MegaPDF彻底改变了我们团队处理文档的方式。OCR功能非常精确，批量处理每周为我们节省数小时。",
             name1: "莎拉·约翰逊",
             title1: "运营经理",
-            quote2: "API集成非常顺畅。我们将ScanPro集成到我们的工作流程中，效率差异显著。他们的支持团队也是一流的。",
+            quote2: "API集成非常顺畅。我们将MegaPDF集成到我们的工作流程中，效率差异显著。他们的支持团队也是一流的。",
             name2: "大卫·陈",
             title2: "技术负责人",
-            quote3: "作为一个小企业主，实惠的价格和全面的工具套件使ScanPro具有惊人的价值。我特别喜欢移动应用程序，它让我可以随时随地处理文档。",
+            quote3: "作为一个小企业主，实惠的价格和全面的工具套件使MegaPDF具有惊人的价值。我特别喜欢移动应用程序，它让我可以随时随地处理文档。",
             name3: "玛丽亚·加西亚",
             title3: "企业主"
         }
@@ -1753,11 +1753,11 @@ percentageOfTotal: "占总使用量的"
     about: {
         hero: {
             title: "赋能数字文档管理",
-            description: "ScanPro源于一个简单的想法：让文档管理变得无缝、高效且人人可及。我们相信可以改变人们与数字文档互动的方式。"
+            description: "MegaPDF源于一个简单的想法：让文档管理变得无缝、高效且人人可及。我们相信可以改变人们与数字文档互动的方式。"
         },
         story: {
             title: "我们的故事",
-            paragraph1: "ScanPro成立于2022年，起源于处理复杂且不直观的PDF工具所带来的挫折感。我们的创始人——技术爱好者和文档管理专家——看到了创造一个既强大又用户友好的解决方案的机会。",
+            paragraph1: "MegaPDF成立于2022年，起源于处理复杂且不直观的PDF工具所带来的挫折感。我们的创始人——技术爱好者和文档管理专家——看到了创造一个既强大又用户友好的解决方案的机会。",
             paragraph2: "最初作为一个小项目起步，很快就发展成为一个综合平台，为全球数千名用户提供服务，从学生和专业人士到大型企业。"
         },
         missionValues: {
@@ -1792,7 +1792,7 @@ percentageOfTotal: "占总使用量的"
         },
         team: {
             title: "认识我们的团队",
-            description: "ScanPro由一个专注为用户打造最佳PDF工具的小型且敬业团队驱动。",
+            description: "MegaPDF由一个专注为用户打造最佳PDF工具的小型且敬业团队驱动。",
             member1: {
                 name: "查克拉",
                 role: "应用开发负责人",
@@ -2053,18 +2053,18 @@ percentageOfTotal: "占总使用量的"
             api: "API"
         },
         general: {
-            question1: "ScanPro是什么？",
-            answer1: "ScanPro是一个用于PDF管理和转换的全面在线平台。我们的工具通过直观的网页界面或API，帮助您转换、编辑、合并、分割、压缩和保护您的PDF文档。",
-            question2: "我需要创建账户才能使用ScanPro吗？",
+            question1: "MegaPDF是什么？",
+            answer1: "MegaPDF是一个用于PDF管理和转换的全面在线平台。我们的工具通过直观的网页界面或API，帮助您转换、编辑、合并、分割、压缩和保护您的PDF文档。",
+            question2: "我需要创建账户才能使用MegaPDF吗？",
             answer2: "不需要，您可以不注册就使用我们的基本PDF工具。但是，创建一个免费账户可以享受保存历史记录、更高的文件大小限制和访问附加功能等好处。",
-            question3: "我的数据在ScanPro上安全吗？",
+            question3: "我的数据在MegaPDF上安全吗？",
             answer3: "是的，所有文件都在我们的服务器上通过加密安全处理。我们不会与第三方共享您的文件，文件在处理后（1小时内）会从我们的服务器自动删除。详情请查看我们的隐私政策。",
-            question4: "ScanPro支持哪些设备和浏览器？",
-            answer4: "ScanPro可在所有现代浏览器上运行，包括Chrome、Firefox、Safari和Edge。我们的平台完全响应式，适用于桌面、平板和移动设备。"
+            question4: "MegaPDF支持哪些设备和浏览器？",
+            answer4: "MegaPDF可在所有现代浏览器上运行，包括Chrome、Firefox、Safari和Edge。我们的平台完全响应式，适用于桌面、平板和移动设备。"
         },
         conversion: {
             question1: "我可以将哪些文件类型进行转换？",
-            answer1: "ScanPro支持将PDF转换为多种格式，包括Word（DOCX）、Excel（XLSX）、PowerPoint（PPTX）、图片（JPG、PNG）、HTML和纯文本。您还可以将这些格式转换回PDF。",
+            answer1: "MegaPDF支持将PDF转换为多种格式，包括Word（DOCX）、Excel（XLSX）、PowerPoint（PPTX）、图片（JPG、PNG）、HTML和纯文本。您还可以将这些格式转换回PDF。",
             question2: "你们的PDF转换有多准确？",
             answer2: "我们的转换引擎使用高级算法来保持格式，包括字体、图片、表格和布局。然而，非常复杂的文档可能会有轻微的格式差异。为获得最佳效果，我们建议对格式复杂的文档使用'PDF转Word'或'PDF转Excel'工具。",
             question3: "转换有文件大小限制吗？",
@@ -2136,7 +2136,7 @@ percentageOfTotal: "占总使用量的"
         socialYoutube: "YouTube"
     },
     security: {
-        title: "ScanPro的安全与隐私",
+        title: "MegaPDF的安全与隐私",
         description: "我们高度重视您文档的安全性和隐私性。了解我们如何保护您的数据。",
         measures: {
             title: "我们如何保护您的数据"
@@ -2203,7 +2203,7 @@ percentageOfTotal: "占总使用量的"
                 description: "我们遵循的标准和法规",
                 approach: {
                     title: "我们的合规方法",
-                    description: "ScanPro采用隐私和安全设计原则开发。我们会定期审查和更新实践以符合不断发展的法规。"
+                    description: "MegaPDF采用隐私和安全设计原则开发。我们会定期审查和更新实践以符合不断发展的法规。"
                 },
                 gdpr: {
                     title: "GDPR合规性"
@@ -2239,7 +2239,7 @@ percentageOfTotal: "占总使用量的"
         },
         faq: {
             dataCollection: {
-                question: "ScanPro收集哪些个人数据？",
+                question: "MegaPDF收集哪些个人数据？",
                 answer: "我们仅收集提供服务所需的最少信息。对于注册用户，这包括电子邮件、姓名和使用统计。我们还收集匿名使用数据以改进服务。我们不会分析、扫描或挖掘您文档的内容。"
             },
             documentStorage: {
@@ -2267,7 +2267,7 @@ percentageOfTotal: "占总使用量的"
 
     developer: {
         title: "开发者 API 文档",
-        description: "使用我们的 RESTful API 将 ScanPro 的强大 PDF 工具集成到您的应用程序中",
+        description: "使用我们的 RESTful API 将 MegaPDF 的强大 PDF 工具集成到您的应用程序中",
         tabs: {
             overview: "概览",
             authentication: "认证",
@@ -2365,7 +2365,7 @@ percentageOfTotal: "占总使用量的"
             subtitle: "使用 API 密钥保护您的 API 请求",
             apiKeys: {
                 title: "API 密钥",
-                description: "对 ScanPro API 的所有请求都需要使用 API 密钥进行认证。您的 API 密钥具有许多权限，请务必妥善保管！"
+                description: "对 MegaPDF API 的所有请求都需要使用 API 密钥进行认证。您的 API 密钥具有许多权限，请务必妥善保管！"
             },
             howTo: {
                 title: "如何认证",
@@ -2410,7 +2410,7 @@ percentageOfTotal: "占总使用量的"
         overview: {
             title: "API 概览",
             subtitle: "关于我们 API 您需要知道的一切",
-            intro: "ScanPro API 允许您将我们的 PDF 处理功能直接集成到您的应用程序中。通过简单的 RESTful 接口，您可以以编程方式转换、压缩、合并、拆分 PDF 并执行其他操作。",
+            intro: "MegaPDF API 允许您将我们的 PDF 处理功能直接集成到您的应用程序中。通过简单的 RESTful 接口，您可以以编程方式转换、压缩、合并、拆分 PDF 并执行其他操作。",
             features: {
                 title: "主要功能",
                 restful: "带 JSON 响应的 RESTful API",
@@ -2420,7 +2420,7 @@ percentageOfTotal: "占总使用量的"
                 secure: "通过加密传输和自动文件删除实现安全文件处理"
             },
             gettingStarted: "开始使用",
-            startSteps: "要开始使用 ScanPro API：",
+            startSteps: "要开始使用 MegaPDF API：",
             step1: "注册一个账户",
             step2: "从您的仪表板生成 API 密钥",
             step3: "使用提供的示例进行您的第一次 API 请求",
@@ -2443,7 +2443,7 @@ percentageOfTotal: "占总使用量的"
         }
     },
     pricing: {
-        description: "选择适合您PDF需求的计划。ScanPro提供从免费到企业的灵活定价选项，包含您所需的功能。",
+        description: "选择适合您PDF需求的计划。MegaPDF提供从免费到企业的灵活定价选项，包含您所需的功能。",
 
         // Page content
         title: "简单透明的定价",

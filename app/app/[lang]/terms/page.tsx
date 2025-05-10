@@ -6,8 +6,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | ScanPro - PDF Tools",
-  description: "Terms of Service for ScanPro PDF Tools. Read about our terms and conditions for using our services.",
+  title: "Terms of Service | MegaPDF - PDF Tools",
+  description: "Terms of Service for MegaPDF PDF Tools. Read about our terms and conditions for using our services.",
 };
 
 export default function TermsOfServicePage() {
@@ -21,13 +21,13 @@ export default function TermsOfServicePage() {
       <div className="space-y-6 text-base">
         <p className="text-muted-foreground">Last Updated: March 18, 2025</p>
 
-        <p>Welcome to ScanPro. Please read these Terms of Service carefully before using our website, mobile applications, and services (collectively, the Services).</p>
+        <p>Welcome to MegaPDF. Please read these Terms of Service carefully before using our website, mobile applications, and services (collectively, the Services).</p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">1. Acceptance of Terms</h2>
         <p>By accessing or using our Services, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our Services.</p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">2. Description of Services</h2>
-        <p>ScanPro provides tools for PDF document conversion, manipulation, and optimization, including but not limited to:</p>
+        <p>MegaPDF provides tools for PDF document conversion, manipulation, and optimization, including but not limited to:</p>
         <ul className="list-disc pl-8 space-y-2">
           <li>Converting PDFs to various formats (DOCX, XLSX, JPG, etc.)</li>
           <li>Converting documents to PDF format</li>
@@ -81,12 +81,12 @@ export default function TermsOfServicePage() {
 
         <h2 className="text-2xl font-bold mt-8 mb-4">10. Contact Information</h2>
         <p>If you have any questions about these Terms, please contact us at:</p>
-        <p className="mt-2"><span className="font-semibold">Email:</span> support@scanpro.cc<br />
+        <p className="mt-2"><span className="font-semibold">Email:</span> support@mega-pdf.com<br />
         <span className="font-semibold">Address:</span> Indonesia, Bangka Belitung</p>
 
         <hr className="my-8 border-t border-gray-200 dark:border-gray-700" />
 
-        <p>By using ScanPro, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+        <p>By using MegaPDF, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
       </div>
 
       <div className="mt-8 flex justify-center">

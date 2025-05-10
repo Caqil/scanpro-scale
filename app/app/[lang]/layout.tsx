@@ -53,7 +53,7 @@ export async function generateMetadata({
     description: t("metadata.description"),
     keywords: t("metadata.keywords"),
     metadataBase: new URL(
-      process.env.NEXT_PUBLIC_APP_URL || "https://scanpro.cc"
+      process.env.NEXT_PUBLIC_APP_URL || "https://mega-pdf.com"
     ),
     alternates: {
       canonical: `/${lang}`,

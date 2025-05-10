@@ -128,10 +128,10 @@ export function ContactContent() {
                 <div>
                   <p className="font-medium">{t('contact.form.email')}</p>
                   <a
-                    href="mailto:support@scanpro.cc"
+                    href="mailto:support@mega-pdf.com"
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    support@scanpro.cc
+                    support@mega-pdf.com
                   </a>
                 </div>
               </div>

@@ -37,27 +37,27 @@ export function CodeExamples() {
       convert: `curl -X POST \\
   -H "x-api-key: YOUR_API_KEY" \\
   -F "file=@document.pdf" \\
-  https://scanpro.cc/api/convert/pdf-to-docx`,
+  https://mega-pdf.com/api/convert/pdf-to-docx`,
       
       merge: `curl -X POST \\
   -H "x-api-key: YOUR_API_KEY" \\
   -F "files[]=@document1.pdf" \\
   -F "files[]=@document2.pdf" \\
-  https://scanpro.cc/api/pdf/merge`,
+  https://mega-pdf.com/api/pdf/merge`,
       
       protect: `curl -X POST \\
   -H "x-api-key: YOUR_API_KEY" \\
   -F "file=@document.pdf" \\
   -F "password=yourpassword123" \\
   -F "allowPrinting=true" \\
-  https://scanpro.cc/api/pdf/protect`
+  https://mega-pdf.com/api/pdf/protect`
     },
     
     python: {
       convert: `import requests
 
 def convert_pdf_to_docx(pdf_path, api_key):
-    url = "https://scanpro.cc/api/convert/pdf-to-docx"
+    url = "https://mega-pdf.com/api/convert/pdf-to-docx"
     
     headers = {
         "x-api-key": api_key
@@ -74,7 +74,7 @@ def convert_pdf_to_docx(pdf_path, api_key):
         if data["success"]:
             # Download the converted file
             converted_file_url = data["fileUrl"]
-            download_url = f"https://scanpro.cc{converted_file_url}"
+            download_url = f"https://mega-pdf.com{converted_file_url}"
             
             download_response = requests.get(download_url)
             with open("converted_document.docx", "wb") as f:
@@ -92,7 +92,7 @@ convert_pdf_to_docx("document.pdf", "YOUR_API_KEY")`,
       merge: `import requests
 
 def merge_pdfs(pdf_paths, api_key):
-    url = "https://scanpro.cc/api/pdf/merge"
+    url = "https://mega-pdf.com/api/pdf/merge"
     
     headers = {
         "x-api-key": api_key
@@ -109,7 +109,7 @@ def merge_pdfs(pdf_paths, api_key):
         if data["success"]:
             # Download the merged file
             merged_file_url = data["fileUrl"]
-            download_url = f"https://scanpro.cc{merged_file_url}"
+            download_url = f"https://mega-pdf.com{merged_file_url}"
             
             download_response = requests.get(download_url)
             with open("merged_document.pdf", "wb") as f:
@@ -127,7 +127,7 @@ merge_pdfs(["document1.pdf", "document2.pdf"], "YOUR_API_KEY")`,
       protect: `import requests
 
 def protect_pdf(pdf_path, password, api_key):
-    url = "https://scanpro.cc/api/pdf/protect"
+    url = "https://mega-pdf.com/api/pdf/protect"
     
     headers = {
         "x-api-key": api_key
@@ -149,7 +149,7 @@ def protect_pdf(pdf_path, password, api_key):
         if data["success"]:
             # Download the protected file
             protected_file_url = data["fileUrl"]
-            download_url = f"https://scanpro.cc{protected_file_url}"
+            download_url = f"https://mega-pdf.com{protected_file_url}"
             
             download_response = requests.get(download_url)
             with open("protected_document.pdf", "wb") as f:
@@ -171,7 +171,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 
 async function convertPdfToDocx(pdfPath, apiKey) {
-  const url = 'https://scanpro.cc/api/convert/pdf-to-docx';
+  const url = 'https://mega-pdf.com/api/convert/pdf-to-docx';
   
   // Create form data
   const formData = new FormData();
@@ -190,7 +190,7 @@ async function convertPdfToDocx(pdfPath, apiKey) {
     
     if (data.success) {
       // Download the converted file
-      const downloadUrl = \`https://scanpro.cc\${data.fileUrl}\`;
+      const downloadUrl = \`https://mega-pdf.com\${data.fileUrl}\`;
       const outputPath = 'converted_document.docx';
       
       const downloadResponse = await axios({
@@ -227,7 +227,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 
 async function mergePdfs(pdfPaths, apiKey) {
-  const url = 'https://scanpro.cc/api/pdf/merge';
+  const url = 'https://mega-pdf.com/api/pdf/merge';
   
   // Create form data
   const formData = new FormData();
@@ -250,7 +250,7 @@ async function mergePdfs(pdfPaths, apiKey) {
     
     if (data.success) {
       // Download the merged file
-      const downloadUrl = \`https://scanpro.cc\${data.fileUrl}\`;
+      const downloadUrl = \`https://mega-pdf.com\${data.fileUrl}\`;
       const outputPath = 'merged_document.pdf';
       
       const downloadResponse = await axios({
@@ -287,7 +287,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 
 async function protectPdf(pdfPath, password, apiKey) {
-  const url = 'https://scanpro.cc/api/pdf/protect';
+  const url = 'https://mega-pdf.com/api/pdf/protect';
   
   // Create form data
   const formData = new FormData();
@@ -308,7 +308,7 @@ async function protectPdf(pdfPath, password, apiKey) {
     
     if (data.success) {
       // Download the protected file
-      const downloadUrl = \`https://scanpro.cc\${data.fileUrl}\`;
+      const downloadUrl = \`https://mega-pdf.com\${data.fileUrl}\`;
       const outputPath = 'protected_document.pdf';
       
       const downloadResponse = await axios({
@@ -344,7 +344,7 @@ protectPdf('document.pdf', 'yourpassword123', 'YOUR_API_KEY')
     php: {
       convert: `<?php
 function convertPdfToDocx($pdfPath, $apiKey) {
-    $url = 'https://scanpro.cc/api/convert/pdf-to-docx';
+    $url = 'https://mega-pdf.com/api/convert/pdf-to-docx';
     
     $curl = curl_init();
     
@@ -375,7 +375,7 @@ function convertPdfToDocx($pdfPath, $apiKey) {
         
         if ($data['success']) {
             // Download the converted file
-            $downloadUrl = 'https://scanpro.cc' . $data['fileUrl'];
+            $downloadUrl = 'https://mega-pdf.com' . $data['fileUrl'];
             $outputPath = 'converted_document.docx';
             
             file_put_contents($outputPath, file_get_contents($downloadUrl));
@@ -394,7 +394,7 @@ convertPdfToDocx('document.pdf', 'YOUR_API_KEY');`,
       
       merge: `<?php
 function mergePdfs($pdfPaths, $apiKey) {
-    $url = 'https://scanpro.cc/api/pdf/merge';
+    $url = 'https://mega-pdf.com/api/pdf/merge';
     
     $curl = curl_init();
     
@@ -426,7 +426,7 @@ function mergePdfs($pdfPaths, $apiKey) {
         
         if ($data['success']) {
             // Download the merged file
-            $downloadUrl = 'https://scanpro.cc' . $data['fileUrl'];
+            $downloadUrl = 'https://mega-pdf.com' . $data['fileUrl'];
             $outputPath = 'merged_document.pdf';
             
             file_put_contents($outputPath, file_get_contents($downloadUrl));
@@ -445,7 +445,7 @@ mergePdfs(['document1.pdf', 'document2.pdf'], 'YOUR_API_KEY');`,
       
       protect: `<?php
 function protectPdf($pdfPath, $password, $apiKey) {
-    $url = 'https://scanpro.cc/api/pdf/protect';
+    $url = 'https://mega-pdf.com/api/pdf/protect';
     
     $curl = curl_init();
     
@@ -478,7 +478,7 @@ function protectPdf($pdfPath, $password, $apiKey) {
         
         if ($data['success']) {
             // Download the protected file
-            $downloadUrl = 'https://scanpro.cc' . $data['fileUrl'];
+            $downloadUrl = 'https://mega-pdf.com' . $data['fileUrl'];
             $outputPath = 'protected_document.pdf';
             
             file_put_contents($outputPath, file_get_contents($downloadUrl));

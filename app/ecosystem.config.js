@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: "scanpro",
+            name: "MegaPDF",
             script: "npm",
             args: "start",
             env: {

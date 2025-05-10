@@ -331,14 +331,14 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
             </div>
             <div className="flex items-center gap-2">
               <a
-                href="https://apps.apple.com/us/app/scanpro-pdf-scanner-app/id6743518395"
+                href="https://apps.apple.com/us/app/MegaPDF-pdf-scanner-app/id6743518395"
                 target="_blank"
                 className="text-xs font-medium bg-black text-white px-2 py-1 rounded-md flex items-center"
               >
                 <Apple className="h-3 w-3 mr-1" /> iOS
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=com.scanpro.documentconverter"
+                href="https://play.google.com/store/apps/details?id=com.MegaPDF.documentconverter"
                 target="_blank"
                 className="text-xs font-medium bg-primary-foreground text-primary px-2 py-1 rounded-md flex items-center"
               >
@@ -385,7 +385,7 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
               <span className="font-bold text-xl flex items-center gap-1">
                 <SiteLogo className="h-8 w-8" />
                 <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  ScanPro
+                  MegaPDF
                 </span>
               </span>
             </LanguageLink>

@@ -16,9 +16,17 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:latest
+        command:
+        - /usr/local/bin/cloudflared
         args:
         - tunnel
         - --no-autoupdate
+        - --protocol
+        - http2
+        - --loglevel
+        - debug
+        - --config
+        - /etc/cloudflared/config/config.yaml
         - run
         volumeMounts:
         - name: cloudflare-credentials

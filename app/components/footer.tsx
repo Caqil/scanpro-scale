@@ -35,7 +35,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <SiteLogo className="h-8 w-8" />
-              <span className="font-bold text-xl">ScanPro</span>
+              <span className="font-bold text-xl">MegaPDF</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               {t('footer.description') || "Advanced PDF tools for professionals. Convert, edit, protect and optimize your documents with our powerful web-based platform and API."}
@@ -50,10 +50,10 @@ export function Footer() {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialInstagram') || "Instagram"}>
                 <Instagram className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
-              <a href="https://www.linkedin.com/company/scanpro-cc/" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialLinkedin') || "LinkedIn"}>
+              <a href="https://www.linkedin.com/company/MegaPDF-cc/" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialLinkedin') || "LinkedIn"}>
                 <Linkedin className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
-              <a href="https://github.com/scanpro-cc" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialGithub') || "GitHub"}>
+              <a href="https://github.com/MegaPDF-cc" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialGithub') || "GitHub"}>
                 <Github className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
               <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialYoutube') || "YouTube"}>
@@ -67,7 +67,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <Mail className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">support@scanpro.cc</span>
+                <span className="text-sm text-muted-foreground">support@mega-pdf.com</span>
               </li>
               <li className="flex items-start">
                 <Phone className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
@@ -225,7 +225,7 @@ export function Footer() {
         {/* Bottom section with legal info */}
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm text-muted-foreground mb-4 md:mb-0">
-            © {currentYear} ScanPro. {t('footer.allRightsReserved') || "All rights reserved."}
+            © {currentYear} MegaPDF. {t('footer.allRightsReserved') || "All rights reserved."}
           </div>
           
           <div className="flex flex-wrap gap-4 justify-center md:justify-end">

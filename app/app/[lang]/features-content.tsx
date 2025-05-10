@@ -256,7 +256,7 @@ export default function FeaturesPageContent() {
           {t("features.hero.title") || "Advanced PDF Tools & Features"}
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          {t("features.hero.description") || "Discover the comprehensive suite of tools and features that make ScanPro the ultimate solution for all your document management needs."}
+          {t("features.hero.description") || "Discover the comprehensive suite of tools and features that make MegaPDF the ultimate solution for all your document management needs."}
         </p>
       </section>
 
@@ -376,10 +376,10 @@ export default function FeaturesPageContent() {
               <SmartphoneIcon className="h-6 w-6 text-blue-500" />
             </div>
             <h2 className="text-3xl font-bold mb-4">
-              {t("features.mobile.title") || "ScanPro Mobile App"}
+              {t("features.mobile.title") || "MegaPDF Mobile App"}
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              {t("features.mobile.description") || "Take ScanPro's powerful PDF tools with you on the go. Our mobile app offers the same robust functionality in a convenient, mobile-friendly interface."}
+              {t("features.mobile.description") || "Take MegaPDF's powerful PDF tools with you on the go. Our mobile app offers the same robust functionality in a convenient, mobile-friendly interface."}
             </p>
             
             <div className="space-y-4">
@@ -408,7 +408,7 @@ export default function FeaturesPageContent() {
             
             <div className="mt-8 flex gap-4">
               <a 
-                href="https://apps.apple.com/us/app/scanpro-pdf-scanner-app/id6743518395" 
+                href="https://apps.apple.com/us/app/MegaPDF-pdf-scanner-app/id6743518395" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-md bg-black text-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-gray-900"
@@ -419,7 +419,7 @@ export default function FeaturesPageContent() {
                 iOS App
               </a>
               <a 
-                href="https://play.google.com/store/apps/details?id=com.scanpro.documentconverter" 
+                href="https://play.google.com/store/apps/details?id=com.MegaPDF.documentconverter" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:bg-primary/90"
@@ -437,7 +437,7 @@ export default function FeaturesPageContent() {
             <div className="relative p-2 bg-background border rounded-xl shadow-lg">
               <Image 
                 src="/images/ic_icon.png" 
-                alt="ScanPro Mobile App" 
+                alt="MegaPDF Mobile App" 
                 width={500} 
                 height={600} 
                 className="rounded-lg w-full" 
@@ -465,7 +465,7 @@ export default function FeaturesPageContent() {
                   ))}
                 </div>
                 <p className="text-muted-foreground italic">
-                  "{t("features.testimonials.quote1") || "ScanPro has revolutionized the way our team handles documents. The OCR functionality is incredibly accurate, and the batch processing saves us hours every week."}"
+                  "{t("features.testimonials.quote1") || "MegaPDF has revolutionized the way our team handles documents. The OCR functionality is incredibly accurate, and the batch processing saves us hours every week."}"
                 </p>
                 <div>
                   <p className="font-medium">{t("features.testimonials.name1") || "Sarah Johnson"}</p>
@@ -486,7 +486,7 @@ export default function FeaturesPageContent() {
                   ))}
                 </div>
                 <p className="text-muted-foreground italic">
-                  "{t("features.testimonials.quote2") || "The API integration was seamless. We've integrated ScanPro into our workflow and the difference in efficiency is night and day. Their support team is also top-notch."}"
+                  "{t("features.testimonials.quote2") || "The API integration was seamless. We've integrated MegaPDF into our workflow and the difference in efficiency is night and day. Their support team is also top-notch."}"
                 </p>
                 <div>
                   <p className="font-medium">{t("features.testimonials.name2") || "David Chen"}</p>
@@ -507,7 +507,7 @@ export default function FeaturesPageContent() {
                   ))}
                 </div>
                 <p className="text-muted-foreground italic">
-                  "{t("features.testimonials.quote3") || "As a small business owner, the affordable pricing and comprehensive toolset make ScanPro an incredible value. I especially love the mobile app which lets me handle documents on the go."}"
+                  "{t("features.testimonials.quote3") || "As a small business owner, the affordable pricing and comprehensive toolset make MegaPDF an incredible value. I especially love the mobile app which lets me handle documents on the go."}"
                 </p>
                 <div>
                   <p className="font-medium">{t("features.testimonials.name3") || "Maria Garcia"}</p>

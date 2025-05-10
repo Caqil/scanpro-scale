@@ -39,7 +39,7 @@ export const sendEmail = async ({ to, subject, html, text }: EmailOptions): Prom
     const transporter = createTransporter();
 
     // Set from address
-    const from = process.env.EMAIL_FROM || 'noreply@scanpro.cc';
+    const from = process.env.EMAIL_FROM || 'noreply@mega-pdf.com';
 
     // Send mail
     const info = await transporter.sendMail({
@@ -81,7 +81,7 @@ export const sendVerificationEmail = async (email: string, token: string, name?:
 
   return await sendEmail({
     to: email,
-    subject: 'Verify Your Email Address for ScanPro',
+    subject: 'Verify Your Email Address for MegaPDF',
     html: htmlContent
   });
 };
@@ -98,7 +98,7 @@ export const sendPasswordResetEmail = async (email: string, token: string, usern
 
   return sendEmail({
     to: email,
-    subject: 'Reset Your ScanPro Password',
+    subject: 'Reset Your MegaPDF Password',
     html
   });
 };
@@ -116,7 +116,7 @@ export const sendPasswordResetSuccessEmail = async (email: string, username?: st
 
   return sendEmail({
     to: email,
-    subject: 'Your ScanPro Password Has Been Reset',
+    subject: 'Your MegaPDF Password Has Been Reset',
     html
   });
 };
@@ -157,7 +157,7 @@ export async function sendSubscriptionInvoiceEmail(data: {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
         <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">ScanPro Invoice</h1>
+          <h1 style="margin: 0;">MegaPDF Invoice</h1>
           <p style="margin-top: 10px;">Subscription Invoice</p>
         </div>
         
@@ -212,7 +212,7 @@ export async function sendSubscriptionInvoiceEmail(data: {
         
         <div style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
           <p>
-            © ${new Date().getFullYear()} ScanPro. All rights reserved.<br>
+            © ${new Date().getFullYear()} MegaPDF. All rights reserved.<br>
             This is an automated invoice for your subscription.
           </p>
         </div>
@@ -221,7 +221,7 @@ export async function sendSubscriptionInvoiceEmail(data: {
 
     const result = await sendEmail({
       to: userEmail,
-      subject: `ScanPro Invoice - ${invoiceNumber}`,
+      subject: `MegaPDF Invoice - ${invoiceNumber}`,
       html
     });
 
@@ -249,19 +249,19 @@ export async function sendSubscriptionRenewalReminderEmail(
     month: 'long',
     day: 'numeric'
   });
-  
-  const subject = `Your ScanPro ${tier} subscription is expiring soon`;
-  
+
+  const subject = `Your MegaPDF ${tier} subscription is expiring soon`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center;">
-        <h1>ScanPro Subscription Reminder</h1>
+        <h1>MegaPDF Subscription Reminder</h1>
       </div>
       
       <div style="padding: 20px; border: 1px solid #e0e0e0;">
         <p>Hello ${name || 'there'},</p>
         
-        <p>This is a friendly reminder that your ScanPro <strong>${tier}</strong> subscription will expire on <strong>${formattedDate}</strong>.</p>
+        <p>This is a friendly reminder that your MegaPDF <strong>${tier}</strong> subscription will expire on <strong>${formattedDate}</strong>.</p>
         
         <p>To maintain uninterrupted access to all features and benefits of your subscription, please renew before the expiration date.</p>
         
@@ -274,15 +274,15 @@ export async function sendSubscriptionRenewalReminderEmail(
         
         <p>If you choose not to renew, your account will automatically be downgraded to the free tier with limited functionality.</p>
         
-        <p>Thank you for using ScanPro!</p>
+        <p>Thank you for using MegaPDF!</p>
       </div>
       
       <div style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
-        <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()} MegaPDF. All rights reserved.</p>
       </div>
     </div>
   `;
-  
+
   return await sendEmail({ to: email, subject, html });
 }
 
@@ -294,18 +294,18 @@ export async function sendSubscriptionExpiredEmail(
   name: string,
   previousTier: string
 ): Promise<{ success: boolean; error?: string }> {
-  const subject = `Your ScanPro ${previousTier} subscription has expired`;
-  
+  const subject = `Your MegaPDF ${previousTier} subscription has expired`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center;">
-        <h1>ScanPro Subscription Update</h1>
+        <h1>MegaPDF Subscription Update</h1>
       </div>
       
       <div style="padding: 20px; border: 1px solid #e0e0e0;">
         <p>Hello ${name || 'there'},</p>
         
-        <p>This is to inform you that your ScanPro <strong>${previousTier}</strong> subscription has expired.</p>
+        <p>This is to inform you that your MegaPDF <strong>${previousTier}</strong> subscription has expired.</p>
         
         <p>Your account has been automatically downgraded to the free tier, which includes:</p>
         
@@ -328,11 +328,11 @@ export async function sendSubscriptionExpiredEmail(
       </div>
       
       <div style="text-align: center; margin-top: 20px; color: #777; font-size: 12px;">
-        <p>© ${new Date().getFullYear()} ScanPro. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()} MegaPDF. All rights reserved.</p>
       </div>
     </div>
   `;
-  
-  
+
+
   return await sendEmail({ to: email, subject, html });
 }

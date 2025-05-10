@@ -66,7 +66,7 @@ export function SecurityContent() {
   // Define privacy FAQs
   const privacyFaqs = [
     {
-      question: t('security.faq.dataCollection.question') || "What personal data does ScanPro collect?",
+      question: t('security.faq.dataCollection.question') || "What personal data does MegaPDF collect?",
       answer: t('security.faq.dataCollection.answer') || "We collect minimal information needed to provide our services. For registered users, this includes email, name, and usage statistics. We also collect anonymous usage data to improve our services. We don't analyze, scan, or mine the content of your documents."
     },
     {
@@ -123,7 +123,7 @@ export function SecurityContent() {
           <Shield className="h-8 w-8 text-blue-500" />
         </div>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-          {t('security.title') || "Security & Privacy at ScanPro"}
+          {t('security.title') || "Security & Privacy at MegaPDF"}
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
           {t('security.description') || "We take the security and privacy of your documents seriously. Learn how we protect your data."}
@@ -288,7 +288,7 @@ export function SecurityContent() {
                 <div className="mt-8">
                   <h3 className="font-medium mb-4">{t('security.tabContent.compliance.approach.title') || "Our Compliance Approach"}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    {t('security.tabContent.compliance.approach.description') || "ScanPro is designed with privacy and security by design principles. We regularly review and update our practices to comply with evolving regulations."}
+                    {t('security.tabContent.compliance.approach.description') || "MegaPDF is designed with privacy and security by design principles. We regularly review and update our practices to comply with evolving regulations."}
                   </p>
                   
                   <div className="grid sm:grid-cols-2 gap-4 text-sm">

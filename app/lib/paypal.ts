@@ -82,7 +82,7 @@ export async function createSubscription(userId: string, tier: string): Promise<
         plan_id: planId,
         custom_id: userId,
         application_context: {
-          brand_name: 'ScanPro',
+          brand_name: 'MegaPDF',
           locale: 'en-US',
           shipping_preference: 'NO_SHIPPING',
           user_action: 'SUBSCRIBE_NOW',

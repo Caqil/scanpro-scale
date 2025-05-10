@@ -16,26 +16,26 @@ export function FAQContent() {
   const faqs = {
     general: [
       {
-        question: t('faq.general.question1') || "What is ScanPro?",
-        answer: t('faq.general.answer1') || "ScanPro is a comprehensive online platform for PDF management and conversion. Our tools help you convert, edit, merge, split, compress, and secure your PDF documents through an intuitive web interface or API."
+        question: t('faq.general.question1') || "What is MegaPDF?",
+        answer: t('faq.general.answer1') || "MegaPDF is a comprehensive online platform for PDF management and conversion. Our tools help you convert, edit, merge, split, compress, and secure your PDF documents through an intuitive web interface or API."
       },
       {
-        question: t('faq.general.question2') || "Do I need to create an account to use ScanPro?",
+        question: t('faq.general.question2') || "Do I need to create an account to use MegaPDF?",
         answer: t('faq.general.answer2') || "No, you can use our basic PDF tools without registering. However, creating a free account gives you benefits like saved history, higher file size limits, and access to additional features."
       },
       {
-        question: t('faq.general.question3') || "Is my data secure on ScanPro?",
+        question: t('faq.general.question3') || "Is my data secure on MegaPDF?",
         answer: t('faq.general.answer3') || "Yes, all files are processed securely on our servers with encryption. We don't share your files with third parties, and files are automatically deleted from our servers after processing (within 24 hours). For more details, please see our Privacy Policy."
       },
       {
-        question: t('faq.general.question4') || "What devices and browsers does ScanPro support?",
-        answer: t('faq.general.answer4') || "ScanPro works on all modern browsers including Chrome, Firefox, Safari, and Edge. Our platform is fully responsive and works on desktop, tablet, and mobile devices."
+        question: t('faq.general.question4') || "What devices and browsers does MegaPDF support?",
+        answer: t('faq.general.answer4') || "MegaPDF works on all modern browsers including Chrome, Firefox, Safari, and Edge. Our platform is fully responsive and works on desktop, tablet, and mobile devices."
       }
     ],
     conversion: [
       {
         question: t('faq.conversion.question1') || "What file types can I convert to and from?",
-        answer: t('faq.conversion.answer1') || "ScanPro supports converting PDFs to many formats including Word (DOCX), Excel (XLSX), PowerPoint (PPTX), images (JPG, PNG), HTML, and plain text. You can also convert these formats back to PDF."
+        answer: t('faq.conversion.answer1') || "MegaPDF supports converting PDFs to many formats including Word (DOCX), Excel (XLSX), PowerPoint (PPTX), images (JPG, PNG), HTML, and plain text. You can also convert these formats back to PDF."
       },
       {
         question: t('faq.conversion.question2') || "How accurate are your PDF conversions?",

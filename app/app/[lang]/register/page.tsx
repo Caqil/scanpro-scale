@@ -7,8 +7,8 @@ import { authOptions } from "@/lib/auth";
 import { LanguageLink } from "@/components/language-link";
 
 export const metadata: Metadata = {
-  title: "Register | ScanPro",
-  description: "Join the ScanPro community to access powerful PDF tools and developer API.",
+  title: "Register | MegaPDF",
+  description: "Join the MegaPDF community to access powerful PDF tools and developer API.",
 };
 
 export default async function RegisterPage() {
@@ -24,7 +24,7 @@ export default async function RegisterPage() {
       <div className="flex flex-col w-full md:w-1/2 p-6 sm:p-10 justify-center items-center">
         <div className="md:hidden flex items-center gap-2 mb-10">
           <SiteLogo size={30} />
-          <span className="font-bold text-2xl">ScanPro</span>
+          <span className="font-bold text-2xl">MegaPDF</span>
         </div>
 
         {/* Form Section */}
@@ -32,7 +32,7 @@ export default async function RegisterPage() {
           <div>
             <h2 className="text-2xl font-bold text-center">Create your account</h2>
             <p className="text-muted-foreground text-center mt-2">
-              Join ScanPro to manage your documents
+              Join MegaPDF to manage your documents
             </p>
           </div>
 
@@ -53,7 +53,7 @@ export default async function RegisterPage() {
             Privacy Policy
           </LanguageLink>
           .<br />
-          © 2025 ScanPro. All rights reserved.
+          © 2025 MegaPDF. All rights reserved.
         </div>
       </div>
     </div>

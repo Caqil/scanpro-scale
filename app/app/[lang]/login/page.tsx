@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import LoginContent from "./login-content";
 
 export const metadata: Metadata = {
-  title: "Login | ScanPro",
-  description: "Sign in to your ScanPro account to access your dashboard.",
+  title: "Login | MegaPDF",
+  description: "Sign in to your MegaPDF account to access your dashboard.",
 };
 
 export default function LoginPage() {

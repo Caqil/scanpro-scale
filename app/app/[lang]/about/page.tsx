@@ -132,13 +132,13 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const keywords = extractKeywords(`${title} ${description}`, lang);
 
   return {
-    title: t("about.title") || "About ScanPro | Transforming Document Management",
-    description: t("about.description") || "Learn about ScanPro's mission to simplify digital document management with cutting-edge PDF tools.",
+    title: t("about.title") || "About MegaPDF | Transforming Document Management",
+    description: t("about.description") || "Learn about MegaPDF's mission to simplify digital document management with cutting-edge PDF tools.",
     openGraph: {
-      title: t("about.title") || "About ScanPro | Transforming Document Management",
-      description: t("about.description") || "Learn about ScanPro's mission to simplify digital document management with cutting-edge PDF tools.",
+      title: t("about.title") || "About MegaPDF | Transforming Document Management",
+      description: t("about.description") || "Learn about MegaPDF's mission to simplify digital document management with cutting-edge PDF tools.",
       url: `/${lang}/about`,
-      siteName: "ScanPro",
+      siteName: "MegaPDF",
       locale: {
         'en': 'en_US',
         'id': 'id_ID',

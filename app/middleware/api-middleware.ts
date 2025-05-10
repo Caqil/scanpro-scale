@@ -138,7 +138,7 @@ export async function apiMiddleware(request: NextRequest) {
             redis,
             limiter: Ratelimit.slidingWindow(limit, `${window}s`), // Explicitly add 's' for seconds
             analytics: true,
-            prefix: 'scanpro:ratelimit',
+            prefix: 'MegaPDF:ratelimit',
         });
 
         // Use the API key as the identifier for rate limiting
@@ -232,7 +232,7 @@ export async function apiMiddleware(request: NextRequest) {
             redis,
             limiter: Ratelimit.slidingWindow(limit, `${window}s`),
             analytics: true,
-            prefix: 'scanpro:ratelimit',
+            prefix: 'MegaPDF:ratelimit',
         });
 
         const { remaining, reset } = await ratelimit.limit(apiKey);

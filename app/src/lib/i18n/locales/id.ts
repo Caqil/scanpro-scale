@@ -1,10 +1,10 @@
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
   metadata: {
-    title: "ScanPro - Konverter PDF Gratis, Editor, OCR & Buka Kunci PDF",
-    template: "%s | ScanPro - Alat PDF",
-    description: "Konversi, edit, buka kunci, kompres, gabungkan, pisahkan & OCR PDF dengan ScanPro. Alat PDF online gratis dan cepat—tidak perlu unduh.",
-    keywords: "konverter PDF, editor PDF, OCR online, buka kunci PDF, kompres PDF, gabungkan PDF, pisahkan PDF, alat PDF gratis, editor PDF online, ScanPro"
+    title: "MegaPDF - Konverter PDF Gratis, Editor, OCR & Buka Kunci PDF",
+    template: "%s | MegaPDF - Alat PDF",
+    description: "Konversi, edit, buka kunci, kompres, gabungkan, pisahkan & OCR PDF dengan MegaPDF. Alat PDF online gratis dan cepat—tidak perlu unduh.",
+    keywords: "konverter PDF, editor PDF, OCR online, buka kunci PDF, kompres PDF, gabungkan PDF, pisahkan PDF, alat PDF gratis, editor PDF online, MegaPDF"
   },
   nav: {
     tools: "Alat",
@@ -15,7 +15,7 @@ export default {
     selectLanguage: "Pilih Bahasa",
     downloadApp: "Unduh Aplikasi",
     getApp: "Dapatkan aplikasi seluler kami untuk alat PDF saat bepergian",
-    appStores: "Dapatkan Aplikasi ScanPro",
+    appStores: "Dapatkan Aplikasi MegaPDF",
     mobileTools: "Alat PDF saat bepergian",
     signIn: "Masuk",
     signUp: "Daftar",
@@ -99,7 +99,7 @@ export default {
     title: "Masuk ke akun Anda",
     description: "Masukkan kredensial Anda untuk mengakses dasbor",
     termsAndPrivacy: "Dengan masuk, Anda menyetujui <termsLink>Ketentuan Layanan</termsLink> dan <privacyLink>Kebijakan Privasi</privacyLink> kami.",
-    footer: "© 2025 ScanPro. Hak cipta dilindungi."
+    footer: "© 2025 MegaPDF. Hak cipta dilindungi."
   },
   dashboard: {
     title: "Dasbor",
@@ -137,15 +137,15 @@ export default {
     lastUsed: "Terakhir digunakan",
     never: "Tidak pernah",
     operationsThisMonth: "operasi bulan ini",
-status: {
-  active: "Aktif",
-  inactive: "Tidak aktif"
-},
-usageBreakdown: "Rincian penggunaan API Anda untuk bulan ini",
-none: "Tidak ada",
-percentageOfTotal: "dari total penggunaan"
+    status: {
+      active: "Aktif",
+      inactive: "Tidak aktif"
+    },
+    usageBreakdown: "Rincian penggunaan API Anda untuk bulan ini",
+    none: "Tidak ada",
+    percentageOfTotal: "dari total penggunaan"
 
-    
+
   },
   subscription: {
     currentPlan: "Paket Saat Ini",
@@ -186,11 +186,11 @@ percentageOfTotal: "dari total penggunaan"
     success: {
       title: "Langganan Diaktifkan",
       description: "Langganan Anda telah berhasil diaktifkan",
-      message: "Terima kasih telah berlangganan ScanPro! Anda sekarang memiliki akses ke semua fitur dari tingkat langganan Anda.",
+      message: "Terima kasih telah berlangganan MegaPDF! Anda sekarang memiliki akses ke semua fitur dari tingkat langganan Anda.",
       cta: "Pergi ke Dasbor",
       seo: {
-        title: "Langganan Berhasil Diaktifkan - ScanPro",
-        description: "Langganan ScanPro Anda telah diaktifkan. Jelajahi semua fitur premium yang sekarang tersedia untuk Anda."
+        title: "Langganan Berhasil Diaktifkan - MegaPDF",
+        description: "Langganan MegaPDF Anda telah diaktifkan. Jelajahi semua fitur premium yang sekarang tersedia untuk Anda."
       }
     },
     cancel: {
@@ -199,7 +199,7 @@ percentageOfTotal: "dari total penggunaan"
       message: "Proses langganan dibatalkan. Tidak ada perubahan yang dilakukan pada akun Anda. Silakan coba lagi ketika Anda siap.",
       cta: "Kembali ke Paket",
       seo: {
-        title: "Langganan Dibatalkan - ScanPro",
+        title: "Langganan Dibatalkan - MegaPDF",
         description: "Proses langganan Anda dibatalkan. Anda selalu dapat berlangganan nanti ketika Anda siap."
       }
     }
@@ -426,12 +426,12 @@ percentageOfTotal: "dari total penggunaan"
 
   // Bagian Fitur
   features: {
-    title: "Alat dan Fitur PDF Tingkat Lanjut | ScanPro",
-    description: "Jelajahi rangkaian lengkap alat dan fitur PDF dari ScanPro untuk manajemen dokumen, konversi, pengeditan, dan lebih banyak lagi.",
+    title: "Alat dan Fitur PDF Tingkat Lanjut | MegaPDF",
+    description: "Jelajahi rangkaian lengkap alat dan fitur PDF dari MegaPDF untuk manajemen dokumen, konversi, pengeditan, dan lebih banyak lagi.",
 
     hero: {
       title: "Alat dan Fitur PDF Tingkat Lanjut",
-      description: "Temukan rangkaian lengkap alat dan fitur yang menjadikan ScanPro solusi utama untuk semua kebutuhan manajemen dokumen Anda."
+      description: "Temukan rangkaian lengkap alat dan fitur yang menjadikan MegaPDF solusi utama untuk semua kebutuhan manajemen dokumen Anda."
     },
 
     overview: {
@@ -619,8 +619,8 @@ percentageOfTotal: "dari total penggunaan"
     },
 
     mobile: {
-      title: "Aplikasi Mobile ScanPro",
-      description: "Bawa alat PDF canggih dari ScanPro ke mana saja. Aplikasi mobile kami menawarkan fungsi yang sama dalam antarmuka yang ramah mobile.",
+      title: "Aplikasi Mobile MegaPDF",
+      description: "Bawa alat PDF canggih dari MegaPDF ke mana saja. Aplikasi mobile kami menawarkan fungsi yang sama dalam antarmuka yang ramah mobile.",
       feature1: {
         title: "Pindai dan Digitalisasi Dokumen",
         description: "Gunakan kamera Anda untuk memindai dokumen fisik dan mengonversinya menjadi PDF berkualitas tinggi secara instan."
@@ -662,13 +662,13 @@ percentageOfTotal: "dari total penggunaan"
 
     testimonials: {
       title: "Apa Kata Pengguna Kami",
-      quote1: "ScanPro telah merevolusi cara tim kami menangani dokumen. Fitur OCR sangat akurat, dan pemrosesan batch menghemat waktu kami berjam-jam setiap minggu.",
+      quote1: "MegaPDF telah merevolusi cara tim kami menangani dokumen. Fitur OCR sangat akurat, dan pemrosesan batch menghemat waktu kami berjam-jam setiap minggu.",
       name1: "Sarah Johnson",
       title1: "Manajer Operasional",
-      quote2: "Integrasi API berjalan mulus. Kami mengintegrasikan ScanPro ke dalam alur kerja kami, dan perbedaan efisiensinya sangat besar. Tim dukungan mereka juga luar biasa.",
+      quote2: "Integrasi API berjalan mulus. Kami mengintegrasikan MegaPDF ke dalam alur kerja kami, dan perbedaan efisiensinya sangat besar. Tim dukungan mereka juga luar biasa.",
       name2: "David Chen",
       title2: "Pemimpin Teknologi",
-      quote3: "Sebagai pemilik usaha kecil, harga yang terjangkau dan rangkaian alat yang lengkap menjadikan ScanPro sangat bernilai. Saya sangat menyukai aplikasi mobile yang memungkinkan saya mengelola dokumen saat bepergian.",
+      quote3: "Sebagai pemilik usaha kecil, harga yang terjangkau dan rangkaian alat yang lengkap menjadikan MegaPDF sangat bernilai. Saya sangat menyukai aplikasi mobile yang memungkinkan saya mengelola dokumen saat bepergian.",
       name3: "Maria Garcia",
       title3: "Pemilik Usaha"
     }
@@ -1755,11 +1755,11 @@ percentageOfTotal: "dari total penggunaan"
   about: {
     hero: {
       title: "Memberdayakan Pengelolaan Dokumen Digital",
-      description: "ScanPro lahir dari ide sederhana: membuat pengelolaan dokumen menjadi mulus, efisien, dan dapat diakses oleh semua orang. Kami percaya dalam mengubah cara orang berinteraksi dengan dokumen digital."
+      description: "MegaPDF lahir dari ide sederhana: membuat pengelolaan dokumen menjadi mulus, efisien, dan dapat diakses oleh semua orang. Kami percaya dalam mengubah cara orang berinteraksi dengan dokumen digital."
     },
     story: {
       title: "Kisah Kami",
-      paragraph1: "Didirikan pada tahun 2022, ScanPro muncul dari rasa frustrasi menghadapi alat PDF yang rumit dan tidak intuitif. Pendiri kami, penggemar teknologi dan ahli pengelolaan dokumen, melihat peluang untuk menciptakan solusi yang kuat sekaligus ramah pengguna.",
+      paragraph1: "Didirikan pada tahun 2022, MegaPDF muncul dari rasa frustrasi menghadapi alat PDF yang rumit dan tidak intuitif. Pendiri kami, penggemar teknologi dan ahli pengelolaan dokumen, melihat peluang untuk menciptakan solusi yang kuat sekaligus ramah pengguna.",
       paragraph2: "Apa yang dimulai sebagai proyek kecil dengan cepat berkembang menjadi platform komprehensif yang melayani ribuan pengguna di seluruh dunia, dari pelajar dan profesional hingga perusahaan besar."
     },
     missionValues: {
@@ -1794,7 +1794,7 @@ percentageOfTotal: "dari total penggunaan"
     },
     team: {
       title: "Temui Tim Kami",
-      description: "ScanPro didukung oleh tim kecil yang berdedikasi yang fokus menciptakan alat PDF terbaik untuk pengguna kami.",
+      description: "MegaPDF didukung oleh tim kecil yang berdedikasi yang fokus menciptakan alat PDF terbaik untuk pengguna kami.",
       member1: {
         name: "Cakra",
         role: "Pemimpin Pengembangan Aplikasi",
@@ -2056,18 +2056,18 @@ percentageOfTotal: "dari total penggunaan"
       api: "API"
     },
     general: {
-      question1: "Apa itu ScanPro?",
-      answer1: "ScanPro adalah platform online komprehensif untuk manajemen dan konversi PDF. Alat kami membantu Anda mengonversi, mengedit, menggabungkan, memisahkan, mengompresi, dan mengamankan dokumen PDF Anda melalui antarmuka web yang intuitif atau API.",
-      question2: "Apakah saya perlu membuat akun untuk menggunakan ScanPro?",
+      question1: "Apa itu MegaPDF?",
+      answer1: "MegaPDF adalah platform online komprehensif untuk manajemen dan konversi PDF. Alat kami membantu Anda mengonversi, mengedit, menggabungkan, memisahkan, mengompresi, dan mengamankan dokumen PDF Anda melalui antarmuka web yang intuitif atau API.",
+      question2: "Apakah saya perlu membuat akun untuk menggunakan MegaPDF?",
       answer2: "Tidak, Anda dapat menggunakan alat PDF dasar kami tanpa mendaftar. Namun, membuat akun gratis memberi Anda manfaat seperti riwayat tersimpan, batas ukuran file yang lebih tinggi, dan akses ke fitur tambahan.",
-      question3: "Apakah data saya aman di ScanPro?",
+      question3: "Apakah data saya aman di MegaPDF?",
       answer3: "Ya, semua file diproses dengan aman di server kami dengan enkripsi. Kami tidak membagikan file Anda dengan pihak ketiga, dan file akan otomatis dihapus dari server kami setelah diproses (dalam waktu 1 jam). Untuk detail lebih lanjut, silakan lihat Kebijakan Privasi kami.",
-      question4: "Perangkat dan browser apa yang didukung ScanPro?",
-      answer4: "ScanPro bekerja di semua browser modern termasuk Chrome, Firefox, Safari, dan Edge. Platform kami sepenuhnya responsif dan berfungsi di desktop, tablet, dan perangkat seluler."
+      question4: "Perangkat dan browser apa yang didukung MegaPDF?",
+      answer4: "MegaPDF bekerja di semua browser modern termasuk Chrome, Firefox, Safari, dan Edge. Platform kami sepenuhnya responsif dan berfungsi di desktop, tablet, dan perangkat seluler."
     },
     conversion: {
       question1: "Jenis file apa yang bisa saya konversi ke dan dari?",
-      answer1: "ScanPro mendukung konversi PDF ke berbagai format termasuk Word (DOCX), Excel (XLSX), PowerPoint (PPTX), gambar (JPG, PNG), HTML, dan teks biasa. Anda juga bisa mengonversi format ini kembali ke PDF.",
+      answer1: "MegaPDF mendukung konversi PDF ke berbagai format termasuk Word (DOCX), Excel (XLSX), PowerPoint (PPTX), gambar (JPG, PNG), HTML, dan teks biasa. Anda juga bisa mengonversi format ini kembali ke PDF.",
       question2: "Seberapa akurat konversi PDF Anda?",
       answer2: "Mesin konversi kami menggunakan algoritma canggih untuk mempertahankan format, termasuk font, gambar, tabel, dan tata letak. Namun, dokumen yang sangat kompleks mungkin memiliki perbedaan format kecil. Untuk hasil terbaik, kami sarankan menggunakan alat 'PDF ke Word' atau 'PDF ke Excel' untuk dokumen dengan format rumit.",
       question3: "Apakah ada batas ukuran file untuk konversi?",
@@ -2140,7 +2140,7 @@ percentageOfTotal: "dari total penggunaan"
   },
 
   security: {
-    title: "Keamanan & Privasi di ScanPro",
+    title: "Keamanan & Privasi di MegaPDF",
     description: "Kami menganggap serius keamanan dan privasi dokumen Anda. Pelajari bagaimana kami melindungi data Anda.",
     measures: {
       title: "Bagaimana Kami Melindungi Data Anda"
@@ -2207,7 +2207,7 @@ percentageOfTotal: "dari total penggunaan"
         description: "Standar dan peraturan yang kami patuhi",
         approach: {
           title: "Pendekatan Kepatuhan Kami",
-          description: "ScanPro dirancang dengan prinsip privasi dan keamanan sejak awal. Kami secara rutin meninjau dan memperbarui praktik kami untuk mematuhi peraturan yang berkembang."
+          description: "MegaPDF dirancang dengan prinsip privasi dan keamanan sejak awal. Kami secara rutin meninjau dan memperbarui praktik kami untuk mematuhi peraturan yang berkembang."
         },
         gdpr: {
           title: "Kepatuhan GDPR"
@@ -2243,7 +2243,7 @@ percentageOfTotal: "dari total penggunaan"
     },
     faq: {
       dataCollection: {
-        question: "Data pribadi apa yang dikumpulkan ScanPro?",
+        question: "Data pribadi apa yang dikumpulkan MegaPDF?",
         answer: "Kami mengumpulkan informasi minimal yang diperlukan untuk menyediakan layanan kami. Untuk pengguna terdaftar, ini termasuk email, nama, dan statistik penggunaan. Kami juga mengumpulkan data penggunaan anonim untuk meningkatkan layanan kami. Kami tidak menganalisis, memindai, atau menambang konten dokumen Anda."
       },
       documentStorage: {
@@ -2271,7 +2271,7 @@ percentageOfTotal: "dari total penggunaan"
 
   developer: {
     title: "Dokumentasi API Pengembang",
-    description: "Integrasikan alat PDF ScanPro yang kuat ke dalam aplikasi Anda dengan API RESTful kami",
+    description: "Integrasikan alat PDF MegaPDF yang kuat ke dalam aplikasi Anda dengan API RESTful kami",
     tabs: {
       overview: "Ikhtisar",
       authentication: "Otentikasi",
@@ -2369,7 +2369,7 @@ percentageOfTotal: "dari total penggunaan"
       subtitle: "Amankan permintaan API Anda dengan kunci API",
       apiKeys: {
         title: "Kunci API",
-        description: "Semua permintaan ke API ScanPro memerlukan otentikasi menggunakan kunci API. Kunci API Anda memiliki banyak hak istimewa, jadi pastikan untuk menjaganya tetap aman!"
+        description: "Semua permintaan ke API MegaPDF memerlukan otentikasi menggunakan kunci API. Kunci API Anda memiliki banyak hak istimewa, jadi pastikan untuk menjaganya tetap aman!"
       },
       howTo: {
         title: "Cara Mengotentikasi",
@@ -2414,7 +2414,7 @@ percentageOfTotal: "dari total penggunaan"
     overview: {
       title: "Ikhtisar API",
       subtitle: "Semua yang perlu Anda ketahui tentang API kami",
-      intro: "API ScanPro memungkinkan Anda mengintegrasikan kemampuan pemrosesan PDF kami langsung ke dalam aplikasi Anda. Dengan antarmuka RESTful sederhana, Anda dapat mengonversi, mengompresi, menggabungkan, memisahkan, dan melakukan operasi lain pada PDF secara terprogram.",
+      intro: "API MegaPDF memungkinkan Anda mengintegrasikan kemampuan pemrosesan PDF kami langsung ke dalam aplikasi Anda. Dengan antarmuka RESTful sederhana, Anda dapat mengonversi, mengompresi, menggabungkan, memisahkan, dan melakukan operasi lain pada PDF secara terprogram.",
       features: {
         title: "Fitur Utama",
         restful: "API RESTful dengan respons JSON",
@@ -2424,7 +2424,7 @@ percentageOfTotal: "dari total penggunaan"
         secure: "Penanganan file aman dengan transfer terenkripsi dan penghapusan file otomatis"
       },
       gettingStarted: "Memulai",
-      startSteps: "Untuk memulai dengan API ScanPro:",
+      startSteps: "Untuk memulai dengan API MegaPDF:",
       step1: "Daftar untuk akun",
       step2: "Hasilkan kunci API dari dasbor Anda",
       step3: "Lakukan permintaan API pertama Anda menggunakan contoh yang disediakan",
@@ -2447,7 +2447,7 @@ percentageOfTotal: "dari total penggunaan"
     }
   },
   pricing: {
-    description: "Pilih paket yang tepat untuk kebutuhan PDF Anda. ScanPro menawarkan opsi harga fleksibel dari gratis hingga enterprise, dengan fitur yang Anda butuhkan.",
+    description: "Pilih paket yang tepat untuk kebutuhan PDF Anda. MegaPDF menawarkan opsi harga fleksibel dari gratis hingga enterprise, dengan fitur yang Anda butuhkan.",
 
     // Page content
     title: "Harga sederhana dan transparan",

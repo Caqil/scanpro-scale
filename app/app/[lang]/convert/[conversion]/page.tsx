@@ -103,7 +103,7 @@ export async function generateMetadata({
       title: t(conversionInfo.titleKey),
       description: t(conversionInfo.descKey),
       url: `/${lang}/convert/${conversion}`,
-      siteName: "ScanPro",
+      siteName: "MegaPDF",
       locale: {
         'en': 'en_US',
         'id': 'id_ID',

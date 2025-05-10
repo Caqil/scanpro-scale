@@ -46,7 +46,7 @@ async function processUserMessage(sessionId: string, userMessage: string): Promi
 
     // Truncate PDF content to avoid token limits (reduced to 50k for efficiency)
     const truncatedContent = session.pdfText.substring(0, 50000);
-    const systemMessage = `You are ScanPro Assistant, powered by scanpro.cc. You answer questions about the uploaded PDF document. 
+    const systemMessage = `You are MegaPDF Assistant, powered by mega-pdf.com. You answer questions about the uploaded PDF document. 
 Document content: ${truncatedContent}
 
 Rules:
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
       await ChatSessionsService.createSession(sessionId, inputPath, pdfText);
 
       // Add branded welcome message
-      const welcomeMessage = `Welcome to ScanPro (scanpro.cc)! I've successfully processed your PDF document "${file.name}". Ask me any questions about its contents, and I'll provide accurate answers based on the document.`;
+      const welcomeMessage = `Welcome to MegaPDF (mega-pdf.com)! I've successfully processed your PDF document "${file.name}". Ask me any questions about its contents, and I'll provide accurate answers based on the document.`;
       await ChatSessionsService.addMessage(sessionId, welcomeMessage, 'assistant');
 
       return NextResponse.json({

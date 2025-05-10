@@ -13,11 +13,11 @@ jobs:
     steps:
       - name: Run Cleanup API
         run: |
-          curl -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://scanpro.cc/api/admin/cleanup?maxAge=60"
+          curl -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://mega-pdf.com/api/admin/cleanup?maxAge=60"
 
       - name: Check API Response
         run: |
-          response=$(curl -s -w "\n%{http_code}" -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://scanpro.cc/api/admin/cleanup?maxAge=60")
+          response=$(curl -s -w "\n%{http_code}" -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://mega-pdf.com/api/admin/cleanup?maxAge=60")
           http_code=$(echo "$response" | tail -n1)
           content=$(echo "$response" | sed '$d')
           echo "HTTP Status Code: $http_code"

@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   basePath: '',
-  //assetPrefix: 'https://scanpro.cc/',
+  //assetPrefix: 'https://mega-pdf.com/',
   async headers() {
     return [
       {

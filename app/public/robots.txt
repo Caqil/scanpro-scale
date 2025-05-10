@@ -4,7 +4,7 @@ Allow: /
 Disallow: /api/
 
 # Host
-Host: https://scanpro.cc
+Host: https://mega-pdf.com
 
 # Sitemaps
-Sitemap: https://scanpro.cc/sitemap.xml
+Sitemap: https://mega-pdf.com/sitemap.xml

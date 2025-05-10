@@ -58,7 +58,7 @@ export default function AboutPageContent() {
           {t('about.hero.title') || "Empowering Digital Document Management"}
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          {t('about.hero.description') || "ScanPro was born from a simple idea: making document management seamless, efficient, and accessible to everyone. We believe in transforming how people interact with digital documents."}
+          {t('about.hero.description') || "MegaPDF was born from a simple idea: making document management seamless, efficient, and accessible to everyone. We believe in transforming how people interact with digital documents."}
         </p>
       </section>
 
@@ -67,7 +67,7 @@ export default function AboutPageContent() {
         <div>
           <h2 className="text-3xl font-bold mb-4">{t('about.story.title') || "Our Story"}</h2>
           <p className="text-muted-foreground mb-4">
-            {t('about.story.paragraph1') || "Founded in 2022, ScanPro emerged from the frustration of dealing with complex and unintuitive PDF tools. Our founders, tech enthusiasts and document management experts, saw an opportunity to create a solution that was both powerful and user-friendly."}
+            {t('about.story.paragraph1') || "Founded in 2022, MegaPDF emerged from the frustration of dealing with complex and unintuitive PDF tools. Our founders, tech enthusiasts and document management experts, saw an opportunity to create a solution that was both powerful and user-friendly."}
           </p>
           <p className="text-muted-foreground">
             {t('about.story.paragraph2') || "What started as a small project quickly grew into a comprehensive platform serving thousands of users worldwide, from students and professionals to large enterprises."}
@@ -77,7 +77,7 @@ export default function AboutPageContent() {
           <div className="absolute inset-0 bg-primary/10 rounded-xl -rotate-6"></div>
           <Image 
             src="/images/ic_icon.png" 
-            alt="ScanPro Team" 
+            alt="MegaPDF Team" 
             width={600} 
             height={400} 
             className="relative rounded-xl shadow-lg z-10 transform rotate-3"
@@ -165,7 +165,7 @@ export default function AboutPageContent() {
       <section className="mb-12">
         <h2 className="text-2xl font-bold mb-6">{t('about.team.title') || "Meet Our Team"}</h2>
         <p className="mb-8 text-muted-foreground">
-          {t('about.team.description') || "ScanPro is powered by a small, dedicated team focused on creating the best possible PDF tools for our users."}
+          {t('about.team.description') || "MegaPDF is powered by a small, dedicated team focused on creating the best possible PDF tools for our users."}
         </p>
         
         <div className="grid md:grid-cols-3 gap-8">
@@ -235,7 +235,7 @@ export default function AboutPageContent() {
       <section className="text-center">
         <h2 className="text-3xl font-bold mb-6">Join Our Journey</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-          Whether you're a student, professional, or enterprise, ScanPro is here to 
+          Whether you're a student, professional, or enterprise, MegaPDF is here to 
           transform your document management experience.
         </p>
         <div className="flex justify-center gap-4">

@@ -195,7 +195,7 @@ function ClientHomeContent() {
                             {`curl -X POST \\
   -F "pdf=@document.pdf" \\
   -F "format=docx" \\
-  https://scanpro.cc/api/convert`}
+  https://mega-pdf.com/api/convert`}
                           </code>
                         </pre>
                       </div>

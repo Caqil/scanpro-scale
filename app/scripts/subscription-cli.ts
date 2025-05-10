@@ -1,9 +1,9 @@
 // scripts/subscription-cli.ts
 import { PrismaClient } from '@prisma/client';
 import readline from 'readline';
-import { 
-  getSubscriptionDetails, 
-  createSubscription, 
+import {
+  getSubscriptionDetails,
+  createSubscription,
   cancelSubscription,
   checkExpiringSubscriptions,
   processExpiredSubscriptions,
@@ -18,7 +18,7 @@ const rl = readline.createInterface({
 });
 
 async function main() {
-  console.log('ScanPro Subscription CLI Tool');
+  console.log('MegaPDF Subscription CLI Tool');
   console.log('-----------------------------------------');
   console.log('1. List all subscriptions');
   console.log('2. Get subscription details by PayPal ID');

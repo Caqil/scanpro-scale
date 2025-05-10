@@ -1,10 +1,10 @@
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
     metadata: {
-        title: "ScanPro - Ücretsiz PDF Dönüştürücü, Düzenleyici, OCR & PDF Kilidini Aç",
-        template: "%s | ScanPro - PDF Araçları",
-        description: "ScanPro ile PDF'leri dönüştürün, düzenleyin, kilidini açın, sıkıştırın, birleştirin, bölün ve OCR uygulayın. Ücretsiz, hızlı çevrimiçi PDF araçları—indirme gerekmez.",
-        keywords: "PDF dönüştürücü, PDF düzenleyici, OCR çevrimiçi, PDF kilidini aç, PDF sıkıştır, PDF birleştir, PDF böl, ücretsiz PDF araçları, çevrimiçi PDF düzenleyici, ScanPro"
+        title: "MegaPDF - Ücretsiz PDF Dönüştürücü, Düzenleyici, OCR & PDF Kilidini Aç",
+        template: "%s | MegaPDF - PDF Araçları",
+        description: "MegaPDF ile PDF'leri dönüştürün, düzenleyin, kilidini açın, sıkıştırın, birleştirin, bölün ve OCR uygulayın. Ücretsiz, hızlı çevrimiçi PDF araçları—indirme gerekmez.",
+        keywords: "PDF dönüştürücü, PDF düzenleyici, OCR çevrimiçi, PDF kilidini aç, PDF sıkıştır, PDF birleştir, PDF böl, ücretsiz PDF araçları, çevrimiçi PDF düzenleyici, MegaPDF"
     },
     nav: {
         tools: "Araçlar",
@@ -15,7 +15,7 @@ export default {
         selectLanguage: "Dil Seç",
         downloadApp: "Uygulamayı İndir",
         getApp: "Hareket halindeyken PDF araçları için mobil uygulamamızı edinin",
-        appStores: "ScanPro Uygulamasını Al",
+        appStores: "MegaPDF Uygulamasını Al",
         mobileTools: "Hareket Halinde PDF Araçları",
         signIn: "Giriş Yap",
         signUp: "Kaydol",
@@ -99,7 +99,7 @@ export default {
         title: "Hesabınıza giriş yapın",
         description: "Gösterge panelinize erişmek için kimlik bilgilerinizi girin",
         termsAndPrivacy: "Giriş yaparak, <termsLink>Hizmet Şartları</termsLink> ve <privacyLink>Gizlilik Politikası</privacyLink>'nı kabul etmiş olursunuz.",
-        footer: "© 2025 ScanPro. Tüm hakları saklıdır."
+        footer: "© 2025 MegaPDF. Tüm hakları saklıdır."
     },
     dashboard: {
         title: "Kontrol Paneli",
@@ -137,13 +137,13 @@ export default {
         lastUsed: "Son Kullanım",
         never: "Hiçbir Zaman",
         operationsThisMonth: "bu ayki işlemler",
-status: {
-  active: "Aktif",
-  inactive: "Pasif"
-},
-usageBreakdown: "Bu ayki API kullanım dökümü",
-none: "Yok",
-percentageOfTotal: "toplam kullanımın"
+        status: {
+            active: "Aktif",
+            inactive: "Pasif"
+        },
+        usageBreakdown: "Bu ayki API kullanım dökümü",
+        none: "Yok",
+        percentageOfTotal: "toplam kullanımın"
 
     },
     subscription: {
@@ -185,23 +185,23 @@ percentageOfTotal: "toplam kullanımın"
         success: {
             title: "Abonelik Etkinleştirildi",
             description: "Aboneliğiniz başarıyla etkinleştirildi",
-            message: "ScanPro'ya abone olduğunuz için teşekkür ederiz! Artık abonelik seviyenizin tüm özelliklerine erişebilirsiniz.",
+            message: "MegaPDF'ya abone olduğunuz için teşekkür ederiz! Artık abonelik seviyenizin tüm özelliklerine erişebilirsiniz.",
             cta: "Panele Git",
             seo: {
-              title: "Abonelik Başarıyla Etkinleştirildi - ScanPro",
-              description: "ScanPro aboneliğiniz etkinleştirildi. Şimdi sizin için mevcut olan tüm premium özellikleri keşfedin."
+                title: "Abonelik Başarıyla Etkinleştirildi - MegaPDF",
+                description: "MegaPDF aboneliğiniz etkinleştirildi. Şimdi sizin için mevcut olan tüm premium özellikleri keşfedin."
             }
-          },
-          cancel: {
+        },
+        cancel: {
             title: "Abonelik İptal Edildi",
             description: "Abonelik işleminiz iptal edildi",
             message: "Abonelik işlemi iptal edildi. Hesabınızda herhangi bir değişiklik yapılmadı. Hazır olduğunuzda tekrar denemekten çekinmeyin.",
             cta: "Planlara Geri Dön",
             seo: {
-              title: "Abonelik İptal Edildi - ScanPro",
-              description: "Abonelik işleminiz iptal edildi. Hazır olduğunuzda dilediğiniz zaman abone olabilirsiniz."
+                title: "Abonelik İptal Edildi - MegaPDF",
+                description: "Abonelik işleminiz iptal edildi. Hazır olduğunuzda dilediğiniz zaman abone olabilirsiniz."
             }
-          }
+        }
     },
     profile: {
         // Personal Information
@@ -425,12 +425,12 @@ percentageOfTotal: "toplam kullanımın"
 
     // Özellikler Bölümü
     features: {
-        title: "Gelişmiş PDF Araçları ve Özellikleri | ScanPro",
-        description: "ScanPro'nun belge yönetimi, dönüştürme, düzenleme ve daha fazlası için kapsamlı PDF araçları ve özellikler paketini keşfedin.",
+        title: "Gelişmiş PDF Araçları ve Özellikleri | MegaPDF",
+        description: "MegaPDF'nun belge yönetimi, dönüştürme, düzenleme ve daha fazlası için kapsamlı PDF araçları ve özellikler paketini keşfedin.",
 
         hero: {
             title: "Gelişmiş PDF Araçları ve Özellikleri",
-            description: "ScanPro'yu tüm belge yönetimi ihtiyaçlarınız için nihai çözüm haline getiren kapsamlı araçlar ve özellikler paketini keşfedin."
+            description: "MegaPDF'yu tüm belge yönetimi ihtiyaçlarınız için nihai çözüm haline getiren kapsamlı araçlar ve özellikler paketini keşfedin."
         },
 
         overview: {
@@ -618,8 +618,8 @@ percentageOfTotal: "toplam kullanımın"
         },
 
         mobile: {
-            title: "ScanPro Mobil Uygulaması",
-            description: "ScanPro'nun güçlü PDF araçlarını yanınızda taşıyın. Mobil uygulamamız, kullanışlı ve mobil dostu bir arayüzde aynı sağlam işlevselliği sunar.",
+            title: "MegaPDF Mobil Uygulaması",
+            description: "MegaPDF'nun güçlü PDF araçlarını yanınızda taşıyın. Mobil uygulamamız, kullanışlı ve mobil dostu bir arayüzde aynı sağlam işlevselliği sunar.",
             feature1: {
                 title: "Belgeleri Tarama ve Dijitalleştirme",
                 description: "Kameranızı kullanarak fiziksel belgeleri tarayın ve anında yüksek kaliteli PDF'lere dönüştürün."
@@ -661,13 +661,13 @@ percentageOfTotal: "toplam kullanımın"
 
         testimonials: {
             title: "Kullanıcılarımız Ne Diyor",
-            quote1: "ScanPro, ekibimizin belgelerle başa çıkma şeklini değiştirdi. OCR işlevselliği inanılmaz derecede doğru ve toplu işleme her hafta bize saatler kazandırıyor.",
+            quote1: "MegaPDF, ekibimizin belgelerle başa çıkma şeklini değiştirdi. OCR işlevselliği inanılmaz derecede doğru ve toplu işleme her hafta bize saatler kazandırıyor.",
             name1: "Sarah Johnson",
             title1: "Operasyon Müdürü",
-            quote2: "API entegrasyonu kusursuzdu. ScanPro'yu iş akışımıza entegre ettik ve verimlilikteki fark gece ile gündüz gibi. Destek ekibi de birinci sınıf.",
+            quote2: "API entegrasyonu kusursuzdu. MegaPDF'yu iş akışımıza entegre ettik ve verimlilikteki fark gece ile gündüz gibi. Destek ekibi de birinci sınıf.",
             name2: "David Chen",
             title2: "Teknoloji Lideri",
-            quote3: "Küçük bir işletme sahibi olarak, uygun fiyat ve kapsamlı araç seti ScanPro'yu inanılmaz bir değer haline getiriyor. Özellikle hareket halindeyken belgeleri yönetmemi sağlayan mobil uygulamayı çok seviyorum.",
+            quote3: "Küçük bir işletme sahibi olarak, uygun fiyat ve kapsamlı araç seti MegaPDF'yu inanılmaz bir değer haline getiriyor. Özellikle hareket halindeyken belgeleri yönetmemi sağlayan mobil uygulamayı çok seviyorum.",
             name3: "Maria Garcia",
             title3: "İşletme Sahibi"
         }
@@ -1753,11 +1753,11 @@ percentageOfTotal: "toplam kullanımın"
     about: {
         hero: {
             title: "Dijital Belge Yönetiminde Güçlendirme",
-            description: "ScanPro, basit bir fikirden doğdu: belge yönetimini sorunsuz, verimli ve herkes için erişilebilir hale getirmek. İnsanların dijital belgelerle etkileşim şeklini dönüştürmeye inanıyoruz."
+            description: "MegaPDF, basit bir fikirden doğdu: belge yönetimini sorunsuz, verimli ve herkes için erişilebilir hale getirmek. İnsanların dijital belgelerle etkileşim şeklini dönüştürmeye inanıyoruz."
         },
         story: {
             title: "Hikayemiz",
-            paragraph1: "2022 yılında kurulan ScanPro, karmaşık ve sezgisel olmayan PDF araçlarıyla başa çıkmanın yarattığı hayal kırıklığından ortaya çıktı. Teknoloji meraklıları ve belge yönetimi uzmanları olan kurucularımız, hem güçlü hem de kullanıcı dostu bir çözüm yaratma fırsatı gördü.",
+            paragraph1: "2022 yılında kurulan MegaPDF, karmaşık ve sezgisel olmayan PDF araçlarıyla başa çıkmanın yarattığı hayal kırıklığından ortaya çıktı. Teknoloji meraklıları ve belge yönetimi uzmanları olan kurucularımız, hem güçlü hem de kullanıcı dostu bir çözüm yaratma fırsatı gördü.",
             paragraph2: "Küçük bir proje olarak başlayan şey, kısa sürede öğrencilerden profesyonellere ve büyük işletmelere kadar dünya çapında binlerce kullanıcıya hizmet veren kapsamlı bir platforma dönüştü."
         },
         missionValues: {
@@ -1792,7 +1792,7 @@ percentageOfTotal: "toplam kullanımın"
         },
         team: {
             title: "Ekibimizle Tanışın",
-            description: "ScanPro, kullanıcılarımız için mümkün olan en iyi PDF araçlarını yaratmaya odaklanmış küçük ve özverili bir ekip tarafından destekleniyor.",
+            description: "MegaPDF, kullanıcılarımız için mümkün olan en iyi PDF araçlarını yaratmaya odaklanmış küçük ve özverili bir ekip tarafından destekleniyor.",
             member1: {
                 name: "Cakra",
                 role: "Uygulama Geliştirme Lideri",
@@ -2054,18 +2054,18 @@ percentageOfTotal: "toplam kullanımın"
             api: "API"
         },
         general: {
-            question1: "ScanPro nedir?",
-            answer1: "ScanPro, PDF yönetimi ve dönüştürme için kapsamlı bir çevrimiçi platformdur. Araçlarımız, sezgisel bir web arayüzü veya API aracılığıyla PDF belgelerinizi dönüştürmenize, düzenlemenize, birleştirmenize, bölmenize, sıkıştırmanıza ve korumanıza yardımcı olur.",
-            question2: "ScanPro'yu kullanmak için hesap oluşturmam gerekiyor mu?",
+            question1: "MegaPDF nedir?",
+            answer1: "MegaPDF, PDF yönetimi ve dönüştürme için kapsamlı bir çevrimiçi platformdur. Araçlarımız, sezgisel bir web arayüzü veya API aracılığıyla PDF belgelerinizi dönüştürmenize, düzenlemenize, birleştirmenize, bölmenize, sıkıştırmanıza ve korumanıza yardımcı olur.",
+            question2: "MegaPDF'yu kullanmak için hesap oluşturmam gerekiyor mu?",
             answer2: "Hayır, temel PDF araçlarımızı kaydolmadan kullanabilirsiniz. Ancak, ücretsiz bir hesap oluşturmak size geçmişin kaydedilmesi, daha yüksek dosya boyutu limitleri ve ek özelliklere erişim gibi avantajlar sağlar.",
-            question3: "Verilerim ScanPro'da güvende mi?",
+            question3: "Verilerim MegaPDF'da güvende mi?",
             answer3: "Evet, tüm dosyalar şifreleme ile sunucularımızda güvenli bir şekilde işlenir. Dosyalarınızı üçüncü taraflarla paylaşmıyoruz ve işleme tamamlandıktan sonra (1 saat içinde) sunucularımızdan otomatik olarak siliniyor. Daha fazla ayrıntı için lütfen Gizlilik Politikamıza bakın.",
-            question4: "ScanPro hangi cihazları ve tarayıcıları destekler?",
-            answer4: "ScanPro, Chrome, Firefox, Safari ve Edge dahil tüm modern tarayıcılarda çalışır. Platformumuz tamamen duyarlıdır ve masaüstü, tablet ve mobil cihazlarda kullanılabilir."
+            question4: "MegaPDF hangi cihazları ve tarayıcıları destekler?",
+            answer4: "MegaPDF, Chrome, Firefox, Safari ve Edge dahil tüm modern tarayıcılarda çalışır. Platformumuz tamamen duyarlıdır ve masaüstü, tablet ve mobil cihazlarda kullanılabilir."
         },
         conversion: {
             question1: "Hangi dosya türlerini dönüştürebilirim ve hangilerinden dönüştürebilirim?",
-            answer1: "ScanPro, PDF'leri Word (DOCX), Excel (XLSX), PowerPoint (PPTX), görüntüler (JPG, PNG), HTML ve düz metin gibi birçok formata dönüştürmeyi destekler. Bu formatları tekrar PDF'ye de dönüştürebilirsiniz.",
+            answer1: "MegaPDF, PDF'leri Word (DOCX), Excel (XLSX), PowerPoint (PPTX), görüntüler (JPG, PNG), HTML ve düz metin gibi birçok formata dönüştürmeyi destekler. Bu formatları tekrar PDF'ye de dönüştürebilirsiniz.",
             question2: "PDF dönüşümleriniz ne kadar doğru?",
             answer2: "Dönüşüm motorumuz, yazı tipleri, görüntüler, tablolar ve düzeni içeren biçimlendirmeyi korumak için gelişmiş algoritmalar kullanır. Ancak çok karmaşık belgelerde küçük biçimlendirme farklılıkları olabilir. En iyi sonuçlar için karmaşık biçimlendirmeye sahip belgeler için 'PDF'den Word'e' veya 'PDF'den Excel'e' araçlarımızı kullanmanızı öneririz.",
             question3: "Dönüşümler için dosya boyutu sınırı var mı?",
@@ -2137,7 +2137,7 @@ percentageOfTotal: "toplam kullanımın"
         socialYoutube: "YouTube"
     },
     security: {
-        title: "ScanPro'da Güvenlik ve Gizlilik",
+        title: "MegaPDF'da Güvenlik ve Gizlilik",
         description: "Belgelerinizin güvenliğini ve gizliliğini ciddiye alıyoruz. Verilerinizi nasıl koruduğumuzu öğrenin.",
         measures: {
             title: "Verilerinizi Nasıl Koruyoruz"
@@ -2204,7 +2204,7 @@ percentageOfTotal: "toplam kullanımın"
                 description: "Uyduğumuz standartlar ve düzenlemeler",
                 approach: {
                     title: "Uyumluluk Yaklaşımımız",
-                    description: "ScanPro, gizlilik ve güvenlik odaklı tasarım ilkeleriyle geliştirilmiştir. Gelişen düzenlemelere uymak için uygulamalarımızı düzenli olarak gözden geçirip güncelliyoruz."
+                    description: "MegaPDF, gizlilik ve güvenlik odaklı tasarım ilkeleriyle geliştirilmiştir. Gelişen düzenlemelere uymak için uygulamalarımızı düzenli olarak gözden geçirip güncelliyoruz."
                 },
                 gdpr: {
                     title: "GDPR Uyumluluğu"
@@ -2240,7 +2240,7 @@ percentageOfTotal: "toplam kullanımın"
         },
         faq: {
             dataCollection: {
-                question: "ScanPro hangi kişisel verileri topluyor?",
+                question: "MegaPDF hangi kişisel verileri topluyor?",
                 answer: "Hizmetlerimizi sağlamak için gereken minimum bilgiyi topluyoruz. Kayıtlı kullanıcılar için bu e-posta, ad ve kullanım istatistiklerini içerir. Hizmetlerimizi iyileştirmek için anonim kullanım verileri de topluyoruz. Belgelerinizin içeriğini analiz etmiyor, taramıyor veya madencilik yapmıyoruz."
             },
             documentStorage: {
@@ -2268,7 +2268,7 @@ percentageOfTotal: "toplam kullanımın"
 
     developer: {
         title: "Geliştirici API Dokümantasyonu",
-        description: "ScanPro'nun güçlü PDF araçlarını RESTful API'miz ile uygulamalarınıza entegre edin",
+        description: "MegaPDF'nun güçlü PDF araçlarını RESTful API'miz ile uygulamalarınıza entegre edin",
         tabs: {
             overview: "Genel Bakış",
             authentication: "Kimlik Doğrulama",
@@ -2366,7 +2366,7 @@ percentageOfTotal: "toplam kullanımın"
             subtitle: "API anahtarlarıyla API isteklerinizi güvence altına alın",
             apiKeys: {
                 title: "API Anahtarları",
-                description: "ScanPro API'ye yapılan tüm istekler, bir API anahtarı kullanılarak kimlik doğrulaması gerektirir. API anahtarınız birçok yetkiye sahiptir, bu yüzden güvenli tutmaya özen gösterin!"
+                description: "MegaPDF API'ye yapılan tüm istekler, bir API anahtarı kullanılarak kimlik doğrulaması gerektirir. API anahtarınız birçok yetkiye sahiptir, bu yüzden güvenli tutmaya özen gösterin!"
             },
             howTo: {
                 title: "Nasıl Kimlik Doğrulanır",
@@ -2411,7 +2411,7 @@ percentageOfTotal: "toplam kullanımın"
         overview: {
             title: "API Genel Bakış",
             subtitle: "API'miz hakkında bilmeniz gereken her şey",
-            intro: "ScanPro API, PDF işleme yeteneklerimizi doğrudan uygulamalarınıza entegre etmenizi sağlar. Basit bir RESTful arayüz ile PDF'leri programatik olarak dönüştürebilir, sıkıştırabilir, birleştirebilir, bölebilir ve diğer işlemleri gerçekleştirebilirsiniz.",
+            intro: "MegaPDF API, PDF işleme yeteneklerimizi doğrudan uygulamalarınıza entegre etmenizi sağlar. Basit bir RESTful arayüz ile PDF'leri programatik olarak dönüştürebilir, sıkıştırabilir, birleştirebilir, bölebilir ve diğer işlemleri gerçekleştirebilirsiniz.",
             features: {
                 title: "Ana Özellikler",
                 restful: "JSON yanıtlarıyla RESTful API",
@@ -2421,7 +2421,7 @@ percentageOfTotal: "toplam kullanımın"
                 secure: "Şifreli aktarımlar ve otomatik dosya silme ile güvenli dosya yönetimi"
             },
             gettingStarted: "Başlarken",
-            startSteps: "ScanPro API ile başlamak için:",
+            startSteps: "MegaPDF API ile başlamak için:",
             step1: "Bir hesap için kaydolun",
             step2: "Kontrol panelinizden bir API anahtarı oluşturun",
             step3: "Sağlanan örnekleri kullanarak ilk API isteğinizi yapın",
@@ -2445,7 +2445,7 @@ percentageOfTotal: "toplam kullanımın"
     },
     pricing: {
         // Metadata
-        description: "PDF ihtiyaçlarınız için doğru planı seçin. ScanPro, ücretsizden kurumsal plana kadar esnek fiyatlandırma seçenekleri sunar ve ihtiyacınız olan özelliklere sahiptir.",
+        description: "PDF ihtiyaçlarınız için doğru planı seçin. MegaPDF, ücretsizden kurumsal plana kadar esnek fiyatlandırma seçenekleri sunar ve ihtiyacınız olan özelliklere sahiptir.",
 
         // Page content
         title: "Basit, şeffaf fiyatlandırma",

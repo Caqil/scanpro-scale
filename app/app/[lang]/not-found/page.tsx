@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
       title: "Page Not Found",
     description: "Sorry, we couldn't find the page you're looking for.",
       url: `/${lang}/not-found`,
-      siteName: "ScanPro",
+      siteName: "MegaPDF",
       locale: {
         'en': 'en_US',
         'id': 'id_ID',

@@ -96,7 +96,7 @@ const PayPalSubscriptionButton: React.FC<PayPalSubscriptionButtonProps> = ({
                     application_context: {
                       shipping_preference: "NO_SHIPPING",
                       user_action: "SUBSCRIBE_NOW",
-                      brand_name: "ScanPro",
+                      brand_name: "MegaPDF",
                       return_url: `${window.location.origin}/${tier}`,
                       cancel_url: `${window.location.origin}/pricing`,
                     }

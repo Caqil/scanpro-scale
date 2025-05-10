@@ -1,10 +1,10 @@
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
   metadata: {
-    title: "ScanPro - Free PDF Converter, Editor, OCR & Unlock PDF",
-    template: "%s | ScanPro - PDF Tools",
-    description: "Convert JPG to PDF, edit, unlock, compress, merge, split & OCR PDFs with ScanPro. Free, fast online tools for image files & multiple images—no downloads needed.",
-    keywords: "PDF converter, PDF editor, OCR online, unlock PDF, compress PDF, merge PDF, split PDF, free PDF tools, online PDF editor, convert JPG to PDF, JPG file to PDF, online JPG to PDF, free JPG to PDF converter, convert JPGs to PDFs, image files, image format, multiple images, convert your images, file format, uploading file, operating system, drag and drop, converting multiple, image quality, files are automatically deleted, ScanPro"
+    title: "MegaPDF - Free PDF Converter, Editor, OCR & Unlock PDF",
+    template: "%s | MegaPDF - PDF Tools",
+    description: "Convert JPG to PDF, edit, unlock, compress, merge, split & OCR PDFs with MegaPDF. Free, fast online tools for image files & multiple images—no downloads needed.",
+    keywords: "PDF converter, PDF editor, OCR online, unlock PDF, compress PDF, merge PDF, split PDF, free PDF tools, online PDF editor, convert JPG to PDF, JPG file to PDF, online JPG to PDF, free JPG to PDF converter, convert JPGs to PDFs, image files, image format, multiple images, convert your images, file format, uploading file, operating system, drag and drop, converting multiple, image quality, files are automatically deleted, MegaPDF"
   },
   nav: {
     tools: "Tools",
@@ -15,7 +15,7 @@ export default {
     selectLanguage: "Select Language",
     downloadApp: "Download App",
     getApp: "Get our mobile app for on-the-go PDF tools",
-    appStores: "Get ScanPro App",
+    appStores: "Get MegaPDF App",
     mobileTools: "PDF tools on the go",
     signIn: "Sign in",
     signUp: "Sign up",
@@ -100,9 +100,9 @@ export default {
     title: "Sign in to your account",
     description: "Enter your credentials to access your dashboard",
     termsAndPrivacy: "By signing in, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>.",
-    footer: "© 2025 ScanPro. All rights reserved."
+    footer: "© 2025 MegaPDF. All rights reserved."
   },
-  
+
   // Dashboard
   dashboard: {
     title: "Dashboard",
@@ -189,11 +189,11 @@ export default {
     success: {
       title: "Subscription Activated",
       description: "Your subscription has been activated successfully",
-      message: "Thank you for subscribing to ScanPro! You now have access to all the features of your subscription tier.",
+      message: "Thank you for subscribing to MegaPDF! You now have access to all the features of your subscription tier.",
       cta: "Go to Dashboard",
       seo: {
-        title: "Subscription Activated Successfully - ScanPro",
-        description: "Your ScanPro subscription has been activated. Explore all the premium features now available to you."
+        title: "Subscription Activated Successfully - MegaPDF",
+        description: "Your MegaPDF subscription has been activated. Explore all the premium features now available to you."
       }
     },
     cancel: {
@@ -202,7 +202,7 @@ export default {
       message: "The subscription process was canceled. No changes have been made to your account. Feel free to try again when you're ready.",
       cta: "Back to Plans",
       seo: {
-        title: "Subscription Canceled - ScanPro",
+        title: "Subscription Canceled - MegaPDF",
         description: "Your subscription process was canceled. You can always subscribe later when you're ready."
       }
 
@@ -425,12 +425,12 @@ export default {
     }
   },
   features: {
-    title: "Advanced PDF Tools & Features | ScanPro",
-    description: "Explore ScanPro's comprehensive suite of PDF tools and features for document management, conversion, editing, unlock pdfs and more. Convert your files across various file formats like JPG to PDF and DOCX to PDF online for free.",
+    title: "Advanced PDF Tools & Features | MegaPDF",
+    description: "Explore MegaPDF's comprehensive suite of PDF tools and features for document management, conversion, editing, unlock pdfs and more. Convert your files across various file formats like JPG to PDF and DOCX to PDF online for free.",
 
     hero: {
       title: "Advanced PDF Tools & Features",
-      description: "Discover the comprehensive suite of tools and features that make ScanPro the ultimate solution for all your document management needs, including drag and drop uploading and converting multiple image files to PDF format across any operating system."
+      description: "Discover the comprehensive suite of tools and features that make MegaPDF the ultimate solution for all your document management needs, including drag and drop uploading and converting multiple image files to PDF format across any operating system."
     },
 
     overview: {
@@ -618,8 +618,8 @@ export default {
     },
 
     mobile: {
-      title: "ScanPro Mobile App",
-      description: "Take ScanPro's powerful PDF tools with you on the go. Our mobile app offers the same robust functionality in a convenient, mobile-friendly interface, including JPG file to PDF conversion.",
+      title: "MegaPDF Mobile App",
+      description: "Take MegaPDF's powerful PDF tools with you on the go. Our mobile app offers the same robust functionality in a convenient, mobile-friendly interface, including JPG file to PDF conversion.",
       feature1: {
         title: "Scan & Digitize Documents",
         description: "Use your camera to scan physical documents and convert them to high-quality PDFs instantly with our free JPG to PDF converter."
@@ -661,20 +661,20 @@ export default {
 
     testimonials: {
       title: "What Our Users Say",
-      quote1: "ScanPro has revolutionized the way our team handles documents. The OCR functionality is incredibly accurate, and the batch processing saves us hours every week.",
+      quote1: "MegaPDF has revolutionized the way our team handles documents. The OCR functionality is incredibly accurate, and the batch processing saves us hours every week.",
       name1: "Sarah Johnson",
       title1: "Operations Manager",
-      quote2: "The API integration was seamless. We've integrated ScanPro into our workflow and the difference in efficiency is night and day. Their support team is also top-notch.",
+      quote2: "The API integration was seamless. We've integrated MegaPDF into our workflow and the difference in efficiency is night and day. Their support team is also top-notch.",
       name2: "David Chen",
       title2: "Tech Lead",
-      quote3: "As a small business owner, the affordable pricing and comprehensive toolset make ScanPro an incredible value. I especially love the mobile app which lets me handle documents on the go.",
+      quote3: "As a small business owner, the affordable pricing and comprehensive toolset make MegaPDF an incredible value. I especially love the mobile app which lets me handle documents on the go.",
       name3: "Maria Garcia",
       title3: "Business Owner"
     },
 
     cta: {
       title: "Ready to Transform Your Document Workflow?",
-      description: "Join thousands of satisfied users who have streamlined their document management with ScanPro’s online tools, including our PDF converter for multiple file formats.",
+      description: "Join thousands of satisfied users who have streamlined their document management with MegaPDF’s online tools, including our PDF converter for multiple file formats.",
       pricing: "View Pricing",
       explore: "Explore Tools"
     }
@@ -1936,11 +1936,11 @@ export default {
   about: {
     hero: {
       title: "Empowering Digital Document Management",
-      description: "ScanPro was born from a simple idea: making document management seamless, efficient, and accessible to everyone. We believe in transforming how people interact with digital documents."
+      description: "MegaPDF was born from a simple idea: making document management seamless, efficient, and accessible to everyone. We believe in transforming how people interact with digital documents."
     },
     story: {
       title: "Our Story",
-      paragraph1: "Founded in 2022, ScanPro emerged from the frustration of dealing with complex and unintuitive PDF tools. Our founders, tech enthusiasts and document management experts, saw an opportunity to create a solution that was both powerful and user-friendly.",
+      paragraph1: "Founded in 2022, MegaPDF emerged from the frustration of dealing with complex and unintuitive PDF tools. Our founders, tech enthusiasts and document management experts, saw an opportunity to create a solution that was both powerful and user-friendly.",
       paragraph2: "What started as a small project quickly grew into a comprehensive platform serving thousands of users worldwide, from students and professionals to large enterprises."
     },
     missionValues: {
@@ -1975,7 +1975,7 @@ export default {
     },
     team: {
       title: "Meet Our Team",
-      description: "ScanPro is powered by a small, dedicated team focused on creating the best possible PDF tools for our users.",
+      description: "MegaPDF is powered by a small, dedicated team focused on creating the best possible PDF tools for our users.",
       member1: {
         name: "Cakra",
         role: "App Development Lead",
@@ -2245,18 +2245,18 @@ export default {
       api: "Api",
     },
     general: {
-      question1: "What is ScanPro?",
-      answer1: "ScanPro is a comprehensive online platform for PDF management and conversion. Our tools help you convert, edit, merge, split, compress, and secure your PDF documents through an intuitive web interface or API.",
-      question2: "Do I need to create an account to use ScanPro?",
+      question1: "What is MegaPDF?",
+      answer1: "MegaPDF is a comprehensive online platform for PDF management and conversion. Our tools help you convert, edit, merge, split, compress, and secure your PDF documents through an intuitive web interface or API.",
+      question2: "Do I need to create an account to use MegaPDF?",
       answer2: "No, you can use our basic PDF tools without registering. However, creating a free account gives you benefits like saved history, higher file size limits, and access to additional features.",
-      question3: "Is my data secure on ScanPro?",
+      question3: "Is my data secure on MegaPDF?",
       answer3: "Yes, all files are processed securely on our servers with encryption. We don't share your files with third parties, and files are automatically deleted from our servers after processing (within 1 hours). For more details, please see our Privacy Policy.",
-      question4: "What devices and browsers does ScanPro support?",
-      answer4: "ScanPro works on all modern browsers including Chrome, Firefox, Safari, and Edge. Our platform is fully responsive and works on desktop, tablet, and mobile devices."
+      question4: "What devices and browsers does MegaPDF support?",
+      answer4: "MegaPDF works on all modern browsers including Chrome, Firefox, Safari, and Edge. Our platform is fully responsive and works on desktop, tablet, and mobile devices."
     },
     conversion: {
       question1: "What file types can I convert to and from?",
-      answer1: "ScanPro supports converting PDFs to many formats including Word (DOCX), Excel (XLSX), PowerPoint (PPTX), images (JPG, PNG), HTML, and plain text. You can also convert these formats back to PDF.",
+      answer1: "MegaPDF supports converting PDFs to many formats including Word (DOCX), Excel (XLSX), PowerPoint (PPTX), images (JPG, PNG), HTML, and plain text. You can also convert these formats back to PDF.",
       question2: "How accurate are your PDF conversions?",
       answer2: "Our conversion engine uses advanced algorithms to maintain formatting, including fonts, images, tables, and layout. However, very complex documents may have minor formatting differences. For best results, we recommend using our 'PDF to Word' or 'PDF to Excel' tools for documents with complex formatting.",
       question3: "Is there a file size limit for conversions?",
@@ -2328,7 +2328,7 @@ export default {
     socialYoutube: "YouTube"
   },
   security: {
-    title: "Security & Privacy at ScanPro",
+    title: "Security & Privacy at MegaPDF",
     description: "We take the security and privacy of your documents seriously. Learn how we protect your data.",
     measures: {
       title: "How We Protect Your Data"
@@ -2395,7 +2395,7 @@ export default {
         description: "Standards and regulations we adhere to",
         approach: {
           title: "Our Compliance Approach",
-          description: "ScanPro is designed with privacy and security by design principles. We regularly review and update our practices to comply with evolving regulations."
+          description: "MegaPDF is designed with privacy and security by design principles. We regularly review and update our practices to comply with evolving regulations."
         },
         gdpr: {
           title: "GDPR Compliance"
@@ -2431,7 +2431,7 @@ export default {
     },
     faq: {
       dataCollection: {
-        question: "What personal data does ScanPro collect?",
+        question: "What personal data does MegaPDF collect?",
         answer: "We collect minimal information needed to provide our services. For registered users, this includes email, name, and usage statistics. We also collect anonymous usage data to improve our services. We don't analyze, scan, or mine the content of your documents."
       },
       documentStorage: {
@@ -2458,7 +2458,7 @@ export default {
   },
   developer: {
     title: "Developer API Documentation",
-    description: "Integrate ScanPro's powerful PDF tools into your applications with our RESTful API",
+    description: "Integrate MegaPDF's powerful PDF tools into your applications with our RESTful API",
     tabs: {
       overview: "Overview",
       authentication: "Authentication",
@@ -2556,7 +2556,7 @@ export default {
       subtitle: "Secure your API requests with API keys",
       apiKeys: {
         title: "API Keys",
-        description: "All requests to the ScanPro API require authentication using an API key. Your API key carries many privileges, so be sure to keep it secure!"
+        description: "All requests to the MegaPDF API require authentication using an API key. Your API key carries many privileges, so be sure to keep it secure!"
       },
       howTo: {
         title: "How to Authenticate",
@@ -2601,7 +2601,7 @@ export default {
     overview: {
       title: "API Overview",
       subtitle: "Everything you need to know about our API",
-      intro: "The ScanPro API allows you to integrate our PDF processing capabilities directly into your applications. With a simple RESTful interface, you can convert, compress, merge, split, and perform other operations on PDFs programmatically.",
+      intro: "The MegaPDF API allows you to integrate our PDF processing capabilities directly into your applications. With a simple RESTful interface, you can convert, compress, merge, split, and perform other operations on PDFs programmatically.",
       features: {
         title: "Key Features",
         restful: "RESTful API with JSON responses",
@@ -2611,7 +2611,7 @@ export default {
         secure: "Secure file handling with encrypted transfers and automatic file deletion"
       },
       gettingStarted: "Getting Started",
-      startSteps: "To get started with the ScanPro API:",
+      startSteps: "To get started with the MegaPDF API:",
       step1: "Sign up for an account",
       step2: "Generate an API key from your dashboard",
       step3: "Make your first API request using the examples provided",
@@ -2636,7 +2636,7 @@ export default {
   },
   pricing: {
     // Metadata
-    description: "Choose the right plan for your PDF needs. ScanPro offers flexible pricing options from free to enterprise, with the features you need.",
+    description: "Choose the right plan for your PDF needs. MegaPDF offers flexible pricing options from free to enterprise, with the features you need.",
 
     // Page content
     title: "Simple, transparent pricing",

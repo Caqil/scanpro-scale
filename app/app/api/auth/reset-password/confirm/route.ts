@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
             try {
                 await sendEmail({
                     to: user.email,
-                    subject: 'Your ScanPro Password Has Been Reset',
+                    subject: 'Your MegaPDF Password Has Been Reset',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                             <h2>Password Reset Successful</h2>
-                            <p>Your ScanPro account password has been successfully reset.</p>
+                            <p>Your MegaPDF account password has been successfully reset.</p>
                             <p>If you did not request this change, please contact our support team immediately.</p>
                             <div style="margin: 30px 0;">
                                 <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/en/login" 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
                                 </a>
                             </div>
                             <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;" />
-                            <p style="color: #6B7280; font-size: 14px;">ScanPro - PDF Tools</p>
+                            <p style="color: #6B7280; font-size: 14px;">MegaPDF - PDF Tools</p>
                         </div>
                     `
                 });

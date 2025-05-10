@@ -9,8 +9,8 @@ import { LanguageLink } from "@/components/language-link";
 import { EnhancedResetPasswordForm } from "@/components/auth/reset-password-form";
 
 export const metadata: Metadata = {
-  title: "Reset Password | ScanPro",
-  description: "Reset your password and regain access to your ScanPro account.",
+  title: "Reset Password | MegaPDF",
+  description: "Reset your password and regain access to your MegaPDF account.",
 };
 
 export default async function ResetPasswordPage() {
@@ -57,7 +57,7 @@ export default async function ResetPasswordPage() {
       <div className="flex flex-col w-full md:w-1/2 p-6 sm:p-10 justify-center items-center">
         <div className="md:hidden flex items-center gap-2 mb-10">
           <SiteLogo size={30} />
-          <span className="font-bold text-2xl">ScanPro</span>
+          <span className="font-bold text-2xl">MegaPDF</span>
         </div>
         
         <div className="w-full max-w-md space-y-6">
@@ -79,7 +79,7 @@ export default async function ResetPasswordPage() {
         </div>
         
         <div className="md:hidden text-center mt-10 text-sm text-muted-foreground">
-          © 2025 ScanPro. All rights reserved.
+          © 2025 MegaPDF. All rights reserved.
         </div>
       </div>
     </div>

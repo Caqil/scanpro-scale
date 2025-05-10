@@ -8,7 +8,7 @@ const SUPPORTED_LANGUAGES = ['en', 'id', 'es', 'fr', 'zh', 'ar', 'hi', 'ru', 'pt
 export async function GET(req: NextRequest) {
   try {
     // Extract hostname from request or use the default
-    const hostname = req.headers.get('host') || 'scanpro.cc';
+    const hostname = req.headers.get('host') || 'mega-pdf.com';
     const protocol = hostname.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${hostname}`;
 

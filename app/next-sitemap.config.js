@@ -1,7 +1,7 @@
 // next-sitemap.config.js
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-    siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://scanpro.cc',
+    siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://mega-pdf.com',
     generateRobotsTxt: true,
     robotsTxtOptions: {
         policies: [
@@ -26,23 +26,23 @@ module.exports = {
     // Handle dynamically generated pages with language prefixes
     alternateRefs: [
         {
-            href: 'https://scanpro.cc/en',
+            href: 'https://mega-pdf.com/en',
             hreflang: 'en',
         },
         {
-            href: 'https://scanpro.cc/es',
+            href: 'https://mega-pdf.com/es',
             hreflang: 'es',
         },
         {
-            href: 'https://scanpro.cc/fr',
+            href: 'https://mega-pdf.com/fr',
             hreflang: 'fr',
         },
         {
-            href: 'https://scanpro.cc/zh',
+            href: 'https://mega-pdf.com/zh',
             hreflang: 'zh',
         },
         {
-            href: 'https://scanpro.cc/id',
+            href: 'https://mega-pdf.com/id',
             hreflang: 'id',
         },
         // Add other languages as needed

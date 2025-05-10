@@ -1,10 +1,10 @@
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
   metadata: {
-    title: "ScanPro - 無料PDF変換、編集、OCR & PDFロック解除",
-    template: "%s | ScanPro - PDFツール",
-    description: "ScanProでPDFを変換、編集、ロック解除、圧縮、結合、分割、OCRします。無料で高速なオンラインPDFツール—ダウンロード不要。",
-    keywords: "PDF変換, PDF編集, オンラインOCR, PDFロック解除, PDF圧縮, PDF結合, PDF分割, 無料PDFツール, オンラインPDF編集, ScanPro"
+    title: "MegaPDF - 無料PDF変換、編集、OCR & PDFロック解除",
+    template: "%s | MegaPDF - PDFツール",
+    description: "MegaPDFでPDFを変換、編集、ロック解除、圧縮、結合、分割、OCRします。無料で高速なオンラインPDFツール—ダウンロード不要。",
+    keywords: "PDF変換, PDF編集, オンラインOCR, PDFロック解除, PDF圧縮, PDF結合, PDF分割, 無料PDFツール, オンラインPDF編集, MegaPDF"
   },
   nav: {
     tools: "ツール",
@@ -15,7 +15,7 @@ export default {
     selectLanguage: "言語を選択",
     downloadApp: "アプリをダウンロード",
     getApp: "移動中に使えるPDFツールのモバイルアプリを入手",
-    appStores: "ScanProアプリを入手",
+    appStores: "MegaPDFアプリを入手",
     mobileTools: "移動中のPDFツール",
     signIn: "サインイン",
     signUp: "サインアップ",
@@ -99,7 +99,7 @@ export default {
     title: "アカウントにサインイン",
     description: "ダッシュボードにアクセスするには認証情報を入力してください",
     termsAndPrivacy: "サインインすることにより、当社の<termsLink>利用規約</termsLink>および<privacyLink>プライバシーポリシー</privacyLink>に同意したものとみなされます。",
-    footer: "© 2025 ScanPro. 無断複写・転載を禁じます。"
+    footer: "© 2025 MegaPDF. 無断複写・転載を禁じます。"
   },
   dashboard: {
     title: "ダッシュボード",
@@ -137,13 +137,13 @@ export default {
     lastUsed: "最終使用",
     never: "未使用",
     operationsThisMonth: "今月の操作",
-status: {
-  active: "アクティブ",
-  inactive: "非アクティブ"
-},
-usageBreakdown: "今月のAPI使用状況の内訳",
-none: "なし",
-percentageOfTotal: "総使用量のうち"
+    status: {
+      active: "アクティブ",
+      inactive: "非アクティブ"
+    },
+    usageBreakdown: "今月のAPI使用状況の内訳",
+    none: "なし",
+    percentageOfTotal: "総使用量のうち"
 
   },
   subscription: {
@@ -185,11 +185,11 @@ percentageOfTotal: "総使用量のうち"
     success: {
       title: "サブスクリプションが有効化されました",
       description: "サブスクリプションが正常に有効化されました",
-      message: "ScanProへのご購読ありがとうございます！ ご購入のサブスクリプションティアのすべての機能にアクセスできます。",
+      message: "MegaPDFへのご購読ありがとうございます！ ご購入のサブスクリプションティアのすべての機能にアクセスできます。",
       cta: "ダッシュボードへ移動",
       seo: {
-        title: "サブスクリプションの有効化が成功しました - ScanPro",
-        description: "ScanProのサブスクリプションが有効化されました。 今すぐ利用可能なすべてのプレミアム機能をご覧ください。"
+        title: "サブスクリプションの有効化が成功しました - MegaPDF",
+        description: "MegaPDFのサブスクリプションが有効化されました。 今すぐ利用可能なすべてのプレミアム機能をご覧ください。"
       }
     },
     cancel: {
@@ -198,7 +198,7 @@ percentageOfTotal: "総使用量のうち"
       message: "サブスクリプション処理がキャンセルされました。 アカウントに変更は加えられていません。 準備が整いましたら、お気軽に再試行してください。",
       cta: "プランに戻る",
       seo: {
-        title: "サブスクリプションがキャンセルされました - ScanPro",
+        title: "サブスクリプションがキャンセルされました - MegaPDF",
         description: "サブスクリプション処理がキャンセルされました。 準備が整いましたら、いつでも購読できます。"
       }
     }
@@ -423,12 +423,12 @@ percentageOfTotal: "総使用量のうち"
     }
   },
   features: {
-    title: "高度なPDFツールと機能 | ScanPro",
-    description: "ScanProの包括的なPDFツールと機能のスイートを探索し、ドキュメント管理、変換、編集などを行います。think",
+    title: "高度なPDFツールと機能 | MegaPDF",
+    description: "MegaPDFの包括的なPDFツールと機能のスイートを探索し、ドキュメント管理、変換、編集などを行います。think",
 
     hero: {
       title: "高度なPDFツールと機能",
-      description: "ScanProをすべてのドキュメント管理ニーズに対する究極のソリューションにする包括的なツールと機能のスイートをご覧ください。"
+      description: "MegaPDFをすべてのドキュメント管理ニーズに対する究極のソリューションにする包括的なツールと機能のスイートをご覧ください。"
     },
 
     overview: {
@@ -616,8 +616,8 @@ percentageOfTotal: "総使用量のうち"
     },
 
     mobile: {
-      title: "ScanProモバイルアプリ",
-      description: "ScanProの強力なPDFツールを外出先で利用できます。当社のモバイルアプリは、便利でモバイルフレンドリーなインターフェースで同じ堅牢な機能を提供します。",
+      title: "MegaPDFモバイルアプリ",
+      description: "MegaPDFの強力なPDFツールを外出先で利用できます。当社のモバイルアプリは、便利でモバイルフレンドリーなインターフェースで同じ堅牢な機能を提供します。",
       feature1: {
         title: "ドキュメントのスキャンとデジタル化",
         description: "カメラを使用して物理的なドキュメントをスキャンし、即座に高品質のPDFに変換します。"
@@ -659,13 +659,13 @@ percentageOfTotal: "総使用量のうち"
 
     testimonials: {
       title: "ユーザーの声",
-      quote1: "ScanProは私たちのチームがドキュメントを扱う方法に革命をもたらしました。OCR機能は驚くほど正確で、バッチ処理は毎週何時間も節約してくれます。",
+      quote1: "MegaPDFは私たちのチームがドキュメントを扱う方法に革命をもたらしました。OCR機能は驚くほど正確で、バッチ処理は毎週何時間も節約してくれます。",
       name1: "サラ・ジョンソン",
       title1: "オペレーションマネージャー",
-      quote2: "APIの統合はシームレスでした。ScanProをワークフローに統合し、効率の違いは歴然です。サポートチームも一流です。",
+      quote2: "APIの統合はシームレスでした。MegaPDFをワークフローに統合し、効率の違いは歴然です。サポートチームも一流です。",
       name2: "デビッド・チェン",
       title2: "テックリード",
-      quote3: "中小企業の経営者として、手頃な価格と包括的なツールセットはScanProを驚くべき価値にしています。特に、外出先でドキュメントを扱えるモバイルアプリが大好きです。",
+      quote3: "中小企業の経営者として、手頃な価格と包括的なツールセットはMegaPDFを驚くべき価値にしています。特に、外出先でドキュメントを扱えるモバイルアプリが大好きです。",
       name3: "マリア・ガルシア",
       title3: "ビジネスオーナー"
     }
@@ -1752,11 +1752,11 @@ percentageOfTotal: "総使用量のうち"
   about: {
     hero: {
       title: "デジタルドキュメント管理の強化",
-      description: "ScanProはシンプルなアイデアから生まれました：ドキュメント管理をシームレスで効率的、そして誰にとってもアクセスしやすくすること。私たちは人々がデジタルドキュメントと対話する方法を変革することを信じています。"
+      description: "MegaPDFはシンプルなアイデアから生まれました：ドキュメント管理をシームレスで効率的、そして誰にとってもアクセスしやすくすること。私たちは人々がデジタルドキュメントと対話する方法を変革することを信じています。"
     },
     story: {
       title: "私たちのストーリー",
-      paragraph1: "2022年に設立されたScanProは、複雑で直感的でないPDFツールに取り組むことへのフラストレーションから生まれました。私たちの創設者である技術愛好家とドキュメント管理の専門家は、強力かつユーザーフレンドリーなソリューションを生み出す機会を見出しました。",
+      paragraph1: "2022年に設立されたMegaPDFは、複雑で直感的でないPDFツールに取り組むことへのフラストレーションから生まれました。私たちの創設者である技術愛好家とドキュメント管理の専門家は、強力かつユーザーフレンドリーなソリューションを生み出す機会を見出しました。",
       paragraph2: "小さなプロジェクトとして始まったものは、すぐに学生や専門家から大企業まで、世界中の何千人ものユーザーにサービスを提供する包括的なプラットフォームへと成長しました。"
     },
     missionValues: {
@@ -1791,7 +1791,7 @@ percentageOfTotal: "総使用量のうち"
     },
     team: {
       title: "私たちのチームに会う",
-      description: "ScanProは、ユーザー向けに可能な限り最高のPDFツールを作成することに注力する小さな献身的なチームによって支えられています。",
+      description: "MegaPDFは、ユーザー向けに可能な限り最高のPDFツールを作成することに注力する小さな献身的なチームによって支えられています。",
       member1: {
         name: "チャクラ",
         role: "アプリ開発リーダー",
@@ -1897,18 +1897,18 @@ percentageOfTotal: "総使用量のうち"
       api: "API"
     },
     general: {
-      question1: "ScanProとは何ですか？",
-      answer1: "ScanProは、PDFの管理と変換のための包括的なオンラインプラットフォームです。私たちのツールは、直感的なウェブインターフェースまたはAPIを通じて、PDFドキュメントの変換、編集、結合、分割、圧縮、セキュリティ保護をサポートします。",
-      question2: "ScanProを使うためにアカウントを作成する必要がありますか？",
+      question1: "MegaPDFとは何ですか？",
+      answer1: "MegaPDFは、PDFの管理と変換のための包括的なオンラインプラットフォームです。私たちのツールは、直感的なウェブインターフェースまたはAPIを通じて、PDFドキュメントの変換、編集、結合、分割、圧縮、セキュリティ保護をサポートします。",
+      question2: "MegaPDFを使うためにアカウントを作成する必要がありますか？",
       answer2: "いいえ、登録せずに基本的なPDFツールを使用できます。ただし、無料アカウントを作成すると、履歴の保存、ファイルサイズ制限の拡大、追加機能へのアクセスなどの利点が得られます。",
-      question3: "ScanProで私のデータは安全ですか？",
+      question3: "MegaPDFで私のデータは安全ですか？",
       answer3: "はい、すべてのファイルは暗号化されたサーバーで安全に処理されます。ファイルは第三者と共有されず、処理後（1時間以内）にサーバーから自動的に削除されます。詳細については、プライバシーポリシーをご覧ください。",
-      question4: "ScanProはどのデバイスやブラウザをサポートしていますか？",
-      answer4: "ScanProは、Chrome、Firefox、Safari、Edgeを含むすべての最新ブラウザで動作します。プラットフォームは完全にレスポンシブで、デスクトップ、タブレット、モバイルデバイスで利用可能です。"
+      question4: "MegaPDFはどのデバイスやブラウザをサポートしていますか？",
+      answer4: "MegaPDFは、Chrome、Firefox、Safari、Edgeを含むすべての最新ブラウザで動作します。プラットフォームは完全にレスポンシブで、デスクトップ、タブレット、モバイルデバイスで利用可能です。"
     },
     conversion: {
       question1: "どのようなファイル形式に変換できますか、またその逆も可能ですか？",
-      answer1: "ScanProは、PDFをWord（DOCX）、Excel（XLSX）、PowerPoint（PPTX）、画像（JPG、PNG）、HTML、プレーンテキストなど多くの形式に変換できます。これらの形式をPDFに戻すことも可能です。",
+      answer1: "MegaPDFは、PDFをWord（DOCX）、Excel（XLSX）、PowerPoint（PPTX）、画像（JPG、PNG）、HTML、プレーンテキストなど多くの形式に変換できます。これらの形式をPDFに戻すことも可能です。",
       question2: "PDF変換の精度はどの程度ですか？",
       answer2: "当社の変換エンジンは、フォント、画像、表、レイアウトを含む書式を維持するために高度なアルゴリズムを使用します。ただし、非常に複雑なドキュメントでは、書式にわずかな違いが生じる場合があります。最適な結果を得るには、複雑な書式のドキュメントに「PDFからWord」または「PDFからExcel」ツールを使用することをお勧めします。",
       question3: "変換にファイルサイズの制限はありますか？",
@@ -1981,7 +1981,7 @@ percentageOfTotal: "総使用量のうち"
   },
 
   security: {
-    title: "ScanProのセキュリティとプライバシー",
+    title: "MegaPDFのセキュリティとプライバシー",
     description: "私たちはあなたのドキュメントのセキュリティとプライバシーを真剣に考えています。データ保護の方法をご覧ください。",
     measures: {
       title: "データ保護の方法"
@@ -2048,7 +2048,7 @@ percentageOfTotal: "総使用量のうち"
         description: "準拠している基準と規制",
         approach: {
           title: "当社のコンプライアンスアプローチ",
-          description: "ScanProはプライバシーとセキュリティを設計段階から組み込んで開発されています。変化する規制に準拠するため、定期的に慣行を見直し更新しています。"
+          description: "MegaPDFはプライバシーとセキュリティを設計段階から組み込んで開発されています。変化する規制に準拠するため、定期的に慣行を見直し更新しています。"
         },
         gdpr: {
           title: "GDPRコンプライアンス"
@@ -2084,7 +2084,7 @@ percentageOfTotal: "総使用量のうち"
     },
     faq: {
       dataCollection: {
-        question: "ScanProはどのような個人データを収集しますか？",
+        question: "MegaPDFはどのような個人データを収集しますか？",
         answer: "サービス提供に必要な最小限の情報を収集します。登録ユーザーには、メールアドレス、氏名、利用統計が含まれます。サービス改善のため匿名の利用データも収集します。ドキュメント内容の分析、スキャン、マイニングは行いません。"
       },
       documentStorage: {
@@ -2112,7 +2112,7 @@ percentageOfTotal: "総使用量のうち"
 
   developer: {
     title: "開発者向けAPIドキュメント",
-    description: "ScanProの強力なPDFツールをRESTful APIでアプリケーションに統合",
+    description: "MegaPDFの強力なPDFツールをRESTful APIでアプリケーションに統合",
     tabs: {
       overview: "概要",
       authentication: "認証",
@@ -2210,7 +2210,7 @@ percentageOfTotal: "総使用量のうち"
       subtitle: "APIキーでAPIリクエストを保護",
       apiKeys: {
         title: "APIキー",
-        description: "ScanPro APIへのすべてのリクエストはAPIキーを使用した認証が必要です。APIキーには多くの特権があるため、安全に保管してください！"
+        description: "MegaPDF APIへのすべてのリクエストはAPIキーを使用した認証が必要です。APIキーには多くの特権があるため、安全に保管してください！"
       },
       howTo: {
         title: "認証方法",
@@ -2255,7 +2255,7 @@ percentageOfTotal: "総使用量のうち"
     overview: {
       title: "API概要",
       subtitle: "当社のAPIについて知っておくべきすべて",
-      intro: "ScanPro APIを使用すると、当社のPDF処理機能をアプリケーションに直接統合できます。シンプルなRESTfulインターフェースで、PDFをプログラムで変換、圧縮、結合、分割、その他の操作が可能です。",
+      intro: "MegaPDF APIを使用すると、当社のPDF処理機能をアプリケーションに直接統合できます。シンプルなRESTfulインターフェースで、PDFをプログラムで変換、圧縮、結合、分割、その他の操作が可能です。",
       features: {
         title: "主な機能",
         restful: "JSON応答を伴うRESTful API",
@@ -2265,7 +2265,7 @@ percentageOfTotal: "総使用量のうち"
         secure: "暗号化された転送と自動ファイル削除による安全なファイル処理"
       },
       gettingStarted: "開始方法",
-      startSteps: "ScanPro APIを始めるには：",
+      startSteps: "MegaPDF APIを始めるには：",
       step1: "アカウントにサインアップ",
       step2: "ダッシュボードからAPIキーを生成",
       step3: "提供された例を使用して最初のAPIリクエストを実行",
@@ -2288,7 +2288,7 @@ percentageOfTotal: "総使用量のうち"
     }
   },
   pricing: {
-    description: "PDFのニーズに合ったプランを選んでください。ScanProは無料からエンタープライズまで柔軟な料金オプションを提供し、必要な機能が揃っています。",
+    description: "PDFのニーズに合ったプランを選んでください。MegaPDFは無料からエンタープライズまで柔軟な料金オプションを提供し、必要な機能が揃っています。",
 
     // Page content
     title: "シンプルで透明な料金",

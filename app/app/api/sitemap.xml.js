@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
     // Create sitemap stream
     const smStream = new SitemapStream({
-        hostname: 'https://scanpro.cc'
+        hostname: 'https://mega-pdf.com'
     });
 
     try {

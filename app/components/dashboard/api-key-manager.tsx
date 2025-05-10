@@ -255,7 +255,7 @@ export function ApiKeyManager() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">API Keys</h2>
           <p className="text-muted-foreground">
-            Manage your API keys for programmatic access to ScanPro services.
+            Manage your API keys for programmatic access to MegaPDF services.
           </p>
         </div>
         <Dialog
@@ -276,7 +276,7 @@ export function ApiKeyManager() {
                 <DialogHeader>
                   <DialogTitle>Create New API Key</DialogTitle>
                   <DialogDescription>
-                    Create an API key to access ScanPro services
+                    Create an API key to access MegaPDF services
                     programmatically.
                   </DialogDescription>
                 </DialogHeader>

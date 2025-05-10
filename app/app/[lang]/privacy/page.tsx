@@ -6,8 +6,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ScanPro - PDF Tools",
-  description: "Privacy Policy for ScanPro PDF Tools. Learn how we handle your data and protect your privacy.",
+  title: "Privacy Policy | MegaPDF - PDF Tools",
+  description: "Privacy Policy for MegaPDF PDF Tools. Learn how we handle your data and protect your privacy.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
       <div className="space-y-6 text-base">
         <p className="text-muted-foreground">Last Updated: March 18, 2025</p>
 
-        <p>This Privacy Policy describes how ScanPro collects, uses, and discloses information when you use our website, mobile applications, and services (collectively, the Services).</p>
+        <p>This Privacy Policy describes how MegaPDF collects, uses, and discloses information when you use our website, mobile applications, and services (collectively, the Services).</p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">1. Information We Collect</h2>
         <p>We collect several types of information from and about users of our Services:</p>
@@ -95,12 +95,12 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-2xl font-bold mt-8 mb-4">7. Contact Information</h2>
         <p>If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:</p>
-        <p className="mt-2"><span className="font-semibold">Email:</span> privacy@scanpro.cc<br />
+        <p className="mt-2"><span className="font-semibold">Email:</span> privacy@mega-pdf.com<br />
         <span className="font-semibold">Address:</span> Indonesia, Bangka Belitung</p>
 
         <hr className="my-8 border-t border-gray-200 dark:border-gray-700" />
 
-        <p>By using ScanPro, you acknowledge that you have read and understood this Privacy Policy.</p>
+        <p>By using MegaPDF, you acknowledge that you have read and understood this Privacy Policy.</p>
       </div>
 
       <div className="mt-8 flex justify-center">

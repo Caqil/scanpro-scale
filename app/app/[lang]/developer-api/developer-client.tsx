@@ -36,7 +36,7 @@ export function DeveloperPageClient() {
           {t('developer.title') || "Developer API Documentation"}
         </h1>
         <p className="mt-4 text-xl text-muted-foreground max-w-[700px]">
-          {t('developer.description') || "Integrate ScanPro's powerful PDF tools into your applications with our RESTful API"}
+          {t('developer.description') || "Integrate MegaPDF's powerful PDF tools into your applications with our RESTful API"}
         </p>
       </div>
       {/* Main Content Tabs */}
@@ -75,7 +75,7 @@ export function DeveloperPageClient() {
               <div className="prose max-w-none dark:prose-invert">
                 <p>
                   {t('developer.overview.intro') || 
-                    "The ScanPro API allows you to integrate our PDF processing capabilities directly into your applications. With a simple RESTful interface, you can convert, compress, merge, split, and perform other operations on PDFs programmatically."}
+                    "The MegaPDF API allows you to integrate our PDF processing capabilities directly into your applications. With a simple RESTful interface, you can convert, compress, merge, split, and perform other operations on PDFs programmatically."}
                 </p>
                 
                 <h3>{t('developer.overview.features.title') || "Key Features"}</h3>
@@ -90,7 +90,7 @@ export function DeveloperPageClient() {
                 <h3>{t('developer.overview.gettingStarted') || "Getting Started"}</h3>
                 <p>
                   {t('developer.overview.startSteps') || 
-                    "To get started with the ScanPro API:"}
+                    "To get started with the MegaPDF API:"}
                 </p>
                 <ol>
                   <li>{t('developer.overview.step1') || "Sign up for an account"}</li>
@@ -202,7 +202,7 @@ export function DeveloperPageClient() {
                 <h3>{t('developer.authentication.apiKeys.title') || "API Keys"}</h3>
                 <p>
                   {t('developer.authentication.apiKeys.description') || 
-                    "All requests to the ScanPro API require authentication using an API key. Your API key carries many privileges, so be sure to keep it secure!"}
+                    "All requests to the MegaPDF API require authentication using an API key. Your API key carries many privileges, so be sure to keep it secure!"}
                 </p>
                 
                 <h4>{t('developer.authentication.howTo.title') || "How to Authenticate"}</h4>
@@ -217,7 +217,7 @@ export function DeveloperPageClient() {
                     "Include your API key in the x-api-key header of your HTTP request:"}
                 </p>
                 <pre className="bg-muted p-4 rounded-md overflow-auto text-sm">
-                  <code>curl -X POST \<br />  -H "x-api-key: YOUR_API_KEY" \<br />  -F "file=@document.pdf" \<br />  https://scanpro.cc/api/convert</code>
+                  <code>curl -X POST \<br />  -H "x-api-key: YOUR_API_KEY" \<br />  -F "file=@document.pdf" \<br />  https://mega-pdf.com/api/convert</code>
                 </pre>
                 
                 <h5>{t('developer.authentication.query.title') || "2. Using a Query Parameter"}</h5>
@@ -226,7 +226,7 @@ export function DeveloperPageClient() {
                     "Alternatively, you can include your API key as a query parameter:"}
                 </p>
                 <pre className="bg-muted p-4 rounded-md overflow-auto text-sm">
-                  <code>curl -X POST \<br />  -F "file=@document.pdf" \<br />  https://scanpro.cc/api/convert?api_key=YOUR_API_KEY</code>
+                  <code>curl -X POST \<br />  -F "file=@document.pdf" \<br />  https://mega-pdf.com/api/convert?api_key=YOUR_API_KEY</code>
                 </pre>
                 
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-md my-4">

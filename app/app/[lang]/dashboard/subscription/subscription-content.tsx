@@ -548,7 +548,7 @@ export function SubscriptionSuccessContent() {
         <CardContent className="text-center">
           <p className="mb-6">
             {t("subscription.success.message") ||
-              "Thank you for subscribing to ScanPro! You now have access to all the features of your subscription tier."}
+              "Thank you for subscribing to MegaPDF! You now have access to all the features of your subscription tier."}
           </p>
           <LanguageLink href="/dashboard">
             <Button variant="outline" size="lg">
