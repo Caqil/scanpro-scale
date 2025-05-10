@@ -3069,5 +3069,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "Hapus Halaman dari PDF",
+    description: "Dengan mudah menghapus halaman yang tidak diinginkan dari dokumen PDF Anda dengan pratinjau visual dan kontrol yang presisi.",
+    uploadTitle: "Unggah PDF untuk Menghapus Halaman",
+    uploadDesc: "Pilih file PDF untuk menghapus halaman tertentu sambil mempertahankan kualitas halaman yang tersisa.",
+    selectPages: "Pilih Halaman yang Akan Dihapus",
+    selectPagesDesc: "Klik thumbnail halaman untuk melihat pratinjau atau centang kotak untuk menandai penghapusan",
+    pagesSelected: "halaman dipilih",
+    pagesRemaining: "halaman akan tersisa",
+    selectMax: "Pilih Maks",
+    clearSelection: "Hapus Pilihan",
+    saveDocument: "Simpan Dokumen",
+    preview: "Pratinjau Hasil",
+    previewDesc: "Halaman yang akan tersisa di dokumen Anda: {remaining}",
+    processing: "Menghapus Halaman",
+    page: "Halaman",
+    pagePreview: "Pratinjau Halaman -",
+    removeFromDocument: "Batalkan Penghapusan",
+    markForRemoval: "Tandai untuk Dihapus",
+    messages: {
+      processing: "Harap tunggu sementara kami menghapus halaman yang dipilih dari PDF Anda...",
+      success: "Halaman Berhasil Dihapus",
+      error: "Gagal menghapus halaman. Silakan coba lagi.",
+      downloadReady: "PDF Anda dengan halaman yang dihapus siap untuk diunduh.",
+      invalidFile: "Silakan pilih file PDF yang valid",
+      cannotRemoveAll: "Anda tidak dapat menghapus semua halaman. Setidaknya satu halaman harus tersisa."
+    },
+    howTo: {
+      title: "Cara Menghapus Halaman dari PDF",
+      step1: {
+        title: "Unggah PDF Anda",
+        description: "Pilih atau seret dan lepas file PDF yang ingin Anda hapus halamannya."
+      },
+      step2: {
+        title: "Pilih Halaman yang Akan Dihapus",
+        description: "Klik thumbnail untuk melihat pratinjau halaman. Centang kotak untuk menandai halaman yang akan dihapus."
+      },
+      step3: {
+        title: "Simpan dan Unduh",
+        description: "Klik Simpan Dokumen untuk memproses perubahan Anda, lalu unduh PDF Anda."
+      }
+    },
+    benefits: {
+      title: "Manfaat Menggunakan Penghapus Halaman PDF Kami",
+      accuracy: {
+        title: "Pemilihan Halaman yang Presisi",
+        description: "Pratinjau halaman sebelum menghapus untuk memastikan keakuratan."
+      },
+      preview: {
+        title: "Pratinjau Halaman Lengkap",
+        description: "Klik halaman perjanjian untuk melihatnya secara detail dengan kontrol zoom."
+      },
+      secure: {
+        title: "Pemrosesan yang Aman",
+        description: "File Anda diproses secara lokal dan dihapus segera setelah pemrosesan."
+      },
+      flexible: {
+        title: "Pemilihan yang Fleksibel",
+        description: "Pilih dan batalkan pilihan halaman dengan mudah dengan umpan balik visual."
+      }
+    },
+    useCases: {
+      title: "Kasus Penggunaan Umum",
+      confidential: {
+        title: "Hapus Konten Rahasia",
+        description: "Dengan mudah menghapus halaman yang berisi informasi sensitif sebelum berbagi."
+      },
+      reports: {
+        title: "Sesuaikan Laporan",
+        description: "Hapus bagian yang tidak relevan untuk membuat dokumen yang fokus."
+      },
+      presentations: {
+        title: "Sesuaikan Presentasi",
+        description: "Hapus slide tertentu untuk menyesuaikan dengan audiens yang berbeda."
+      },
+      sharing: {
+        title: "Persiapkan untuk Berbagi",
+        description: "Bersihkan dokumen dengan menghapus halaman yang tidak perlu."
+      }
+    },
+    faq: {
+      title: "Pertanyaan yang Sering Diajukan",
+      multiplePages: {
+        question: "Bisakah saya menghapus beberapa halaman sekaligus?",
+        answer: "Ya, Anda dapat memilih beberapa halaman untuk dihapus dalam satu operasi."
+      },
+      pageLimit: {
+        question: "Apakah ada batasan berapa banyak halaman yang bisa saya hapus?",
+        answer: "Anda dapat menghapus sebanyak mungkin halaman, tetapi setidaknya satu halaman harus tersisa."
+      },
+      quality: {
+        question: "Apakah menghapus halaman akan memengaruhi kualitas halaman yang tersisa?",
+        answer: "Tidak, kualitas halaman yang tersisa tetap terjaga."
+      },
+      encrypted: {
+        question: "Bisakah saya menghapus halaman dari PDF yang dilindungi kata sandi?",
+        answer: "Anda perlu membuka kunci PDF yang dilindungi kata sandi terlebih dahulu."
+      }
+    }
+  }
 }

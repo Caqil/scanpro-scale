@@ -3126,5 +3126,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "Rimuovi pagine da PDF",
+    description: "Rimuovi facilmente le pagine indesiderate dai tuoi documenti PDF con anteprima visiva e controllo preciso.",
+    uploadTitle: "Carica PDF per rimuovere pagine",
+    uploadDesc: "Seleziona un file PDF per rimuovere pagine specifiche mantenendo la qualità delle pagine rimanenti.",
+    selectPages: "Seleziona pagine da rimuovere",
+    selectPagesDesc: "Clicca sulle miniature delle pagine per l'anteprima o seleziona la casella per contrassegnarle per la rimozione.",
+    pagesSelected: "pagine selezionate",
+    pagesRemaining: "pagine rimarranno",
+    selectMax: "Seleziona tutto",
+    clearSelection: "Deseleziona tutto",
+    saveDocument: "Salva documento",
+    preview: "Anteprima risultato",
+    previewDesc: "Pagine che rimarranno nel tuo documento: {remaining}",
+    processing: "Rimozione pagine",
+    page: "Pagina",
+    pagePreview: "Anteprima pagina -",
+    removeFromDocument: "Annulla rimozione",
+    markForRemoval: "Contrassegna per rimozione",
+    messages: {
+      processing: "Attendi mentre rimuoviamo le pagine selezionate dal tuo PDF...",
+      success: "Pagine rimosse con successo",
+      error: "Rimozione pagine fallita. Riprova.",
+      downloadReady: "Il tuo PDF con le pagine rimosse è pronto per il download.",
+      invalidFile: "Seleziona un file PDF valido",
+      cannotRemoveAll: "Non puoi rimuovere tutte le pagine. Almeno una deve rimanere."
+    },
+    howTo: {
+      title: "Come rimuovere pagine da PDF",
+      step1: {
+        title: "Carica il tuo PDF",
+        description: "Seleziona o trascina un file PDF da cui vuoi rimuovere pagine."
+      },
+      step2: {
+        title: "Seleziona pagine da rimuovere",
+        description: "Clicca sulle miniature per l'anteprima. Seleziona le caselle per contrassegnare le pagine da rimuovere."
+      },
+      step3: {
+        title: "Salva e scarica",
+        description: "Clicca Salva documento per elaborare le modifiche, poi scarica il PDF."
+      }
+    },
+    benefits: {
+      title: "Vantaggi del nostro strumento di rimozione pagine PDF",
+      accuracy: {
+        title: "Selezione precisa",
+        description: "Anteprima delle pagine prima della rimozione per garantire precisione."
+      },
+      preview: {
+        title: "Anteprima completa",
+        description: "Clicca su una pagina per visualizzarla in dettaglio con controlli di zoom."
+      },
+      secure: {
+        title: "Elaborazione sicura",
+        description: "I tuoi file vengono elaborati localmente e cancellati subito dopo."
+      },
+      flexible: {
+        title: "Selezione flessibile",
+        description: "Seleziona e deseleziona pagine facilmente con feedback visivo."
+      }
+    },
+    useCases: {
+      title: "Casi d'uso comuni",
+      confidential: {
+        title: "Rimuovi contenuti riservati",
+        description: "Elimina facilmente pagine con informazioni sensibili prima di condividerle."
+      },
+      reports: {
+        title: "Personalizza report",
+        description: "Rimuovi sezioni irrilevanti per creare documenti mirati."
+      },
+      presentations: {
+        title: "Adatta presentazioni",
+        description: "Rimuovi slide specifiche per adattarle a diversi pubblici."
+      },
+      sharing: {
+        title: "Prepara per la condivisione",
+        description: "Pulisci documenti rimuovendo pagine non necessarie."
+      }
+    },
+    faq: {
+      title: "Domande frequenti",
+      multiplePages: {
+        question: "Posso rimuovere più pagine contemporaneamente?",
+        answer: "Sì, puoi selezionare più pagine da rimuovere in una sola operazione."
+      },
+      pageLimit: {
+        question: "C'è un limite al numero di pagine che posso rimuovere?",
+        answer: "Puoi rimuovere quante pagine vuoi, ma almeno una deve rimanere."
+      },
+      quality: {
+        question: "La rimozione influisce sulla qualità delle pagine rimanenti?",
+        answer: "No, la qualità delle pagine rimanenti viene preservata."
+      },
+      encrypted: {
+        question: "Posso rimuovere pagine da PDF protetti da password?",
+        answer: "Devi prima sbloccare i PDF protetti da password."
+      }
+    }
+  }
 }

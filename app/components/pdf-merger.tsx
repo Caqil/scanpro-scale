@@ -415,7 +415,7 @@ export function PdfMerger() {
             label={
               isUploading
                 ? t("watermarkPdf.uploading")
-                : t("splitPdf.splitting")
+                : t("mergePdf.ui.processingMerge")
             }
             uploadStats={uploadStats}
           />

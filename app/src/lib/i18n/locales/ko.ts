@@ -3066,5 +3066,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "PDF에서 페이지 삭제",
+    description: "시각적 미리보기와 정밀한 제어로 원치 않는 페이지를 쉽게 제거하세요.",
+    uploadTitle: "페이지를 삭제할 PDF 업로드",
+    uploadDesc: "PDF 파일을 선택하여 특정 페이지를 삭제하고 남은 페이지의 품질을 유지하세요.",
+    selectPages: "삭제할 페이지 선택",
+    selectPagesDesc: "페이지 썸네일을 클릭해 미리보기하거나 체크박스로 삭제할 페이지를 선택하세요.",
+    pagesSelected: "페이지 선택됨",
+    pagesRemaining: "페이지가 남음",
+    selectMax: "전체 선택",
+    clearSelection: "선택 해제",
+    saveDocument: "문서 저장",
+    preview: "결과 미리보기",
+    previewDesc: "문서에 남을 페이지: {remaining}",
+    processing: "페이지 삭제 중",
+    page: "페이지",
+    pagePreview: "페이지 미리보기 -",
+    removeFromDocument: "삭제 취소",
+    markForRemoval: "삭제 표시",
+    messages: {
+      processing: "선택한 페이지를 PDF에서 삭제 중입니다. 잠시 기다려 주세요...",
+      success: "페이지 삭제 완료",
+      error: "페이지 삭제 실패. 다시 시도해 주세요.",
+      downloadReady: "페이지가 삭제된 PDF를 다운로드할 준비가 되었습니다.",
+      invalidFile: "유효한 PDF 파일을 선택해 주세요",
+      cannotRemoveAll: "모든 페이지를 삭제할 수 없습니다. 최소 한 페이지는 남아야 합니다."
+    },
+    howTo: {
+      title: "PDF에서 페이지 삭제 방법",
+      step1: {
+        title: "PDF 업로드",
+        description: "페이지를 삭제할 PDF 파일을 선택하거나 드래그 앤 드롭하세요."
+      },
+      step2: {
+        title: "삭제할 페이지 선택",
+        description: "썸네일을 클릭해 미리보기하고, 체크박스로 삭제할 페이지를 선택하세요."
+      },
+      step3: {
+        title: "저장 및 다운로드",
+        description: "문서 저장을 클릭해 변경 사항을 적용한 후 PDF를 다운로드하세요."
+      }
+    },
+    benefits: {
+      title: "PDF 페이지 삭제 도구의 장점",
+      accuracy: {
+        title: "정확한 페이지 선택",
+        description: "삭제 전 미리보기로 정확성을 확인하세요."
+      },
+      preview: {
+        title: "전체 페이지 미리보기",
+        description: "페이지를 클릭해 확대/축소 기능으로 자세히 확인하세요."
+      },
+      secure: {
+        title: "안전한 처리",
+        description: "파일은 로컬에서 처리되며 완료 후 즉시 삭제됩니다."
+      },
+      flexible: {
+        title: "유연한 선택",
+        description: "시각적 피드백으로 쉽게 선택 및 해제하세요."
+      }
+    },
+    useCases: {
+      title: "일반적인 사용 사례",
+      confidential: {
+        title: "기밀 내용 삭제",
+        description: "공유 전 민감한 정보가 포함된 페이지를 쉽게 삭제하세요."
+      },
+      reports: {
+        title: "보고서 맞춤 설정",
+        description: "관련 없는 섹션을 삭제해 집중된 문서를 만드세요."
+      },
+      presentations: {
+        title: "프레젠테이션 조정",
+        description: "대상에 따라 특정 슬라이드를 삭제하세요."
+      },
+      sharing: {
+        title: "공유 준비",
+        description: "불필요한 페이지를 삭제해 문서를 정리하세요."
+      }
+    },
+    faq: {
+      title: "자주 묻는 질문",
+      multiplePages: {
+        question: "여러 페이지를 한 번에 삭제할 수 있나요?",
+        answer: "네, 한 번의 작업으로 여러 페이지를 선택해 삭제할 수 있습니다."
+      },
+      pageLimit: {
+        question: "삭제할 수 있는 페이지 수에 제한이 있나요?",
+        answer: "원하는 만큼 삭제할 수 있지만, 최소 한 페이지는 남아야 합니다."
+      },
+      quality: {
+        question: "페이지 삭제는 남은 페이지의 품질에 영향을 주나요?",
+        answer: "아니요, 남은 페이지의 품질은 유지됩니다."
+      },
+      encrypted: {
+        question: "비밀번호로 보호된 PDF에서 페이지를 삭제할 수 있나요?",
+        answer: "먼저 PDF의 잠금을 해제해야 합니다."
+      }
+    }
+  }
 }

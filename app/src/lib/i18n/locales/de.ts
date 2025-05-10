@@ -3062,5 +3062,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "Seiten aus PDF entfernen",
+    description: "Entfernen Sie unerwünschte Seiten aus Ihren PDF-Dokumenten mit visueller Vorschau und präziser Kontrolle.",
+    uploadTitle: "PDF zum Entfernen von Seiten hochladen",
+    uploadDesc: "Wählen Sie eine PDF-Datei aus, um bestimmte Seiten zu entfernen, während die Qualität der verbleibenden Seiten erhalten bleibt.",
+    selectPages: "Seiten zum Entfernen auswählen",
+    selectPagesDesc: "Klicken Sie auf die Seitenvorschauen, um sie anzusehen, oder aktivieren Sie das Kontrollkästchen, um sie zur Entfernung zu markieren",
+    pagesSelected: "Seiten ausgewählt",
+    pagesRemaining: "Seiten verbleiben",
+    selectMax: "Maximal auswählen",
+    clearSelection: "Auswahl löschen",
+    saveDocument: "Dokument speichern",
+    preview: "Ergebnisvorschau",
+    previewDesc: "Seiten, die in Ihrem Dokument verbleiben: {remaining}",
+    processing: "Seiten werden entfernt",
+    page: "Seite",
+    pagePreview: "Seitenvorschau -",
+    removeFromDocument: "Entfernung abbrechen",
+    markForRemoval: "Zur Entfernung markieren",
+    messages: {
+      processing: "Bitte warten Sie, während die ausgewählten Seiten aus Ihrem PDF entfernt werden...",
+      success: "Seiten erfolgreich entfernt",
+      error: "Seiten konnten nicht entfernt werden. Bitte versuchen Sie es erneut.",
+      downloadReady: "Ihr PDF mit entfernten Seiten ist zum Download bereit.",
+      invalidFile: "Bitte wählen Sie eine gültige PDF-Datei aus",
+      cannotRemoveAll: "Sie können nicht alle Seiten entfernen. Mindestens eine Seite muss verbleiben."
+    },
+    howTo: {
+      title: "Wie man Seiten aus einem PDF entfernt",
+      step1: {
+        title: "PDF hochladen",
+        description: "Wählen Sie eine PDF-Datei aus oder ziehen Sie sie per Drag & Drop, aus der Sie Seiten entfernen möchten."
+      },
+      step2: {
+        title: "Seiten zum Entfernen auswählen",
+        description: "Klicken Sie auf die Vorschaubilder, um Seiten anzusehen. Aktivieren Sie das Kontrollkästchen, um Seiten zur Entfernung zu markieren."
+      },
+      step3: {
+        title: "Speichern und herunterladen",
+        description: "Klicken Sie auf Dokument speichern, um Ihre Änderungen zu verarbeiten, und laden Sie dann Ihr PDF herunter."
+      }
+    },
+    benefits: {
+      title: "Vorteile unseres PDF-Seitenentferners",
+      accuracy: {
+        title: "Präzise Seitenauswahl",
+        description: "Vorschau der Seiten vor dem Entfernen, um Genauigkeit zu gewährleisten."
+      },
+      preview: {
+        title: "Vollständige Seitenvorschau",
+        description: "Klicken Sie auf die Seitenvorschau, um sie mit Zoomfunktionen im Detail anzusehen."
+      },
+      secure: {
+        title: "Sichere Verarbeitung",
+        description: "Ihre Dateien werden lokal verarbeitet und sofort nach der Verarbeitung gelöscht."
+      },
+      flexible: {
+        title: "Flexible Auswahl",
+        description: "Wählen Sie Seiten einfach aus oder ab, mit visueller Rückmeldung."
+      }
+    },
+    useCases: {
+      title: "Häufige Anwendungsfälle",
+      confidential: {
+        title: "Vertrauliche Inhalte entfernen",
+        description: "Entfernen Sie einfach Seiten mit sensiblen Informationen vor dem Teilen."
+      },
+      reports: {
+        title: "Berichte anpassen",
+        description: "Entfernen Sie irrelevante Abschnitte, um fokussierte Dokumente zu erstellen."
+      },
+      presentations: {
+        title: "Präsentationen anpassen",
+        description: "Entfernen Sie bestimmte Folien, um sie für verschiedene Zielgruppen zu optimieren."
+      },
+      sharing: {
+        title: "Vorbereitung zum Teilen",
+        description: "Bereinigen Sie Dokumente, indem Sie unnötige Seiten entfernen."
+      }
+    },
+    faq: {
+      title: "Häufig gestellte Fragen",
+      multiplePages: {
+        question: "Kann ich mehrere Seiten gleichzeitig entfernen?",
+        answer: "Ja, Sie können mehrere Seiten in einem Vorgang auswählen und entfernen."
+      },
+      pageLimit: {
+        question: "Gibt es eine Grenze für die Anzahl der Seiten, die ich entfernen kann?",
+        answer: "Sie können so viele Seiten entfernen, wie Sie möchten, aber mindestens eine Seite muss verbleiben."
+      },
+      quality: {
+        question: "Beeinträchtigt das Entfernen von Seiten die Qualität der verbleibenden Seiten?",
+        answer: "Nein, die Qualität der verbleibenden Seiten bleibt erhalten."
+      },
+      encrypted: {
+        question: "Kann ich Seiten aus passwortgeschützten PDFs entfernen?",
+        answer: "Sie müssen passwortgeschützte PDFs zunächst entsperren."
+      }
+    }
+  }
 }

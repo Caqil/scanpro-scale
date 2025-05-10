@@ -3063,5 +3063,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "Eliminar páginas de PDF",
+    description: "Elimina fácilmente páginas no deseadas de tus documentos PDF con vista previa visual y control preciso.",
+    uploadTitle: "Subir PDF para eliminar páginas",
+    uploadDesc: "Selecciona un archivo PDF para eliminar páginas específicas manteniendo la calidad de las páginas restantes.",
+    selectPages: "Seleccionar páginas a eliminar",
+    selectPagesDesc: "Haz clic en las miniaturas de las páginas para previsualizarlas o marca la casilla para seleccionarlas para eliminación",
+    pagesSelected: "páginas seleccionadas",
+    pagesRemaining: "páginas permanecerán",
+    selectMax: "Seleccionar máximo",
+    clearSelection: "Limpiar selección",
+    saveDocument: "Guardar documento",
+    preview: "Vista previa del resultado",
+    previewDesc: "Páginas que permanecerán en tu documento: {remaining}",
+    processing: "Eliminando páginas",
+    page: "Página",
+    pagePreview: "Vista previa de página -",
+    removeFromDocument: "Cancelar eliminación",
+    markForRemoval: "Marcar para eliminar",
+    messages: {
+      processing: "Por favor, espera mientras eliminamos las páginas seleccionadas de tu PDF...",
+      success: "Páginas eliminadas con éxito",
+      error: "Error al eliminar las páginas. Por favor, inténtalo de nuevo.",
+      downloadReady: "Tu PDF con las páginas eliminadas está listo para descargar.",
+      invalidFile: "Por favor, selecciona un archivo PDF válido",
+      cannotRemoveAll: "No puedes eliminar todas las páginas. Debe permanecer al menos una página."
+    },
+    howTo: {
+      title: "Cómo eliminar páginas de un PDF",
+      step1: {
+        title: "Sube tu PDF",
+        description: "Selecciona o arrastra y suelta un archivo PDF del que quieras eliminar páginas."
+      },
+      step2: {
+        title: "Selecciona las páginas a eliminar",
+        description: "Haz clic en las miniaturas para previsualizar las páginas. Marca la casilla para seleccionar páginas para eliminación."
+      },
+      step3: {
+        title: "Guardar y descargar",
+        description: "Haz clic en Guardar documento para procesar los cambios, luego descarga tu PDF."
+      }
+    },
+    benefits: {
+      title: "Beneficios de usar nuestro eliminador de páginas PDF",
+      accuracy: {
+        title: "Selección precisa de páginas",
+        description: "Previsualiza las páginas antes de eliminarlas para garantizar precisión."
+      },
+      preview: {
+        title: "Vista previa completa de la página",
+        description: "Haz clic en la página del pacto para verla en detalle con controles de zoom."
+      },
+      secure: {
+        title: "Procesamiento seguro",
+        description: "Tus archivos se procesan localmente y se eliminan inmediatamente después del procesamiento."
+      },
+      flexible: {
+        title: "Selección flexible",
+        description: "Selecciona y deselecciona páginas fácilmente con retroalimentación visual."
+      }
+    },
+    useCases: {
+      title: "Casos de uso comunes",
+      confidential: {
+        title: "Eliminar contenido confidencial",
+        description: "Elimina fácilmente páginas con información sensible antes de compartir."
+      },
+      reports: {
+        title: "Personalizar informes",
+        description: "Elimina secciones irrelevantes para crear documentos enfocados."
+      },
+      presentations: {
+        title: "Personalizar presentaciones",
+        description: "Elimina diapositivas específicas para adaptarlas a diferentes audiencias."
+      },
+      sharing: {
+        title: "Preparar para compartir",
+        description: "Limpia documentos eliminando páginas innecesarias."
+      }
+    },
+    faq: {
+      title: "Preguntas frecuentes",
+      multiplePages: {
+        question: "¿Puedo eliminar varias páginas a la vez?",
+        answer: "Sí, puedes seleccionar varias páginas para eliminarlas en una sola operación."
+      },
+      pageLimit: {
+        question: "¿Hay un límite de páginas que puedo eliminar?",
+        answer: "Puedes eliminar tantas páginas como quieras, pero debe quedar al menos una página."
+      },
+      quality: {
+        question: "¿Eliminar páginas afectará la calidad de las páginas restantes?",
+        answer: "No, la calidad de las páginas restantes se conserva."
+      },
+      encrypted: {
+        question: "¿Puedo eliminar páginas de PDFs protegidos con contraseña?",
+        answer: "Primero necesitarás desbloquear los PDFs protegidos con contraseña."
+      }
+    }
+  }
 }

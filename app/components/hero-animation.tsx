@@ -11,14 +11,14 @@ interface Stage {
 }
 
 const stages: Stage[] = [
-  { name: 'convert', icon: ChevronRight, color: 'text-blue-500', actionText: 'Converting to DOCX' },
-  { name: 'compress', icon: FileBadge2Icon, color: 'text-green-500', actionText: 'Compressing PDF' },
-  { name: 'split', icon: Scissors, color: 'text-orange-500', actionText: 'Splitting Pages' },
-  { name: 'protect', icon: Lock, color: 'text-purple-500', actionText: 'Protecting PDF' },
-  { name: 'sign', icon: PenTool, color: 'text-indigo-500', actionText: 'Signing PDF' },
-  { name: 'watermark', icon: Type, color: 'text-teal-500', actionText: 'Watermarking PDF' },
-  { name: 'merge', icon: Layers, color: 'text-red-500', actionText: 'Merging PDFs' },
-  { name: 'ocr', icon: Eye, color: 'text-yellow-500', actionText: 'OCR Processing' },
+  { name: 'convert', icon: ChevronRight, color: 'text-blue-500', actionText: 'Converting' },
+  { name: 'compress', icon: FileBadge2Icon, color: 'text-green-500', actionText: 'Compressing' },
+  { name: 'split', icon: Scissors, color: 'text-orange-500', actionText: 'Splitting' },
+  { name: 'protect', icon: Lock, color: 'text-purple-500', actionText: 'Protecting' },
+  { name: 'sign', icon: PenTool, color: 'text-indigo-500', actionText: 'Signing' },
+  { name: 'watermark', icon: Type, color: 'text-teal-500', actionText: 'Watermarking' },
+  { name: 'merge', icon: Layers, color: 'text-red-500', actionText: 'Merging' },
+  { name: 'ocr', icon: Eye, color: 'text-yellow-500', actionText: 'OCR' },
 ];
 
 const HeroAnimation = () => {

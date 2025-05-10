@@ -22,7 +22,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 export function PdfPreview({
   file,
-  onPositionChange,
 }: PdfPreviewProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);

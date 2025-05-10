@@ -1,5 +1,7 @@
+"use strict";
+exports.__esModule = true;
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
-export default {
+exports["default"] = {
     metadata: {
         title: "MegaPDF - محول PDF مجاني، محرر، OCR وفك قفل PDF",
         template: "%s | MegaPDF - أدوات PDF",
@@ -93,14 +95,13 @@ export default {
         accessDenied: "تم الرفض. ليس لديك إذن للوصول إلى هذا المورد.",
         googleSignIn: "جوجل",
         hidePassword: "إخفاء كلمة المرور",
-        showPassword: "إظهار كلمة المرور",
+        showPassword: "إظهار كلمة المرور"
     },
     login: {
         title: "تسجيل الدخول إلى حسابك",
         description: "أدخل بيانات الاعتماد الخاصة بك للوصول إلى لوحة التحكم",
         termsAndPrivacy: "بمجرد تسجيل الدخول، فإنك توافق على <termsLink>شروط الخدمة</termsLink> و <privacyLink>سياسة الخصوصية</privacyLink> الخاصة بنا.",
         footer: "© 2025 MegaPDF. جميع الحقوق محفوظة."
-
     },
     dashboard: {
         title: "لوحة التحكم",
@@ -145,7 +146,6 @@ export default {
         usageBreakdown: "تفصيل استخدام واجهة برمجة التطبيقات لهذا الشهر",
         none: "لا شيء",
         percentageOfTotal: "من إجمالي الاستخدام"
-
     },
     subscription: {
         currentPlan: "الخطة الحالية",
@@ -202,7 +202,7 @@ export default {
                 title: "تم إلغاء الاشتراك - MegaPDF",
                 description: "تم إلغاء عملية الاشتراك الخاصة بك. يمكنك دائمًا الاشتراك لاحقًا عندما تكون مستعدًا."
             }
-        },
+        }
     },
     profile: {
         // Personal Information
@@ -218,7 +218,6 @@ export default {
         updateSuccess: "تم تحديث الملف الشخصي بنجاح",
         updateFailed: "فشل في تحديث الملف الشخصي",
         updateError: "حدث خطأ أثناء تحديث ملفك الشخصي",
-
         // Password Management
         changePassword: "تغيير كلمة المرور",
         updatePasswordDesc: "تحديث كلمة مرور حسابك",
@@ -232,7 +231,6 @@ export default {
         passwordUpdateSuccess: "تم تحديث كلمة المرور بنجاح",
         passwordUpdateFailed: "فشل في تحديث كلمة المرور",
         passwordUpdateError: "حدث خطأ أثناء تحديث كلمة المرور",
-
         // Password Validation
         passwordWeak: "ضعيف",
         passwordFair: "متوسط",
@@ -243,7 +241,6 @@ export default {
         passwordStrength: "قوة كلمة المرور",
         passwordTips: "للأمان، اختر كلمة مرور قوية تحتوي على 8 أحرف على الأقل، بما في ذلك أحرف كبيرة وصغيرة وأرقام ورموز."
     },
-
     // قسم البطل
     hero: {
         badge: "أدوات PDF قوية",
@@ -252,7 +249,6 @@ export default {
         btConvert: "ابدأ التحويل",
         btTools: "استكشف جميع الأدوات"
     },
-
     popular: {
         pdfToWord: "PDF إلى Word",
         pdfToWordDesc: "حوّل ملفات PDF الخاصة بك بسهولة إلى مستندات DOC وDOCX قابلة للتعديل.",
@@ -302,7 +298,6 @@ export default {
         redactPdfDesc: "أزل المعلومات الحساسة بشكل دائم من ملفات PDF الخاصة بك.",
         viewAll: "عرض جميع أدوات PDF"
     },
-
     // قسم المحول
     converter: {
         title: "ابدأ التحويل",
@@ -426,7 +421,6 @@ export default {
         title: "دمج ملفات PDF عبر الإنترنت | أداة دمج PDF مجانية في متصفح الويب",
         description: "اجمع عدة ملفات PDF في مستند واحد بسرعة وسهولة باستخدام أداة الدمج المستندة إلى المتصفح والتي تعمل على جميع أنظمة التشغيل",
         intro: "تتيح لك أداة دمج PDF عبر الإنترنت دمج عدة مستندات في ملف واحد مدمج ببضع نقرات فقط. لا حاجة للتثبيت - تعمل مباشرة في متصفح الويب الخاص بك على أي نظام تشغيل.",
-
         // How-to section
         howTo: {
             title: "كيفية دمج ملفات PDF في متصفحك",
@@ -443,7 +437,6 @@ export default {
                 description: "انقر على زر 'دمج ملفات PDF' وقم بتنزيل ملف PDF المدمج مباشرة إلى جهازك من أي متصفح ويب."
             }
         },
-
         // Benefits section
         benefits: {
             title: "فوائد أداة دمج PDF عبر الإنترنت لدينا",
@@ -464,7 +457,6 @@ export default {
                 description: "تحافظ أداة الدمج لدينا على التنسيق الأصلي والصور وجودة النص في ملفك المددمج، مما يضمن نتائج احترافية."
             }
         },
-
         // Use cases section
         useCases: {
             title: "الاستخدامات الشائعة لدمج PDF",
@@ -485,7 +477,6 @@ export default {
                 description: "أنشئ محافظًا مثيرة للإعجاب عن طريق دمج عينات عمل متعددة في مستند واحد يسهل مشاركته."
             }
         },
-
         // FAQ section
         faq: {
             title: "الأسئلة الشائعة",
@@ -514,7 +505,6 @@ export default {
                 answer: "نعم، تحافظ أداة الدمج المتقدمة لدينا على النصوص والصور والتنسيق والروابط التشعبية ومعظم العناصر التفاعلية من ملفات PDF الأصلية في ملفك المددمج النهائي."
             }
         },
-
         // Tips section
         tips: {
             title: "نصائح لدمج ملفات PDF بفعالية",
@@ -535,7 +525,6 @@ export default {
                 description: "بالنسبة للمستندات المهنية، فكر في إضافة إشارات مرجعية إلى ملفك المددمج باستخدام أداة تحرير PDF الخاصة بنا لتسهيل التنقل."
             }
         },
-
         // Comparison section
         comparison: {
             title: "لماذا تختار أداة الدمج المستندة إلى متصفح الويب لدينا",
@@ -556,7 +545,6 @@ export default {
                 description: "يتم تحسين أداة الدمج عبر الإنترنت لدينا باستمرار دون الحاجة إلى تحديثات يدوية من المستخدمين."
             }
         },
-
         // UI elements and messages
         ui: {
             of: "من",
@@ -582,18 +570,15 @@ export default {
             pleaseWait: "يرجى الانتظار بينما نجمع ملفات PDF الخاصة بك",
             processingFile: "جارٍ المعالجة",
             retry: "إعادة محاولة الدمج"
-        },
+        }
     },
-
     features: {
         title: "أدوات وميزات PDF المتقدمة | MegaPDF",
         description: "استكشف مجموعة MegaPDF الشاملة من أدوات وميزات PDF لإدارة المستندات، التحويل، التحرير، وأكثر من ذلك.",
-
         hero: {
             title: "أدوات وميزات PDF المتقدمة",
             description: "اكتشف مجموعة الأدوات والميزات الشاملة التي تجعل MegaPDF الحل النهائي لجميع احتياجات إدارة المستندات الخاصة بك."
         },
-
         overview: {
             power: {
                 title: "معالجة قوية",
@@ -608,13 +593,10 @@ export default {
                 description: "الوصول إلى مستنداتك وأدواتنا من أي جهاز مع توافق كامل عبر المنصات."
             }
         },
-
         allFeatures: {
             title: "جميع الميزات"
         },
-
         learnMore: "تعرف على المزيد",
-
         categories: {
             conversion: {
                 title: "تحويل PDF",
@@ -638,7 +620,6 @@ export default {
                     }
                 }
             },
-
             editing: {
                 title: "تحرير وإدارة PDF",
                 description: "تحرير وتنظيم وتحسين مستندات PDF الخاصة بك باستخدام مجموعة أدواتنا الشاملة.",
@@ -661,7 +642,6 @@ export default {
                     }
                 }
             },
-
             security: {
                 title: "أمان وحماية PDF",
                 description: "تأمين مستندات PDF الخاصة بك باستخدام التشفير وحماية كلمة المرور والتوقيعات الرقمية.",
@@ -684,7 +664,6 @@ export default {
                     }
                 }
             },
-
             ocr: {
                 title: "تقنية OCR",
                 description: "استخراج النصوص من المستندات الممسوحة ضوئيًا والصور باستخدام تقنية OCR المتقدمة الخاصة بنا.",
@@ -707,7 +686,6 @@ export default {
                     }
                 }
             },
-
             api: {
                 title: "API والتكامل",
                 description: "دمج قدرات معالجة PDF الخاصة بنا في تطبيقاتك باستخدام API القوي الخاص بنا.",
@@ -730,7 +708,6 @@ export default {
                     }
                 }
             },
-
             cloud: {
                 title: "منصة السحابة",
                 description: "الوصول إلى مستنداتك من أي مكان باستخدام منصة التخزين والمعالجة السحابية الآمنة الخاصة بنا.",
@@ -753,7 +730,6 @@ export default {
                     }
                 }
             },
-
             enterprise: {
                 title: "ميزات المؤسسات",
                 description: "ميزات متقدمة مصممة لمتطلبات الأعمال والمؤسسات.",
@@ -777,7 +753,6 @@ export default {
                 }
             }
         },
-
         mobile: {
             title: "تطبيق MegaPDF المحمول",
             description: "خذ أدوات PDF القوية من MegaPDF معك أثناء التنقل. يوفر تطبيقنا المحمول نفس الوظائف القوية في واجهة ملائمة للجوال.",
@@ -794,7 +769,6 @@ export default {
                 description: "مزامنة مستنداتك بسلاسة عبر جميع أجهزتك مع التخزين السحابي الآمن."
             }
         },
-
         comparison: {
             title: "مقارنة الميزات",
             description: "قارن بين خططنا المختلفة للعثور على الخطة التي تناسب احتياجاتك بشكل أفضل.",
@@ -819,7 +793,6 @@ export default {
                 dedicated: "دعم مخصص"
             }
         },
-
         testimonials: {
             title: "ماذا يقول مستخدمونا",
             quote1: "لقد أحدث MegaPDF ثورة في طريقة تعامل فريقنا مع المستندات. وظيفة OCR دقيقة بشكل لا يصدق، والمعالجة الدفعية توفر لنا ساعات كل أسبوع.",
@@ -833,7 +806,6 @@ export default {
             title3: "صاحبة عمل"
         }
     },
-
     // قسم دعوة لاتخاذ الإجراء
     cta: {
         title: "هل أنت جاهز للتحويل؟",
@@ -858,7 +830,6 @@ export default {
             pdfSecurity: "أمان PDF"
         }
     },
-
     // وصف الأدوات
     toolDescriptions: {
         pdfToWord: "حوّل ملفات PDF الخاصة بك بسهولة إلى مستندات DOC وDOCX قابلة للتعديل.",
@@ -975,8 +946,6 @@ export default {
             viewAll: "عرض جميع الأدوات"
         }
     },
-
-
     // صفحة OCR
     ocr: {
         title: "استخراج النصوص بتقنية OCR: التعرف على النصوص بسهولة",
@@ -1103,14 +1072,12 @@ export default {
         },
         ocrTool: "أداة استخراج النصوص بتقنية OCR",
         ocrToolDesc: "حوّل المستندات الممسوحة ضوئيًا وملفات الصور إلى نصوص قابلة للتحرير باستخدام محول الصور إلى نصوص",
-
         // Upload area
         uploadPdf: "رفع الملفات لاستخراج النصوص بتقنية OCR",
         dragDrop: "اسحب وأفلت ملف PDF أو ملف الصورة هنا، أو انقر للتصفح",
         selectPdf: "اختر ملف",
         uploading: "جارٍ الرفع...",
         maxFileSize: "الحد الأقصى لحجم الملف: 50 ميجابايت",
-
         // File handling
         invalidFile: "نوع ملف غير صالح",
         invalidFileDesc: "يرجى اختيار ملف PDF أو ملف صورة مدعوم",
@@ -1119,7 +1086,6 @@ export default {
         noFile: "لم يتم اختيار ملف",
         noFileDesc: "يرجى اختيار ملف للتعرف على النصوص",
         changeFile: "تغيير الملف",
-
         // Options
         languageLabel: "لغة المستند",
         selectLanguage: "اختر اللغة",
@@ -1130,7 +1096,6 @@ export default {
         pageRangeInfo: "أدخل صفحات فردية أو نطاقات مفصولة بفواصل",
         preserveLayout: "الحفاظ على التخطيط",
         preserveLayoutDesc: "حاول الحفاظ على هيكلية المستند والتنسيق",
-
         // Processing
         extractText: "استخراج النص",
         extractingText: "جارٍ استخراج النص...",
@@ -1142,7 +1107,6 @@ export default {
         extracting: "استخراج المحتوى",
         finalizing: "إنهاء النتائج",
         finishing: "الانتهاء",
-
         // Results
         extractionComplete: "اكتمل استخراج النص",
         extractionCompleteDesc: "تم استخراج النص بنجاح من الملف باستخدام أداة استخراج الصور إلى نصوص",
@@ -1161,11 +1125,9 @@ export default {
         copyText: "نسخ النص",
         downloadText: "تحميل النص",
         processAnother: "معالجة ملف آخر",
-
         // Additional info
         supportedLanguages: "يدعم أكثر من 15 لغة بما في ذلك الإنجليزية، الإسبانية، الفرنسية، الألمانية، الصينية، اليابانية وغيرها. اختر اللغة المناسبة لدقة أفضل."
     },
-
     // صفحة حماية PDF
     protectPdf: {
         title: "حماية PDF بكلمة مرور",
@@ -1296,11 +1258,9 @@ export default {
         textWatermark: "علامة مائية نصية",
         imageWatermark: "علامة مائية صورية",
         privacyNote: "تتم معالجة ملفاتك بشكل آمن. يتم حذف جميع الملفات المرفوعة تلقائيًا بعد المعالجة.",
-
         // Header section
         headerTitle: "إضافة علامة مائية إلى PDF",
         headerDescription: "أضف علامات مائية نصية أو صورية مخصصة إلى مستندات PDF للعلامة التجارية وحماية حقوق النشر وتصنيف المستندات",
-
         // Error messages
         invalidFileType: "نوع ملف غير صالح",
         selectPdfFile: "يرجى اختيار ملف PDF",
@@ -1315,14 +1275,12 @@ export default {
         selectWatermarkImage: "يرجى اختيار صورة لاستخدامها كعلامة مائية",
         noTextEntered: "لم يتم إدخال نص للعلامة المائية",
         enterWatermarkText: "يرجى إدخال نص ليتم استخدامه كعلامة مائية",
-
         // Success/failure messages
         success: "تمت إضافة العلامة المائية بنجاح",
         successDesc: "تمت إضافة العلامة المائية إلى ملف PDF الخاص بك وهو جاهز للتنزيل",
         failed: "فشلت إضافة العلامة المائية",
         unknownError: "حدث خطأ غير معروف",
         unknownErrorDesc: "حدث خطأ غير معروف. يرجى المحاولة مرة أخرى",
-
         // Upload and processing UI
         uploadTitle: "رفع PDF لإضافة علامة مائية",
         uploadDesc: "اسحب وأفلت ملف PDF هنا، أو انقر للتصفح",
@@ -1347,7 +1305,6 @@ export default {
         pleaseWait: "يرجى الانتظار بينما نعالج مستندك",
         download: "تنزيل PDF",
         newWatermark: "إضافة علامة مائية أخرى",
-
         // Text watermark options
         text: {
             text: "نص العلامة المائية",
@@ -1360,7 +1317,6 @@ export default {
             rotation: "الدوران",
             preview: "معاينة"
         },
-
         // Image watermark options
         image: {
             title: "صورة العلامة المائية",
@@ -1399,7 +1355,6 @@ export default {
                 description: "قم بمعالجة ملفك وتنزيل مستند PDF مع العلامة المائية"
             }
         },
-
         // Why watermark section
         why: {
             title: "لماذا إضافة العلامات المائية",
@@ -1420,7 +1375,6 @@ export default {
                 description: "إضافة معرفات فريدة لتتبع توزيع المستندات وتحديد التسريبات"
             }
         },
-
         // Watermark types section
         types: {
             title: "أنواع وخيارات العلامة المائية",
@@ -1447,7 +1401,6 @@ export default {
                 }
             }
         },
-
         // FAQ section
         faq: {
             title: "الأسئلة الشائعة",
@@ -1488,7 +1441,6 @@ export default {
                 answer: "نعم، الحد الأقصى لحجم ملف PDF هو 50 ميجابايت. بالنسبة للعلامات المائية الصورية، الحد الأقصى للحجم هو 5 ميجابايت."
             }
         },
-
         // Best practices section
         bestPractices: {
             title: "أفضل ممارسات العلامات المائية",
@@ -1509,7 +1461,6 @@ export default {
                 "لا تستخدم صورًا منخفضة الدقة تظهر بشكل بكسلي"
             ]
         },
-
         // Related tools section
         relatedTools: {
             title: "الأدوات ذات الصلة",
@@ -1674,7 +1625,6 @@ export default {
         description: "إزالة كلمات مرور PDF وإلغاء حماية ملفات PDF بسرعة باستخدام أداة فتح PDF عبر الإنترنت. افتح ملفات PDF لإنشاء ملف PDF غير مؤمن على أي نظام تشغيل.",
         metaDescription: "افتح ملفات PDF بسهولة باستخدام أداة فتح PDF الخاصة بنا. أزل كلمة مرور أذونات PDF، وألغِ حماية ملفات PDF عبر الإنترنت، وقم بتنزيل ملفك المفتوح بأمان.",
         keywords: "فتح ملف PDF، كيفية فتح ملف PDF، فتح PDF، فتح ملفات PDF، تحويل إلى PDF، فتح ملفات PDF، ملف PDF غير مؤمن، أداة فتح PDF، ملف مفتوح، فتح مستند PDF، فتح SmallPDF، فتح ملفات PDF، أداة حماية PDF، كلمة مرور الأذونات، تنزيل ملفك، كلمة المرور من PDF، PDF عبر الإنترنت، إزالة كلمات مرور PDF، فتح SmallPDF لـ PDF، إزالة PDF، انقر فوق حفظ، انقر فوق كلمة المرور، أداة فتح PDF",
-
         // Benefits Section
         benefits: {
             title: "لماذا تستخدم أداة فتح PDF الخاصة بنا لفتح ملفات PDF",
@@ -1697,7 +1647,6 @@ export default {
                 }
             ]
         },
-
         // Use Cases Section
         useCases: {
             title: "كيفية فتح ملف PDF: حالات الاستخدام الرئيسية",
@@ -1720,7 +1669,6 @@ export default {
                 }
             ]
         },
-
         // How-To Section
         howTo: {
             title: "كيفية فتح ملف PDF في 3 خطوات",
@@ -1737,7 +1685,6 @@ export default {
                 description: "انهِ فتح ملفات PDF عن طريق تنزيل ملفك كملف PDF غير مؤمن بعد إزالة كلمة مرور PDF."
             }
         },
-
         // Features Section
         features: {
             title: "الميزات الرئيسية لأداة فتح PDF الخاصة بنا",
@@ -1760,7 +1707,6 @@ export default {
                 }
             ]
         },
-
         // FAQ Section
         faq: {
             passwordRequired: {
@@ -1784,7 +1730,6 @@ export default {
                 answer: "نعم، تعمل أداة فتح PDF الخاصة بنا على أي نظام تشغيل وتعد بديلاً رائعًا لفتح SmallPDF، لفتح ملفات PDF عبر الإنترنت."
             }
         },
-
         // Status Messages
         passwordProtected: "محمي بكلمة مرور",
         notPasswordProtected: "غير محمي بكلمة مرور",
@@ -1792,7 +1737,6 @@ export default {
         unlockSuccess: "تم فتح PDF بنجاح!",
         unlockSuccessDesc: "اكتمل فتح مستند PDF الخاص بك! قم بتنزيل ملفك المفتوح الآن."
     },
-
     // رافع الملفات
     fileUploader: {
         dropHere: "أسقط ملفك هنا",
@@ -1822,7 +1766,6 @@ export default {
         download: "تنزيل الملف المحول",
         filesSecurity: "يتم حذف الملفات تلقائيًا بعد 1 ساعة للخصوصية والأمان."
     },
-
     // عناصر واجهة المستخدم الشائعة
     ui: {
         upload: "رفع",
@@ -1846,7 +1789,7 @@ export default {
         loading: "جارٍ التحميل...",
         preview: "معاينة",
         reupload: "رفع ملف آخر",
-        continue: "متابعة",
+        "continue": "متابعة",
         skip: "تخطي",
         retry: "إعادة المحاولة",
         addMore: "إضافة المزيد",
@@ -1854,12 +1797,11 @@ export default {
         clearAll: "مسح الكل",
         done: "تم",
         extract: "استخراج",
-        new: "جديد!",
+        "new": "جديد!",
         phone: "هاتف",
         address: "عنوان",
         filesSecurity: "يتم حذف الملفات تلقائيًا بعد 1 ساعة للخصوصية والأمان."
     },
-
     contact: {
         title: "اتصل بنا",
         description: "لديك أسئلة أو تعليقات؟ نحب أن نسمع منك.",
@@ -1994,7 +1936,6 @@ export default {
             description: "لديك الحق في الوصول إلى معلوماتك الشخصية، تصحيحها، أو حذفها."
         }
     },
-
     // صفحات الخطأ
     error: {
         notFound: "الصفحة غير موجودة",
@@ -2200,7 +2141,7 @@ export default {
             warnings: "التحذيرات",
             fileSize: "حجم الملف",
             original: "الأصلي",
-            new: "الجديد",
+            "new": "الجديد",
             reduction: "تقليص",
             download: "تنزيل PDF المصلح",
             repairAnother: "إصلاح PDF آخر"
@@ -2297,7 +2238,6 @@ export default {
         socialGithub: "جيت هاب",
         socialYoutube: "يوتيوب"
     },
-
     security: {
         title: "الأمان والخصوصية في MegaPDF",
         description: "نحن نأخذ أمان وخصوصية مستنداتك على محمل الجد. تعرف على كيفية حماية بياناتك.",
@@ -2427,7 +2367,6 @@ export default {
             }
         }
     },
-
     developer: {
         title: "وثائق واجهة برمجة التطبيقات للمطورين",
         description: "دمج أدوات PDF القوية من MegaPDF في تطبيقاتك باستخدام واجهة برمجة التطبيقات RESTful الخاصة بنا",
@@ -2607,7 +2546,6 @@ export default {
     },
     pricing: {
         description: "اختر الخطة المناسبة لاحتياجاتك من PDF. يقدم MegaPDF خيارات تسعير مرنة من مجانية إلى مؤسسية، مع الميزات التي تحتاجها.",
-
         // Page content
         title: "تسعير بسيط وشفاف",
         subtitle: "اختر الخطة التي تناسبك. جميع الخطط تشمل أدوات PDF الأساسية لدينا.",
@@ -2617,7 +2555,6 @@ export default {
         subscribe: "اشترك",
         feature: "ميزة",
         featureCompare: "مقارنة الميزات",
-
         // Features
         features: {
             operations: "العمليات الشهرية",
@@ -2661,7 +2598,6 @@ export default {
             whiteLabel: "خيارات العلامة البيضاء",
             serviceLevel: "اتفاقية مستوى الخدمة"
         },
-
         // Plan descriptions
         planDescriptions: {
             free: "للاحتياجات العرضية لـ PDF",
@@ -2669,7 +2605,6 @@ export default {
             pro: "للمحترفين والشركات",
             enterprise: "للمؤسسات الكبيرة"
         },
-
         // FAQ section
         faq: {
             title: "الأسئلة الشائعة",
@@ -2694,7 +2629,6 @@ export default {
                 content: "نعم، نحن نأخذ أمن البيانات على محمل الجد. يتم رفع جميع الملفات والمعالجة عبر اتصالات HTTPS آمنة. لا نحتفظ بملفاتك أكثر من اللازم للمعالجة، ويتم حذف جميع الملفات تلقائيًا بعد اكتمال المعالجة."
             }
         },
-
         // CTA section
         cta: {
             title: "هل أنت جاهز للبدء؟",
@@ -2702,11 +2636,9 @@ export default {
             startBasic: "ابدأ بالخطة الأساسية",
             explorePdfTools: "استكشف أدوات PDF"
         },
-
         // Login dialog
         loginRequired: "تسجيل الدخول مطلوب",
         loginRequiredDesc: "تحتاج إلى تسجيل الدخول إلى حسابك قبل الاشتراك. هل تريد تسجيل الدخول الآن؟",
-
         // Plan buttons
         getStarted: "ابدأ",
         currentPlan: "الخطة الحالية"
@@ -3019,17 +2951,14 @@ export default {
         title: "إضافة أرقام الصفحات إلى PDF",
         shortDescription: "أضف أرقام صفحات قابلة للتخصيص بسهولة إلى مستندات PDF الخاصة بك",
         description: "أضف أرقام صفحات مخصصة إلى PDF مع تنسيقات أرقام متنوعة، مواضع، وأنماط باستخدام أداتنا عبر الإنترنت",
-
         uploadTitle: "ارفع ملف PDF الخاص بك",
         uploadDesc: "ارفع ملف PDF لإضافة أرقام الصفحات أو الرؤوس. سيتم معالجة ملفك بأمان، متوافق مع أي نظام تشغيل.",
-
         messages: {
             noFile: "يرجى رفع ملف PDF أولاً",
             success: "تمت إضافة أرقام الصفحات بنجاح!",
             error: "خطأ في إضافة أرقام الصفحات",
             processing: "جارٍ معالجة ملف PDF الخاص بك..."
         },
-
         howTo: {
             title: "كيفية إضافة أرقام الصفحات",
             step1: {
@@ -3045,7 +2974,6 @@ export default {
                 description: "عالج ملفك وقم بتحميله مع أرقام الصفحات المضافة باستخدام أداتنا عبر الإنترنت"
             }
         },
-
         benefits: {
             title: "فوائد إضافة أرقام الصفحات",
             navigation: {
@@ -3065,7 +2993,6 @@ export default {
                 description: "خصص مظهر وموضع أرقام الصفحات أو أضف رؤوسًا لتتناسب مع أسلوب مستندك"
             }
         },
-
         useCases: {
             title: "حالات الاستخدام الشائعة",
             books: {
@@ -3085,7 +3012,6 @@ export default {
                 description: "طبق ترقيم صفحات متسق على العقود والوثائق القانونية للمراجعة السليمة"
             }
         },
-
         faq: {
             title: "الأسئلة الشائعة",
             formats: {
@@ -3109,7 +3035,6 @@ export default {
                 answer: "نعم، جميع المعالجات آمنة. الملفات مشفرة أثناء النقل، تُعالج، ثم تُحذف تلقائيًا—لا يتم تخزينها بشكل دائم أو الوصول إليها إلا لإضافة الأرقام."
             }
         },
-
         relatedTools: {
             title: "أدوات ذات صلة"
         }
@@ -3191,7 +3116,7 @@ export default {
                 title: "اطرح الأسئلة",
                 description: "اسأل أي شيء عن المستند واحصل على إجابات دقيقة مستمدة من محتوى PDF."
             }
-        },
+        }
     },
     removePdf: {
         title: "إزالة الصفحات من ملف PDF",
@@ -3213,84 +3138,84 @@ export default {
         removeFromDocument: "إلغاء الإزالة",
         markForRemoval: "تحديد للإزالة",
         messages: {
-          processing: "يرجى الانتظار أثناء قيامنا بإزالة الصفحات المحددة من ملف PDF...",
-          success: "تمت إزالة الصفحات بنجاح",
-          error: "فشل في إزالة الصفحات. يرجى المحاولة مرة أخرى.",
-          downloadReady: "ملف PDF مع الصفحات المحذوفة جاهز للتنزيل.",
-          invalidFile: "يرجى تحديد ملف PDF صالح",
-          cannotRemoveAll: "لا يمكنك إزالة جميع الصفحات. يجب أن تبقى صفحة واحدة على الأقل."
+            processing: "يرجى الانتظار أثناء قيامنا بإزالة الصفحات المحددة من ملف PDF...",
+            success: "تمت إزالة الصفحات بنجاح",
+            error: "فشل في إزالة الصفحات. يرجى المحاولة مرة أخرى.",
+            downloadReady: "ملف PDF مع الصفحات المحذوفة جاهز للتنزيل.",
+            invalidFile: "يرجى تحديد ملف PDF صالح",
+            cannotRemoveAll: "لا يمكنك إزالة جميع الصفحات. يجب أن تبقى صفحة واحدة على الأقل."
         },
         howTo: {
-          title: "كيفية إزالة الصفحات من ملف PDF",
-          step1: {
-            title: "قم بتحميل ملف PDF الخاص بك",
-            description: "حدد أو اسحب وأفلت ملف PDF الذي تريد إزالة الصفحات منه."
-          },
-          step2: {
-            title: "حدد الصفحات المراد إزالتها",
-            description: "انقر على الصور المصغرة لمعاينة الصفحات. حدد المربع لتحديد الصفحات للإزالة."
-          },
-          step3: {
-            title: "حفظ وتنزيل",
-            description: "انقر فوق حفظ المستند لمعالجة التغييرات الخاصة بك، ثم قم بتنزيل ملف PDF."
-          }
+            title: "كيفية إزالة الصفحات من ملف PDF",
+            step1: {
+                title: "قم بتحميل ملف PDF الخاص بك",
+                description: "حدد أو اسحب وأفلت ملف PDF الذي تريد إزالة الصفحات منه."
+            },
+            step2: {
+                title: "حدد الصفحات المراد إزالتها",
+                description: "انقر على الصور المصغرة لمعاينة الصفحات. حدد المربع لتحديد الصفحات للإزالة."
+            },
+            step3: {
+                title: "حفظ وتنزيل",
+                description: "انقر فوق حفظ المستند لمعالجة التغييرات الخاصة بك، ثم قم بتنزيل ملف PDF."
+            }
         },
         benefits: {
-          title: "فوائد استخدام أداة إزالة صفحات PDF الخاصة بنا",
-          accuracy: {
-            title: "تحديد الصفحات بدقة",
-            description: "قم بمعاينة الصفحات قبل الإزالة لضمان الدقة."
-          },
-          preview: {
-            title: "معاينة الصفحة كاملة",
-            description: "انقر على صفحة العهد لعرضها بتفاصيل كاملة مع عناصر التحكم في التكبير."
-          },
-          secure: {
-            title: "معالجة آمنة",
-            description: "يتم معالجة ملفاتك محليًا وحذفها فور الانتهاء من المعالجة."
-          },
-          flexible: {
-            title: "تحديد مرن",
-            description: "حدد الصفحات وألغِ تحديدها بسهولة مع ردود فعل مرئية."
-          }
+            title: "فوائد استخدام أداة إزالة صفحات PDF الخاصة بنا",
+            accuracy: {
+                title: "تحديد الصفحات بدقة",
+                description: "قم بمعاينة الصفحات قبل الإزالة لضمان الدقة."
+            },
+            preview: {
+                title: "معاينة الصفحة كاملة",
+                description: "انقر على صفحة العهد لعرضها بتفاصيل كاملة مع عناصر التحكم في التكبير."
+            },
+            secure: {
+                title: "معالجة آمنة",
+                description: "يتم معالجة ملفاتك محليًا وحذفها فور الانتهاء من المعالجة."
+            },
+            flexible: {
+                title: "تحديد مرن",
+                description: "حدد الصفحات وألغِ تحديدها بسهولة مع ردود فعل مرئية."
+            }
         },
         useCases: {
-          title: "حالات الاستخدام الشائعة",
-          confidential: {
-            title: "إزالة المحتوى السري",
-            description: "قم بإزالة الصفحات التي تحتوي على معلومات حساسة بسهولة قبل المشاركة."
-          },
-          reports: {
-            title: "تخصيص التقارير",
-            description: "قم بإزالة الأقسام غير ذات الصلة لإنشاء مستندات مركزة."
-          },
-          presentations: {
-            title: "تخصيص العروض التقديمية",
-            description: "قم بإزالة شرائح محددة لتخصيصها لجماهير مختلفة."
-          },
-          sharing: {
-            title: "التجهيز للمشاركة",
-            description: "قم بتنظيف المستندات عن طريق إزالة الصفحات غير الضرورية."
-          }
+            title: "حالات الاستخدام الشائعة",
+            confidential: {
+                title: "إزالة المحتوى السري",
+                description: "قم بإزالة الصفحات التي تحتوي على معلومات حساسة بسهولة قبل المشاركة."
+            },
+            reports: {
+                title: "تخصيص التقارير",
+                description: "قم بإزالة الأقسام غير ذات الصلة لإنشاء مستندات مركزة."
+            },
+            presentations: {
+                title: "تخصيص العروض التقديمية",
+                description: "قم بإزالة شرائح محددة لتخصيصها لجماهير مختلفة."
+            },
+            sharing: {
+                title: "التجهيز للمشاركة",
+                description: "قم بتنظيف المستندات عن طريق إزالة الصفحات غير الضرورية."
+            }
         },
         faq: {
-          title: "الأسئلة الشائعة",
-          multiplePages: {
-            question: "هل يمكنني إزالة عدة صفحات في وقت واحد؟",
-            answer: "نعم، يمكنك تحديد عدة صفحات لإزالتها في عملية واحدة."
-          },
-          pageLimit: {
-            question: "هل هناك حد لعدد الصفحات التي يمكنني إزالتها؟",
-            answer: "يمكنك إزالة أي عدد من الصفحات، ولكن يجب أن تبقى صفحة واحدة على الأقل."
-          },
-          quality: {
-            question: "هل تؤثر إزالة الصفحات على جودة الصفحات المتبقية؟",
-            answer: "لا، يتم الحفاظ على جودة الصفحات المتبقية."
-          },
-          encrypted: {
-            question: "هل يمكنني إزالة الصفحات من ملفات PDF المحمية بكلمة مرور؟",
-            answer: "ستحتاج أولاً إلى فتح ملفات PDF المحمية بكلمة مرور."
-          }
+            title: "الأسئلة الشائعة",
+            multiplePages: {
+                question: "هل يمكنني إزالة عدة صفحات في وقت واحد؟",
+                answer: "نعم، يمكنك تحديد عدة صفحات لإزالتها في عملية واحدة."
+            },
+            pageLimit: {
+                question: "هل هناك حد لعدد الصفحات التي يمكنني إزالتها؟",
+                answer: "يمكنك إزالة أي عدد من الصفحات، ولكن يجب أن تبقى صفحة واحدة على الأقل."
+            },
+            quality: {
+                question: "هل تؤثر إزالة الصفحات على جودة الصفحات المتبقية؟",
+                answer: "لا، يتم الحفاظ على جودة الصفحات المتبقية."
+            },
+            encrypted: {
+                question: "هل يمكنني إزالة الصفحات من ملفات PDF المحمية بكلمة مرور؟",
+                answer: "ستحتاج أولاً إلى فتح ملفات PDF المحمية بكلمة مرور."
+            }
         }
-      }
-}
+    }
+};
