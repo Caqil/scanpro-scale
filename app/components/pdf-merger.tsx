@@ -209,7 +209,7 @@ export function PdfMerger() {
 
     // Use our custom upload hook
     uploadFile(files[0].file, formData, {
-      url: "/api/merge",
+      url: "/api/pdf/merge",
       onProgress: (progress) => {
         // Update UI with upload progress
         setProgress(progress / 2); // First half is upload, second half is processing
