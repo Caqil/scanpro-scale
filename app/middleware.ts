@@ -19,6 +19,7 @@ const API_ROUTES = [
   '/api/pdf/extract',
   '/api/pdf/annotate',
   '/api/pdf/redact',
+  '/api/pdf/rotate',
   '/api/pdf/redact/detect',
   '/api/pdf/organize',
   '/api/pdf/process',
