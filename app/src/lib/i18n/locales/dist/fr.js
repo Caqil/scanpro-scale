@@ -1,5 +1,7 @@
+"use strict";
+exports.__esModule = true;
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
-export default {
+exports["default"] = {
     metadata: {
         title: "MegaPDF - Convertisseur PDF gratuit, éditeur, OCR & Déverrouiller PDF",
         template: "%s | MegaPDF - Outils PDF",
@@ -93,7 +95,7 @@ export default {
         accessDenied: "Accès refusé. Vous n'avez pas la permission d'accéder à cette ressource.",
         googleSignIn: "Google",
         hidePassword: "Masquer le mot de passe",
-        showPassword: "Afficher le mot de passe",
+        showPassword: "Afficher le mot de passe"
     },
     login: {
         title: "Connectez-vous à votre compte",
@@ -144,7 +146,6 @@ export default {
         usageBreakdown: "Répartition de votre utilisation de l'API pour le mois en cours",
         none: "Aucun",
         percentageOfTotal: "de l'utilisation totale"
-
     },
     subscription: {
         currentPlan: "Plan actuel",
@@ -217,7 +218,6 @@ export default {
         updateSuccess: "Profil mis à jour avec succès",
         updateFailed: "Échec de la mise à jour du profil",
         updateError: "Une erreur s'est produite lors de la mise à jour de votre profil",
-
         // Password Management
         changePassword: "Changer le mot de passe",
         updatePasswordDesc: "Mettez à jour le mot de passe de votre compte",
@@ -231,7 +231,6 @@ export default {
         passwordUpdateSuccess: "Mot de passe mis à jour avec succès",
         passwordUpdateFailed: "Échec de la mise à jour du mot de passe",
         passwordUpdateError: "Une erreur s'est produite lors de la mise à jour de votre mot de passe",
-
         // Password Validation
         passwordWeak: "Faible",
         passwordFair: "Moyen",
@@ -242,7 +241,6 @@ export default {
         passwordStrength: "Force du mot de passe",
         passwordTips: "Pour des raisons de sécurité, choisissez un mot de passe fort avec au moins 8 caractères, incluant des majuscules, des minuscules, des chiffres et des symboles."
     },
-
     // Section Héros
     hero: {
         badge: "Outils PDF Puissants",
@@ -251,7 +249,6 @@ export default {
         btConvert: "Commencer à Convertir",
         btTools: "Explorer Tous les Outils"
     },
-
     popular: {
         pdfToWord: "PDF vers Word",
         pdfToWordDesc: "Convertissez facilement vos fichiers PDF en documents DOC et DOCX faciles à éditer.",
@@ -301,7 +298,6 @@ export default {
         redactPdfDesc: "Supprimez définitivement les informations sensibles de vos fichiers PDF.",
         viewAll: "Voir Tous les Outils PDF"
     },
-
     // Section Convertisseur
     converter: {
         title: "Commencer à Convertir",
@@ -312,7 +308,6 @@ export default {
         apiDesc: "Utilisez notre API REST pour convertir des PDF par programmation dans votre application",
         apiDocs: "Voir la Documentation API"
     },
-
     // Page de Conversion
     convert: {
         title: {
@@ -425,12 +420,10 @@ export default {
     features: {
         title: "Outils et Fonctions PDF Avancés | MegaPDF",
         description: "Explorez la suite complète d'outils et de fonctions PDF de MegaPDF pour la gestion, la conversion, l'édition de documents et plus encore.",
-
         hero: {
             title: "Outils et Fonctions PDF Avancés",
             description: "Découvrez la suite complète d'outils et de fonctions qui font de MegaPDF la solution ultime pour tous vos besoins en gestion documentaire."
         },
-
         overview: {
             power: {
                 title: "Traitement Puissant",
@@ -445,13 +438,10 @@ export default {
                 description: "Accédez à vos documents et à nos outils depuis n'importe quel appareil avec une compatibilité complète entre plateformes."
             }
         },
-
         allFeatures: {
             title: "Toutes les Fonctions"
         },
-
         learnMore: "En Savoir Plus",
-
         categories: {
             conversion: {
                 title: "Conversion PDF",
@@ -475,7 +465,6 @@ export default {
                     }
                 }
             },
-
             editing: {
                 title: "Édition et Gestion PDF",
                 description: "Éditez, organisez et optimisez vos documents PDF avec notre ensemble complet d'outils.",
@@ -498,7 +487,6 @@ export default {
                     }
                 }
             },
-
             security: {
                 title: "Sécurité et Protection PDF",
                 description: "Sécurisez vos documents PDF avec cryptage, protection par mot de passe et signatures numériques.",
@@ -521,7 +509,6 @@ export default {
                     }
                 }
             },
-
             ocr: {
                 title: "Technologie OCR",
                 description: "Extrayez du texte à partir de documents scannés et d'images grâce à notre technologie OCR avancée.",
@@ -544,7 +531,6 @@ export default {
                     }
                 }
             },
-
             api: {
                 title: "API et Intégration",
                 description: "Intégrez nos capacités de traitement PDF dans vos applications avec notre API robuste.",
@@ -567,7 +553,6 @@ export default {
                     }
                 }
             },
-
             cloud: {
                 title: "Plateforme Cloud",
                 description: "Accédez à vos documents de n'importe où avec notre plateforme sécurisée de stockage et de traitement cloud.",
@@ -590,7 +575,6 @@ export default {
                     }
                 }
             },
-
             enterprise: {
                 title: "Fonctions pour Entreprises",
                 description: "Fonctions avancées conçues pour les besoins des entreprises et des organisations.",
@@ -614,7 +598,6 @@ export default {
                 }
             }
         },
-
         mobile: {
             title: "Application Mobile MegaPDF",
             description: "Emportez les puissants outils PDF de MegaPDF avec vous en déplacement. Notre application mobile offre la même fonctionnalité robuste dans une interface conviviale pour mobile.",
@@ -631,7 +614,6 @@ export default {
                 description: "Synchronisez vos documents de manière fluide sur tous vos appareils avec un stockage cloud sécurisé."
             }
         },
-
         comparison: {
             title: "Comparaison des Fonctions",
             description: "Comparez nos différents plans pour trouver celui qui correspond le mieux à vos besoins.",
@@ -656,7 +638,6 @@ export default {
                 dedicated: "Support Dédié"
             }
         },
-
         testimonials: {
             title: "Ce que Disent Nos Utilisateurs",
             quote1: "MegaPDF a révolutionné la manière dont notre équipe gère les documents. La fonctionnalité OCR est incroyablement précise, et le traitement par lots nous fait gagner des heures chaque semaine.",
@@ -669,9 +650,7 @@ export default {
             name3: "Maria Garcia",
             title3: "Propriétaire d'Entreprise"
         }
-
     },
-
     // Section Appel à l’Action
     cta: {
         title: "Prêt à Convertir ?",
@@ -679,7 +658,6 @@ export default {
         startConverting: "Commencer à Convertir",
         exploreTools: "Explorer Tous les Outils"
     },
-
     // Page des Outils PDF
     pdfTools: {
         title: "Tous les Outils PDF",
@@ -692,7 +670,6 @@ export default {
             pdfSecurity: "Sécurité PDF"
         }
     },
-
     // Descriptions des Outils
     toolDescriptions: {
         pdfToWord: "Convertissez facilement vos fichiers PDF en documents DOC et DOCX faciles à éditer.",
@@ -814,7 +791,6 @@ export default {
         title: "Fusionner des fichiers PDF en ligne | Outil gratuit de fusion de PDF dans le navigateur web",
         description: "Combinez plusieurs fichiers PDF en un seul document rapidement et facilement avec notre outil de fusion basé sur le navigateur qui fonctionne sur tous les systèmes d'exploitation",
         intro: "Notre outil de fusion de PDF en ligne vous permet de combiner plusieurs documents en un seul fichier fusionné en quelques clics seulement. Aucune installation requise - fonctionne directement dans votre navigateur web sur n'importe quel système d'exploitation.",
-
         // How-to section
         howTo: {
             title: "Comment fusionner des fichiers PDF dans votre navigateur",
@@ -831,7 +807,6 @@ export default {
                 description: "Cliquez sur le bouton 'Fusionner les PDFs' et téléchargez votre fichier PDF combiné directement sur votre appareil depuis n'importe quel navigateur web."
             }
         },
-
         // Benefits section
         benefits: {
             title: "Avantages de notre outil de fusion de PDF en ligne",
@@ -852,7 +827,6 @@ export default {
                 description: "Notre outil de fusion préserve le formatage original, les images et la qualité du texte dans votre fichier fusionné, assurant des résultats professionnels."
             }
         },
-
         // Use cases section
         useCases: {
             title: "Utilisations courantes de la fusion de PDF",
@@ -873,7 +847,6 @@ export default {
                 description: "Créez des portfolios impressionnants en fusionnant plusieurs échantillons de travail en un seul document facilement partageable."
             }
         },
-
         // FAQ section
         faq: {
             title: "Questions fréquemment posées",
@@ -902,7 +875,6 @@ export default {
                 answer: "Oui, notre outil de fusion avancé préserve le texte, les images, le formatage, les hyperliens et la plupart des éléments interactifs des PDFs originaux dans votre fichier fusionné final."
             }
         },
-
         // Tips section
         tips: {
             title: "Conseils pour fusionner efficacement des PDFs",
@@ -923,7 +895,6 @@ export default {
                 description: "Pour les documents professionnels, envisagez d'ajouter des signets à votre fichier fusionné avec notre outil d'édition de PDF pour une navigation plus facile."
             }
         },
-
         // Comparison section
         comparison: {
             title: "Pourquoi choisir notre outil de fusion dans le navigateur web",
@@ -944,7 +915,6 @@ export default {
                 description: "Notre outil de fusion en ligne est constamment amélioré sans nécessiter de mises à jour manuelles de la part des utilisateurs."
             }
         },
-
         // UI elements and messages
         ui: {
             of: "de",
@@ -970,9 +940,8 @@ export default {
             pleaseWait: "Veuillez patienter pendant que nous combinons vos fichiers PDF",
             processingFile: "Traitement",
             retry: "Réessayer la fusion"
-        },
+        }
     },
-
     // Page OCR
     ocr: {
         title: "Extraction OCR : Reconnaissance de Texte Simplifiée",
@@ -1071,7 +1040,6 @@ export default {
         processAnother: "Traiter un Autre Fichier",
         supportedLanguages: "Prend en charge plus de 15 langues, dont l'anglais, l'espagnol, le français, l'allemand, le chinois, le japonais et plus encore. Sélectionnez la langue appropriée pour une meilleure précision."
     },
-
     // Page Protéger PDF
     protectPdf: {
         title: "Protéger un PDF par Mot de Passe",
@@ -1502,14 +1470,12 @@ export default {
             viewAll: "Voir tous les outils"
         }
     },
-
     // Déverrouiller PDF
     unlockPdf: {
         title: "Déverrouiller facilement les fichiers PDF avec notre déverrouilleur de PDF",
         description: "Supprimez les mots de passe PDF et déprotégez rapidement les fichiers PDF avec notre outil de déverrouillage PDF en ligne. Déverrouillez les PDF pour créer un fichier PDF non sécurisé sur n'importe quel système d'exploitation.",
         metaDescription: "Déverrouillez facilement les fichiers PDF avec notre déverrouilleur de PDF. Supprimez le mot de passe des permissions PDF, déprotégez les PDF en ligne et téléchargez votre fichier déverrouillé en toute sécurité.",
         keywords: "déverrouiller fichier PDF, comment déverrouiller un fichier PDF, déverrouiller PDF, déverrouiller fichiers PDF, déverrouiller vers PDF, déverrouiller fichiers PDF, fichier PDF non sécurisé, déverrouilleur de PDF, fichier déverrouillé, déverrouiller document PDF, SmallPDF déverrouiller, déverrouiller PDFs, outil de protection PDF, mot de passe des permissions, télécharger votre fichier, mot de passe du PDF, PDF en ligne, supprimer mots de passe PDF, SmallPDF déverrouiller PDF, supprimer le PDF, cliquer sur enregistrer, clic mot de passe, outil de déverrouillage PDF",
-
         // Benefits Section
         benefits: {
             title: "Pourquoi utiliser notre outil de déverrouillage PDF pour déverrouiller les fichiers PDF",
@@ -1532,7 +1498,6 @@ export default {
                 }
             ]
         },
-
         // Use Cases Section
         useCases: {
             title: "Comment déverrouiller un fichier PDF : Principaux cas d'utilisation",
@@ -1555,7 +1520,6 @@ export default {
                 }
             ]
         },
-
         // How-To Section
         howTo: {
             title: "Comment déverrouiller un fichier PDF en 3 étapes",
@@ -1572,7 +1536,6 @@ export default {
                 description: "Terminez de déverrouiller les fichiers PDF en téléchargeant votre fichier comme un fichier PDF non sécurisé après avoir supprimé le mot de passe PDF."
             }
         },
-
         // Features Section
         features: {
             title: "Fonctionnalités clés de notre déverrouilleur de PDF",
@@ -1595,7 +1558,6 @@ export default {
                 }
             ]
         },
-
         // FAQ Section
         faq: {
             passwordRequired: {
@@ -1619,7 +1581,6 @@ export default {
                 answer: "Oui, notre outil de déverrouillage PDF fonctionne sur n'importe quel système d'exploitation et sert d'excellente alternative à SmallPDF déverrouiller, déverrouillant les fichiers PDF en ligne."
             }
         },
-
         // Status Messages
         passwordProtected: "Protégé par mot de passe",
         notPasswordProtected: "Non protégé par mot de passe",
@@ -1627,7 +1588,6 @@ export default {
         unlockSuccess: "PDF déverrouillé avec succès !",
         unlockSuccessDesc: "Le déverrouillage de votre document PDF est terminé ! Téléchargez votre fichier déverrouillé maintenant."
     },
-
     // Téléchargeur de Fichiers
     fileUploader: {
         dropHere: "Déposez votre fichier ici",
@@ -1657,7 +1617,6 @@ export default {
         download: "Télécharger le Fichier Converti",
         filesSecurity: "Les fichiers sont automatiquement supprimés après 1 heures pour des raisons de confidentialité et de sécurité."
     },
-
     // Éléments d’Interface Communs
     ui: {
         upload: "Télécharger",
@@ -1681,7 +1640,7 @@ export default {
         loading: "Chargement...",
         preview: "Aperçu",
         reupload: "Télécharger un Autre Fichier",
-        continue: "Continuer",
+        "continue": "Continuer",
         skip: "Passer",
         retry: "Réessayer",
         addMore: "Ajouter Plus",
@@ -1689,12 +1648,11 @@ export default {
         clearAll: "Tout Effacer",
         done: "Terminé",
         extract: "extraire",
-        new: "Nouveau !",
+        "new": "Nouveau !",
         phone: "Téléphone",
         address: "Adresse",
         filesSecurity: "Les fichiers sont automatiquement supprimés après 1 heures pour des raisons de confidentialité et de sécurité."
     },
-
     contact: {
         title: "Contactez-Nous",
         description: "Des questions ou des commentaires ? Nous serions ravis d’avoir de vos nouvelles.",
@@ -1830,7 +1788,6 @@ export default {
             description: "Vous avez le droit d’accéder, de corriger ou de supprimer vos informations personnelles."
         }
     },
-
     // Pages d’Erreur
     error: {
         notFound: "Page Non Trouvée",
@@ -2036,7 +1993,7 @@ export default {
             warnings: "Avertissements",
             fileSize: "Taille du fichier",
             original: "Original",
-            new: "Nouveau",
+            "new": "Nouveau",
             reduction: "réduction",
             download: "Télécharger le PDF réparé",
             repairAnother: "Réparer un autre PDF"
@@ -2133,7 +2090,6 @@ export default {
         socialGithub: "GitHub",
         socialYoutube: "YouTube"
     },
-
     security: {
         title: "Sécurité et confidentialité chez MegaPDF",
         description: "Nous prenons au sérieux la sécurité et la confidentialité de vos documents. Découvrez comment nous protégeons vos données.",
@@ -2263,7 +2219,6 @@ export default {
             }
         }
     },
-
     developer: {
         title: "Documentation de l'API pour développeurs",
         description: "Intégrez les puissants outils PDF de MegaPDF dans vos applications avec notre API RESTful",
@@ -2443,7 +2398,6 @@ export default {
     },
     pricing: {
         description: "Choisissez le plan adapté à vos besoins en PDF. MegaPDF propose des options de tarification flexibles, de gratuit à entreprise, avec les fonctionnalités dont vous avez besoin.",
-
         // Page content
         title: "Tarification simple et transparente",
         subtitle: "Choisissez le plan qui vous convient. Tous les plans incluent nos outils PDF de base.",
@@ -2453,7 +2407,6 @@ export default {
         subscribe: "S'abonner",
         feature: "Fonctionnalité",
         featureCompare: "Comparaison des fonctionnalités",
-
         // Features
         features: {
             operations: "Opérations mensuelles",
@@ -2497,7 +2450,6 @@ export default {
             whiteLabel: "Options de marque blanche",
             serviceLevel: "Accord de niveau de service"
         },
-
         // Plan descriptions
         planDescriptions: {
             free: "Pour des besoins occasionnels en PDF",
@@ -2505,7 +2457,6 @@ export default {
             pro: "Pour les professionnels et entreprises",
             enterprise: "Pour les grandes organisations"
         },
-
         // FAQ section
         faq: {
             title: "Questions fréquemment posées",
@@ -2530,7 +2481,6 @@ export default {
                 content: "Oui, nous prenons la sécurité des données très au sérieux. Tous les téléchargements et traitements de fichiers sont effectués via des connexions HTTPS sécurisées. Nous ne conservons pas vos fichiers plus longtemps que nécessaire pour le traitement, et tous les fichiers sont automatiquement supprimés une fois le traitement terminé."
             }
         },
-
         // CTA section
         cta: {
             title: "Prêt à commencer ?",
@@ -2538,11 +2488,9 @@ export default {
             startBasic: "Commencer avec Basique",
             explorePdfTools: "Explorer les outils PDF"
         },
-
         // Login dialog
         loginRequired: "Connexion requise",
         loginRequiredDesc: "Vous devez vous connecter à votre compte avant de vous abonner. Souhaitez-vous vous connecter maintenant ?",
-
         // Plan buttons
         getStarted: "Commencer",
         currentPlan: "Plan actuel"
@@ -2855,10 +2803,8 @@ export default {
         title: "Ajouter des numéros de page à un PDF",
         shortDescription: "Ajoutez facilement des numéros de page personnalisables à vos documents PDF",
         description: "Ajoutez des numéros de page personnalisés à un PDF avec divers formats numériques, positions et styles grâce à notre outil en ligne",
-
         uploadTitle: "Téléchargez votre PDF",
         uploadDesc: "Téléchargez un fichier PDF pour ajouter des numéros de page ou des en-têtes. Votre fichier sera traité en toute sécurité, compatible avec tout système d'exploitation.",
-
         messages: {
             noFile: "Veuillez d'abord télécharger un fichier PDF",
             success: "Numéros de page ajoutés avec succès !",
@@ -2916,7 +2862,6 @@ export default {
                 description: "Traitez et téléchargez votre PDF avec les numéros de page ajoutés grâce à notre outil en ligne"
             }
         },
-
         benefits: {
             title: "Avantages d'ajouter des numéros de page",
             navigation: {
@@ -2936,7 +2881,6 @@ export default {
                 description: "Personnalisez l'apparence et la position des numéros de page ou ajoutez des en-têtes pour correspondre au style de votre document"
             }
         },
-
         useCases: {
             title: "Cas d'utilisation courants",
             books: {
@@ -2956,7 +2900,6 @@ export default {
                 description: "Appliquez une numérotation cohérente aux contrats et documents juridiques pour une référenciation appropriée"
             }
         },
-
         faq: {
             title: "Questions fréquemment posées",
             formats: {
@@ -2980,7 +2923,6 @@ export default {
                 answer: "Oui, tout le traitement est sécurisé. Vos fichiers sont cryptés pendant le transfert, traités, puis supprimés automatiquement – pas de stockage permanent ni d'accès autre que pour ajouter les numéros."
             }
         },
-
         relatedTools: {
             title: "Outils connexes"
         }
@@ -3062,7 +3004,7 @@ export default {
                 title: "Posez des questions",
                 description: "Posez n'importe quelle question sur le document et obtenez des réponses précises tirées du contenu du PDF."
             }
-        },
+        }
     },
     removePdf: {
         title: "Supprimer des pages d'un PDF",
@@ -3084,84 +3026,84 @@ export default {
         removeFromDocument: "Annuler la suppression",
         markForRemoval: "Marquer pour suppression",
         messages: {
-          processing: "Veuillez patienter pendant que nous supprimons les pages sélectionnées de votre PDF...",
-          success: "Pages supprimées avec succès",
-          error: "Échec de la suppression des pages. Veuillez réessayer.",
-          downloadReady: "Votre PDF avec les pages supprimées est prêt à être téléchargé.",
-          invalidFile: "Veuillez sélectionner un fichier PDF valide",
-          cannotRemoveAll: "Vous ne pouvez pas supprimer toutes les pages. Au moins une page doit rester."
+            processing: "Veuillez patienter pendant que nous supprimons les pages sélectionnées de votre PDF...",
+            success: "Pages supprimées avec succès",
+            error: "Échec de la suppression des pages. Veuillez réessayer.",
+            downloadReady: "Votre PDF avec les pages supprimées est prêt à être téléchargé.",
+            invalidFile: "Veuillez sélectionner un fichier PDF valide",
+            cannotRemoveAll: "Vous ne pouvez pas supprimer toutes les pages. Au moins une page doit rester."
         },
         howTo: {
-          title: "Comment supprimer des pages d'un PDF",
-          step1: {
-            title: "Téléchargez votre PDF",
-            description: "Sélectionnez ou faites glisser et déposez un fichier PDF dont vous souhaitez supprimer des pages."
-          },
-          step2: {
-            title: "Sélectionnez les pages à supprimer",
-            description: "Cliquez sur les miniatures pour prévisualiser les pages. Cochez la case pour marquer les pages à supprimer."
-          },
-          step3: {
-            title: "Enregistrer et télécharger",
-            description: "Cliquez sur Enregistrer le document pour traiter vos modifications, puis téléchargez votre PDF."
-          }
+            title: "Comment supprimer des pages d'un PDF",
+            step1: {
+                title: "Téléchargez votre PDF",
+                description: "Sélectionnez ou faites glisser et déposez un fichier PDF dont vous souhaitez supprimer des pages."
+            },
+            step2: {
+                title: "Sélectionnez les pages à supprimer",
+                description: "Cliquez sur les miniatures pour prévisualiser les pages. Cochez la case pour marquer les pages à supprimer."
+            },
+            step3: {
+                title: "Enregistrer et télécharger",
+                description: "Cliquez sur Enregistrer le document pour traiter vos modifications, puis téléchargez votre PDF."
+            }
         },
         benefits: {
-          title: "Avantages de notre outil de suppression de pages PDF",
-          accuracy: {
-            title: "Sélection précise des pages",
-            description: "Prévisualisez les pages avant suppression pour garantir la précision."
-          },
-          preview: {
-            title: "Aperçu complet de la page",
-            description: "Cliquez sur la page du pacte pour la voir en détail avec des contrôles de zoom."
-          },
-          secure: {
-            title: "Traitement sécurisé",
-            description: "Vos fichiers sont traités localement et supprimés immédiatement après traitement."
-          },
-          flexible: {
-            title: "Sélection flexible",
-            description: "Sélectionnez et désélectionnez facilement les pages avec un retour visuel."
-          }
+            title: "Avantages de notre outil de suppression de pages PDF",
+            accuracy: {
+                title: "Sélection précise des pages",
+                description: "Prévisualisez les pages avant suppression pour garantir la précision."
+            },
+            preview: {
+                title: "Aperçu complet de la page",
+                description: "Cliquez sur la page du pacte pour la voir en détail avec des contrôles de zoom."
+            },
+            secure: {
+                title: "Traitement sécurisé",
+                description: "Vos fichiers sont traités localement et supprimés immédiatement après traitement."
+            },
+            flexible: {
+                title: "Sélection flexible",
+                description: "Sélectionnez et désélectionnez facilement les pages avec un retour visuel."
+            }
         },
         useCases: {
-          title: "Cas d'utilisation courants",
-          confidential: {
-            title: "Supprimer du contenu confidentiel",
-            description: "Supprimez facilement les pages contenant des informations sensibles avant de partager."
-          },
-          reports: {
-            title: "Personnaliser les rapports",
-            description: "Supprimez les sections non pertinentes pour créer des documents ciblés."
-          },
-          presentations: {
-            title: "Adapter les présentations",
-            description: "Supprimez des diapositives spécifiques pour les adapter à différents publics."
-          },
-          sharing: {
-            title: "Préparer pour le partage",
-            description: "Nettoyez les documents en supprimant les pages inutiles."
-          }
+            title: "Cas d'utilisation courants",
+            confidential: {
+                title: "Supprimer du contenu confidentiel",
+                description: "Supprimez facilement les pages contenant des informations sensibles avant de partager."
+            },
+            reports: {
+                title: "Personnaliser les rapports",
+                description: "Supprimez les sections non pertinentes pour créer des documents ciblés."
+            },
+            presentations: {
+                title: "Adapter les présentations",
+                description: "Supprimez des diapositives spécifiques pour les adapter à différents publics."
+            },
+            sharing: {
+                title: "Préparer pour le partage",
+                description: "Nettoyez les documents en supprimant les pages inutiles."
+            }
         },
         faq: {
-          title: "Foire aux questions",
-          multiplePages: {
-            question: "Puis-je supprimer plusieurs pages à la fois ?",
-            answer: "Oui, vous pouvez sélectionner plusieurs pages à supprimer en une seule opération."
-          },
-          pageLimit: {
-            question: "Y a-t-il une limite au nombre de pages que je peux supprimer ?",
-            answer: "Vous pouvez supprimer autant de pages que vous le souhaitez, mais au moins une page doit rester."
-          },
-          quality: {
-            question: "La suppression de pages affectera-t-elle la qualité des pages restantes ?",
-            answer: "Non, la qualité des pages restantes est préservée."
-          },
-          encrypted: {
-            question: "Puis-je supprimer des pages à partir de PDF protégés par mot de passe ?",
-            answer: "Vous devrez d'abord déverrouiller les PDF protégés par mot de passe."
-          }
+            title: "Foire aux questions",
+            multiplePages: {
+                question: "Puis-je supprimer plusieurs pages à la fois ?",
+                answer: "Oui, vous pouvez sélectionner plusieurs pages à supprimer en une seule opération."
+            },
+            pageLimit: {
+                question: "Y a-t-il une limite au nombre de pages que je peux supprimer ?",
+                answer: "Vous pouvez supprimer autant de pages que vous le souhaitez, mais au moins une page doit rester."
+            },
+            quality: {
+                question: "La suppression de pages affectera-t-elle la qualité des pages restantes ?",
+                answer: "Non, la qualité des pages restantes est préservée."
+            },
+            encrypted: {
+                question: "Puis-je supprimer des pages à partir de PDF protégés par mot de passe ?",
+                answer: "Vous devrez d'abord déverrouiller les PDF protégés par mot de passe."
+            }
         }
-      }
-}
+    }
+};

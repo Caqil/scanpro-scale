@@ -1,5 +1,7 @@
+"use strict";
+exports.__esModule = true;
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
-export default {
+exports["default"] = {
     metadata: {
         title: "MegaPDF - Ücretsiz PDF Dönüştürücü, Düzenleyici, OCR & PDF Kilidini Aç",
         template: "%s | MegaPDF - PDF Araçları",
@@ -93,7 +95,7 @@ export default {
         accessDenied: "Erişim reddedildi. Bu kaynağa erişim izniniz yok.",
         googleSignIn: "Google",
         hidePassword: "Şifreyi gizle",
-        showPassword: "Şifreyi göster",
+        showPassword: "Şifreyi göster"
     },
     login: {
         title: "Hesabınıza giriş yapın",
@@ -144,7 +146,6 @@ export default {
         usageBreakdown: "Bu ayki API kullanım dökümü",
         none: "Yok",
         percentageOfTotal: "toplam kullanımın"
-
     },
     subscription: {
         currentPlan: "Mevcut Plan",
@@ -217,7 +218,6 @@ export default {
         updateSuccess: "Profil başarıyla güncellendi",
         updateFailed: "Profil güncellenemedi",
         updateError: "Profiliniz güncellenirken bir hata oluştu",
-
         // Password Management
         changePassword: "Şifre Değiştir",
         updatePasswordDesc: "Hesap şifrenizi güncelleyin",
@@ -231,7 +231,6 @@ export default {
         passwordUpdateSuccess: "Şifre başarıyla güncellendi",
         passwordUpdateFailed: "Şifre güncellenemedi",
         passwordUpdateError: "Şifreniz güncellenirken bir hata oluştu",
-
         // Password Validation
         passwordWeak: "Zayıf",
         passwordFair: "Orta",
@@ -242,7 +241,6 @@ export default {
         passwordStrength: "Şifre Gücü",
         passwordTips: "Güvenlik için, en az 8 karakterden oluşan güçlü bir şifre seçin; büyük harf, küçük harf, rakam ve semboller içermelidir."
     },
-
     // Hero Bölümü
     hero: {
         badge: "PDF için Güçlü Araçlar",
@@ -251,7 +249,6 @@ export default {
         btConvert: "Dönüştürmeye Başla",
         btTools: "Tüm Araçları Keşfet"
     },
-
     popular: {
         pdfToWord: "PDF'den Word'e",
         pdfToWordDesc: "PDF dosyalarınızı kolayca düzenlenebilir DOC ve DOCX belgelerine dönüştürün.",
@@ -301,7 +298,6 @@ export default {
         redactPdfDesc: "PDF dosyalarınızdan hassas bilgileri kalıcı olarak kaldırın.",
         viewAll: "Tüm PDF Araçlarını Görüntüle"
     },
-
     // Dönüştürücü Bölümü
     converter: {
         title: "Dönüştürmeye Başla",
@@ -312,7 +308,6 @@ export default {
         apiDesc: "Uygulamanızda PDF dönüşümünü programatik olarak kullanmak için REST API'mizi kullanın",
         apiDocs: "API Belgelerini Görüntüle"
     },
-
     // Dönüşüm Sayfası
     convert: {
         title: {
@@ -422,17 +417,14 @@ export default {
             ]
         }
     },
-
     // Özellikler Bölümü
     features: {
         title: "Gelişmiş PDF Araçları ve Özellikleri | MegaPDF",
         description: "MegaPDF'nun belge yönetimi, dönüştürme, düzenleme ve daha fazlası için kapsamlı PDF araçları ve özellikler paketini keşfedin.",
-
         hero: {
             title: "Gelişmiş PDF Araçları ve Özellikleri",
             description: "MegaPDF'yu tüm belge yönetimi ihtiyaçlarınız için nihai çözüm haline getiren kapsamlı araçlar ve özellikler paketini keşfedin."
         },
-
         overview: {
             power: {
                 title: "Güçlü İşleme",
@@ -447,13 +439,10 @@ export default {
                 description: "Tam çapraz platform uyumluluğu ile belgelerinize ve araçlarımıza herhangi bir cihazdan erişin."
             }
         },
-
         allFeatures: {
             title: "Tüm Özellikler"
         },
-
         learnMore: "Daha Fazla Bilgi Edinin",
-
         categories: {
             conversion: {
                 title: "PDF Dönüştürme",
@@ -477,7 +466,6 @@ export default {
                     }
                 }
             },
-
             editing: {
                 title: "PDF Düzenleme ve Yönetim",
                 description: "Kapsamlı araç setimizle PDF belgelerinizi düzenleyin, organize edin ve optimize edin.",
@@ -500,7 +488,6 @@ export default {
                     }
                 }
             },
-
             security: {
                 title: "PDF Güvenliği ve Koruması",
                 description: "PDF belgelerinizi şifreleme, parola koruması ve dijital imzalarla güvence altına alın.",
@@ -523,7 +510,6 @@ export default {
                     }
                 }
             },
-
             ocr: {
                 title: "OCR Teknolojisi",
                 description: "Gelişmiş OCR teknolojimizle taranmış belgelerden ve görüntülerden metin çıkarın.",
@@ -546,7 +532,6 @@ export default {
                     }
                 }
             },
-
             api: {
                 title: "API ve Entegrasyon",
                 description: "Sağlam API'mizle PDF işleme yeteneklerimizi uygulamalarınıza entegre edin.",
@@ -569,7 +554,6 @@ export default {
                     }
                 }
             },
-
             cloud: {
                 title: "Bulut Platformu",
                 description: "Güvenli bulut depolama ve işleme platformumuzla belgelerinize her yerden erişin.",
@@ -592,7 +576,6 @@ export default {
                     }
                 }
             },
-
             enterprise: {
                 title: "Kurumsal Özellikler",
                 description: "İş ve kurumsal gereksinimler için tasarlanmış gelişmiş özellikler.",
@@ -616,7 +599,6 @@ export default {
                 }
             }
         },
-
         mobile: {
             title: "MegaPDF Mobil Uygulaması",
             description: "MegaPDF'nun güçlü PDF araçlarını yanınızda taşıyın. Mobil uygulamamız, kullanışlı ve mobil dostu bir arayüzde aynı sağlam işlevselliği sunar.",
@@ -633,7 +615,6 @@ export default {
                 description: "Güvenli bulut depolama ile tüm cihazlarınızda belgelerinizi sorunsuz bir şekilde senkronize edin."
             }
         },
-
         comparison: {
             title: "Özellik Karşılaştırması",
             description: "İhtiyaçlarınıza en uygun olanı bulmak için farklı planlarımızı karşılaştırın.",
@@ -658,7 +639,6 @@ export default {
                 dedicated: "Özel Destek"
             }
         },
-
         testimonials: {
             title: "Kullanıcılarımız Ne Diyor",
             quote1: "MegaPDF, ekibimizin belgelerle başa çıkma şeklini değiştirdi. OCR işlevselliği inanılmaz derecede doğru ve toplu işleme her hafta bize saatler kazandırıyor.",
@@ -672,7 +652,6 @@ export default {
             title3: "İşletme Sahibi"
         }
     },
-
     // Harekete Geçirme Çağrısı (CTA) Bölümü
     cta: {
         title: "Dönüştürmeye Hazır mısınız?",
@@ -680,7 +659,6 @@ export default {
         startConverting: "Dönüştürmeye Başla",
         exploreTools: "Tüm Araçları Keşfet"
     },
-
     // PDF Araçları Sayfası
     pdfTools: {
         title: "Tüm PDF Araçları",
@@ -693,7 +671,6 @@ export default {
             pdfSecurity: "PDF Güvenliği"
         }
     },
-
     // Araç Açıklamaları
     toolDescriptions: {
         pdfToWord: "PDF dosyalarınızı kolayca düzenlenebilir DOC ve DOCX belgelerine dönüştürün.",
@@ -815,7 +792,6 @@ export default {
         title: "Çevrimiçi PDF Dosyalarını Birleştir | Ücretsiz Web Tarayıcısı PDF Birleştirme Aracı",
         description: "Tüm işletim sistemleri için tarayıcı tabanlı birleştirme aracımızı kullanarak birden fazla PDF dosyasını hızlı ve kolay bir şekilde tek bir belgede birleştirin",
         intro: "Çevrimiçi PDF birleştirme aracımız, yalnızca birkaç tıklamayla birden fazla belgeyi tek bir dosyada birleştirmenizi sağlar. Kurulum gerekmez - doğrudan herhangi bir işletim sisteminin web tarayıcısında kullanın.",
-
         // Nasıl yapılır bölümü
         howTo: {
             title: "Bir Tarayıcıda PDF Dosyaları Nasıl Birleştirilir",
@@ -832,7 +808,6 @@ export default {
                 description: "Birleştirilmiş PDF dosyasını herhangi bir web tarayıcısından doğrudan cihazınıza indirmek için 'PDF'leri Birleştir' düğmesine tıklayın."
             }
         },
-
         // Avantajlar bölümü
         benefits: {
             title: "Çevrimiçi PDF Birleştirme Aracımızın Avantajları",
@@ -853,7 +828,6 @@ export default {
                 description: "Birleştirme aracımız, profesyonel sonuçlar sağlayarak, birleştirilmiş dosyalardaki orijinal biçimlendirmeyi, görüntüleri ve metin kalitesini korur."
             }
         },
-
         // Kullanım durumları bölümü
         useCases: {
             title: "PDF Birleştirmenin Yaygın Kullanım Alanları",
@@ -874,7 +848,6 @@ export default {
                 description: "Birden fazla iş örneğini paylaşılması kolay tek bir belgede birleştirerek etkileyici portfolyolar oluşturun."
             }
         },
-
         // SSS bölümü
         faq: {
             title: "Sıkça Sorulan Sorular",
@@ -903,7 +876,6 @@ export default {
                 answer: "Evet, gelişmiş birleştirme aracımız, nihai birleştirilmiş dosyada orijinal PDF'lerin metnini, resimlerini, biçimlendirmesini, köprülerini ve çoğu etkileşimli öğesini korur."
             }
         },
-
         // İpuçları bölümü
         tips: {
             title: "PDF'leri Verimli Bir Şekilde Birleştirmek İçin İpuçları",
@@ -924,7 +896,6 @@ export default {
                 description: "Profesyonel belgeler için, kolay gezinme için birleştirilmiş dosyaya yer işaretleri eklemek üzere PDF Düzenleme aracımızı kullanmayı düşünün."
             }
         },
-
         // Karşılaştırma bölümü
         comparison: {
             title: "Neden Web Tarayıcısı Birleştirme Aracımızı Seçmelisiniz",
@@ -945,7 +916,6 @@ export default {
                 description: "Çevrimiçi birleştirme aracımız sürekli olarak geliştirilmektedir ve kullanıcı tarafından manuel güncelleme gerektirmez."
             }
         },
-
         // UI öğeleri ve mesajları
         ui: {
             of: "/",
@@ -973,7 +943,6 @@ export default {
             retry: "Birleştirmeyi Tekrar Dene"
         }
     },
-
     // OCR Sayfası
     ocr: {
         title: "OCR Çıkarma: Basit Metin Tanıma",
@@ -1072,7 +1041,6 @@ export default {
         processAnother: "Başka Bir Dosya İşle",
         supportedLanguages: "İngilizce, İspanyolca, Fransızca, Almanca, Çince, Japonca ve daha fazlası dahil 15'ten fazla dili destekler. Daha yüksek doğruluk için uygun dili seçin."
     },
-
     // PDF Koruma Sayfası
     protectPdf: {
         title: "PDF'yi Parola ile Koru",
@@ -1196,7 +1164,6 @@ export default {
         protected: "PDF Başarıyla Korundu!",
         protectedDesc: "PDF dosyanız şifrelendi ve parola ile korundu."
     },
-
     watermarkPdf: {
         title: "PDF'ye Filigran Ekle",
         description: "Koruma, markalaşma veya tanımlama için PDF belgelerinize özel metin veya resim filigranları ekleyin.",
@@ -1504,14 +1471,12 @@ export default {
             viewAll: "Tüm Araçları Gör"
         }
     },
-
     // PDF Kilidini Açma
     unlockPdf: {
         title: "PDF Kilit Açıcı ile PDF Dosyalarını Kolayca Kilidini Açın",
         description: "Çevrimiçi PDF kilit açma aracımızla PDF şifrelerini kaldırın ve PDF dosyalarını hızla korumasız hale getirin. Herhangi bir işletim sisteminde güvenli olmayan bir PDF dosyası oluşturmak için PDF'lerin kilidini açın.",
         metaDescription: "PDF kilit açıcı ile PDF dosyalarını zahmetsizce kilidini açın. PDF izin şifresini kaldırın, çevrimiçi PDF'leri korumasız hale getirin ve kilidi açılmış dosyanızı güvenli bir şekilde indirin.",
         keywords: "PDF dosyası kilidini aç, PDF dosyası nasıl kilidini açılır, PDF kilidini açma, PDF dosyalarını kilidini açma, PDF'ye kilidini aç, PDF dosyaları kilidini aç, güvenli olmayan PDF dosyası, PDF kilit açıcı, kilidi açılmış dosya, PDF belge kilidini açma, SmallPDF kilidini aç, PDF'leri kilidini aç, PDF koruma aracı, izin şifresi, dosyanızı indirme, PDF'den şifre, çevrimiçi PDF, PDF şifrelerini kaldır, SmallPDF PDF kilidini aç, PDF'yi kaldır, kaydet'e tıkla, şifre tıkla, PDF kilit açma aracı",
-
         // Benefits Section
         benefits: {
             title: "PDF Dosyalarını Kilidini Açmak İçin Neden PDF Kilit Açma Aracımızı Kullanmalısınız",
@@ -1534,7 +1499,6 @@ export default {
                 }
             ]
         },
-
         // Use Cases Section
         useCases: {
             title: "PDF Dosyası Nasıl Kilidini Açılır: En İyi Kullanım Senaryoları",
@@ -1557,7 +1521,6 @@ export default {
                 }
             ]
         },
-
         // How-To Section
         howTo: {
             title: "PDF Dosyası 3 Adımda Nasıl Kilidini Açılır",
@@ -1574,7 +1537,6 @@ export default {
                 description: "PDF şifresini kaldırdıktan sonra dosyanızı güvenli olmayan bir PDF dosyası olarak indirerek PDF dosyalarının kilidini açma işlemini tamamlayın."
             }
         },
-
         // Features Section
         features: {
             title: "PDF Kilit Açıcı Aracımızın Temel Özellikleri",
@@ -1597,7 +1559,6 @@ export default {
                 }
             ]
         },
-
         // FAQ Section
         faq: {
             passwordRequired: {
@@ -1621,7 +1582,6 @@ export default {
                 answer: "Evet, PDF kilit açma aracımız herhangi bir işletim sisteminde çalışır ve SmallPDF kilidini aç için harika bir alternatif olarak çevrimiçi PDF dosyalarının kilidini açar."
             }
         },
-
         // Status Messages
         passwordProtected: "Şifre Korumalı",
         notPasswordProtected: "Şifre Korumalı Değil",
@@ -1629,7 +1589,6 @@ export default {
         unlockSuccess: "PDF Başarıyla Kilidi Açıldı!",
         unlockSuccessDesc: "PDF belgenizin kilidi açma işlemi tamamlandı! Kilidi açılmış dosyanızı şimdi indirin."
     },
-
     // Dosya Yükleyici
     fileUploader: {
         dropHere: "Dosyanızı buraya sürükleyin",
@@ -1659,7 +1618,6 @@ export default {
         download: "Dönüştürülen Dosyayı İndir",
         filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 1 saat sonra otomatik olarak silinir."
     },
-
     // Genel Kullanıcı Arayüzü Elemanları
     ui: {
         upload: "Yükle",
@@ -1683,7 +1641,7 @@ export default {
         loading: "Yükleniyor...",
         preview: "Önizleme",
         reupload: "Başka Bir Dosya Yükle",
-        continue: "Devam Et",
+        "continue": "Devam Et",
         skip: "Atla",
         retry: "Tekrar Dene",
         addMore: "Daha Fazla Ekle",
@@ -1691,12 +1649,11 @@ export default {
         clearAll: "Hepsini Temizle",
         done: "Tamam",
         extract: "çıkar",
-        new: "Yeni!",
+        "new": "Yeni!",
         phone: "Telefon",
         address: "Adres",
         filesSecurity: "Dosyalar, gizlilik ve güvenlik nedeniyle 1 saat sonra otomatik olarak silinir."
     },
-
     contact: {
         title: "İletişim",
         description: "Sorularınız veya geri bildirimleriniz mi var? Sizden haber almaktan memnuniyet duyarız.",
@@ -1810,7 +1767,6 @@ export default {
             }
         }
     },
-
     // Şartlar ve Gizlilik Sayfaları
     legal: {
         termsTitle: "Kullanım Şartları",
@@ -1833,7 +1789,6 @@ export default {
             description: "Kişisel verilerinize erişme, düzeltme veya silme hakkına sahipsiniz."
         }
     },
-
     // Hata Sayfaları
     error: {
         notFound: "Sayfa Bulunamadı",
@@ -2039,7 +1994,7 @@ export default {
             warnings: "Uyarılar",
             fileSize: "Dosya Boyutu",
             original: "Orijinal",
-            new: "Yeni",
+            "new": "Yeni",
             reduction: "azaltma",
             download: "Onarılmış PDF'yi İndir",
             repairAnother: "Başka Bir PDF Onar"
@@ -2265,7 +2220,6 @@ export default {
             }
         }
     },
-
     developer: {
         title: "Geliştirici API Dokümantasyonu",
         description: "MegaPDF'nun güçlü PDF araçlarını RESTful API'miz ile uygulamalarınıza entegre edin",
@@ -2446,7 +2400,6 @@ export default {
     pricing: {
         // Metadata
         description: "PDF ihtiyaçlarınız için doğru planı seçin. MegaPDF, ücretsizden kurumsal plana kadar esnek fiyatlandırma seçenekleri sunar ve ihtiyacınız olan özelliklere sahiptir.",
-
         // Page content
         title: "Basit, şeffaf fiyatlandırma",
         subtitle: "Size uygun planı seçin. Tüm planlar temel PDF araçlarımızı içerir.",
@@ -2456,7 +2409,6 @@ export default {
         subscribe: "Abone Ol",
         feature: "Özellik",
         featureCompare: "Özellik Karşılaştırması",
-
         // Features
         features: {
             operations: "Aylık işlemler",
@@ -2500,7 +2452,6 @@ export default {
             whiteLabel: "Beyaz etiket seçenekleri",
             serviceLevel: "Hizmet Seviyesi Anlaşması"
         },
-
         // Plan descriptions
         planDescriptions: {
             free: "Ara sıra PDF ihtiyaçları için",
@@ -2508,7 +2459,6 @@ export default {
             pro: "Profesyoneller ve işletmeler için",
             enterprise: "Büyük organizasyonlar için"
         },
-
         // FAQ section
         faq: {
             title: "Sıkça Sorulan Sorular",
@@ -2533,7 +2483,6 @@ export default {
                 content: "Evet, veri güvenliğini ciddiye alıyoruz. Tüm dosya yüklemeleri ve işlemler güvenli HTTPS bağlantıları üzerinden gerçekleştirilir. Dosyalarınızı işlem için gerekenden daha uzun süre saklamayız ve işlem tamamlandıktan sonra tüm dosyalar otomatik olarak silinir."
             }
         },
-
         // CTA section
         cta: {
             title: "Başlamaya hazır mısınız?",
@@ -2541,11 +2490,9 @@ export default {
             startBasic: "Temel ile Başla",
             explorePdfTools: "PDF Araçlarını Keşfet"
         },
-
         // Login dialog
         loginRequired: "Giriş yapmanız gerekiyor",
         loginRequiredDesc: "Abone olmadan önce hesabınıza giriş yapmanız gerekiyor. Şimdi giriş yapmak ister misiniz?",
-
         // Plan buttons
         getStarted: "Başla",
         currentPlan: "Mevcut Plan"
@@ -2858,10 +2805,8 @@ export default {
         title: "PDF’ye Sayfa Numaraları Ekle",
         shortDescription: "PDF belgelerinize kolayca özelleştirilebilir sayfa numaraları ekleyin",
         description: "Çevrimiçi aracımızla çeşitli sayı formatları, konumlar ve stillerle PDF’ye özel sayfa numaraları ekleyin",
-
         uploadTitle: "PDF’nizi Yükleyin",
         uploadDesc: "Sayfa numaraları veya başlıklar eklemek için bir PDF dosyası yükleyin. Dosyanız güvenli bir şekilde işlenecek ve herhangi bir işletim sistemiyle uyumlu olacak.",
-
         messages: {
             noFile: "Lütfen önce bir PDF dosyası yükleyin",
             success: "Sayfa numaraları başarıyla eklendi!",
@@ -2919,7 +2864,6 @@ export default {
                 description: "Çevrimiçi aracımızla PDF’nizi işleyin ve sayfa numaraları eklenmiş PDF’yi indirin"
             }
         },
-
         benefits: {
             title: "Sayfa Numaraları Ekmenin Faydaları",
             navigation: {
@@ -2939,7 +2883,6 @@ export default {
                 description: "Belgenizin stiline uyacak şekilde sayfa numaralarının görünümünü ve konumunu özelleştirin veya başlıklar ekleyin"
             }
         },
-
         useCases: {
             title: "Yaygın Kullanım Durumları",
             books: {
@@ -2959,7 +2902,6 @@ export default {
                 description: "Sözleşmelere ve yasal belgelere tutarlı sayfa numaralandırması uygulayarak doğru referans sağlayın"
             }
         },
-
         faq: {
             title: "Sıkça Sorulan Sorular",
             formats: {
@@ -2983,7 +2925,6 @@ export default {
                 answer: "Evet, tüm işlemler güvenlidir. Dosyalarınız aktarım sırasında şifrelenir, işlenir ve ardından otomatik olarak silinir—kalıcı depolama veya numaralar ekleme dışında erişim yoktur."
             }
         },
-
         relatedTools: {
             title: "İlgili Araçlar"
         }
@@ -3065,7 +3006,7 @@ export default {
                 title: "Sorular Sorun",
                 description: "Belge hakkında her şeyi sorun ve PDF içeriğinden doğru cevaplar alın."
             }
-        },
+        }
     },
     removePdf: {
         title: "PDF'den Sayfa Sil",
@@ -3087,84 +3028,84 @@ export default {
         removeFromDocument: "Silmeyi İptal Et",
         markForRemoval: "Silme İşaretle",
         messages: {
-          processing: "Seçtiğiniz sayfalar PDF'den silinirken lütfen bekleyin...",
-          success: "Sayfalar Başarıyla Silindi",
-          error: "Sayfa silme başarısız. Lütfen tekrar deneyin.",
-          downloadReady: "Sayfaları silinmiş PDF'iniz indirmeye hazır.",
-          invalidFile: "Lütfen geçerli bir PDF dosyası seçin",
-          cannotRemoveAll: "Tüm sayfaları silemezsiniz. En az bir sayfa kalmalıdır."
+            processing: "Seçtiğiniz sayfalar PDF'den silinirken lütfen bekleyin...",
+            success: "Sayfalar Başarıyla Silindi",
+            error: "Sayfa silme başarısız. Lütfen tekrar deneyin.",
+            downloadReady: "Sayfaları silinmiş PDF'iniz indirmeye hazır.",
+            invalidFile: "Lütfen geçerli bir PDF dosyası seçin",
+            cannotRemoveAll: "Tüm sayfaları silemezsiniz. En az bir sayfa kalmalıdır."
         },
         howTo: {
-          title: "PDF'den Sayfa Silme Nasıl Yapılır?",
-          step1: {
-            title: "PDF'nizi Yükleyin",
-            description: "Sayfa silmek istediğiniz PDF dosyasını seçin veya sürükleyip bırakın."
-          },
-          step2: {
-            title: "Silinecek Sayfaları Seçin",
-            description: "Küçük resimlere tıklayarak önizleyin. Silmek için kutuları işaretleyin."
-          },
-          step3: {
-            title: "Kaydet ve İndir",
-            description: "Değişiklikleri işlemek için Belgeyi Kaydet'i tıklayın, ardından PDF'i indirin."
-          }
+            title: "PDF'den Sayfa Silme Nasıl Yapılır?",
+            step1: {
+                title: "PDF'nizi Yükleyin",
+                description: "Sayfa silmek istediğiniz PDF dosyasını seçin veya sürükleyip bırakın."
+            },
+            step2: {
+                title: "Silinecek Sayfaları Seçin",
+                description: "Küçük resimlere tıklayarak önizleyin. Silmek için kutuları işaretleyin."
+            },
+            step3: {
+                title: "Kaydet ve İndir",
+                description: "Değişiklikleri işlemek için Belgeyi Kaydet'i tıklayın, ardından PDF'i indirin."
+            }
         },
         benefits: {
-          title: "PDF Sayfa Silme Aracımızın Avantajları",
-          accuracy: {
-            title: "Hassas Seçim",
-            description: "Silmeden önce sayfaları önizleyerek doğruluk sağlayın."
-          },
-          preview: {
-            title: "Tam Sayfa Önizleme",
-            description: "Yakınlaştırma kontrolleriyle detaylı görüntülemek için sayfaya tıklayın."
-          },
-          secure: {
-            title: "Güvenli İşlem",
-            description: "Dosyalarınız yerel olarak işlenir ve işlemden hemen sonra silinir."
-          },
-          flexible: {
-            title: "Esnek Seçim",
-            description: "Görsel geri bildirimle kolayca seçim yapın ve kaldırın."
-          }
+            title: "PDF Sayfa Silme Aracımızın Avantajları",
+            accuracy: {
+                title: "Hassas Seçim",
+                description: "Silmeden önce sayfaları önizleyerek doğruluk sağlayın."
+            },
+            preview: {
+                title: "Tam Sayfa Önizleme",
+                description: "Yakınlaştırma kontrolleriyle detaylı görüntülemek için sayfaya tıklayın."
+            },
+            secure: {
+                title: "Güvenli İşlem",
+                description: "Dosyalarınız yerel olarak işlenir ve işlemden hemen sonra silinir."
+            },
+            flexible: {
+                title: "Esnek Seçim",
+                description: "Görsel geri bildirimle kolayca seçim yapın ve kaldırın."
+            }
         },
         useCases: {
-          title: "Yaygın Kullanım Senaryoları",
-          confidential: {
-            title: "Gizli İçeriği Sil",
-            description: "Paylaşmadan önce hassas bilgiler içeren sayfaları kolayca kaldırın."
-          },
-          reports: {
-            title: "Raporları Özelleştir",
-            description: "Odaklanılmış belgeler oluşturmak için ilgisiz bölümleri silin."
-          },
-          presentations: {
-            title: "Sunumları Uyarla",
-            description: "Farklı izleyiciler için belirli slaytları silin."
-          },
-          sharing: {
-            title: "Paylaşım için Hazırla",
-            description: "Gereksiz sayfaları silerek belgeleri temizleyin."
-          }
+            title: "Yaygın Kullanım Senaryoları",
+            confidential: {
+                title: "Gizli İçeriği Sil",
+                description: "Paylaşmadan önce hassas bilgiler içeren sayfaları kolayca kaldırın."
+            },
+            reports: {
+                title: "Raporları Özelleştir",
+                description: "Odaklanılmış belgeler oluşturmak için ilgisiz bölümleri silin."
+            },
+            presentations: {
+                title: "Sunumları Uyarla",
+                description: "Farklı izleyiciler için belirli slaytları silin."
+            },
+            sharing: {
+                title: "Paylaşım için Hazırla",
+                description: "Gereksiz sayfaları silerek belgeleri temizleyin."
+            }
         },
         faq: {
-          title: "Sıkça Sorulan Sorular",
-          multiplePages: {
-            question: "Birden fazla sayfayı aynı anda silebilir miyim?",
-            answer: "Evet, tek işlemde birden fazla sayfa seçerek silebilirsiniz."
-          },
-          pageLimit: {
-            question: "Silinebilecek sayfa sayısında bir sınır var mı?",
-            answer: "İstediğiniz kadar sayfa silebilirsiniz, ancak en az bir sayfa kalmalıdır."
-          },
-          quality: {
-            question: "Sayfa silme, kalan sayfaların kalitesini etkiler mi?",
-            answer: "Hayır, kalan sayfaların kalitesi korunur."
-          },
-          encrypted: {
-            question: "Parola korumalı PDF'lerden sayfa silebilir miyim?",
-            answer: "Önce PDF'in kilidini açmanız gerekir."
-          }
+            title: "Sıkça Sorulan Sorular",
+            multiplePages: {
+                question: "Birden fazla sayfayı aynı anda silebilir miyim?",
+                answer: "Evet, tek işlemde birden fazla sayfa seçerek silebilirsiniz."
+            },
+            pageLimit: {
+                question: "Silinebilecek sayfa sayısında bir sınır var mı?",
+                answer: "İstediğiniz kadar sayfa silebilirsiniz, ancak en az bir sayfa kalmalıdır."
+            },
+            quality: {
+                question: "Sayfa silme, kalan sayfaların kalitesini etkiler mi?",
+                answer: "Hayır, kalan sayfaların kalitesi korunur."
+            },
+            encrypted: {
+                question: "Parola korumalı PDF'lerden sayfa silebilir miyim?",
+                answer: "Önce PDF'in kilidini açmanız gerekir."
+            }
         }
-      }
-}
+    }
+};

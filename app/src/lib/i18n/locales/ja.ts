@@ -2910,5 +2910,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "PDFからページを削除",
+    description: "不要なページをプレビューしながら正確に削除できます。",
+    uploadTitle: "PDFをアップロードしてページ削除",
+    uploadDesc: "PDFファイルを選択し、特定のページを削除しても残りのページの品質は維持されます。",
+    selectPages: "削除するページを選択",
+    selectPagesDesc: "サムネイルをクリックしてプレビュー、チェックボックスで削除対象を選択。",
+    pagesSelected: "ページ選択済み",
+    pagesRemaining: "ページが残ります",
+    selectMax: "全選択",
+    clearSelection: "選択解除",
+    saveDocument: "ドキュメントを保存",
+    preview: "結果をプレビュー",
+    previewDesc: "残るページ: {remaining}",
+    processing: "ページ削除中",
+    page: "ページ",
+    pagePreview: "ページプレビュー -",
+    removeFromDocument: "削除をキャンセル",
+    markForRemoval: "削除対象としてマーク",
+    messages: {
+      processing: "選択したページを削除しています…",
+      success: "ページ削除完了",
+      error: "ページ削除に失敗しました。再試行してください。",
+      downloadReady: "ページ削除済みPDFのダウンロード準備ができました。",
+      invalidFile: "有効なPDFファイルを選択してください",
+      cannotRemoveAll: "全てのページは削除できません。最低1ページ残す必要があります。"
+    },
+    howTo: {
+      title: "PDFからページを削除する方法",
+      step1: {
+        title: "PDFをアップロード",
+        description: "ページを削除したいPDFを選択またはドラッグ＆ドロップ。"
+      },
+      step2: {
+        title: "削除するページを選択",
+        description: "サムネイルをクリックしてプレビュー。チェックボックスで削除対象を選択。"
+      },
+      step3: {
+        title: "保存してダウンロード",
+        description: "「ドキュメントを保存」をクリックし、変更を適用後、PDFをダウンロード。"
+      }
+    },
+    benefits: {
+      title: "PDFページ削除ツールの利点",
+      accuracy: {
+        title: "正確なページ選択",
+        description: "削除前にプレビューで確認可能。"
+      },
+      preview: {
+        title: "完全なページプレビュー",
+        description: "ページをクリックし、ズーム機能で詳細を確認。"
+      },
+      secure: {
+        title: "安全な処理",
+        description: "ファイルはローカルで処理され、完了後即時削除。"
+      },
+      flexible: {
+        title: "柔軟な選択",
+        description: "視覚的なフィードバックで簡単に選択・解除。"
+      }
+    },
+    useCases: {
+      title: "主な使用例",
+      confidential: {
+        title: "機密コンテンツの削除",
+        description: "共有前に機密情報を含むページを簡単に削除。"
+      },
+      reports: {
+        title: "レポートのカスタマイズ",
+        description: "不要なセクションを削除し、焦点を絞ったドキュメントを作成。"
+      },
+      presentations: {
+        title: "プレゼンテーションの調整",
+        description: "対象に応じて特定のスライドを削除。"
+      },
+      sharing: {
+        title: "共有用に準備",
+        description: "不要なページを削除し、ドキュメントを整理。"
+      }
+    },
+    faq: {
+      title: "よくある質問",
+      multiplePages: {
+        question: "複数ページを一度に削除できますか？",
+        answer: "はい、1回の操作で複数ページを選択して削除可能。"
+      },
+      pageLimit: {
+        question: "削除できるページ数に制限はありますか？",
+        answer: "何ページでも削除可能ですが、最低1ページは残す必要があります。"
+      },
+      quality: {
+        question: "ページ削除は残りのページの品質に影響しますか？",
+        answer: "いいえ、残りのページの品質は維持されます。"
+      },
+      encrypted: {
+        question: "パスワード保護されたPDFからページを削除できますか？",
+        answer: "まずPDFのロックを解除する必要があります。"
+      }
+    }
+  }
 }

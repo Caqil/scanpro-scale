@@ -1,5 +1,7 @@
+"use strict";
+exports.__esModule = true;
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
-export default {
+exports["default"] = {
     metadata: {
         title: "MegaPDF - 免费PDF转换器、编辑器、OCR和解锁PDF",
         template: "%s | MegaPDF - PDF工具",
@@ -93,7 +95,7 @@ export default {
         accessDenied: "访问被拒绝。您无权访问此资源。",
         googleSignIn: "谷歌",
         hidePassword: "隐藏密码",
-        showPassword: "显示密码",
+        showPassword: "显示密码"
     },
     login: {
         title: "登录您的账户",
@@ -144,7 +146,6 @@ export default {
         usageBreakdown: "您本月的 API 使用情况",
         none: "无",
         percentageOfTotal: "占总使用量的"
-
     },
     subscription: {
         currentPlan: "当前计划",
@@ -217,7 +218,6 @@ export default {
         updateSuccess: "个人资料更新成功",
         updateFailed: "更新个人资料失败",
         updateError: "更新您的个人资料时发生错误",
-
         // Password Management
         changePassword: "更改密码",
         updatePasswordDesc: "更新您的账户密码",
@@ -231,7 +231,6 @@ export default {
         passwordUpdateSuccess: "密码更新成功",
         passwordUpdateFailed: "更新密码失败",
         passwordUpdateError: "更新您的密码时发生错误",
-
         // Password Validation
         passwordWeak: "弱",
         passwordFair: "一般",
@@ -242,7 +241,6 @@ export default {
         passwordStrength: "密码强度",
         passwordTips: "为了安全起见，请选择一个至少8个字符的强密码，包括大写字母、小写字母、数字和符号。"
     },
-
     // 英雄部分
     hero: {
         badge: "强大的PDF工具",
@@ -251,7 +249,6 @@ export default {
         btConvert: "开始转换",
         btTools: "探索所有工具"
     },
-
     popular: {
         pdfToWord: "PDF转Word",
         pdfToWordDesc: "轻松将您的PDF文件转换为易于编辑的DOC和DOCX文档。",
@@ -301,7 +298,6 @@ export default {
         redactPdfDesc: "永久删除PDF文件中的敏感信息。",
         viewAll: "查看所有PDF工具"
     },
-
     // 转换器部分
     converter: {
         title: "开始转换",
@@ -312,7 +308,6 @@ export default {
         apiDesc: "使用我们的REST API在您的应用程序中以编程方式转换PDF",
         apiDocs: "查看API文档"
     },
-
     // 转换页面
     convert: {
         title: {
@@ -422,17 +417,14 @@ export default {
             ]
         }
     },
-
     // 功能部分
     features: {
         title: "高级PDF工具与功能 | MegaPDF",
         description: "探索MegaPDF为文档管理、转换、编辑等提供的全面PDF工具和功能套件。",
-
         hero: {
             title: "高级PDF工具与功能",
             description: "发现使MegaPDF成为您所有文档管理需求的终极解决方案的全面工具和功能套件。"
         },
-
         overview: {
             power: {
                 title: "强大处理能力",
@@ -447,13 +439,10 @@ export default {
                 description: "通过完全跨平台兼容性，从任何设备访问您的文档和我们的工具。"
             }
         },
-
         allFeatures: {
             title: "所有功能"
         },
-
         learnMore: "了解更多",
-
         categories: {
             conversion: {
                 title: "PDF转换",
@@ -477,7 +466,6 @@ export default {
                     }
                 }
             },
-
             editing: {
                 title: "PDF编辑与管理",
                 description: "使用我们全面的工具集编辑、组织和优化您的PDF文档。",
@@ -500,7 +488,6 @@ export default {
                     }
                 }
             },
-
             security: {
                 title: "PDF安全与保护",
                 description: "使用加密、密码保护和数字签名保护您的PDF文档。",
@@ -523,7 +510,6 @@ export default {
                     }
                 }
             },
-
             ocr: {
                 title: "OCR技术",
                 description: "使用我们先进的OCR技术从扫描文档和图像中提取文本。",
@@ -546,7 +532,6 @@ export default {
                     }
                 }
             },
-
             api: {
                 title: "API与集成",
                 description: "使用我们强大的API将PDF处理功能集成到您的应用程序中。",
@@ -569,7 +554,6 @@ export default {
                     }
                 }
             },
-
             cloud: {
                 title: "云平台",
                 description: "通过我们安全的云存储和处理平台随时随地访问您的文档。",
@@ -592,7 +576,6 @@ export default {
                     }
                 }
             },
-
             enterprise: {
                 title: "企业功能",
                 description: "为商业和企业需求设计的高级功能。",
@@ -616,7 +599,6 @@ export default {
                 }
             }
         },
-
         mobile: {
             title: "MegaPDF移动应用",
             description: "随身携带MegaPDF的强大PDF工具。我们的移动应用程序在便捷的移动友好界面中提供相同的强大功能。",
@@ -633,7 +615,6 @@ export default {
                 description: "通过安全的云存储在您的所有设备上无缝同步您的文档。"
             }
         },
-
         comparison: {
             title: "功能比较",
             description: "比较我们的不同计划，找到最适合您需求的计划。",
@@ -658,7 +639,6 @@ export default {
                 dedicated: "专属支持"
             }
         },
-
         testimonials: {
             title: "我们的用户怎么说",
             quote1: "MegaPDF彻底改变了我们团队处理文档的方式。OCR功能非常精确，批量处理每周为我们节省数小时。",
@@ -672,7 +652,6 @@ export default {
             title3: "企业主"
         }
     },
-
     // 行动号召部分
     cta: {
         title: "准备好转换了吗？",
@@ -680,7 +659,6 @@ export default {
         startConverting: "开始转换",
         exploreTools: "探索所有工具"
     },
-
     // PDF工具页面
     pdfTools: {
         title: "所有PDF工具",
@@ -693,7 +671,6 @@ export default {
             pdfSecurity: "PDF安全"
         }
     },
-
     // 工具描述
     toolDescriptions: {
         pdfToWord: "轻松将您的PDF文件转换为易于编辑的DOC和DOCX文档。",
@@ -815,7 +792,6 @@ export default {
         title: "在线合并PDF文件 | 免费网页浏览器PDF合并工具",
         description: "使用我们基于浏览器的合并工具，快速轻松地将多个PDF文件合并成一个文档，适用于所有操作系统",
         intro: "我们的在线PDF合并工具让您只需几次点击即可将多个文档合并成一个文件。无需安装 - 可在任何操作系统的网页浏览器中直接使用。",
-
         // How-to section
         howTo: {
             title: "如何在浏览器中合并PDF文件",
@@ -832,7 +808,6 @@ export default {
                 description: "点击“合并PDF”按钮，从任何网页浏览器直接将合并后的PDF文件下载到您的设备上。"
             }
         },
-
         // Benefits section
         benefits: {
             title: "我们在线PDF合并工具的优势",
@@ -853,7 +828,6 @@ export default {
                 description: "我们的合并工具保留合并文件中原始格式、图片和文本质量，确保专业的结果。"
             }
         },
-
         // Use cases section
         useCases: {
             title: "PDF合并的常见用途",
@@ -874,7 +848,6 @@ export default {
                 description: "通过将多个工作样本合并成一个易于分享的文档，创建令人印象深刻的作品集。"
             }
         },
-
         // FAQ section
         faq: {
             title: "常见问题解答",
@@ -903,7 +876,6 @@ export default {
                 answer: "是的，我们先进的合并工具会在最终合并文件中保留原始PDF的文本、图片、格式、超链接和大多数交互元素。"
             }
         },
-
         // Tips section
         tips: {
             title: "有效合并PDF的技巧",
@@ -924,7 +896,6 @@ export default {
                 description: "对于专业文档，考虑使用我们的编辑PDF工具为合并文件添加书签，以方便导航。"
             }
         },
-
         // Comparison section
         comparison: {
             title: "为什么选择我们的网页浏览器合并工具",
@@ -945,7 +916,6 @@ export default {
                 description: "我们的在线合并工具不断改进，无需用户手动更新。"
             }
         },
-
         // UI elements and messages
         ui: {
             of: "的",
@@ -971,9 +941,8 @@ export default {
             pleaseWait: "请稍候，我们正在合并您的PDF文件",
             processingFile: "处理中",
             retry: "重试合并"
-        },
+        }
     },
-
     // OCR页面
     ocr: {
         title: "OCR提取：简易文本识别",
@@ -1072,7 +1041,6 @@ export default {
         processAnother: "处理另一个文件",
         supportedLanguages: "支持超过15种语言，包括英语、西班牙语、法语、德语、汉语、日语等。选择合适的语言以获得更高准确性。"
     },
-
     // 保护PDF页面
     protectPdf: {
         title: "密码保护PDF",
@@ -1196,7 +1164,6 @@ export default {
         protected: "PDF已成功保护！",
         protectedDesc: "您的PDF文件已加密并受密码保护。"
     },
-
     watermarkPdf: {
         title: "给PDF添加水印",
         description: "为保护、品牌推广或标识，将自定义文本或图片水印添加到您的PDF文档中。",
@@ -1504,14 +1471,12 @@ export default {
             viewAll: "查看所有工具"
         }
     },
-
     // 解锁PDF
     unlockPdf: {
         title: "使用我们的PDF解锁器轻松解锁PDF文件",
         description: "使用我们的在线PDF解锁工具快速移除PDF密码并解除PDF文件的保护。在任何操作系统上解锁PDF以创建不安全的PDF文件。",
         metaDescription: "使用我们的PDF解锁器轻松解锁PDF文件。移除PDF权限密码，解除在线PDF的保护，并安全下载您的解锁文件。",
         keywords: "解锁PDF文件, 如何解锁PDF文件, PDF解锁, 解锁PDF文件, 解锁到PDF, 解锁PDF文件, 不安全的PDF文件, PDF解锁器, 解锁文件, PDF文档解锁, SmallPDF解锁, 解锁PDFs, PDF保护工具, 权限密码, 下载您的文件, PDF中的密码, 在线PDF, 移除PDF密码, SmallPDF解锁PDF, 移除PDF, 点击保存, 点击密码, PDF解锁工具",
-
         // Benefits Section
         benefits: {
             title: "为什么使用我们的PDF解锁工具来解锁PDF文件",
@@ -1534,7 +1499,6 @@ export default {
                 }
             ]
         },
-
         // Use Cases Section
         useCases: {
             title: "如何解锁PDF文件：顶级使用场景",
@@ -1557,7 +1521,6 @@ export default {
                 }
             ]
         },
-
         // How-To Section
         howTo: {
             title: "如何在3个步骤中解锁PDF文件",
@@ -1574,7 +1537,6 @@ export default {
                 description: "在我们移除PDF密码后，将您的文件下载为不安全的PDF文件，完成PDF文件的解锁。"
             }
         },
-
         // Features Section
         features: {
             title: "我们PDF解锁器的主要功能",
@@ -1597,7 +1559,6 @@ export default {
                 }
             ]
         },
-
         // FAQ Section
         faq: {
             passwordRequired: {
@@ -1621,7 +1582,6 @@ export default {
                 answer: "是的，我们的PDF解锁工具适用于任何操作系统，是SmallPDF解锁的绝佳替代方案，可以在线解锁PDF文件。"
             }
         },
-
         // Status Messages
         passwordProtected: "受密码保护",
         notPasswordProtected: "未受密码保护",
@@ -1629,7 +1589,6 @@ export default {
         unlockSuccess: "PDF解锁成功！",
         unlockSuccessDesc: "您的PDF文档解锁已完成！现在下载您的解锁文件。"
     },
-
     // 文件上传器
     fileUploader: {
         dropHere: "将文件拖放到这里",
@@ -1659,7 +1618,6 @@ export default {
         download: "下载转换后的文件",
         filesSecurity: "文件在1小时后自动删除，以确保隐私和安全。"
     },
-
     // 常用UI元素
     ui: {
         upload: "上传",
@@ -1683,7 +1641,7 @@ export default {
         loading: "加载中...",
         preview: "预览",
         reupload: "上传另一个文件",
-        continue: "继续",
+        "continue": "继续",
         skip: "跳过",
         retry: "重试",
         addMore: "添加更多",
@@ -1691,12 +1649,11 @@ export default {
         clearAll: "全部清除",
         done: "完成",
         extract: "提取",
-        new: "新！",
+        "new": "新！",
         phone: "电话",
         address: "地址",
         filesSecurity: "文件在1小时后自动删除，以确保隐私和安全。"
     },
-
     contact: {
         title: "联系我们",
         description: "有问题或反馈？我们很乐意听到您的意见。",
@@ -1832,7 +1789,6 @@ export default {
             description: "您有权访问、更正或删除您的个人信息。"
         }
     },
-
     // 错误页面
     error: {
         notFound: "页面未找到",
@@ -2038,7 +1994,7 @@ export default {
             warnings: "警告",
             fileSize: "文件大小",
             original: "原始",
-            new: "新",
+            "new": "新",
             reduction: "减少",
             download: "下载修复后的PDF",
             repairAnother: "修复另一个PDF"
@@ -2264,7 +2220,6 @@ export default {
             }
         }
     },
-
     developer: {
         title: "开发者 API 文档",
         description: "使用我们的 RESTful API 将 MegaPDF 的强大 PDF 工具集成到您的应用程序中",
@@ -2444,7 +2399,6 @@ export default {
     },
     pricing: {
         description: "选择适合您PDF需求的计划。MegaPDF提供从免费到企业的灵活定价选项，包含您所需的功能。",
-
         // Page content
         title: "简单透明的定价",
         subtitle: "选择适合您的计划。所有计划都包含我们的核心PDF工具。",
@@ -2454,7 +2408,6 @@ export default {
         subscribe: "订阅",
         feature: "功能",
         featureCompare: "功能比较",
-
         // Features
         features: {
             operations: "月度操作",
@@ -2498,7 +2451,6 @@ export default {
             whiteLabel: "白标选项",
             serviceLevel: "服务水平协议"
         },
-
         // Plan descriptions
         planDescriptions: {
             free: "适用于偶尔需要的PDF",
@@ -2506,7 +2458,6 @@ export default {
             pro: "适用于专业人士和企业",
             enterprise: "适用于大型组织"
         },
-
         // FAQ section
         faq: {
             title: "常见问题",
@@ -2531,7 +2482,6 @@ export default {
                 content: "是的，我们非常重视数据安全。所有文件上传和处理都通过安全的HTTPS连接进行。我们不会将您的文件存储超过处理所需时间，处理完成后所有文件将自动删除。"
             }
         },
-
         // CTA section
         cta: {
             title: "准备好开始了吗？",
@@ -2539,11 +2489,9 @@ export default {
             startBasic: "从基础版开始",
             explorePdfTools: "探索PDF工具"
         },
-
         // Login dialog
         loginRequired: "需要登录",
         loginRequiredDesc: "您需要在订阅前登录您的账户。现在要登录吗？",
-
         // Plan buttons
         getStarted: "开始",
         currentPlan: "当前计划"
@@ -2856,10 +2804,8 @@ export default {
         title: "为PDF添加页面编号",
         shortDescription: "轻松为您的PDF文档添加可定制的页面编号",
         description: "使用我们的在线工具，以多种数字格式、位置和样式为PDF添加自定义页面编号",
-
         uploadTitle: "上传您的PDF",
         uploadDesc: "上传PDF文件以添加页面编号或页眉。您的文件将安全处理，与任何操作系统兼容。",
-
         messages: {
             noFile: "请先上传PDF文件",
             success: "页面编号添加成功！",
@@ -2917,7 +2863,6 @@ export default {
                 description: "使用我们的在线工具处理并下载添加了页面编号的PDF"
             }
         },
-
         benefits: {
             title: "添加页面编号的好处",
             navigation: {
@@ -2937,7 +2882,6 @@ export default {
                 description: "自定义页面编号的外观和位置，或添加页眉以匹配您的文档风格"
             }
         },
-
         useCases: {
             title: "常见使用场景",
             books: {
@@ -2957,7 +2901,6 @@ export default {
                 description: "为合同和法律文件应用一致的页面编号，确保适当引用"
             }
         },
-
         faq: {
             title: "常见问题",
             formats: {
@@ -2981,7 +2924,6 @@ export default {
                 answer: "是的，所有处理都是安全的。您的文件在传输中加密，处理后自动删除—没有永久存储或除添加编号外的访问。"
             }
         },
-
         relatedTools: {
             title: "相关工具"
         }
@@ -3063,7 +3005,7 @@ export default {
                 title: "提出问题",
                 description: "询问有关文档的任何问题，并从PDF内容中获得准确答案。"
             }
-        },
+        }
     },
     removePdf: {
         title: "从PDF删除页面",
@@ -3085,84 +3027,84 @@ export default {
         removeFromDocument: "取消删除",
         markForRemoval: "标记删除",
         messages: {
-          processing: "正在从您的PDF中删除所选页面，请稍候...",
-          success: "页面删除成功",
-          error: "删除页面失败，请重试。",
-          downloadReady: "已删除页面的PDF可下载。",
-          invalidFile: "请选择有效的PDF文件",
-          cannotRemoveAll: "不能删除所有页面，至少保留一页。"
+            processing: "正在从您的PDF中删除所选页面，请稍候...",
+            success: "页面删除成功",
+            error: "删除页面失败，请重试。",
+            downloadReady: "已删除页面的PDF可下载。",
+            invalidFile: "请选择有效的PDF文件",
+            cannotRemoveAll: "不能删除所有页面，至少保留一页。"
         },
         howTo: {
-          title: "如何从PDF删除页面",
-          step1: {
-            title: "上传PDF",
-            description: "选择或拖放要删除页面的PDF文件。"
-          },
-          step2: {
-            title: "选择要删除的页面",
-            description: "点击缩略图预览页面，勾选复选框标记删除。"
-          },
-          step3: {
-            title: "保存并下载",
-            description: "点击“保存文档”处理更改，然后下载PDF。"
-          }
+            title: "如何从PDF删除页面",
+            step1: {
+                title: "上传PDF",
+                description: "选择或拖放要删除页面的PDF文件。"
+            },
+            step2: {
+                title: "选择要删除的页面",
+                description: "点击缩略图预览页面，勾选复选框标记删除。"
+            },
+            step3: {
+                title: "保存并下载",
+                description: "点击“保存文档”处理更改，然后下载PDF。"
+            }
         },
         benefits: {
-          title: "使用PDF页面删除工具的优势",
-          accuracy: {
-            title: "精确选择",
-            description: "删除前预览页面以确保准确性。"
-          },
-          preview: {
-            title: "完整页面预览",
-            description: "点击页面可缩放查看详细内容。"
-          },
-          secure: {
-            title: "安全处理",
-            description: "文件本地处理，完成后立即删除。"
-          },
-          flexible: {
-            title: "灵活选择",
-            description: "通过可视化反馈轻松选择和取消选择页面。"
-          }
+            title: "使用PDF页面删除工具的优势",
+            accuracy: {
+                title: "精确选择",
+                description: "删除前预览页面以确保准确性。"
+            },
+            preview: {
+                title: "完整页面预览",
+                description: "点击页面可缩放查看详细内容。"
+            },
+            secure: {
+                title: "安全处理",
+                description: "文件本地处理，完成后立即删除。"
+            },
+            flexible: {
+                title: "灵活选择",
+                description: "通过可视化反馈轻松选择和取消选择页面。"
+            }
         },
         useCases: {
-          title: "常见使用场景",
-          confidential: {
-            title: "删除机密内容",
-            description: "在共享前轻松删除包含敏感信息的页面。"
-          },
-          reports: {
-            title: "自定义报告",
-            description: "删除无关部分以创建重点文档。"
-          },
-          presentations: {
-            title: "调整演示文稿",
-            description: "删除特定幻灯片以适应不同受众。"
-          },
-          sharing: {
-            title: "准备共享",
-            description: "通过删除不必要页面来清理文档。"
-          }
+            title: "常见使用场景",
+            confidential: {
+                title: "删除机密内容",
+                description: "在共享前轻松删除包含敏感信息的页面。"
+            },
+            reports: {
+                title: "自定义报告",
+                description: "删除无关部分以创建重点文档。"
+            },
+            presentations: {
+                title: "调整演示文稿",
+                description: "删除特定幻灯片以适应不同受众。"
+            },
+            sharing: {
+                title: "准备共享",
+                description: "通过删除不必要页面来清理文档。"
+            }
         },
         faq: {
-          title: "常见问题",
-          multiplePages: {
-            question: "可以一次删除多个页面吗？",
-            answer: "可以，单次操作可选择多个页面删除。"
-          },
-          pageLimit: {
-            question: "删除页面数量有限制吗？",
-            answer: "可删除任意数量页面，但至少保留一页。"
-          },
-          quality: {
-            question: "删除页面会影响剩余页面的质量吗？",
-            answer: "不会，剩余页面的质量保持不变。"
-          },
-          encrypted: {
-            question: "可以从受密码保护的PDF中删除页面吗？",
-            answer: "需先解锁PDF。"
-          }
+            title: "常见问题",
+            multiplePages: {
+                question: "可以一次删除多个页面吗？",
+                answer: "可以，单次操作可选择多个页面删除。"
+            },
+            pageLimit: {
+                question: "删除页面数量有限制吗？",
+                answer: "可删除任意数量页面，但至少保留一页。"
+            },
+            quality: {
+                question: "删除页面会影响剩余页面的质量吗？",
+                answer: "不会，剩余页面的质量保持不变。"
+            },
+            encrypted: {
+                question: "可以从受密码保护的PDF中删除页面吗？",
+                answer: "需先解锁PDF。"
+            }
         }
-      }
-}
+    }
+};

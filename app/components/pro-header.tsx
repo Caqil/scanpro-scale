@@ -154,6 +154,7 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
     { code: "it", name: "Italian", nativeName: "Italiano", flag: "🇮🇹" },
     { code: "tr", name: "Turkish", nativeName: "Türkçe", flag: "🇹🇷" },
   ];
+
   const PDF_TOOLS: CategoryDefinition[] = [
     {
       category: isClient
@@ -303,10 +304,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
       ),
     },
     {
-      label: t("popular.viewAll"),
-      dropdown: PDF_TOOLS,
-    },
-    {
       label: "AI PDF",
       dropdown: PDF_TOOLS.filter(
         (cat) => cat.category === (isClient ? "AI PDF" : "AI PDF")
@@ -448,6 +445,14 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
                 )}
               </div>
             ))}
+            <LanguageLink
+              href="/pdf-tools"
+              className="text-sm font-medium text-foreground transition-colors hover:text-primary"
+            >
+              {isClient
+                ? t("popular.viewAll") || "View All PDF Tools"
+                : "View All PDF Tools"}
+            </LanguageLink>
           </nav>
 
           {/* Right Side Actions */}

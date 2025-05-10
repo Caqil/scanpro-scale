@@ -3062,5 +3062,104 @@ export default {
       }
     },
   },
-
+  removePdf: {
+    title: "Remover Páginas de PDF",
+    description: "Remova facilmente páginas indesejadas de seus documentos PDF com visualização e controle preciso.",
+    uploadTitle: "Enviar PDF para Remover Páginas",
+    uploadDesc: "Selecione um arquivo PDF para remover páginas específicas, mantendo a qualidade das restantes.",
+    selectPages: "Selecionar Páginas para Remover",
+    selectPagesDesc: "Clique nas miniaturas para visualizar ou marque a caixa para selecionar a remoção.",
+    pagesSelected: "páginas selecionadas",
+    pagesRemaining: "páginas permanecerão",
+    selectMax: "Selecionar Todas",
+    clearSelection: "Limpar Seleção",
+    saveDocument: "Salvar Documento",
+    preview: "Visualizar Resultado",
+    previewDesc: "Páginas que permanecerão no documento: {remaining}",
+    processing: "Removendo Páginas",
+    page: "Página",
+    pagePreview: "Pré-visualização da Página -",
+    removeFromDocument: "Cancelar Remoção",
+    markForRemoval: "Marcar para Remoção",
+    messages: {
+      processing: "Aguarde enquanto removemos as páginas selecionadas do seu PDF...",
+      success: "Páginas Removidas com Sucesso",
+      error: "Falha ao remover páginas. Tente novamente.",
+      downloadReady: "Seu PDF com páginas removidas está pronto para download.",
+      invalidFile: "Selecione um arquivo PDF válido",
+      cannotRemoveAll: "Você não pode remover todas as páginas. Pelo menos uma deve permanecer."
+    },
+    howTo: {
+      title: "Como Remover Páginas de PDF",
+      step1: {
+        title: "Envie seu PDF",
+        description: "Selecione ou arraste e solte um arquivo PDF do qual deseja remover páginas."
+      },
+      step2: {
+        title: "Selecione Páginas para Remover",
+        description: "Clique nas miniaturas para visualizar. Marque as caixas para selecionar páginas para remoção."
+      },
+      step3: {
+        title: "Salve e Baixe",
+        description: "Clique em Salvar Documento para processar as alterações e baixar o PDF."
+      }
+    },
+    benefits: {
+      title: "Vantagens do Nosso Removedor de Páginas PDF",
+      accuracy: {
+        title: "Seleção Precisa",
+        description: "Visualize páginas antes de remover para garantir precisão."
+      },
+      preview: {
+        title: "Pré-visualização Completa",
+        description: "Clique em uma página para visualizá-la em detalhes com controles de zoom."
+      },
+      secure: {
+        title: "Processamento Seguro",
+        description: "Seus arquivos são processados localmente e excluídos após o processamento."
+      },
+      flexible: {
+        title: "Seleção Flexível",
+        description: "Selecione e desmarque páginas facilmente com feedback visual."
+      }
+    },
+    useCases: {
+      title: "Casos de Uso Comuns",
+      confidential: {
+        title: "Remover Conteúdo Confidencial",
+        description: "Remova facilmente páginas com informações sensíveis antes de compartilhar."
+      },
+      reports: {
+        title: "Personalizar Relatórios",
+        description: "Remova seções irrelevantes para criar documentos focados."
+      },
+      presentations: {
+        title: "Adaptar Apresentações",
+        description: "Remova slides específicos para diferentes públicos."
+      },
+      sharing: {
+        title: "Preparar para Compartilhamento",
+        description: "Limpe documentos removendo páginas desnecessárias."
+      }
+    },
+    faq: {
+      title: "Perguntas Frequentes",
+      multiplePages: {
+        question: "Posso remover várias páginas de uma vez?",
+        answer: "Sim, você pode selecionar várias páginas para remoção em uma única operação."
+      },
+      pageLimit: {
+        question: "Há um limite de páginas que posso remover?",
+        answer: "Você pode remover quantas páginas quiser, mas pelo menos uma deve permanecer."
+      },
+      quality: {
+        question: "A remoção afeta a qualidade das páginas restantes?",
+        answer: "Não, a qualidade das páginas restantes é preservada."
+      },
+      encrypted: {
+        question: "Posso remover páginas de PDFs protegidos por senha?",
+        answer: "Você precisará desbloquear o PDF protegido primeiro."
+      }
+    }
+  }
 }

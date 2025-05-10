@@ -3283,5 +3283,106 @@ export default {
       }
     },
   },
+  
+  removePdf: {
+    title: "Remove Pages from PDF",
+    description: "Easily remove unwanted pages from your PDF documents with visual preview and precise control.",
+    uploadTitle: "Upload PDF to Remove Pages",
+    uploadDesc: "Select PDF file to remove specific pages while preserving the quality of remaining pages.",
+    selectPages: "Select Pages to Remove",
+    selectPagesDesc: "Click on page thumbnails to preview or check the box to mark for removal",
+    pagesSelected: "pages selected",
+    pagesRemaining: "pages will remain",
+    selectMax: "Select Max",
+    clearSelection: "Clear Selection",
+    saveDocument: "Save Document",
+    preview: "Preview Result",
+    previewDesc: "Pages that will remain in your document: {remaining}",
+    processing: "Removing Pages",
+    page: "Page",
+    pagePreview: "Page Preview -",
+    removeFromDocument: "Cancel Removal",
+    markForRemoval: "Mark for Removal",
+    messages: {
+      processing: "Please wait while we remove the selected pages from your PDF...",
+      success: "Pages Removed Successfully",
+      error: "Failed to remove pages. Please try again.",
+      downloadReady: "Your PDF with removed pages is ready for download.",
+      invalidFile: "Please select a valid PDF file",
+      cannotRemoveAll: "You cannot remove all pages. At least one page must remain."
+    },
+    howTo: {
+      title: "How to Remove Pages from PDF",
+      step1: {
+        title: "Upload Your PDF",
+        description: "Select or drag and drop a PDF file from which you want to remove pages."
+      },
+      step2: {
+        title: "Select Pages to Remove",
+        description: "Click thumbnails to preview pages. Check the box to mark pages for removal."
+      },
+      step3: {
+        title: "Save and Download",
+        description: "Click Save Document to process your changes, then download your PDF."
+      }
+    },
+    benefits: {
+      title: "Benefits of Using Our PDF Page Remover",
+      accuracy: {
+        title: "Precise Page Selection",
+        description: "Preview pages before removal to ensure accuracy."
+      },
+      preview: {
+        title: "Full Page Preview",
+        description: "Click covenants page to view it in full detail with zoom controls."
+      },
+      secure: {
+        title: "Secure Processing",
+        description: "Your files are processed locally and deleted immediately after processing."
+      },
+      flexible: {
+        title: "Flexible Selection",
+        description: "Select and deselect pages easily with visual feedback."
+      }
+    },
+    useCases: {
+      title: "Common Use Cases",
+      confidential: {
+        title: "Remove Confidential Content",
+        description: "Easily remove pages containing sensitive information before sharing."
+      },
+      reports: {
+        title: "Customize Reports",
+        description: "Remove irrelevant sections to create focused documents."
+      },
+      presentations: {
+        title: "Tailor Presentations",
+        description: "Remove specific slides to customize for different audiences."
+      },
+      sharing: {
+        title: "Prepare for Sharing",
+        description: "Clean up documents by removing unnecessary pages."
+      }
+    },
+    faq: {
+      title: "Frequently Asked Questions",
+      multiplePages: {
+        question: "Can I remove multiple pages at once?",
+        answer: "Yes, you can select multiple pages to remove in a single operation."
+      },
+      pageLimit: {
+        question: "Is there a limit to how many pages I can remove?",
+        answer: "You can remove as many pages as you want, but at least one page must remain."
+      },
+      quality: {
+        question: "Will removing pages affect the quality of remaining pages?",
+        answer: "No, the quality of remaining pages is preserved."
+      },
+      encrypted: {
+        question: "Can I remove pages from password-protected PDFs?",
+        answer: "You'll need to unlock password-protected PDFs first."
+      }
+    }
+  }
 }
 
