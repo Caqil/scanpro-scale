@@ -5,7 +5,7 @@ var nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   basePath: '',
-  //assetPrefix: 'https://mega-pdf.com/',
+  assetPrefix: 'https://mega-pdf.com/',
   eslint: {
     ignoreDuringBuilds: true
   },
