@@ -9,8 +9,6 @@ import sharp from "sharp";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { DOMParser } from "xmldom";
-import sizeOf from "image-size";
 
 const execPromise = promisify(exec);
 

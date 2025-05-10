@@ -4,11 +4,11 @@ import { writeFile, mkdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { trackApiUsage, validateApiKey } from '@/lib/validate-key';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 const MERGE_DIR = join(process.cwd(), 'public', 'merges');
 
@@ -22,10 +22,10 @@ async function ensureDirectories() {
     }
 }
 
-// Merge PDFs using qpdf with improved error handling
-async function mergePdfsWithQpdf(inputPaths: string[], outputPath: string): Promise<boolean> {
+// Merge PDFs using Pdfcpu with improved error handling
+async function mergePdfsWithPdfcpu(inputPaths: string[], outputPath: string): Promise<boolean> {
     try {
-        console.log('Merging PDFs with qpdf...');
+        console.log('Merging PDFs with pdfcpu...');
 
         // Validate input paths
         if (inputPaths.length === 0) {
@@ -52,21 +52,19 @@ async function mergePdfsWithQpdf(inputPaths: string[], outputPath: string): Prom
                     const batchFiles = inputPaths.slice(i, i + batchSize);
                     const batchOutputPath = join(tempDir, `batch-${i}.pdf`);
                     
-                    // Merge this batch
-                    const escapedPaths = batchFiles.map(path => `"${path}"`).join(' ');
-                    const batchCommand = `qpdf --empty --pages ${escapedPaths} -- "${batchOutputPath}"`;
+                    // Merge this batch using pdfcpu
+                    // Note: pdfcpu merge takes output first, then input files
+                    console.log(`Processing batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(inputPaths.length/batchSize)}...`);
                     
-                    console.log(`Processing batch ${i/batchSize + 1} of ${Math.ceil(inputPaths.length/batchSize)}...`);
-                    await execAsync(batchCommand);
+                    // Using execFile to avoid command injection risks with spaces in filenames
+                    await execFileAsync('pdfcpu', ['merge', batchOutputPath, ...batchFiles]);
                     
                     tempFiles.push(batchOutputPath);
                 }
                 
                 // Final merge of all batches
                 console.log(`Merging ${tempFiles.length} batches to final output...`);
-                const escapedTempPaths = tempFiles.map(path => `"${path}"`).join(' ');
-                const finalCommand = `qpdf --empty --pages ${escapedTempPaths} -- "${outputPath}"`;
-                await execAsync(finalCommand);
+                await execFileAsync('pdfcpu', ['merge', outputPath, ...tempFiles]);
                 
                 // Verify the output was created
                 return existsSync(outputPath);
@@ -88,19 +86,15 @@ async function mergePdfsWithQpdf(inputPaths: string[], outputPath: string): Prom
             }
         } else {
             // For smaller merges, use single command
-            // Escape input paths to handle spaces or special characters
-            const escapedPaths = inputPaths.map(path => `"${path}"`).join(' ');
-
-            // Construct qpdf command
-            const command = `qpdf --empty --pages ${escapedPaths} -- "${outputPath}"`;
-
-            // Execute qpdf command
-            await execAsync(command);
+            // pdfcpu handles spaces in filenames correctly when using execFile
+            
+            // Execute pdfcpu command - output path comes first, followed by input files
+            await execFileAsync('pdfcpu', ['merge', outputPath, ...inputPaths]);
             
             return existsSync(outputPath);
         }
     } catch (error) {
-        console.error('qpdf merge error:', error);
+        console.error('pdfcpu merge error:', error);
         throw new Error('Failed to merge PDFs: ' + (error instanceof Error ? error.message : String(error)));
     }
 }
@@ -229,12 +223,12 @@ export async function POST(request: NextRequest) {
 
         console.log(`Merging ${files.length} PDF files in specified order`);
 
-        // Merge with qpdf with improved handling
+        // Merge with Pdfcpu with improved handling
         let mergeSuccess = false;
         try {
-            mergeSuccess = await mergePdfsWithQpdf(orderedInputPaths, outputPath);
+            mergeSuccess = await mergePdfsWithPdfcpu(orderedInputPaths, outputPath);
         } catch (error) {
-            console.error('qpdf merge failed:', error);
+            console.error('Pdfcpu merge failed:', error);
             throw new Error('PDF merging failed');
         }
 

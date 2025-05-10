@@ -19,60 +19,98 @@ async function ensureDirectory() {
         await mkdir(UPLOAD_DIR, { recursive: true });
     }
 }
+
 async function checkIfPasswordProtected(inputPath: string): Promise<boolean> {
     try {
-        // Try with qpdf first (most reliable)
-        try {
-            const { stdout, stderr } = await execPromise(`qpdf --check "${inputPath}"`);
-            console.log('qpdf stdout:', stdout);
-            console.log('qpdf stderr:', stderr);
+        // Use pdfcpu to get info about the PDF file
+        // Format: pdfcpu info inputFile
+        const { stdout, stderr } = await execPromise(`pdfcpu info "${inputPath}"`);
+        
+        console.log('pdfcpu info stdout:', stdout);
+        if (stderr) {
+            console.log('pdfcpu info stderr:', stderr);
+        }
 
-            // Look for explicit password requirement
-            if (stderr && stderr.toLowerCase().includes('password required')) {
+        // Check if the output indicates encryption or password protection
+        if (stdout.includes('Encrypted: true') || 
+            stdout.includes('has UserAccess') || 
+            stdout.includes('has OwnerAccess')) {
+            return true;
+        }
+        
+        // If the command failed with specific error messages that suggest password protection
+        if (stderr && (
+            stderr.toLowerCase().includes('password') || 
+            stderr.toLowerCase().includes('encrypted') ||
+            stderr.toLowerCase().includes('authentication'))) {
+            return true;
+        }
+
+        // Try a second method: attempt to validate the file
+        try {
+            // Format: pdfcpu validate inputFile
+            const validateResult = await execPromise(`pdfcpu validate "${inputPath}"`);
+            console.log('pdfcpu validate result:', validateResult);
+            
+            // If validation succeeds without mentioning encryption, it's likely not protected
+            return false;
+        } catch (validateError: any) {
+            console.log('pdfcpu validate error:', validateError.message);
+            
+            // Check if the error message indicates password protection
+            if (validateError.message && (
+                validateError.message.toLowerCase().includes('password') || 
+                validateError.message.toLowerCase().includes('encrypted') ||
+                validateError.message.toLowerCase().includes('authentication'))) {
                 return true;
             }
-            // Check if encrypted AND requires a password
-            if (stdout && stdout.toLowerCase().includes('encrypted')) {
-                try {
-                    await execPromise(`qpdf --decrypt "${inputPath}" "${inputPath}.tmp.pdf"`);
-                    await execPromise(`rm "${inputPath}.tmp.pdf"`); // Clean up (use `del` on Windows)
-                    return false; // Decrypt succeeded without password, so not protected
-                } catch {
-                    return true; // Decrypt failed, likely password-protected
-                }
-            }
-            return false; // No encryption or password required
-        } catch (qpdfError: any) {
-            console.log('qpdf error:', qpdfError.message);
-            if (qpdfError.message && qpdfError.message.includes('password')) {
-                return true; // qpdf explicitly says password needed
-            }
-
-            // Fallback to pdfinfo
-            try {
-                const { stdout } = await execPromise(`pdfinfo "${inputPath}"`);
-                console.log('pdfinfo stdout:', stdout);
-                const encryptedLine = stdout.split('\n').find(line => line.includes('Encrypted'));
-                if (encryptedLine) {
-                    return encryptedLine.includes('yes'); // Only true if "Encrypted: yes"
-                }
-                return false; // No encryption or "Encrypted: no"
-            } catch (pdfInfoError: any) {
-                console.log('pdfinfo error:', pdfInfoError.message);
-                return false; // Default to false if pdfinfo fails
-            }
+            
+            // Other validation errors don't necessarily mean password protection
+            return false;
         }
     } catch (error) {
         console.error('Unexpected error checking PDF:', error);
-        return false; // Default to false on unexpected errors
+        
+        // Check if the error message suggests password protection
+        if (error instanceof Error && 
+            (error.message.toLowerCase().includes('password') || 
+             error.message.toLowerCase().includes('encrypted') ||
+             error.message.toLowerCase().includes('authentication'))) {
+            return true;
+        }
+        
+        // Default to false on other unexpected errors
+        return false;
     }
 }
 
-// Updated POST handler
+// POST handler
 export async function POST(request: NextRequest) {
     try {
         console.log('Checking if PDF is password protected...');
-        // ... (API key validation code remains unchanged)
+        // Get API key either from header or query parameter
+        const headers = request.headers;
+        const url = new URL(request.url);
+        const apiKey = headers.get('x-api-key') || url.searchParams.get('api_key');
+
+        // If this is a programmatic API call, validate the API key
+        if (apiKey) {
+            console.log('Validating API key for check operation');
+            const validation = await validateApiKey(apiKey, 'unlock');  // Using 'unlock' permission
+
+            if (!validation.valid) {
+                console.error('API key validation failed:', validation.error);
+                return NextResponse.json(
+                    { error: validation.error || 'Invalid API key' },
+                    { status: 401 }
+                );
+            }
+
+            // Track usage (non-blocking)
+            if (validation.userId) {
+                trackApiUsage(validation.userId, 'unlock');  // Count as part of unlock operation
+            }
+        }
 
         await ensureDirectory();
 

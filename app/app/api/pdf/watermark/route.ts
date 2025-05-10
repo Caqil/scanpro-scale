@@ -1,13 +1,11 @@
 // app/api/pdf/watermark/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { writeFile, mkdir, readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import sharp from 'sharp';
 import { trackApiUsage, validateApiKey } from '@/lib/validate-key';
 
 const execPromise = promisify(exec);
@@ -25,9 +23,34 @@ async function ensureDirectories() {
     }
 }
 
-function parsePageRanges(pagesString: string, totalPages: number): number[] {
-    const pages: number[] = [];
+function getPagesToWatermark(
+    totalPages: number,
+    pageOption: string,
+    customPages: string
+): string {
+    switch (pageOption) {
+        case 'all':
+            return '';  // Empty means all pages for pdfcpu
+        case 'even':
+            return Array.from(
+                { length: Math.floor(totalPages / 2) },
+                (_, i) => (i + 1) * 2
+            ).join(',');
+        case 'odd':
+            return Array.from(
+                { length: Math.ceil(totalPages / 2) },
+                (_, i) => i * 2 + 1
+            ).filter(p => p <= totalPages).join(',');
+        case 'custom':
+            return parsePageRanges(customPages, totalPages);
+        default:
+            return '';
+    }
+}
+
+function parsePageRanges(pagesString: string, totalPages: number): string {
     const parts = pagesString.split(',');
+    const validRanges: string[] = [];
 
     for (const part of parts) {
         const trimmedPart = part.trim();
@@ -38,304 +61,244 @@ function parsePageRanges(pagesString: string, totalPages: number): number[] {
             const start = parseInt(startStr.trim());
             const end = parseInt(endStr.trim());
 
-            if (!isNaN(start) && !isNaN(end) && start <= end) {
-                for (let i = start; i <= Math.min(end, totalPages); i++) {
-                    if (!pages.includes(i) && i > 0) {
-                        pages.push(i);
-                    }
-                }
+            if (!isNaN(start) && !isNaN(end) && start <= end && start > 0 && end <= totalPages) {
+                validRanges.push(`${start}-${end}`);
             }
         } else {
             const pageNum = parseInt(trimmedPart);
-            if (!isNaN(pageNum) && !pages.includes(pageNum) && pageNum > 0 && pageNum <= totalPages) {
-                pages.push(pageNum);
+            if (!isNaN(pageNum) && pageNum > 0 && pageNum <= totalPages) {
+                validRanges.push(pageNum.toString());
             }
         }
     }
 
-    return pages.sort((a, b) => a - b);
+    return validRanges.join(',');
 }
 
-function getPagesToWatermark(
-    totalPages: number,
-    pageOption: string,
-    customPages: string
-): number[] {
-    switch (pageOption) {
-        case 'all':
-            return Array.from({ length: totalPages }, (_, i) => i + 1);
-        case 'even':
-            return Array.from({ length: Math.floor(totalPages / 2) }, (_, i) => (i + 1) * 2);
-        case 'odd':
-            return Array.from({ length: Math.ceil(totalPages / 2) }, (_, i) => i * 2 + 1).filter(p => p <= totalPages);
-        case 'custom':
-            return parsePageRanges(customPages, totalPages);
-        default:
-            return Array.from({ length: totalPages }, (_, i) => i + 1);
+async function getPDFPageCount(pdfPath: string): Promise<number> {
+    try {
+        // Try pdfinfo first if available
+        try {
+            const { stdout } = await execPromise(`pdfinfo "${pdfPath}"`);
+            const pagesMatch = stdout.match(/Pages:\s*(\d+)/i);
+            if (pagesMatch && pagesMatch[1]) {
+                return parseInt(pagesMatch[1], 10);
+            }
+        } catch (e) {
+            console.log('pdfinfo not available, trying pdfcpu...');
+        }
+
+        // Try pdfcpu info as fallback
+        const { stdout } = await execPromise(`pdfcpu info "${pdfPath}"`);
+        
+        const patterns = [
+            /Pages:\s*(\d+)/i,
+            /NumberOfPages:\s*(\d+)/i,
+            /page\s*count:\s*(\d+)/i,
+            /pages:\s*(\d+)/i
+        ];
+        
+        for (const pattern of patterns) {
+            const match = stdout.match(pattern);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+        
+        console.warn('Could not find page count, assuming 1 page');
+        return 1;
+    } catch (error) {
+        console.error('Error getting PDF page count:', error);
+        return 1;
     }
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-    hex = hex.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16) / 255;
-    const g = parseInt(hex.substring(2, 4), 16) / 255;
-    const b = parseInt(hex.substring(4, 6), 16) / 255;
-    return [r, g, b];
+// Convert opacity percent (0-100) to pdfcpu opacity (0.0-1.0)
+function normalizeOpacity(opacity: number): string {
+    // Ensure opacity is a valid number between 0 and 100
+    const validOpacity = Math.min(Math.max(opacity || 30, 1), 100);
+    const normalizedOpacity = validOpacity / 100;
+    return normalizedOpacity.toFixed(2);
 }
 
-function calculateWatermarkPositions(
-    position: string,
-    width: number,
-    height: number,
-    watermarkWidth: number,
-    watermarkHeight: number,
-    customX?: number,
-    customY?: number
-): { x: number; y: number }[] {
-    let positions: { x: number; y: number }[] = [];
-
-    const paddingX = width * 0.05;
-    const paddingY = height * 0.05;
-
-    // For custom positions, interpret customY as percentage from top (UI-style),
-    // then invert it for pdf-lib (bottom-left origin)
-    const safeCustomX = customX !== undefined ? Math.min(Math.max(customX, 0), 100) : 50;
-    const safeCustomY = customY !== undefined ? Math.min(Math.max(customY, 0), 100) : 50;
-    const adjustedCustomY = 100 - safeCustomY; // Invert Y for bottom-left origin
-
+// Map position names to pdfcpu position values
+function mapPositionToAnchor(position: string): string {
     switch (position.toLowerCase()) {
-        case "center":
-            positions.push({
-                x: width / 2 - watermarkWidth / 2,
-                y: height / 2 - watermarkHeight / 2,
-            });
-            break;
+        case 'center':
+            return 'c';
+        case 'top-left':
+            return 'tl';
+        case 'top-right':
+            return 'tr';
+        case 'bottom-left':
+            return 'bl';
+        case 'bottom-right':
+            return 'br';
+        case 'tile':
+            // For tile, we use center position with diagonal
+            return 'c';
+        case 'custom':
+            // For custom, default to center
+            return 'c';
+        default:
+            return 'c';
+    }
+}
+// Normalize color from hex to pdfcpu format
+function normalizeColor(hexColor: string): string {
+    const color = hexColor.replace('#', '');
+    
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    
+    // pdfcpu expects float values between 0 and 1
+    return `${(r / 255).toFixed(2)} ${(g / 255).toFixed(2)} ${(b / 255).toFixed(2)}`;
+}
 
-        case "tile": {
-            const tileWidth = width / 3;
-            const tileHeight = height / 3;
-            for (let x = tileWidth / 2; x < width; x += tileWidth) {
-                for (let y = tileHeight / 2; y < height; y += tileHeight) {
-                    positions.push({
-                        x: x - watermarkWidth / 2,
-                        y: y - watermarkHeight / 2,
-                    });
+
+// Process PDF with watermark
+async function processPDFWithWatermark(
+    inputPath: string,
+    outputPath: string,
+    options: {
+        watermarkType: string;
+        text?: string;
+        textColor?: string;
+        fontSize?: number;
+        fontFamily?: string;
+        imageFilePath?: string;
+        scale?: number;
+        opacity: number;
+        rotation: number;
+        position: string;
+        customX?: number;
+        customY?: number;
+        pages: string;
+    }
+): Promise<void> {
+    try {
+        const mode = options.watermarkType;
+        const content = mode === 'text' ? options.text || 'WATERMARK' : options.imageFilePath;
+        
+        if (!content) {
+            throw new Error(`No ${mode} content provided for watermark`);
+        }
+        
+        // Create the watermark configuration string
+        const configParts: string[] = [];
+        
+        // Apply position - use full parameter name
+        const position = mapPositionToAnchor(options.position);
+        configParts.push(`position:${position}`);
+        
+        // Opacity - use full parameter name
+        const opacity = normalizeOpacity(options.opacity);
+        configParts.push(`opacity:${opacity}`);
+        
+        // Handle rotation and diagonal mode
+        if (options.position === 'tile') {
+            // For tile effect, use diagonal mode
+            configParts.push('diagonal:1');
+            // No rotation for diagonal mode
+        } else {
+            // For non-tile positions, apply rotation
+            configParts.push(`rotation:${options.rotation}`);
+        }
+        
+        // Add mode-specific configuration
+        if (mode === 'text') {
+            // Font name - use full parameter name
+            let fontName = 'Helvetica';
+            if (options.fontFamily) {
+                switch (options.fontFamily.toLowerCase()) {
+                    case 'times new roman':
+                    case 'times':
+                        fontName = 'Times-Roman';
+                        break;
+                    case 'courier':
+                        fontName = 'Courier';
+                        break;
+                    case 'helvetica':
+                    case 'arial':
+                    default:
+                        fontName = 'Helvetica';
+                        break;
                 }
             }
-            break;
-        }
-
-        case "top-left":
-            positions.push({
-                x: paddingX,
-                y: height - paddingY - watermarkHeight,
-            });
-            break;
-
-        case "top-right":
-            positions.push({
-                x: width - paddingX - watermarkWidth,
-                y: height - paddingY - watermarkHeight,
-            });
-            break;
-
-        case "bottom-left":
-            positions.push({
-                x: paddingX,
-                y: paddingY,
-            });
-            break;
-
-        case "bottom-right":
-            positions.push({
-                x: width - paddingX - watermarkWidth,
-                y: paddingY,
-            });
-            break;
-
-        case "custom":
-            positions.push({
-                x: (safeCustomX / 100) * width - watermarkWidth / 2,
-                y: (adjustedCustomY / 100) * height - watermarkHeight / 2, // Invert Y
-            });
-            break;
-
-        default:
-            positions.push({
-                x: width / 2 - watermarkWidth / 2,
-                y: height / 2 - watermarkHeight / 2,
-            });
-            console.warn(`Unknown position "${position}", defaulting to center`);
-    }
-
-    return positions;
-}
-
-async function addTextWatermark(
-    pdfDoc: PDFDocument,
-    pages: number[],
-    options: {
-        text: string;
-        fontSize: number;
-        fontFamily: string;
-        color: string;
-        opacity: number;
-        rotation: number;
-        position: string;
-        customX?: number;
-        customY?: number;
-    }
-): Promise<void> {
-    try {
-        let fontType: typeof StandardFonts[keyof typeof StandardFonts];
-        switch (options.fontFamily) {
-            case 'Times New Roman':
-                fontType = StandardFonts.TimesRoman;
-                break;
-            case 'Courier':
-                fontType = StandardFonts.Courier;
-                break;
-            case 'Helvetica':
-                fontType = StandardFonts.Helvetica;
-                break;
-            default:
-                fontType = StandardFonts.Helvetica;
-        }
-
-        const font = await pdfDoc.embedFont(fontType);
-        const [r, g, b] = hexToRgb(options.color);
-
-        for (const pageNum of pages) {
-            const pageIndex = pageNum - 1;
-            if (pageIndex < 0 || pageIndex >= pdfDoc.getPageCount()) continue;
-
-            const page = pdfDoc.getPage(pageIndex);
-            const { width, height } = page.getSize();
-
-            const textWidth = font.widthOfTextAtSize(options.text, options.fontSize);
-            const textHeight = font.heightAtSize(options.fontSize);
-
-            const positions = calculateWatermarkPositions(
-                options.position,
-                width,
-                height,
-                textWidth,
-                textHeight,
-                options.customX,
-                options.customY
-            );
-
-            for (const pos of positions) {
-                page.drawText(options.text, {
-                    x: pos.x,
-                    y: pos.y,
-                    size: options.fontSize,
-                    font,
-                    color: rgb(r, g, b),
-                    opacity: options.opacity / 100,
-                    rotate: degrees(options.rotation),
-                });
+            configParts.push(`fontname:${fontName}`);
+            
+            // Font size
+            if (options.fontSize) {
+                configParts.push(`points:${options.fontSize}`);
+            }
+            
+            // Text color - use full parameter names
+            if (options.textColor) {
+                const color = normalizeColor(options.textColor);
+                configParts.push(`fillcolor:${color}`);
+                configParts.push(`strokecolor:${color}`);
+            }
+        } else if (mode === 'image') {
+            // Scale for image
+            if (options.scale) {
+                const scale = options.scale / 100;
+                configParts.push(`scalefactor:${scale.toFixed(2)}`);
             }
         }
-    } catch (error) {
-        console.error('Error adding text watermark:', error);
-        throw error;
-    }
-}
-
-async function addImageWatermark(
-    pdfDoc: PDFDocument,
-    pages: number[],
-    imageBuffer: Buffer,
-    options: {
-        scale: number;
-        opacity: number;
-        rotation: number;
-        position: string;
-        customX?: number;
-        customY?: number;
-    }
-): Promise<void> {
-    try {
-        const imageType = await determineImageType(imageBuffer);
-        let embeddedImage;
-
-        if (imageType === 'svg') {
-            const pngBuffer = await sharp(imageBuffer).png().toBuffer();
-            embeddedImage = await pdfDoc.embedPng(pngBuffer);
-        } else if (imageType === 'png') {
-            embeddedImage = await pdfDoc.embedPng(imageBuffer);
-        } else {
-            embeddedImage = await pdfDoc.embedJpg(imageBuffer);
+        
+        // Join configuration with commas
+        const config = configParts.join(', ');
+        
+        // Build the pdfcpu command
+        let command = `pdfcpu watermark add -mode ${mode}`;
+        
+        // Add pages parameter if specified
+        if (options.pages && options.pages.trim() !== '') {
+            command += ` -pages ${options.pages}`;
         }
-
-        const { width: imgWidth, height: imgHeight } = embeddedImage;
-        const scaleFactor = options.scale / 100;
-        const scaledWidth = imgWidth * scaleFactor;
-        const scaledHeight = imgHeight * scaleFactor;
-
-        for (const pageNum of pages) {
-            const pageIndex = pageNum - 1;
-            if (pageIndex < 0 || pageIndex >= pdfDoc.getPageCount()) continue;
-
-            const page = pdfDoc.getPage(pageIndex);
-            const { width: pageWidth, height: pageHeight } = page.getSize();
-
-            const positions = calculateWatermarkPositions(
-                options.position,
-                pageWidth,
-                pageHeight,
-                scaledWidth,
-                scaledHeight,
-                options.customX,
-                options.customY
-            );
-
-            for (const pos of positions) {
-                page.drawImage(embeddedImage, {
-                    x: pos.x,
-                    y: pos.y,
-                    width: scaledWidth,
-                    height: scaledHeight,
-                    opacity: options.opacity / 100,
-                    rotate: degrees(options.rotation),
-                });
+        
+        // Add the content, config, and file paths
+        command += ` -- "${content}" "${config}" "${inputPath}" "${outputPath}"`;
+        
+        console.log('Executing pdfcpu command:', command);
+        console.log('Configuration string:', config);
+        
+        // Execute the command
+        const { stdout, stderr } = await execPromise(command);
+        
+        if (stderr && stderr.trim() !== '') {
+            console.warn('pdfcpu stderr:', stderr);
+            
+            // Check for specific errors
+            if (stderr.includes('Invalid watermark configuration')) {
+                throw new Error('Invalid watermark configuration. Please check your settings.');
+            }
+            if (stderr.includes('ambiguous parameter prefix')) {
+                throw new Error('Invalid parameter names in configuration. Please check the watermark settings.');
             }
         }
+        
+        if (stdout && stdout.trim() !== '') {
+            console.log('pdfcpu stdout:', stdout);
+        }
+        
+        // Verify the output file exists
+        if (!existsSync(outputPath)) {
+            throw new Error('Output file was not created by pdfcpu');
+        }
     } catch (error) {
-        console.error('Error adding image watermark:', error);
+        console.error('Error processing PDF with watermark:', error);
         throw error;
     }
-}
-
-async function determineImageType(buffer: Buffer): Promise<'jpeg' | 'png' | 'svg'> {
-    if (buffer.length < 4) {
-        return 'jpeg';
-    }
-
-    if (
-        buffer[0] === 0x89 &&
-        buffer[1] === 0x50 &&
-        buffer[2] === 0x4E &&
-        buffer[3] === 0x47
-    ) {
-        return 'png';
-    }
-
-    const headerStr = buffer.slice(0, 100).toString('utf-8').toLowerCase();
-    if (
-        (headerStr.includes('<?xml') && headerStr.includes('<svg')) ||
-        headerStr.startsWith('<svg')
-    ) {
-        return 'svg';
-    }
-
-    return 'jpeg';
 }
 
 export async function POST(request: NextRequest) {
+    let inputPath = '';
+    let imagePath = '';
+    
     try {
-        console.log('Starting PDF watermarking process...');
+        console.log('Starting PDF watermarking process with pdfcpu...');
 
         const headers = request.headers;
         const url = new URL(request.url);
@@ -388,25 +351,58 @@ export async function POST(request: NextRequest) {
         }
 
         const uniqueId = uuidv4();
-        const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+        inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
         const outputPath = join(WATERMARKED_DIR, `${uniqueId}-watermarked.pdf`);
 
+        // Save uploaded PDF to disk
         const buffer = Buffer.from(await file.arrayBuffer());
         await writeFile(inputPath, buffer);
         console.log(`PDF saved to ${inputPath}`);
 
-        const pdfBytes = await readFile(inputPath);
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const totalPages = pdfDoc.getPageCount();
-
-        const pagesToWatermark = getPagesToWatermark(totalPages, pages, customPages);
-
-        if (pagesToWatermark.length === 0) {
+        // Verify pdfcpu is installed
+        try {
+            await execPromise('pdfcpu version');
+            console.log('pdfcpu is installed and available');
+        } catch (cmdError) {
+            console.error('pdfcpu is not installed or not in PATH:', cmdError);
             return NextResponse.json(
-                { error: 'No valid pages selected for watermarking' },
-                { status: 400 }
+                { error: 'PDF processing tools are not available on the server' },
+                { status: 500 }
             );
         }
+
+        // Get page count of the PDF
+        let totalPages = 1;
+        try {
+            totalPages = await getPDFPageCount(inputPath);
+            console.log(`PDF has ${totalPages} pages`);
+        } catch (pageCountError) {
+            console.warn('Error getting page count, assuming all pages:', pageCountError);
+        }
+
+        // Determine which pages to watermark
+        let pagesToWatermark = '';
+        if (pages !== 'all') {
+            try {
+                pagesToWatermark = getPagesToWatermark(totalPages, pages, customPages);
+            } catch (pageRangeError) {
+                console.warn('Error parsing page ranges, using all pages:', pageRangeError);
+                pagesToWatermark = '';
+            }
+        }
+
+        console.log(`Watermarking pages: ${pagesToWatermark || 'all'}`);
+
+        // Process watermark based on type
+        const watermarkOptions = {
+            watermarkType,
+            opacity,
+            rotation,
+            position,
+            customX,
+            customY,
+            pages: pagesToWatermark,
+        };
 
         if (watermarkType === 'text') {
             const text = (formData.get('text') as string) || 'WATERMARK';
@@ -414,16 +410,11 @@ export async function POST(request: NextRequest) {
             const fontSize = parseInt(formData.get('fontSize') as string || '48');
             const fontFamily = (formData.get('fontFamily') as string) || 'Arial';
 
-            await addTextWatermark(pdfDoc, pagesToWatermark, {
+            Object.assign(watermarkOptions, {
                 text,
+                textColor,
                 fontSize,
                 fontFamily,
-                color: textColor,
-                opacity,
-                rotation,
-                position,
-                customX,
-                customY,
             });
         } else if (watermarkType === 'image') {
             const watermarkImage = formData.get('watermarkImage') as File;
@@ -437,14 +428,15 @@ export async function POST(request: NextRequest) {
 
             const scale = parseInt(formData.get('scale') as string || '50');
             const imageBuffer = Buffer.from(await watermarkImage.arrayBuffer());
+            
+            // Save image temporarily
+            imagePath = join(TEMP_DIR, `${uniqueId}-watermark${getImageExtension(watermarkImage.name)}`);
+            await writeFile(imagePath, imageBuffer);
+            console.log(`Watermark image saved to ${imagePath}`);
 
-            await addImageWatermark(pdfDoc, pagesToWatermark, imageBuffer, {
+            Object.assign(watermarkOptions, {
+                imageFilePath: imagePath,
                 scale,
-                opacity,
-                rotation,
-                position,
-                customX,
-                customY,
             });
         } else {
             return NextResponse.json(
@@ -453,18 +445,36 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const watermarkedPdfBytes = await pdfDoc.save();
-        await writeFile(outputPath, watermarkedPdfBytes);
+        // Apply watermark to PDF
+        await processPDFWithWatermark(inputPath, outputPath, watermarkOptions);
+        
+        // Verify the output file exists and has content
+        const outputStats = await readFile(outputPath);
+        if (!outputStats || outputStats.length === 0) {
+            throw new Error('Output PDF is empty or corrupted');
+        }
+        
+        console.log(`Successfully created watermarked PDF: ${outputPath} (${outputStats.length} bytes)`);
 
+        // Count the number of pages watermarked
+        let pagesWatermarkedCount = totalPages;
+        if (pagesToWatermark) {
+            try {
+                pagesWatermarkedCount = countPagesInRange(pagesToWatermark, totalPages);
+            } catch (countError) {
+                console.warn('Error counting watermarked pages:', countError);
+            }
+        }
+        
         const fileUrl = `/api/file?folder=watermarks&filename=${uniqueId}-watermarked.pdf`;
 
         return NextResponse.json({
             success: true,
-            message: 'PDF watermarked successfully',
+            message: 'PDF watermarked successfully with pdfcpu',
             fileUrl,
             filename: `${uniqueId}-watermarked.pdf`,
             originalName: file.name,
-            pagesWatermarked: pagesToWatermark.length,
+            pagesWatermarked: pagesWatermarkedCount,
         });
     } catch (error) {
         console.error('PDF watermarking error:', error);
@@ -476,5 +486,47 @@ export async function POST(request: NextRequest) {
             },
             { status: 500 }
         );
+    } finally {
+        // Cleanup temporary files
+        try {
+            if (inputPath && existsSync(inputPath)) {
+                await unlink(inputPath).catch(e => console.error('Failed to delete input file:', e));
+            }
+            if (imagePath && existsSync(imagePath)) {
+                await unlink(imagePath).catch(e => console.error('Failed to delete image file:', e));
+            }
+        } catch (cleanupError) {
+            console.error('Error cleaning up temporary files:', cleanupError);
+        }
     }
+}
+
+// Helper function to get image extension
+function getImageExtension(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    return ext ? `.${ext}` : '.png';
+}
+
+// Helper function to count pages in a page range string
+function countPagesInRange(pageRange: string, totalPages: number): number {
+    if (!pageRange || pageRange.trim() === '') return totalPages;
+    
+    let count = 0;
+    const parts = pageRange.split(',');
+    
+    for (const part of parts) {
+        if (part.includes('-')) {
+            const [start, end] = part.split('-').map(p => parseInt(p.trim()));
+            if (!isNaN(start) && !isNaN(end) && start <= end) {
+                count += Math.min(end, totalPages) - start + 1;
+            }
+        } else {
+            const page = parseInt(part.trim());
+            if (!isNaN(page) && page > 0 && page <= totalPages) {
+                count++;
+            }
+        }
+    }
+    
+    return count;
 }

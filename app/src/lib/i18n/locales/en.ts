@@ -1741,7 +1741,6 @@ export default {
       ]
     },
 
-    // How-To Section
     howTo: {
       title: "How to Unlock PDF File in 3 Steps",
       upload: {

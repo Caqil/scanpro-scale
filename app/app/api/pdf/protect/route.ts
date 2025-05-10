@@ -24,7 +24,7 @@ async function ensureDirectories() {
     }
 }
 
-async function protectPdfWithQpdf(inputPath: string, outputPath: string, options: {
+async function protectPdfWithPdfcpu(inputPath: string, outputPath: string, options: {
     userPassword: string;
     ownerPassword?: string;
     allowPrinting?: boolean;
@@ -32,20 +32,27 @@ async function protectPdfWithQpdf(inputPath: string, outputPath: string, options
     allowEditing?: boolean;
 }) {
     try {
-        // Build qpdf command
-        let command = `qpdf --encrypt "${options.userPassword}" "${options.ownerPassword || options.userPassword}" 256 --`;
-
-        // Add permissions based on flags
-        if (!options.allowPrinting) command += ' --print=none';
-        if (!options.allowCopying) command += ' --extract=n';
-        if (!options.allowEditing) {
-            command += ' --modify=none';
-            command += ' --annotate=n';
-            command += ' --form=n';
-            command += ' --modify-other=n';
+        // Build pdfcpu command for encryption
+        let permissionsString = '';
+        
+        // Set permissions based on flags
+        if (options.allowPrinting) permissionsString += 'print,';
+        if (options.allowCopying) permissionsString += 'copy,';
+        if (options.allowEditing) {
+            permissionsString += 'modify,annotate,form,';
         }
-
-        command += ` "${inputPath}" "${outputPath}"`;
+        
+        // Remove trailing comma if permissions were added
+        if (permissionsString.endsWith(',')) {
+            permissionsString = permissionsString.slice(0, -1);
+        }
+        
+        // If no permissions were added, use 'none'
+        const permissions = permissionsString || 'none';
+        
+        // Build the command
+        // Format: pdfcpu encrypt -mode aes -key 256 -perm [permissions] -upw [user password] -opw [owner password] inFile outFile
+        const command = `pdfcpu encrypt -mode aes -key 256 -perm "${permissions}" -upw "${options.userPassword}" -opw "${options.ownerPassword || options.userPassword}" "${inputPath}" "${outputPath}"`;
 
         // Execute command (hide passwords in logs)
         console.log(`Executing: ${command.replace(options.userPassword, '******').replace(options.ownerPassword || '', '******')}`);
@@ -53,16 +60,16 @@ async function protectPdfWithQpdf(inputPath: string, outputPath: string, options
         const { stdout, stderr } = await execPromise(command);
 
         if (stderr) {
-            console.error('qpdf stderr:', stderr);
+            console.error('pdfcpu stderr:', stderr);
         }
 
         if (stdout) {
-            console.log('qpdf stdout:', stdout);
+            console.log('pdfcpu stdout:', stdout);
         }
 
         return existsSync(outputPath);
     } catch (error) {
-        console.error('Error using qpdf:', error);
+        console.error('Error using pdfcpu:', error);
         return false;
     }
 }
@@ -140,25 +147,26 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         await writeFile(inputPath, buffer);
 
-        // Try to protect the PDF using qpdf
+        // Try to protect the PDF using pdfcpu
         let protectionSuccess = false;
         let methodUsed = '';
 
         try {
-            protectionSuccess = await protectPdfWithQpdf(inputPath, outputPath, {
+            protectionSuccess = await protectPdfWithPdfcpu(inputPath, outputPath, {
                 userPassword: password,
+                ownerPassword: password, // Using same password for both
                 allowPrinting,
                 allowCopying,
                 allowEditing,
             });
             if (protectionSuccess) {
-                methodUsed = 'qpdf';
+                methodUsed = 'pdfcpu';
             }
-        } catch (qpdfError) {
-            console.error('qpdf failed:', qpdfError);
+        } catch (pdfcpuError) {
+            console.error('pdfcpu failed:', pdfcpuError);
         }
 
-        // If qpdf fails, try a fallback method (JavaScript-based)
+        // If pdfcpu fails, try a fallback method (JavaScript-based)
         if (!protectionSuccess) {
             // For now, just copy the file as a fallback and tell the user
             // In a real implementation, you'd use a JavaScript library like pdf-lib

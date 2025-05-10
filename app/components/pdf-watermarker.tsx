@@ -27,7 +27,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -40,6 +39,9 @@ import {
   Eye,
   UploadIcon,
   LoaderIcon,
+  Download,
+  CheckCircle,
+  AlertOctagon,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { WatermarkPositionPreview } from "./watermark-position-preview";
@@ -78,21 +80,23 @@ export function WatermarkPDF() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string>("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [processState, setProcessState] = useState<
+    "idle" | "uploading" | "processing" | "success" | "error"
+  >("idle");
   const [progress, setProgress] = useState(0);
   const [watermarkedPdfUrl, setWatermarkedPdfUrl] = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
+  const [resultInfo, setResultInfo] = useState<{
+    originalName: string;
+    pagesWatermarked: number;
+    fileUrl: string;
+    fileName: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const {
-    isUploading,
-    progress: uploadProgress,
-    error: uploadError,
-    uploadFile,
-    resetUpload,
-    uploadStats,
-  } = useFileUpload();
+  const watermarkImageRef = useRef<HTMLInputElement>(null);
+
   // Default form values
   const defaultValues: Partial<WatermarkFormValues> = {
     watermarkType: "text",
@@ -127,31 +131,36 @@ export function WatermarkPDF() {
         return;
       }
       setFile(uploadedFile);
+      setFileName(uploadedFile.name);
       setWatermarkedPdfUrl("");
-      setCurrentPage(0);
-      processPdf(uploadedFile);
+      setProcessState("idle");
+      setProgress(0);
+      setResultInfo(null);
+      setDownloadUrl(null);
     }
-  };
-
-  // Simulate PDF processing (replace with actual processing logic if needed)
-  const processPdf = (uploadedFile: File) => {
-    setProcessing(true);
-    let progressValue = 0;
-    const interval = setInterval(() => {
-      progressValue += 10;
-      setProgress(progressValue);
-      if (progressValue >= 100) {
-        clearInterval(interval);
-        setProcessing(false);
-      }
-    }, 300);
   };
 
   // Handle image watermark upload
   const handleImageUpload = (files: File[]) => {
     if (files.length > 0) {
-      setWatermarkImage(files[0]);
-      const objectUrl = URL.createObjectURL(files[0]);
+      const imageFile = files[0];
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/svg+xml",
+        "image/gif",
+      ];
+
+      if (!validImageTypes.includes(imageFile.type)) {
+        toast.error(
+          t("watermark.invalidImageType") ||
+            "Invalid image type. Please upload JPEG, PNG, or SVG."
+        );
+        return;
+      }
+
+      setWatermarkImage(imageFile);
+      const objectUrl = URL.createObjectURL(imageFile);
       setImagePreviewUrl(objectUrl);
     }
   };
@@ -168,16 +177,24 @@ export function WatermarkPDF() {
   // Handle form submission
   const onSubmit = async (data: WatermarkFormValues) => {
     if (!file) {
-      toast.error(t("watermark.noPdfSelected"));
+      toast.error(
+        t("watermark.noPdfSelected") || "Please select a PDF file first"
+      );
       return;
     }
 
     if (data.watermarkType === "image" && !watermarkImage) {
-      toast.error(t("watermark.noImageSelected"));
+      toast.error(
+        t("watermark.noImageSelected") ||
+          "Please select an image for the watermark"
+      );
       return;
     }
 
     setIsSubmitting(true);
+    setProcessState("uploading");
+    setProgress(10);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("watermarkType", data.watermarkType);
@@ -207,27 +224,129 @@ export function WatermarkPDF() {
     }
 
     try {
-      await uploadFile(file, formData, {
-        url: "/api/pdf/watermark",
-        onProgress: (progress) => {
-          // Optionally update UI with progress
-        },
-        onSuccess: (result) => {
-          setDownloadUrl(result.fileUrl);
-          setWatermarkedPdfUrl(result.fileUrl);
-          toast.success(t("watermarkPdf.successDesc"));
-        },
-        onError: (err) => {
-          console.error("Watermark error:", err);
-          toast.error(err.message || t("watermarkPdf.unknownError"));
-        },
+      // Using fetch directly for more control over the progress
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          // Calculate upload progress (max 50%)
+          const uploadProgress = Math.round((event.loaded / event.total) * 50);
+          setProgress(10 + uploadProgress);
+        }
       });
+
+      xhr.addEventListener("loadstart", () => {
+        setProcessState("uploading");
+      });
+
+      xhr.addEventListener("load", () => {
+        // Start processing phase after upload completes
+        setProcessState("processing");
+        setProgress(60);
+
+        // Simulate processing progress
+        const processingInterval = setInterval(() => {
+          setProgress((prevProgress) => {
+            const newProgress = prevProgress + 5;
+            if (newProgress >= 95) {
+              clearInterval(processingInterval);
+              return 95;
+            }
+            return newProgress;
+          });
+        }, 200);
+
+        // Parse the response
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+
+            if (response.success) {
+              clearInterval(processingInterval);
+              setProcessState("success");
+              setProgress(100);
+              setDownloadUrl(response.fileUrl);
+              setWatermarkedPdfUrl(response.fileUrl);
+              setResultInfo({
+                originalName: response.originalName || file.name,
+                pagesWatermarked: response.pagesWatermarked || 0,
+                fileUrl: response.fileUrl,
+                fileName: response.filename || "watermarked.pdf",
+              });
+              toast.success(
+                t("watermarkPdf.successDesc") || "PDF watermarked successfully!"
+              );
+            } else {
+              clearInterval(processingInterval);
+              setProcessState("error");
+              setProgress(0);
+              toast.error(
+                response.error ||
+                  t("watermarkPdf.unknownError") ||
+                  "An error occurred during watermarking"
+              );
+            }
+          } catch (parseError) {
+            clearInterval(processingInterval);
+            setProcessState("error");
+            setProgress(0);
+            console.error("Error parsing response:", parseError);
+            toast.error(
+              t("watermarkPdf.unknownError") ||
+                "An error occurred during watermarking"
+            );
+          }
+        } else {
+          clearInterval(processingInterval);
+          setProcessState("error");
+          setProgress(0);
+          toast.error(`Error: ${xhr.status} ${xhr.statusText}`);
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        setProcessState("error");
+        setProgress(0);
+        toast.error(
+          t("watermarkPdf.uploadError") ||
+            "Network error occurred during file upload"
+        );
+      });
+
+      xhr.addEventListener("abort", () => {
+        setProcessState("idle");
+        setProgress(0);
+        toast.info(
+          t("watermarkPdf.uploadCancelled") || "File upload was cancelled"
+        );
+      });
+
+      xhr.open("POST", "/api/pdf/watermark");
+      xhr.send(formData);
     } catch (error) {
       console.error("Watermark error:", error);
-      toast.error(t("watermarkPdf.unknownError"));
+      setProcessState("error");
+      setProgress(0);
+      toast.error(
+        t("watermarkPdf.unknownError") || "An unknown error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Function to reset the process and upload a new file
+  const handleReset = () => {
+    setFile(null);
+    setFileName("");
+    setWatermarkImage(null);
+    setImagePreviewUrl(null);
+    setProcessState("idle");
+    setProgress(0);
+    setResultInfo(null);
+    setDownloadUrl(null);
+    setWatermarkedPdfUrl("");
+    form.reset(defaultValues);
   };
 
   return (
@@ -254,13 +373,19 @@ export function WatermarkPDF() {
               if (files && files.length > 0) {
                 const uploadedFile = files[0];
                 if (uploadedFile.type !== "application/pdf") {
-                  toast.error(t("watermarkPdf.invalidFileType"));
+                  toast.error(
+                    t("watermarkPdf.invalidFileType") ||
+                      "Invalid file type. Please upload a PDF."
+                  );
                   return;
                 }
                 setFile(uploadedFile);
+                setFileName(uploadedFile.name);
                 setWatermarkedPdfUrl("");
-                setCurrentPage(0);
-                processPdf(uploadedFile);
+                setProcessState("idle");
+                setProgress(0);
+                setResultInfo(null);
+                setDownloadUrl(null);
               }
             }}
           >
@@ -275,42 +400,144 @@ export function WatermarkPDF() {
               <UploadIcon className="h-10 w-10 text-primary" />
             </div>
             <h3 className="text-2xl font-semibold mb-3">
-              {t("watermarkPdf.uploadTitle")}
+              {t("watermarkPdf.uploadTitle") || "Add Watermark to PDF"}
             </h3>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              {t("watermarkPdf.uploadDesc")}
+              {t("watermarkPdf.uploadDesc") ||
+                "Upload a PDF document to add text or image watermarks to its pages."}
             </p>
             <Button
               size="lg"
               className="px-8"
               onClick={() => fileInputRef.current?.click()}
             >
-              {t("watermarkPdf.selectPdf")}
+              {t("watermarkPdf.selectPdf") || "Select PDF"}
             </Button>
             <p className="mt-6 text-sm text-muted-foreground">
-              {t("watermarkPdf.privacyNote")}
+              {t("watermarkPdf.privacyNote") ||
+                "Your files are processed securely and never stored permanently on our servers."}
             </p>
           </div>
         </div>
       )}
 
-      {/* Processing Section */}
-      {file && processing && !watermarkedPdfUrl && (
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="bg-background rounded-lg p-8 shadow-sm border w-96 text-center">
-            <LoaderIcon className="h-16 w-16 animate-spin text-primary mb-6 mx-auto" />
-            <h3 className="text-xl font-semibold mb-3">
-              {t("watermarkPdf.processing")}
-            </h3>
-            <Progress value={progress} className="w-full h-2" />
+      {/* Processing Status Section */}
+      {file &&
+        (processState === "uploading" || processState === "processing") && (
+          <div className="flex-1 flex flex-col items-center justify-center py-8">
+            <div className="bg-background rounded-lg p-8 shadow-sm border w-full max-w-md text-center">
+              <LoaderIcon className="h-16 w-16 animate-spin text-primary mb-6 mx-auto" />
+              <h3 className="text-xl font-semibold mb-3">
+                {processState === "uploading"
+                  ? t("watermarkPdf.uploading") || "Uploading PDF..."
+                  : t("watermarkPdf.processing") || "Processing Watermark..."}
+              </h3>
+              <p className="text-muted-foreground mb-4">{fileName}</p>
+              <Progress value={progress} className="w-full h-2 mb-4" />
+              <p className="text-sm text-muted-foreground">
+                {processState === "uploading"
+                  ? t("watermarkPdf.uploadingDesc") ||
+                    "Uploading your PDF file to our servers..."
+                  : t("watermarkPdf.processingDesc") ||
+                    "Adding watermark to your PDF. This may take a moment..."}
+              </p>
+            </div>
+          </div>
+        )}
+
+      {/* Success Result Section */}
+      {file && processState === "success" && resultInfo && (
+        <div className="flex-1 flex flex-col items-center justify-center py-8">
+          <div className="bg-background rounded-lg p-8 shadow-sm border w-full max-w-md">
+            <div className="text-center mb-6">
+              <div className="rounded-full bg-green-100 p-3 w-16 h-16 mx-auto flex items-center justify-center mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("watermarkPdf.success") || "Watermark Added Successfully!"}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("watermarkPdf.successDesc") ||
+                  "Your PDF has been watermarked and is ready to download."}
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-6 bg-muted/50 p-4 rounded-md">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {t("watermarkPdf.filename") || "Filename"}:
+                </span>
+                <span className="font-medium truncate ml-2">
+                  {resultInfo.originalName}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {t("watermarkPdf.pagesWatermarked") || "Pages Watermarked"}:
+                </span>
+                <span className="font-medium">
+                  {resultInfo.pagesWatermarked}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button asChild className="w-full">
+                <a href={resultInfo.fileUrl} download={resultInfo.fileName}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {t("watermarkPdf.download") || "Download Watermarked PDF"}
+                </a>
+              </Button>
+              <Button variant="outline" onClick={handleReset}>
+                {t("watermarkPdf.uploadNew") || "Process Another PDF"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Step 2: Configure watermark */}
-      {file && !processing && (
+      {/* Error Result Section */}
+      {file && processState === "error" && (
+        <div className="flex-1 flex flex-col items-center justify-center py-8">
+          <div className="bg-background rounded-lg p-8 shadow-sm border w-full max-w-md text-center">
+            <div className="rounded-full bg-red-100 p-3 w-16 h-16 mx-auto flex items-center justify-center mb-4">
+              <AlertOctagon className="h-8 w-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">
+              {t("watermarkPdf.error") || "Error Processing PDF"}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {t("watermarkPdf.errorDesc") ||
+                "We encountered an error while processing your PDF. Please try again."}
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button variant="outline" onClick={() => setProcessState("idle")}>
+                {t("watermarkPdf.tryAgain") || "Try Again"}
+              </Button>
+              <Button variant="ghost" onClick={handleReset}>
+                {t("watermarkPdf.uploadNew") || "Upload a Different PDF"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Watermark Configuration Form */}
+      {file && processState === "idle" && (
         <Card>
           <CardContent className="pt-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {t("watermarkPdf.configureTitle") || "Configure Watermark"}
+                </h3>
+                <p className="text-sm text-muted-foreground">{fileName}</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleReset}>
+                {t("watermarkPdf.change") || "Change File"}
+              </Button>
+            </div>
+
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -328,14 +555,14 @@ export function WatermarkPDF() {
                       className="flex items-center gap-2"
                     >
                       <TypeIcon className="h-4 w-4" />
-                      {t("watermarkPdf.textWatermark")}
+                      {t("watermarkPdf.textWatermark") || "Text Watermark"}
                     </TabsTrigger>
                     <TabsTrigger
                       value="image"
                       className="flex items-center gap-2"
                     >
                       <ImageIcon className="h-4 w-4" />
-                      {t("watermarkPdf.imageWatermark")}
+                      {t("watermarkPdf.imageWatermark") || "Image Watermark"}
                     </TabsTrigger>
                   </TabsList>
 
@@ -345,10 +572,15 @@ export function WatermarkPDF() {
                       name="text"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("watermarkPdf.text.text")}</FormLabel>
+                          <FormLabel>
+                            {t("watermarkPdf.text.text") || "Watermark Text"}
+                          </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder={t("watermarkPdf.text.placeholder")}
+                              placeholder={
+                                t("watermarkPdf.text.placeholder") ||
+                                "Enter watermark text"
+                              }
                               {...field}
                             />
                           </FormControl>
@@ -363,7 +595,9 @@ export function WatermarkPDF() {
                         name="fontSize"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("watermarkPdf.text.size")}</FormLabel>
+                            <FormLabel>
+                              {t("watermarkPdf.text.size") || "Font Size"}
+                            </FormLabel>
                             <div className="flex items-center gap-4">
                               <FormControl>
                                 <Slider
@@ -390,7 +624,9 @@ export function WatermarkPDF() {
                         name="fontFamily"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("watermarkPdf.text.font")}</FormLabel>
+                            <FormLabel>
+                              {t("watermarkPdf.text.font") || "Font Family"}
+                            </FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -398,9 +634,10 @@ export function WatermarkPDF() {
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue
-                                    placeholder={t(
-                                      "watermarkPdf.text.selectFont"
-                                    )}
+                                    placeholder={
+                                      t("watermarkPdf.text.selectFont") ||
+                                      "Select Font"
+                                    }
                                   />
                                 </SelectTrigger>
                               </FormControl>
@@ -426,7 +663,9 @@ export function WatermarkPDF() {
                       name="textColor"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("watermarkPdf.text.color")}</FormLabel>
+                          <FormLabel>
+                            {t("watermarkPdf.text.color") || "Text Color"}
+                          </FormLabel>
                           <div className="flex items-center gap-2">
                             <div
                               className="h-10 w-10 rounded border"
@@ -448,11 +687,13 @@ export function WatermarkPDF() {
                   <TabsContent value="image" className="space-y-4 py-4">
                     <div className="mb-4">
                       <h4 className="text-sm font-medium mb-2">
-                        {t("watermarkPdf.image.upload")}
+                        {t("watermarkPdf.image.upload") ||
+                          "Upload Watermark Image"}
                       </h4>
                       <input
                         type="file"
-                        accept="image/jpeg,image/png,image/svg+xml"
+                        accept="image/jpeg,image/png,image/svg+xml,image/gif"
+                        ref={watermarkImageRef}
                         onChange={(e) =>
                           handleImageUpload(
                             e.target.files ? Array.from(e.target.files) : []
@@ -460,6 +701,16 @@ export function WatermarkPDF() {
                         }
                         className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                       />
+
+                      {imagePreviewUrl && (
+                        <div className="mt-4 border rounded p-2 flex justify-center">
+                          <img
+                            src={imagePreviewUrl}
+                            alt="Watermark preview"
+                            className="max-h-32 object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <FormField
@@ -467,7 +718,9 @@ export function WatermarkPDF() {
                       name="scale"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("watermarkPdf.image.scale")}</FormLabel>
+                          <FormLabel>
+                            {t("watermarkPdf.image.scale") || "Image Scale"}
+                          </FormLabel>
                           <div className="flex items-center gap-4">
                             <FormControl>
                               <Slider
@@ -498,7 +751,9 @@ export function WatermarkPDF() {
                       name="position"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("watermarkPdf.position")}</FormLabel>
+                          <FormLabel>
+                            {t("watermarkPdf.position") || "Position"}
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
@@ -506,7 +761,10 @@ export function WatermarkPDF() {
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t("watermarkPdf.position")}
+                                  placeholder={
+                                    t("watermarkPdf.position") ||
+                                    "Select Position"
+                                  }
                                 />
                               </SelectTrigger>
                             </FormControl>
@@ -516,49 +774,53 @@ export function WatermarkPDF() {
                                 className="flex items-center gap-2"
                               >
                                 <ChevronsUpDownIcon className="h-4 w-4" />
-                                {t("watermarkPdf.center")}
+                                {t("watermarkPdf.center") || "Center"}
                               </SelectItem>
                               <SelectItem
                                 value="tile"
                                 className="flex items-center gap-2"
                               >
                                 <Grid2x2Icon className="h-4 w-4" />
-                                {t("watermarkPdf.tile")}
+                                {t("watermarkPdf.tile") || "Tile"}
                               </SelectItem>
                               <SelectItem
                                 value="top-left"
                                 className="flex items-center gap-2"
                               >
                                 <ArrowRightIcon className="h-4 w-4 rotate-[-135deg]" />
-                                {t("watermarkPdf.positions.topLeft")}
+                                {t("watermarkPdf.positions.topLeft") ||
+                                  "Top Left"}
                               </SelectItem>
                               <SelectItem
                                 value="top-right"
                                 className="flex items-center gap-2"
                               >
                                 <ArrowRightIcon className="h-4 w-4 rotate-[-45deg]" />
-                                {t("watermarkPdf.positions.topRight")}
+                                {t("watermarkPdf.positions.topRight") ||
+                                  "Top Right"}
                               </SelectItem>
                               <SelectItem
                                 value="bottom-left"
                                 className="flex items-center gap-2"
                               >
                                 <ArrowRightIcon className="h-4 w-4 rotate-[135deg]" />
-                                {t("watermarkPdf.positions.bottomLeft")}
+                                {t("watermarkPdf.positions.bottomLeft") ||
+                                  "Bottom Left"}
                               </SelectItem>
                               <SelectItem
                                 value="bottom-right"
                                 className="flex items-center gap-2"
                               >
                                 <ArrowRightIcon className="h-4 w-4 rotate-[45deg]" />
-                                {t("watermarkPdf.positions.bottomRight")}
+                                {t("watermarkPdf.positions.bottomRight") ||
+                                  "Bottom Right"}
                               </SelectItem>
                               <SelectItem
                                 value="custom"
                                 className="flex items-center gap-2"
                               >
                                 <MoveHorizontalIcon className="h-4 w-4" />
-                                {t("watermarkPdf.custom")}
+                                {t("watermarkPdf.custom") || "Custom Position"}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -571,7 +833,7 @@ export function WatermarkPDF() {
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-medium flex items-center gap-2">
                           <Eye className="h-4 w-4 text-muted-foreground" />
-                          {t("watermarkPdf.text.preview")}
+                          {t("watermarkPdf.text.preview") || "Preview"}
                         </h4>
                       </div>
                       <WatermarkPositionPreview
@@ -655,7 +917,7 @@ export function WatermarkPDF() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            {t("watermarkPdf.text.rotation")}
+                            {t("watermarkPdf.text.rotation") || "Rotation"}
                           </FormLabel>
                           <div className="flex items-center gap-4">
                             <FormControl>
@@ -686,7 +948,7 @@ export function WatermarkPDF() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            {t("watermarkPdf.text.opacity")}
+                            {t("watermarkPdf.text.opacity") || "Opacity"}
                           </FormLabel>
                           <div className="flex items-center gap-4">
                             <FormControl>
@@ -715,7 +977,7 @@ export function WatermarkPDF() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            {t("watermarkPdf.applyToPages")}
+                            {t("watermarkPdf.applyToPages") || "Apply To Pages"}
                           </FormLabel>
                           <FormControl>
                             <RadioGroup
@@ -729,7 +991,7 @@ export function WatermarkPDF() {
                                   htmlFor="all"
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {t("watermarkPdf.all")}
+                                  {t("watermarkPdf.all") || "All Pages"}
                                 </label>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -738,7 +1000,7 @@ export function WatermarkPDF() {
                                   htmlFor="even"
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {t("watermarkPdf.even")}
+                                  {t("watermarkPdf.even") || "Even Pages Only"}
                                 </label>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -747,7 +1009,7 @@ export function WatermarkPDF() {
                                   htmlFor="odd"
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {t("watermarkPdf.odd")}
+                                  {t("watermarkPdf.odd") || "Odd Pages Only"}
                                 </label>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -756,7 +1018,8 @@ export function WatermarkPDF() {
                                   htmlFor="custom"
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {t("watermarkPdf.customPages")}
+                                  {t("watermarkPdf.customPages") ||
+                                    "Custom Pages"}
                                 </label>
                               </div>
                             </RadioGroup>
@@ -773,16 +1036,20 @@ export function WatermarkPDF() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              {t("watermarkPdf.customPages")}
+                              {t("watermarkPdf.customPages") || "Custom Pages"}
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder={t("watermarkPdf.pagesFormat")}
+                                placeholder={
+                                  t("watermarkPdf.pagesFormat") ||
+                                  "e.g. 1-5, 8, 11-13"
+                                }
                                 {...field}
                               />
                             </FormControl>
                             <FormDescription className="text-xs">
-                              {t("watermarkPdf.pagesFormat")}
+                              {t("watermarkPdf.pagesFormat") ||
+                                "Specify pages as individual numbers or ranges (e.g. 1-5, 8, 11-13)"}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -792,7 +1059,7 @@ export function WatermarkPDF() {
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4 justify-end">
+                <div className="flex flex-col md:flex-row gap-4 justify-end mt-8">
                   <Button
                     type="submit"
                     disabled={
@@ -802,17 +1069,9 @@ export function WatermarkPDF() {
                     }
                   >
                     {isSubmitting
-                      ? t("watermarkPdf.adding")
-                      : t("watermarkPdf.addWatermark")}
+                      ? t("watermarkPdf.adding") || "Adding Watermark..."
+                      : t("watermarkPdf.addWatermark") || "Add Watermark"}
                   </Button>
-
-                  {downloadUrl && (
-                    <Button variant="outline" asChild>
-                      <a href={downloadUrl} download>
-                        {t("watermarkPdf.download")}
-                      </a>
-                    </Button>
-                  )}
                 </div>
               </form>
             </Form>

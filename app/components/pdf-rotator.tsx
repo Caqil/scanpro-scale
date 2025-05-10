@@ -527,10 +527,10 @@ export function PdfRotator() {
           <Check className="h-10 w-10" />
         </div>
         <h3 className="text-xl font-semibold mb-3">
-          {t("rotatePdf.success") || "PDF Rotated Successfully!"}
+          {t("rotatePdf.form.success") || "PDF Rotated Successfully!"}
         </h3>
         <p className="text-muted-foreground mb-6">
-          {t("rotatePdf.messages.downloadReady") ||
+          {t("pageNumber.ui.successDesc") ||
             "Your PDF has been processed and is ready to download."}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

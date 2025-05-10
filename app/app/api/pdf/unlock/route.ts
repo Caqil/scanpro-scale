@@ -1,6 +1,6 @@
 // app/api/pdf/unlock/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,6 +24,59 @@ async function ensureDirectories() {
     }
 }
 
+async function unlockPdfWithPdfcpu(inputPath: string, outputPath: string, password: string) {
+    try {
+        // pdfcpu decrypt command
+        // Format: pdfcpu decrypt -upw password inputFile outputFile
+        const command = `pdfcpu decrypt -upw "${password}" "${inputPath}" "${outputPath}"`;
+
+        // Execute command (hide password in logs)
+        console.log(`Executing: ${command.replace(password, '******')}`);
+
+        const { stdout, stderr } = await execPromise(command);
+
+        if (stderr) {
+            console.error('pdfcpu stderr:', stderr);
+        }
+
+        if (stdout) {
+            console.log('pdfcpu stdout:', stdout);
+        }
+
+        return existsSync(outputPath);
+    } catch (error) {
+        console.error('Error using pdfcpu:', error);
+        return false;
+    }
+}
+
+// Try with owner password if user password fails
+async function unlockPdfWithPdfcpuOwner(inputPath: string, outputPath: string, password: string) {
+    try {
+        // pdfcpu decrypt command with owner password flag
+        // Format: pdfcpu decrypt -opw password inputFile outputFile
+        const command = `pdfcpu decrypt -opw "${password}" "${inputPath}" "${outputPath}"`;
+
+        // Execute command (hide password in logs)
+        console.log(`Executing with owner password: ${command.replace(password, '******')}`);
+
+        const { stdout, stderr } = await execPromise(command);
+
+        if (stderr) {
+            console.error('pdfcpu owner stderr:', stderr);
+        }
+
+        if (stdout) {
+            console.log('pdfcpu owner stdout:', stdout);
+        }
+
+        return existsSync(outputPath);
+    } catch (error) {
+        console.error('Error using pdfcpu with owner password:', error);
+        return false;
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         console.log('Starting PDF unlock process...');
@@ -34,8 +87,8 @@ export async function POST(request: NextRequest) {
 
         // If this is a programmatic API call (not from web UI), validate the API key
         if (apiKey) {
-            console.log('Validating API key for compression operation');
-            const validation = await validateApiKey(apiKey, 'compress');
+            console.log('Validating API key for unlock operation');
+            const validation = await validateApiKey(apiKey, 'unlock');
 
             if (!validation.valid) {
                 console.error('API key validation failed:', validation.error);
@@ -47,7 +100,7 @@ export async function POST(request: NextRequest) {
 
             // Track usage (non-blocking)
             if (validation.userId) {
-                trackApiUsage(validation.userId, 'compress');
+                trackApiUsage(validation.userId, 'unlock');
             }
         }
         await ensureDirectories();
@@ -57,192 +110,113 @@ export async function POST(request: NextRequest) {
         const file = formData.get('file') as File;
 
         if (!file) {
-            return NextResponse.json(
-                { error: 'No PDF file provided' },
-                { status: 400 }
-            );
+            return new NextResponse(JSON.stringify({ error: 'No PDF file provided' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
         // Verify it's a PDF
         if (!file.name.toLowerCase().endsWith('.pdf')) {
-            return NextResponse.json(
-                { error: 'Only PDF files can be unlocked' },
-                { status: 400 }
-            );
+            return new NextResponse(JSON.stringify({ error: 'Only PDF files can be unlocked' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
-        // Get password if provided
-        const password = formData.get('password') as string || undefined;
+        // Get password
+        const password = formData.get('password') as string;
+        if (!password) {
+            return new NextResponse(JSON.stringify({ error: 'Password is required' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         // Create unique names for files
         const uniqueId = uuidv4();
-        const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+        const inputPath = join(UPLOAD_DIR, `${uniqueId}-protected.pdf`);
         const outputPath = join(UNLOCKED_DIR, `${uniqueId}-unlocked.pdf`);
 
         // Write file to disk
         const buffer = Buffer.from(await file.arrayBuffer());
         await writeFile(inputPath, buffer);
 
-        // Try to unlock using different methods
+        // Try to unlock the PDF using pdfcpu
         let unlockSuccess = false;
         let methodUsed = '';
 
-        // Try qpdf first (with password if provided)
+        // First try with user password
         try {
-            unlockSuccess = await unlockPdfWithQpdf(inputPath, outputPath, password);
+            unlockSuccess = await unlockPdfWithPdfcpu(inputPath, outputPath, password);
             if (unlockSuccess) {
-                methodUsed = 'qpdf';
+                methodUsed = 'pdfcpu-user';
             }
-        } catch (qpdfError) {
-            console.log('qpdf failed, trying pdftk...');
+        } catch (pdfcpuError) {
+            console.error('pdfcpu with user password failed:', pdfcpuError);
         }
 
-        // If qpdf fails, try pdftk
+        // If user password fails, try with owner password
         if (!unlockSuccess) {
             try {
-                unlockSuccess = await unlockPdfWithPdftk(inputPath, outputPath, password);
+                unlockSuccess = await unlockPdfWithPdfcpuOwner(inputPath, outputPath, password);
                 if (unlockSuccess) {
-                    methodUsed = 'pdftk';
+                    methodUsed = 'pdfcpu-owner';
                 }
-            } catch (pdftkError) {
-                console.log('pdftk failed, trying GhostScript...');
+            } catch (pdfcpuOwnerError) {
+                console.error('pdfcpu with owner password failed:', pdfcpuOwnerError);
             }
         }
 
-        // If both password-based methods fail, try GhostScript (for non-password restrictions)
-        if (!unlockSuccess && !password) {
-            try {
-                unlockSuccess = await unlockPdfWithGhostScript(inputPath, outputPath);
-                if (unlockSuccess) {
-                    methodUsed = 'ghostscript';
-                }
-            } catch (gsError) {
-                console.log('GhostScript failed too');
-            }
-        }
-
-        // If nothing works, copy the file as a fallback
+        // If both attempts fail, try checking if the file is already unprotected
         if (!unlockSuccess) {
-            await writeFile(outputPath, buffer);
-            methodUsed = 'copy';
-            console.log('All unlock methods failed, using copy fallback');
+            try {
+                // In this case, we'll just copy the file since it might not be password-protected
+                await writeFile(outputPath, buffer);
+                unlockSuccess = true;
+                methodUsed = 'copy';
+                console.warn('Warning: File may not have been password-protected, or password is incorrect');
+            } catch (fallbackError) {
+                console.error('Fallback method failed:', fallbackError);
+            }
+        }
+
+        if (!unlockSuccess) {
+            return new NextResponse(JSON.stringify({
+                success: false,
+                error: 'Failed to unlock PDF. The password may be incorrect.'
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
         // Create response with file info
         const fileUrl = `/unlocked/${uniqueId}-unlocked.pdf`;
 
-        // Prepare appropriate message
-        let message = "PDF unlocked successfully";
-        if (methodUsed === 'copy') {
-            message = "We attempted to unlock your PDF, but were unable to remove all restrictions";
-        }
-
-        return NextResponse.json({
+        // Return a properly formatted JSON response
+        return new NextResponse(JSON.stringify({
             success: true,
-            message,
+            message: methodUsed === 'copy'
+                ? 'PDF processed, but it may not have been password-protected'
+                : 'PDF unlocked successfully',
             fileUrl,
             filename: `${uniqueId}-unlocked.pdf`,
-            originalName: file.name,
+            originalName: file.name.replace('.pdf', '-unlocked.pdf'),
             methodUsed
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
         });
     } catch (error) {
         console.error('Unlock error:', error);
 
-        return NextResponse.json(
-            {
-                error: error instanceof Error ? error.message : 'An unknown error occurred during PDF unlocking',
-                success: false
-            },
-            { status: 500 }
-        );
-    }
-}
-
-// Function to unlock PDF using qpdf
-async function unlockPdfWithQpdf(inputPath: string, outputPath: string, password?: string): Promise<boolean> {
-    try {
-        // Build the qpdf command based on whether a password was provided
-        let command = password
-            ? `qpdf --password="${password}" --decrypt "${inputPath}" "${outputPath}"`
-            : `qpdf --decrypt "${inputPath}" "${outputPath}"`;
-
-        // Hide the password in logs
-        console.log(`Executing: ${password ? command.replace(password, '******') : command}`);
-
-        // Execute the command
-        const { stdout, stderr } = await execPromise(command);
-
-        if (stderr && !stderr.includes('WARNING')) {
-            console.error('qpdf stderr:', stderr);
-        }
-
-        if (stdout) {
-            console.log('qpdf stdout:', stdout);
-        }
-
-        // Check if output file exists
-        return existsSync(outputPath);
-    } catch (error) {
-        console.error('Error using qpdf to unlock:', error);
-        return false;
-    }
-}
-
-// Function to unlock PDF using pdftk
-async function unlockPdfWithPdftk(inputPath: string, outputPath: string, password?: string): Promise<boolean> {
-    try {
-        // Build the pdftk command based on whether a password was provided
-        let command = password
-            ? `pdftk "${inputPath}" input_pw "${password}" output "${outputPath}" allow AllFeatures`
-            : `pdftk "${inputPath}" output "${outputPath}" allow AllFeatures`;
-
-        // Hide the password in logs
-        console.log(`Executing: ${password ? command.replace(password, '******') : command}`);
-
-        // Execute the command
-        const { stdout, stderr } = await execPromise(command);
-
-        if (stderr) {
-            console.error('pdftk stderr:', stderr);
-        }
-
-        if (stdout) {
-            console.log('pdftk stdout:', stdout);
-        }
-
-        // Check if output file exists
-        return existsSync(outputPath);
-    } catch (error) {
-        console.error('Error using pdftk to unlock:', error);
-        return false;
-    }
-}
-
-// Function to unlock PDF using gs (GhostScript)
-async function unlockPdfWithGhostScript(inputPath: string, outputPath: string): Promise<boolean> {
-    try {
-        // GhostScript approach (works for PDFs with restrictions but no password)
-        const gsCommand = process.platform === 'win32' ? 'gswin64c' : 'gs';
-
-        const command = `${gsCommand} -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="${outputPath}" -c .setpdfwrite -f "${inputPath}"`;
-
-        console.log(`Executing GhostScript: ${command}`);
-
-        // Execute the command
-        const { stdout, stderr } = await execPromise(command);
-
-        if (stderr) {
-            console.error('GhostScript stderr:', stderr);
-        }
-
-        if (stdout) {
-            console.log('GhostScript stdout:', stdout);
-        }
-
-        // Check if output file exists
-        return existsSync(outputPath);
-    } catch (error) {
-        console.error('Error using GhostScript to unlock:', error);
-        return false;
+        return new NextResponse(JSON.stringify({
+            error: error instanceof Error ? error.message : 'An unknown error occurred during PDF unlocking',
+            success: false
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }

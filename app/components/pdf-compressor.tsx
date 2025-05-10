@@ -365,56 +365,7 @@ export function MultiPdfCompressor() {
             <CardDescription>{t("compressPdf.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="quality"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("fileUploader.quality")}</FormLabel>
-                    <Select
-                      disabled={isProcessing}
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t("compressPdf.qualityPlaceholder")}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="high">
-                          <div className="flex flex-col">
-                            <span>{t("compressPdf.quality.high")}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {t("compressPdf.quality.highDesc")}
-                            </span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          <div className="flex flex-col">
-                            <span>{t("compressPdf.quality.balanced")}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {t("compressPdf.quality.balancedDesc")}
-                            </span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="low">
-                          <div className="flex flex-col">
-                            <span>{t("compressPdf.quality.maximum")}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {t("compressPdf.quality.maximumDesc")}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+           
               <FormField
                 control={form.control}
                 name="processAllTogether"
@@ -436,7 +387,6 @@ export function MultiPdfCompressor() {
                   </FormItem>
                 )}
               />
-            </div>
             <div
               {...getRootProps()}
               className={cn(

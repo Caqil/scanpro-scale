@@ -347,7 +347,7 @@ export function PdfUnlocker() {
                         download
                       >
                         <DownloadIcon className="h-4 w-4 mr-2" />
-                        {t("fileUploader.download")}
+                        {t("watermarkPdf.download")}
                       </a>
                     </Button>
                   </div>

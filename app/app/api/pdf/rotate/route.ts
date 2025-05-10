@@ -1,3 +1,4 @@
+// app/api/rotate/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -30,19 +31,42 @@ interface PageRotation {
     original: number;
 }
 
-// Get total pages using qpdf
+// Get total pages using pdfcpu
 async function getTotalPages(inputPath: string): Promise<number> {
     try {
-        const { stdout } = await execAsync(`qpdf --show-npages "${inputPath}"`);
-        return parseInt(stdout.trim(), 10);
+        // Use pdfcpu info command to get PDF information
+        const { stdout } = await execAsync(`pdfcpu info "${inputPath}"`);
+        
+        // Parse the output to find the number of pages
+        // Based on the actual output format: "Page count: X"
+        const pagesMatch = stdout.match(/Page count:\s*(\d+)/);
+        if (pagesMatch && pagesMatch[1]) {
+            return parseInt(pagesMatch[1], 10);
+        }
+        
+        // If we can't find the exact pattern, try a more general approach
+        const lines = stdout.split('\n');
+        for (const line of lines) {
+            // Look for any line containing both "page" and "count"
+            if (line.toLowerCase().includes('page') && line.toLowerCase().includes('count')) {
+                const match = line.match(/\d+/);
+                if (match) {
+                    return parseInt(match[0], 10);
+                }
+            }
+        }
+        
+        console.error('pdfcpu info output:', stdout);
+        throw new Error('Could not parse page count from pdfcpu output');
     } catch (error) {
+        console.error('Error getting page count:', error);
         throw new Error(`Failed to get page count: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
 
 export async function POST(request: NextRequest) {
     try {
-        console.log('Starting PDF rotation process...');
+        console.log('Starting PDF rotation process using pdfcpu...');
 
         // Get API key either from header or query parameter
         const headers = request.headers;
@@ -114,7 +138,7 @@ export async function POST(request: NextRequest) {
         await writeFile(inputPath, buffer);
         console.log(`PDF saved to ${inputPath}`);
 
-        // Get total pages using qpdf
+        // Get total pages
         const pageCount = await getTotalPages(inputPath);
 
         // Validate page numbers
@@ -129,27 +153,65 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Build qpdf rotation command
-        const rotationParams: string[] = [];
-        for (let i = 1; i <= pageCount; i++) {
-            const rotation = effectiveRotations.find(r => r.pageNumber === i);
-            if (rotation) {
-                // Normalize angle to 0, 90, 180, 270
-                const normalizedAngle = ((rotation.angle % 360) + 360) % 360;
-                if ([0, 90, 180, 270].includes(normalizedAngle)) {
-                    rotationParams.push(`--rotate=${normalizedAngle}:${i}`);
-                } else {
-                    console.warn(`Unsupported rotation angle ${normalizedAngle} for page ${i}`);
-                    continue;
+        // Create a JSON configuration file for pdfcpu
+        // pdfcpu uses a different approach for rotations where we need to specify the page selection
+        // and the rotation angle separately
+        
+        // Group rotations by angle for more efficient processing
+        const rotationsByAngle: { [angle: number]: number[] } = {};
+        
+        for (const rotation of effectiveRotations) {
+            // Normalize angle to 0, 90, 180, 270
+            const normalizedAngle = ((rotation.angle % 360) + 360) % 360;
+            
+            // Ensure we only use supported rotation angles
+            if (![0, 90, 180, 270].includes(normalizedAngle)) {
+                console.warn(`Unsupported rotation angle ${normalizedAngle} for page ${rotation.pageNumber}`);
+                continue;
+            }
+            
+            if (!rotationsByAngle[normalizedAngle]) {
+                rotationsByAngle[normalizedAngle] = [];
+            }
+            
+            rotationsByAngle[normalizedAngle].push(rotation.pageNumber);
+        }
+
+        // Use the initial inputPath for the first rotation and outputPath for all rotations
+        // This way we don't modify the original file
+        
+        // Get the keys to determine first and subsequent rotations
+        const angleKeys = Object.keys(rotationsByAngle);
+        let isFirstRotation = true;
+
+        // Apply rotations for each angle group
+        for (const [angle, pages] of Object.entries(rotationsByAngle)) {
+            // Convert pages array to pdfcpu page selection format
+            const pageSelection = pages.join(',');
+            
+            // For the first rotation, read from inputPath; for subsequent rotations, read from outputPath
+            const sourcePath = isFirstRotation ? inputPath : outputPath;
+            
+            // Execute pdfcpu rotation command based on official documentation
+            // Format: pdfcpu rotate [-pages selectedPages] inFile rotation [outFile]
+            const command = `pdfcpu rotate -pages ${pageSelection} "${sourcePath}" ${angle} "${outputPath}"`;
+            console.log(`Executing: ${command}`);
+            
+            try {
+                const { stdout, stderr } = await execAsync(command);
+                if (stdout.trim()) {
+                    console.log('pdfcpu stdout:', stdout);
                 }
+                if (stderr) {
+                    console.warn('pdfcpu stderr:', stderr);
+                }
+                isFirstRotation = false;
+            } catch (rotateError) {
+                console.error('Rotation error:', rotateError);
+                throw new Error(`pdfcpu rotation failed: ${rotateError instanceof Error ? rotateError.message : String(rotateError)}`);
             }
         }
 
-        // Construct qpdf command
-        const command = `qpdf "${inputPath}" ${rotationParams.join(' ')} "${outputPath}"`;
-
-        // Execute qpdf command
-        await execAsync(command);
         console.log(`Rotated PDF saved to ${outputPath}`);
 
         // Clean up input file

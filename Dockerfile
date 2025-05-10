@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libreoffice \
     poppler-utils \
     qpdf \
-    pdftk \
     tesseract-ocr \
     tesseract-ocr-eng \
     python3-full \
@@ -23,6 +22,19 @@ RUN apt-get update && apt-get install -y \
     curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Go
+RUN curl -LO https://go.dev/dl/go1.24.3.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.24.3.linux-amd64.tar.gz && \
+    rm go1.21.5.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+
+# Verify Go installation
+RUN go version
+
+# Install pdfcpu
+RUN go install github.com/pdfcpu/pdfcpu/cmd/pdfcpu@latest
+ENV PATH="/root/go/bin:$PATH"
 
 # Create and activate a Python virtual environment
 RUN python3 -m venv /opt/venv
