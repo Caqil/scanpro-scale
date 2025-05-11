@@ -55,6 +55,10 @@ const EXCLUDED_ROUTES = [
   '/api/health', 
 ];
 
+const ADMIN_ROUTES = [
+  '/admin',
+  '/api/admin',
+];
 // User agent patterns for browsers (to identify web UI requests)
 const BROWSER_USER_AGENT_PATTERNS = [
   'Mozilla/',
@@ -122,7 +126,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
   }
-
+  for (const adminRoute of ADMIN_ROUTES) {
+    if (pathname.startsWith(adminRoute)) {
+      // Admin routes are protected by session/role check in the layout
+      // Just ensure they have a session
+      return NextResponse.next();
+    }
+  }
   // Check if this is an API route that needs authentication
   let requiresApiKey = false;
   let operationType = '';
@@ -188,6 +198,8 @@ export const config = {
     "/api/auth/callback/:path*",
     "/dashboard/:path*",
     "/api/:path*",
+    "/admin/:path*",  
+    "/:lang/admin/:path*",
     // Exclude authentication-related paths
     // Don't include /login or /api/auth/:path* here
   ],

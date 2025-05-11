@@ -1,0 +1,479 @@
+// components/admin/users/user-table.tsx
+"use client";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  MoreHorizontal,
+  Shield,
+  Ban,
+  Key,
+  Mail,
+  Eye,
+  UserX,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { useState } from "react";
+import { AdminUser } from "@/src/types/admin";
+
+interface UserTableProps {
+  users: AdminUser[];
+  loading: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onUserUpdate: () => void;
+}
+
+export function UserTable({
+  users,
+  loading,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onUserUpdate,
+}: UserTableProps) {
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    user: AdminUser;
+    action: string;
+    open: boolean;
+  } | null>(null);
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return "Never";
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case "free":
+        return "outline";
+      case "basic":
+        return "default";
+      case "pro":
+        return "secondary";
+      case "enterprise":
+        return "default";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <Badge className="bg-green-500">Active</Badge>;
+      case "canceled":
+        return <Badge variant="outline">Canceled</Badge>;
+      case "expired":
+        return <Badge variant="destructive">Expired</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const handleAction = async (action: string, user: AdminUser) => {
+    try {
+      let updates = {};
+      switch (action) {
+        case "make-admin":
+          updates = { role: "admin" };
+          break;
+        case "remove-admin":
+          updates = { role: "user" };
+          break;
+        case "suspend":
+          updates = { suspended: true };
+          break;
+        case "unsuspend":
+          updates = { suspended: false };
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, updates }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update user");
+
+      toast.success(`User ${action} completed successfully`);
+      onUserUpdate();
+      setConfirmAction(null);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error(`Failed to ${action} user`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>User</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Subscription</TableHead>
+            <TableHead>Usage</TableHead>
+            <TableHead>Last Active</TableHead>
+            <TableHead className="w-[50px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {user.name?.[0] || user.email?.[0] || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{user.name || "Unknown"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={user.role === "admin" ? "destructive" : "secondary"}
+                >
+                  {user.role}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <Badge
+                    variant={getTierColor(user.subscription?.tier || "free")}
+                  >
+                    {user.subscription?.tier || "free"}
+                  </Badge>
+                  {user.subscription?.status && (
+                    <div>{getStatusBadge(user.subscription.status)}</div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm">
+                  <p>{user.usage.thisMonth} this month</p>
+                  <p className="text-xs text-muted-foreground">
+                    {user.usage.total} total
+                  </p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {formatDate(user.lastActive)}
+                </span>
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSelectedUser(user)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Send Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Key className="mr-2 h-4 w-4" />
+                      View API Keys
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() =>
+                        setConfirmAction({
+                          user,
+                          action:
+                            user.role === "admin"
+                              ? "remove-admin"
+                              : "make-admin",
+                          open: true,
+                        })
+                      }
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      {user.role === "admin" ? "Remove Admin" : "Make Admin"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() =>
+                        setConfirmAction({
+                          user,
+                          action: "suspend",
+                          open: true,
+                        })
+                      }
+                    >
+                      <Ban className="mr-2 h-4 w-4" />
+                      Suspend User
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between py-4">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* User Details Dialog */}
+      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback>
+                    {selectedUser.name?.[0] || selectedUser.email?.[0] || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {selectedUser.name || "Unknown"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedUser.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium">User ID</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedUser.id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Role</p>
+                  <Badge
+                    variant={
+                      selectedUser.role === "admin"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    {selectedUser.role}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Created</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(selectedUser.createdAt)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Last Active</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(selectedUser.lastActive)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Subscription</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Tier</span>
+                    <Badge
+                      variant={getTierColor(
+                        selectedUser.subscription?.tier || "free"
+                      )}
+                    >
+                      {selectedUser.subscription?.tier || "free"}
+                    </Badge>
+                  </div>
+                  {selectedUser.subscription && (
+                    <>
+                      <div className="flex justify-between">
+                        <span>Status</span>
+                        {getStatusBadge(selectedUser.subscription.status)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Next Payment</span>
+                        <span>
+                          {formatDate(
+                            selectedUser.subscription.currentPeriodEnd
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Usage Statistics</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">This Month</p>
+                    <p className="text-2xl font-bold">
+                      {selectedUser.usage.thisMonth}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Last Month</p>
+                    <p className="text-2xl font-bold">
+                      {selectedUser.usage.lastMonth}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Total</p>
+                    <p className="text-2xl font-bold">
+                      {selectedUser.usage.total}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">API Keys</h4>
+                <div className="space-y-2">
+                  {selectedUser.apiKeys.map((key) => (
+                    <div
+                      key={key.id}
+                      className="flex justify-between items-center p-2 border rounded"
+                    >
+                      <div>
+                        <p className="font-medium">{key.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Last used: {formatDate(key.lastUsed)}
+                        </p>
+                      </div>
+                      <Badge variant="outline">
+                        {key.permissions.length} permissions
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmAction?.open}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Action</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to {confirmAction?.action.replace("-", " ")}{" "}
+              this user?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setConfirmAction(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant={
+                confirmAction?.action.includes("suspend")
+                  ? "destructive"
+                  : "default"
+              }
+              onClick={() => {
+                if (confirmAction) {
+                  handleAction(confirmAction.action, confirmAction.user);
+                }
+              }}
+            >
+              Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
