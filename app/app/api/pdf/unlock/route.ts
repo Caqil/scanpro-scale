@@ -192,8 +192,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create response with file info
-        const fileUrl = `/unlocked/${uniqueId}-unlocked.pdf`;
-
+        const fileUrl = `/api/file?folder=unlocked&filename=${uniqueId}-unlocked.pdf`;
         // Return a properly formatted JSON response
         return new NextResponse(JSON.stringify({
             success: true,

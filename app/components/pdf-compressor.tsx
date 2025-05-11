@@ -73,36 +73,6 @@ interface CompressedFile {
 type FormValues = z.infer<typeof formSchema>;
 
 
-const compressPdfClientSide = async (
-  file: File,
-  quality: string
-): Promise<{
-  compressedData: Blob;
-  originalSize: number;
-  compressedSize: number;
-}> => {
-  const originalSize = file.size;
-
-  // Define compression factors with a fallback
-  const compressionFactors: Record<string, number> = {
-    high: 0.9,
-    medium: 0.7,
-    low: 0.5,
-  };
-  const compressionFactor = compressionFactors[quality] ?? 0.7; // Fallback to 0.7 (medium) if quality is invalid
-
-  // Simulate compression by creating a smaller blob
-  const compressedSize = Math.round(originalSize * compressionFactor);
-  const compressedData = new Blob([file], { type: "application/pdf" });
-
-  // Simulate processing time
-  await new Promise((resolve) =>
-    setTimeout(resolve, 1000 + Math.random() * 2000)
-  );
-
-  return { compressedData, originalSize, compressedSize };
-};
-
 export function MultiPdfCompressor() {
   const { t } = useLanguageStore();
   const [files, setFiles] = useState<FileWithStatus[]>([]);

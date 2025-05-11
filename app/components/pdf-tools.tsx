@@ -203,14 +203,6 @@ export function PdfTools() {
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
         },
         {
-          id: "compress-file",
-          name: t("compressPdf.compressAll"),
-          description: t("compressPdf.description"),
-          icon: <FileBadge2Icon className="h-6 w-6 text-green-500" />,
-          iconBg: "bg-green-100 dark:bg-green-900/30",
-          href: "/compress-files",
-        },
-        {
           id: "split-pdf",
           name: t("popular.splitPdf"),
           description: t("splitPdf.description"),
@@ -251,10 +243,10 @@ export function PdfTools() {
         {
           id: "remove-pdf-pages",
           name: t("removePdf.title"),
-          description: t("toolDescriptions.compressPdf"),
+          description: t("removePdf.description"),
           icon: <TrashIcon className="h-6 w-6 text-green-500" />,
           iconBg: "bg-green-100 dark:bg-green-900/30",
-          href: "/compress-pdf",
+          href: "/remove-pdf-page",
           isNew: true,
         },
       ],

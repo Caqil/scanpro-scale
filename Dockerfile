@@ -50,8 +50,13 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Create required folders inside /app/public
-RUN mkdir -p public/{conversions,compressions,merges,splits,rotations,watermarked,watermarks,protected,unlocked,signatures,ocr,edited,processed,unwatermarked,redacted,repaired,pagenumbers,status}
-
+RUN mkdir -p /app/public/{conversions,compressions,merges,splits,rotations,watermarked,watermarks,protected,unlocked,signatures,ocr,edited,processed,unwatermarked,redacted,repaired,pagenumbers,status} && \
+    mkdir -p /app/uploads && \
+    mkdir -p /app/temp && \
+    mkdir -p /app/temp-conversions && \
+    chmod -R 777 /app/public && \
+    chmod -R 777 /app/uploads && \
+    chmod -R 777 /app/temp
 # Expose port and set environment variables
 EXPOSE 3000
 ENV NODE_ENV=production

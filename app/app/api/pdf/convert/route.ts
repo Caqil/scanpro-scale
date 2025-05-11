@@ -1039,34 +1039,26 @@ async function convertWithLibreOffice(inputPath: string, outputPath: string, for
 export async function POST(request: NextRequest) {
     try {
         console.log('Starting conversion process...');
-        // Get API key either from header or query parameter
         const headers = request.headers;
         const url = new URL(request.url);
         const apiKey = headers.get('x-api-key') || url.searchParams.get('api_key');
-        let userId: string | undefined;
-        let operation = 'convert'; // Specify the operation type
+
         // If this is a programmatic API call (not from web UI), validate the API key
         if (apiKey) {
-            console.log('Validating API key for compression operation');
-            const validation = await validateApiKey(apiKey, 'convert');
+            console.log('Validating API key for merge operation');
+            const validation = await validateApiKey(apiKey, 'merge');
 
             if (!validation.valid) {
                 console.error('API key validation failed:', validation.error);
-                return NextResponse.json(
-                    { error: validation.error || 'Invalid API key' },
-                    { status: 401 }
+                return new Response(
+                    JSON.stringify({ error: validation.error || 'Invalid API key' }),
+                    { status: 401, headers: { 'Content-Type': 'application/json' } }
                 );
             }
 
             // Track usage (non-blocking)
-            if (userId) {
-                const tracked = await trackApiUsage(userId, operation);
-                if (!tracked) {
-                    console.error(`Failed to track usage for user ${userId}, operation ${operation}`);
-                    // Optionally, you could still return the result but log this error
-                } else {
-                    console.log(`Successfully tracked ${operation} operation for user ${userId}`);
-                }
+            if (validation.userId) {
+                trackApiUsage(validation.userId, 'convert');
             }
         }
         await ensureDirectories();

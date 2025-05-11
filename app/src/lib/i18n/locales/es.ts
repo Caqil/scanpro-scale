@@ -1,5 +1,3 @@
-import { Description } from "@radix-ui/react-alert-dialog";
-
 /* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
 export default {
   metadata: {

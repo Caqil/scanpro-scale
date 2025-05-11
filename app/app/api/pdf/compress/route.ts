@@ -24,7 +24,7 @@ async function ensureDirectories() {
 }
 
 // Process PDF compression using pdfcpu optimize
-async function processPdfCompression(inputPath: string, outputPath: string, quality: 'low' | 'medium' | 'high'): Promise<boolean> {
+async function processPdfCompression(inputPath: string, outputPath: string): Promise<boolean> {
     try {
         // Get the original file size for comparison
         const originalBuffer = await readFile(inputPath);
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         console.log(`Compressing PDF: ${file.name}, size: ${file.size} bytes`);
 
         // Compress the PDF using pdfcpu
-        await processPdfCompression(inputPath, outputPath, quality as 'low' | 'medium' | 'high');
+        await processPdfCompression(inputPath, outputPath);
 
         // Verify the output file exists
         if (!existsSync(outputPath)) {

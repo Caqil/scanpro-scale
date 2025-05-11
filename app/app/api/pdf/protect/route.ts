@@ -176,8 +176,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create response with file info
-        const fileUrl = `/protected/${uniqueId}-protected.pdf`;
-
+        const fileUrl = `/api/file?folder=protected&filename=${uniqueId}-protected.pdf`;
         // Return a properly formatted JSON response
         return new NextResponse(JSON.stringify({
             success: true,
