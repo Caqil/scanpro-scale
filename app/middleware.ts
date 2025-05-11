@@ -11,6 +11,7 @@ const API_ROUTES = [
   '/api/pdf/watermark',
   '/api/pdf/protect',
   '/api/pdf/unlock',
+  '/api/pdf/remove',
   '/api/ocr',
   '/api/pdf/sign',
   '/api/pdf/edit',
