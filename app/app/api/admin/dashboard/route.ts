@@ -196,7 +196,7 @@ function getSystemMetrics() {
         const recentApiUsage = await prisma.usageStats.findMany({
           where: { date: { gte: thirtyDaysAgo } },
           orderBy: { date: 'desc' },
-          take: 10,
+          take: 20,
           include: {
             user: true,
           },
@@ -289,7 +289,7 @@ function getSystemMetrics() {
         recentActivity.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
         
         // Take only the most recent 20
-        const finalRecentActivity = recentActivity.slice(0, 20);
+        const finalRecentActivity = recentActivity.slice(0, 10);
   
         // Get system metrics
         const systemMetrics = getSystemMetrics();

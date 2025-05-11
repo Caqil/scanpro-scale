@@ -19,11 +19,10 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/en/login?callbackUrl=/dashboard");
+    redirect(`/en/login?callbackUrl=/dashboard`);
   }
 
-  // Get user data with subscription info and include isEmailVerified field
-  // Using only 'include' instead of both 'include' and 'select'
+  // Get user data with subscription info and include role field
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: {
@@ -33,10 +32,15 @@ export default async function DashboardPage() {
   });
 
   if (!user) {
-    redirect("/en/login");
+    redirect(`/en/login`);
   }
 
-  // Get usage statistics
+  // Check if user is admin and redirect to admin dashboard
+  if (user.role === "admin") {
+    redirect(`/en/admin/dashboard`);
+  }
+
+  // Get usage statistics for regular users
   const firstDayOfMonth = new Date();
   firstDayOfMonth.setDate(1);
   firstDayOfMonth.setHours(0, 0, 0, 0);

@@ -1,5 +1,6 @@
 // middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { API_OPERATIONS } from './lib/validate-key';
 
 // Define API routes that require API key validation
@@ -35,23 +36,16 @@ const EXCLUDED_ROUTES = [
   '/api/auth',
   '/api/webhooks',
   '/api/admin',
-  '/login',  // Exclude login route from middleware
-  '/register', // Exclude register route from middleware
+  '/login',
+  '/register',
   '/api/auth/signin',
   '/api/auth/callback',
-  '/api/auth/signin/apple',  // Specifically exclude Apple signin path
+  '/api/auth/signin/apple',
   '/api/auth/callback/apple',
-  '/forgot-password', // Exclude forgot password route
-  '/reset-password',  // Exclude reset password route
+  '/forgot-password',
+  '/reset-password',
   '/api/pdf/chat',
-
-  // Language-specific auth routes
-  ...['en', 'id', 'es', 'fr', 'zh', 'ar', 'hi', 'ru', 'pt', 'de', 'ja', 'ko', 'it', 'tr'].flatMap(lang => [
-    `/${lang}/forgot-password`,
-    `/${lang}/reset-password`,
-  ]),
-
-  '/api/file',  // Important! This enables file downloads from the web UI
+  '/api/file',
   '/api/health', 
 ];
 
@@ -59,6 +53,7 @@ const ADMIN_ROUTES = [
   '/admin',
   '/api/admin',
 ];
+
 // User agent patterns for browsers (to identify web UI requests)
 const BROWSER_USER_AGENT_PATTERNS = [
   'Mozilla/',
@@ -120,19 +115,57 @@ const ROUTE_TO_OPERATION_MAP: Record<string, string> = {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Check if this is a dashboard route and user is admin
+  if (pathname.match(/^\/[^\/]+\/dashboard$/)) {
+    try {
+      const token = await getToken({ req: request });
+      
+      if (token?.user && (token.user as any).role === 'admin') {
+        // Extract language from pathname
+        const pathParts = pathname.split('/');
+        const lang = pathParts[1] || 'en';
+        
+        // Redirect to admin dashboard
+        return NextResponse.redirect(new URL(`/${lang}/admin/dashboard`, request.url));
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
+  }
+
   // Check if route should be excluded from API key validation
   for (const excludedRoute of EXCLUDED_ROUTES) {
     if (pathname.startsWith(excludedRoute)) {
       return NextResponse.next();
     }
   }
+
+  // Handle admin routes - ensure user is authenticated and has admin role
   for (const adminRoute of ADMIN_ROUTES) {
     if (pathname.startsWith(adminRoute)) {
-      // Admin routes are protected by session/role check in the layout
-      // Just ensure they have a session
+      try {
+        const token = await getToken({ req: request });
+        
+        if (!token?.user) {
+          // No user session, redirect to login
+          const lang = pathname.split('/')[1] || 'en';
+          return NextResponse.redirect(new URL(`/${lang}/login`, request.url));
+        }
+
+        // Check if user has admin role (if not in API route)
+        if (!pathname.startsWith('/api/') && (token.user as any).role !== 'admin') {
+          // Non-admin trying to access admin page, redirect to regular dashboard
+          const lang = pathname.split('/')[1] || 'en';
+          return NextResponse.redirect(new URL(`/${lang}/dashboard`, request.url));
+        }
+      } catch (error) {
+        console.error('Error checking admin access:', error);
+      }
+      
       return NextResponse.next();
     }
   }
+
   // Check if this is an API route that needs authentication
   let requiresApiKey = false;
   let operationType = '';
@@ -197,10 +230,9 @@ export const config = {
   matcher: [
     "/api/auth/callback/:path*",
     "/dashboard/:path*",
+    "/:lang/dashboard/:path*",
     "/api/:path*",
     "/admin/:path*",  
     "/:lang/admin/:path*",
-    // Exclude authentication-related paths
-    // Don't include /login or /api/auth/:path* here
   ],
 };
