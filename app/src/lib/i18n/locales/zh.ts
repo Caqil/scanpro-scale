@@ -3419,5 +3419,99 @@ export default {
         },
         acknowledgment: "使用MegaPDF，即表示您确认已阅读并理解本隐私政策。",
         viewTerms: "查看服务条款"
-    }
+    },
+    cookies: {
+        title: "Cookie政策",
+        lastUpdated: "最后更新: {date}",
+        overview: "概述",
+        intro: "本Cookie政策解释了什么是cookie以及我们在网站上如何使用它们。我们建议您阅读本政策，以了解cookie是什么，我们如何使用它们，我们使用的cookie类型，以及您如何管理您的cookie偏好。",
+        
+        tabs: {
+          what: "什么是Cookie",
+          types: "Cookie类型",
+          how: "我们如何使用Cookie",
+          thirdParty: "第三方Cookie",
+          manage: "管理Cookie"
+        },
+        
+        whatAre: {
+          title: "什么是Cookie？",
+          description: "Cookie是您访问网站时存储在您的计算机或移动设备上的小型文本文件。它们被广泛用于使网站更高效地运行并为网站所有者提供信息。",
+          purpose: "Cookie使我们能够识别您的设备并为您提供个性化体验。它们还用于确保您的账户安全，分析我们服务的使用情况，并协助我们的营销工作。"
+        },
+        
+        types: {
+          title: "我们使用的Cookie类型",
+          essential: {
+            title: "必要Cookie",
+            description: "这些Cookie对网站的正常运行至关重要。它们支持页面导航和访问网站安全区域等基本功能。没有这些Cookie，网站无法正常运行。",
+            examples: {
+              session: "用于认证的会话Cookie",
+              csrf: "用于安全的CSRF令牌",
+              load: "负载均衡Cookie"
+            }
+          },
+          functional: {
+            title: "功能Cookie",
+            description: "这些Cookie使网站能够提供增强的功能和个性化。它们可能由我们或我们添加到页面上的第三方服务提供商设置。",
+            examples: {
+              language: "语言偏好Cookie",
+              theme: "用户界面自定义Cookie"
+            }
+          },
+          analytics: {
+            title: "分析Cookie",
+            description: "这些Cookie帮助我们了解访问者如何与我们的网站互动。它们提供有关访问者数量、跳出率、流量来源等指标的信息。",
+            examples: {
+              ga: "谷歌分析Cookie",
+              heatmap: "用户行为跟踪Cookie"
+            }
+          },
+          advertising: {
+            title: "广告Cookie",
+            description: "这些Cookie用于跨网站跟踪访问者。其目的是显示与单个用户相关且吸引人的广告，从而对发布者和第三方广告商更有价值。"
+          }
+        },
+        
+        howWeUse: {
+          title: "我们如何使用Cookie",
+          description: "我们出于多种原因使用Cookie，包括：",
+          purposes: {
+            authentication: "用于认证用户并防止用户账户的欺诈性使用",
+            security: "用于增强我们服务的安全性",
+            preferences: "用于记住您的偏好和设置信息",
+            analytics: "帮助我们了解您如何使用我们的网站，从而改进功能和用户体验",
+            features: "用于启用我们服务的某些功能和特性"
+          }
+        },
+        
+        thirdParty: {
+          title: "第三方Cookie",
+          description: "除了我们自己的Cookie外，我们还可能使用各种第三方Cookie来报告使用统计数据、投放广告等。",
+          providers: {
+            analytics: "用于收集您如何使用我们网站的信息，包括您最常访问的页面。我们使用这些信息来改进我们的网站和服务。",
+            payment: "用于处理我们平台上的订阅和购买的支付并防止欺诈。",
+            heatmap: "通过热图和会话记录了解用户如何与我们页面上的不同元素互动。"
+          }
+        },
+        
+        manage: {
+          title: "管理您的Cookie偏好",
+          description: "大多数网络浏览器允许您通过其设置偏好来控制Cookie。然而，如果您限制网站设置Cookie的能力，可能会影响您的整体用户体验，我们网站的某些功能可能无法按预期运行。",
+          browser: {
+            title: "浏览器控制",
+            description: "您可以通过浏览器设置管理Cookie。以下是在流行浏览器中操作的方法：",
+            chrome: "设置 > 隐私和安全 > Cookie和其他网站数据",
+            firefox: "选项 > 隐私和安全 > Cookie和网站数据",
+            safari: "偏好设置 > 隐私 > Cookie和网站数据",
+            edge: "设置 > Cookie和网站权限 > Cookie和网站数据"
+          },
+          warning: "请注意，禁用必要Cookie将影响我们网站的功能，某些功能可能无法正常运行。"
+        },
+        
+        contactUs: {
+          title: "联系我们",
+          description: "如果您对我们使用Cookie有任何疑问，请通过以下方式联系我们："
+        }
+      }
 }

@@ -3416,5 +3416,99 @@ export default {
     },
     acknowledgment: "Durch die Nutzung von MegaPDF bestätigen Sie, dass Sie diese Datenschutzrichtlinie gelesen und verstanden haben.",
     viewTerms: "Nutzungsbedingungen anzeigen"
+},
+cookies: {
+  title: "Cookie-Richtlinie",
+  lastUpdated: "Zuletzt aktualisiert: {date}",
+  overview: "Übersicht",
+  intro: "Diese Cookie-Richtlinie erklärt, was Cookies sind und wie wir sie auf unserer Website verwenden. Wir empfehlen, diese Richtlinie zu lesen, um zu verstehen, was Cookies sind, wie wir sie verwenden, welche Arten von Cookies wir verwenden und wie Sie Ihre Cookie-Präferenzen verwalten können.",
+  
+  tabs: {
+    what: "Was sind Cookies",
+    types: "Arten von Cookies",
+    how: "Wie wir Cookies verwenden",
+    thirdParty: "Cookies von Drittanbietern",
+    manage: "Cookies verwalten"
+  },
+  
+  whatAre: {
+    title: "Was sind Cookies?",
+    description: "Cookies sind kleine Textdateien, die auf Ihrem Computer oder Mobilgerät gespeichert werden, wenn Sie eine Website besuchen. Sie werden häufig verwendet, um Websites effizienter zu gestalten und Informationen für die Website-Betreiber bereitzustellen.",
+    purpose: "Cookies ermöglichen es uns, Ihr Gerät zu erkennen und Ihnen ein personalisiertes Erlebnis zu bieten. Sie werden auch verwendet, um die Sicherheit Ihres Kontos zu gewährleisten, die Nutzung unseres Dienstes zu analysieren und uns bei unseren Marketingbemühungen zu unterstützen."
+  },
+  
+  types: {
+    title: "Arten von Cookies, die wir verwenden",
+    essential: {
+      title: "Notwendige Cookies",
+      description: "Diese Cookies sind für das ordnungsgemäße Funktionieren der Website erforderlich. Sie ermöglichen grundlegende Funktionen wie Seitennavigation und Zugriff auf sichere Bereiche der Website. Ohne diese Cookies kann die Website nicht ordnungsgemäß funktionieren.",
+      examples: {
+        session: "Sitzungs-Cookies für die Authentifizierung",
+        csrf: "CSRF-Token für die Sicherheit",
+        load: "Lastverteilungs-Cookies"
+      }
+    },
+    functional: {
+      title: "Funktionale Cookies",
+      description: "Diese Cookies ermöglichen es der Website, erweiterte Funktionen und Personalisierung bereitzustellen. Sie können von uns oder von Drittanbietern gesetzt werden, deren Dienste wir auf unseren Seiten hinzugefügt haben.",
+      examples: {
+        language: "Cookies für Sprachpräferenzen",
+        theme: "Cookies für die Anpassung der Benutzeroberfläche"
+      }
+    },
+    analytics: {
+      title: "Analyse-Cookies",
+      description: "Diese Cookies helfen uns zu verstehen, wie Besucher mit unserer Website interagieren. Sie liefern Informationen über Metriken wie die Anzahl der Besucher, die Absprungrate, die Verkehrsquelle usw.",
+      examples: {
+        ga: "Google Analytics-Cookies",
+        heatmap: "Cookies zur Verfolgung des Nutzerverhaltens"
+      }
+    },
+    advertising: {
+      title: "Werbe-Cookies",
+      description: "Diese Cookies werden verwendet, um Besucher über Websites hinweg zu verfolgen. Ziel ist es, Anzeigen anzuzeigen, die für den einzelnen Nutzer relevant und ansprechend sind und dadurch für Publisher und Drittanbieter-Werbetreibende wertvoller sind."
+    }
+  },
+  
+  howWeUse: {
+    title: "Wie wir Cookies verwenden",
+    description: "Wir verwenden Cookies aus verschiedenen Gründen, einschließlich:",
+    purposes: {
+      authentication: "Zur Authentifizierung von Nutzern und zur Verhinderung betrügerischer Nutzung von Nutzerkonten",
+      security: "Zur Verbesserung der Sicherheit unseres Dienstes",
+      preferences: "Um Informationen über Ihre Präferenzen und Einstellungen zu speichern",
+      analytics: "Um zu verstehen, wie Sie unsere Website nutzen, was uns ermöglicht, Funktionalität und Benutzererlebnis zu verbessern",
+      features: "Um bestimmte Funktionen und Features unseres Dienstes zu ermöglichen"
+    }
+  },
+  
+  thirdParty: {
+    title: "Cookies von Drittanbietern",
+    description: "Zusätzlich zu unseren eigenen Cookies können wir auch verschiedene Cookies von Drittanbietern verwenden, um Nutzungsstatistiken zu berichten, Werbung zu schalten und so weiter.",
+    providers: {
+      analytics: "Wird verwendet, um Informationen darüber zu sammeln, wie Sie unsere Website nutzen, einschließlich der am häufigsten besuchten Seiten. Wir verwenden diese Informationen, um unsere Website und Dienstleistungen zu verbessern.",
+      payment: "Wird verwendet, um Zahlungen zu verarbeiten und Betrug bei Abonnements und Käufen auf unserer Plattform zu verhindern.",
+      heatmap: "Wird verwendet, um zu verstehen, wie Nutzer mit verschiedenen Elementen unserer Seiten durch Heatmaps und Sitzungsaufzeichnungen interagieren."
+    }
+  },
+  
+  manage: {
+    title: "Verwalten Ihrer Cookie-Präferenzen",
+    description: "Die meisten Webbrowser ermöglichen es Ihnen, Cookies über deren Einstellungspräferenzen zu kontrollieren. Wenn Sie jedoch die Fähigkeit von Websites einschränken, Cookies zu setzen, kann dies Ihr gesamtes Benutzererlebnis beeinträchtigen, und bestimmte Funktionen unserer Website funktionieren möglicherweise nicht wie vorgesehen.",
+    browser: {
+      title: "Browser-Steuerung",
+      description: "Sie können Cookies über die Einstellungen Ihres Browsers verwalten. So geht's in gängigen Browsern:",
+      chrome: "Einstellungen > Datenschutz und Sicherheit > Cookies und andere Websitedaten",
+      firefox: "Optionen > Datenschutz & Sicherheit > Cookies und Websitedaten",
+      safari: "Einstellungen > Datenschutz > Cookies und Websitedaten",
+      edge: "Einstellungen > Cookies und Website-Berechtigungen > Cookies und Websitedaten"
+    },
+    warning: "Bitte beachten Sie, dass das Deaktivieren notwendiger Cookies die Funktionalität unserer Website beeinträchtigt und bestimmte Funktionen möglicherweise nicht ordnungsgemäß funktionieren."
+  },
+  
+  contactUs: {
+    title: "Kontaktieren Sie uns",
+    description: "Wenn Sie Fragen zu unserer Verwendung von Cookies haben, kontaktieren Sie uns bitte unter:"
+  }
 }
 }

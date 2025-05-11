@@ -3418,5 +3418,99 @@ export default {
         },
         acknowledgment: "En utilisant MegaPDF, vous reconnaissez avoir lu et compris cette politique de confidentialité.",
         viewTerms: "Voir les conditions de service"
-    }
+    },
+    cookies: {
+        title: "Politique de Cookies",
+        lastUpdated: "Dernière mise à jour : {date}",
+        overview: "Aperçu",
+        intro: "Cette Politique de Cookies explique ce que sont les cookies et comment nous les utilisons sur notre site web. Nous vous recommandons de lire cette politique pour comprendre ce que sont les cookies, comment nous les utilisons, les types de cookies que nous utilisons, et comment vous pouvez gérer vos préférences en matière de cookies.",
+        
+        tabs: {
+          what: "Que sont les Cookies",
+          types: "Types de Cookies",
+          how: "Comment Nous Utilisons les Cookies",
+          thirdParty: "Cookies Tiers",
+          manage: "Gérer les Cookies"
+        },
+        
+        whatAre: {
+          title: "Que sont les Cookies ?",
+          description: "Les cookies sont de petits fichiers texte qui sont stockés sur votre ordinateur ou appareil mobile lorsque vous visitez un site web. Ils sont largement utilisés pour rendre les sites web plus efficaces et fournir des informations aux propriétaires des sites.",
+          purpose: "Les cookies nous permettent de reconnaître votre appareil et de vous offrir une expérience personnalisée. Ils sont également utilisés pour garantir la sécurité de votre compte, analyser l'utilisation de notre service, et aider dans nos efforts de marketing."
+        },
+        
+        types: {
+          title: "Types de Cookies que Nous Utilisons",
+          essential: {
+            title: "Cookies Essentiels",
+            description: "Ces cookies sont nécessaires pour que le site web fonctionne correctement. Ils permettent des fonctions de base comme la navigation sur les pages et l'accès aux zones sécurisées du site. Le site web ne peut pas fonctionner correctement sans ces cookies.",
+            examples: {
+              session: "Cookies de session pour l'authentification",
+              csrf: "Jetons CSRF pour la sécurité",
+              load: "Cookies d'équilibrage de charge"
+            }
+          },
+          functional: {
+            title: "Cookies Fonctionnels",
+            description: "Ces cookies permettent au site web de fournir des fonctionnalités améliorées et une personnalisation. Ils peuvent être définis par nous ou par des fournisseurs tiers dont nous avons ajouté les services à nos pages.",
+            examples: {
+              language: "Cookies de préférence linguistique",
+              theme: "Cookies de personnalisation de l'interface utilisateur"
+            }
+          },
+          analytics: {
+            title: "Cookies Analytiques",
+            description: "Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site web. Ils fournissent des informations sur des métriques telles que le nombre de visiteurs, le taux de rebond, la source de trafic, etc.",
+            examples: {
+              ga: "Cookies Google Analytics",
+              heatmap: "Cookies de suivi du comportement des utilisateurs"
+            }
+          },
+          advertising: {
+            title: "Cookies Publicitaires",
+            description: "Ces cookies sont utilisés pour suivre les visiteurs à travers les sites web. L'objectif est d'afficher des publicités pertinentes et attrayantes pour l'utilisateur individuel, et donc plus précieuses pour les éditeurs et les annonceurs tiers."
+          }
+        },
+        
+        howWeUse: {
+          title: "Comment Nous Utilisons les Cookies",
+          description: "Nous utilisons des cookies pour diverses raisons, notamment :",
+          purposes: {
+            authentication: "Pour authentifier les utilisateurs et empêcher l'utilisation frauduleuse des comptes utilisateurs",
+            security: "Pour améliorer la sécurité de notre service",
+            preferences: "Pour mémoriser des informations sur vos préférences et paramètres",
+            analytics: "Pour nous aider à comprendre comment vous utilisez notre site web, ce qui nous permet d'améliorer les fonctionnalités et l'expérience utilisateur",
+            features: "Pour activer certaines fonctionnalités et fonctions de notre service"
+          }
+        },
+        
+        thirdParty: {
+          title: "Cookies Tiers",
+          description: "En plus de nos propres cookies, nous pouvons également utiliser divers cookies tiers pour rapporter des statistiques d'utilisation, diffuser des publicités, et ainsi de suite.",
+          providers: {
+            analytics: "Utilisés pour collecter des informations sur la manière dont vous utilisez notre site web, y compris les pages que vous visitez le plus souvent. Nous utilisons ces informations pour améliorer notre site web et nos services.",
+            payment: "Utilisés pour traiter les paiements et prévenir la fraude pour les abonnements et les achats sur notre plateforme.",
+            heatmap: "Utilisés pour comprendre comment les utilisateurs interagissent avec différents éléments de nos pages à travers des cartes thermiques et des enregistrements de sessions."
+          }
+        },
+        
+        manage: {
+          title: "Gérer Vos Préférences de Cookies",
+          description: "La plupart des navigateurs web vous permettent de contrôler les cookies via leurs préférences de configuration. Cependant, si vous limitez la capacité des sites web à définir des cookies, cela peut affecter votre expérience utilisateur globale, et certaines fonctionnalités de notre site web peuvent ne pas fonctionner comme prévu.",
+          browser: {
+            title: "Contrôles du Navigateur",
+            description: "Vous pouvez gérer les cookies via les paramètres de votre navigateur. Voici comment le faire dans les navigateurs populaires :",
+            chrome: "Paramètres > Confidentialité et sécurité > Cookies et autres données de sites",
+            firefox: "Options > Vie privée et sécurité > Cookies et données de sites",
+            safari: "Préférences > Confidentialité > Cookies et données de sites web",
+            edge: "Paramètres > Cookies et autorisations de sites > Cookies et données de sites"
+          },
+          warning: "Veuillez noter que la désactivation des cookies essentiels affectera la fonctionnalité de notre site web, et certaines fonctionnalités pourraient ne pas fonctionner correctement."
+        },
+        
+        contactUs: {
+          title: "Contactez-Nous",
+          description: "Si vous avez des questions concernant notre utilisation des cookies, veuillez nous contacter à :"
+        }
+      }
 }

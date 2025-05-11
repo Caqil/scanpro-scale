@@ -3424,5 +3424,99 @@ export default {
     },
     acknowledgment: "Dengan menggunakan MegaPDF, Anda mengakui bahwa Anda telah membaca dan memahami Kebijakan Privasi ini.",
     viewTerms: "Lihat Ketentuan Layanan"
+},
+cookies: {
+  title: "Kebijakan Cookie",
+  lastUpdated: "Terakhir diperbarui: {date}",
+  overview: "Ikhtisar",
+  intro: "Kebijakan Cookie ini menjelaskan apa itu cookie dan bagaimana kami menggunakannya di situs web kami. Kami menyarankan Anda membaca kebijakan ini untuk memahami apa itu cookie, bagaimana kami menggunakannya, jenis cookie yang kami gunakan, dan bagaimana Anda dapat mengelola preferensi cookie Anda.",
+  
+  tabs: {
+    what: "Apa Itu Cookie",
+    types: "Jenis Cookie",
+    how: "Bagaimana Kami Menggunakan Cookie",
+    thirdParty: "Cookie Pihak Ketiga",
+    manage: "Mengelola Cookie"
+  },
+  
+  whatAre: {
+    title: "Apa Itu Cookie?",
+    description: "Cookie adalah file teks kecil yang disimpan di komputer atau perangkat mobile Anda saat Anda mengunjungi situs web. Cookie banyak digunakan untuk membuat situs web bekerja lebih efisien dan memberikan informasi kepada pemilik situs web.",
+    purpose: "Cookie memungkinkan kami untuk mengenali perangkat Anda dan memberikan pengalaman yang dipersonalisasi. Cookie juga digunakan untuk membantu memastikan keamanan akun Anda, menganalisis penggunaan layanan kami, dan membantu upaya pemasaran kami."
+  },
+  
+  types: {
+    title: "Jenis Cookie yang Kami Gunakan",
+    essential: {
+      title: "Cookie Esensial",
+      description: "Cookie ini diperlukan agar situs web dapat berfungsi dengan baik. Cookie ini memungkinkan fungsi dasar seperti navigasi halaman dan akses ke area aman situs web. Situs web tidak dapat berfungsi dengan baik tanpa cookie ini.",
+      examples: {
+        session: "Cookie sesi untuk autentikasi",
+        csrf: "Token CSRF untuk keamanan",
+        load: "Cookie penyeimbang beban"
+      }
+    },
+    functional: {
+      title: "Cookie Fungsional",
+      description: "Cookie ini memungkinkan situs web untuk memberikan fungsionalitas yang ditingkatkan dan personalisasi. Cookie ini dapat ditetapkan oleh kami atau oleh penyedia pihak ketiga yang layanannya telah kami tambahkan ke halaman kami.",
+      examples: {
+        language: "Cookie preferensi bahasa",
+        theme: "Cookie penyesuaian antarmuka pengguna"
+      }
+    },
+    analytics: {
+      title: "Cookie Analitik",
+      description: "Cookie ini membantu kami memahami bagaimana pengunjung berinteraksi dengan situs web kami. Cookie ini memberikan informasi tentang metrik seperti jumlah pengunjung, tingkat pentalan, sumber lalu lintas, dll.",
+      examples: {
+        ga: "Cookie Google Analytics",
+        heatmap: "Cookie pelacakan perilaku pengguna"
+      }
+    },
+    advertising: {
+      title: "Cookie Iklan",
+      description: "Cookie ini digunakan untuk melacak pengunjung di berbagai situs web. Tujuannya adalah untuk menampilkan iklan yang relevan dan menarik bagi pengguna individu dan dengan demikian lebih berharga bagi penerbit dan pengiklan pihak ketiga."
+    }
+  },
+  
+  howWeUse: {
+    title: "Bagaimana Kami Menggunakan Cookie",
+    description: "Kami menggunakan cookie untuk berbagai alasan, termasuk:",
+    purposes: {
+      authentication: "Untuk mengautentikasi pengguna dan mencegah penggunaan akun pengguna secara curang",
+      security: "Untuk meningkatkan keamanan layanan kami",
+      preferences: "Untuk mengingat informasi tentang preferensi dan pengaturan Anda",
+      analytics: "Untuk membantu kami memahami bagaimana Anda menggunakan situs web kami, yang memungkinkan kami untuk meningkatkan fungsionalitas dan pengalaman pengguna",
+      features: "Untuk mengaktifkan fitur dan fungsionalitas tertentu dari layanan kami"
+    }
+  },
+  
+  thirdParty: {
+    title: "Cookie Pihak Ketiga",
+    description: "Selain cookie kami sendiri, kami juga dapat menggunakan berbagai cookie pihak ketiga untuk melaporkan statistik penggunaan, mengirimkan iklan, dan sebagainya.",
+    providers: {
+      analytics: "Digunakan untuk mengumpulkan informasi tentang cara Anda menggunakan situs web kami, termasuk halaman yang paling sering Anda kunjungi. Kami menggunakan informasi ini untuk meningkatkan situs web dan layanan kami.",
+      payment: "Digunakan untuk memproses pembayaran dan mencegah penipuan untuk langganan dan pembelian di platform kami.",
+      heatmap: "Digunakan untuk memahami bagaimana pengguna berinteraksi dengan berbagai elemen halaman kami melalui peta panas dan rekaman sesi."
+    }
+  },
+  
+  manage: {
+    title: "Mengelola Preferensi Cookie Anda",
+    description: "Sebagian besar peramban web memungkinkan Anda untuk mengontrol cookie melalui preferensi pengaturan mereka. Namun, jika Anda membatasi kemampuan situs web untuk menetapkan cookie, ini dapat memengaruhi pengalaman pengguna Anda secara keseluruhan dan beberapa fitur situs web kami mungkin tidak berfungsi sebagaimana mestinya.",
+    browser: {
+      title: "Kontrol Peramban",
+      description: "Anda dapat mengelola cookie melalui pengaturan peramban Anda. Berikut cara melakukannya di peramban populer:",
+      chrome: "Pengaturan > Privasi dan Keamanan > Cookie dan data situs lainnya",
+      firefox: "Opsi > Privasi & Keamanan > Cookie dan Data Situs",
+      safari: "Preferensi > Privasi > Cookie dan data situs web",
+      edge: "Pengaturan > Cookie dan izin situs > Cookie dan data situs"
+    },
+    warning: "Harap diperhatikan bahwa menonaktifkan cookie esensial akan memengaruhi fungsionalitas situs web kami, dan beberapa fitur mungkin tidak berfungsi dengan baik."
+  },
+  
+  contactUs: {
+    title: "Hubungi Kami",
+    description: "Jika Anda memiliki pertanyaan tentang penggunaan cookie kami, silakan hubungi kami di:"
+  }
 }
 }

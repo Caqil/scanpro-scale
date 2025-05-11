@@ -3421,5 +3421,99 @@ export default {
         },
         acknowledgment: "MegaPDF'yi kullanarak, bu Gizlilik Politikasını okuduğunuzu ve anladığınızı kabul edersiniz.",
         viewTerms: "Hizmet Şartlarını Görüntüle"
-    }
+    },
+    cookies: {
+        title: "Çerez Politikası",
+        lastUpdated: "Son güncelleme: {date}",
+        overview: "Genel Bakış",
+        intro: "Bu Çerez Politikası, çerezlerin ne olduğunu ve web sitemizde nasıl kullandığımızı açıklar. Çerezlerin ne olduğunu, nasıl kullandığımızı, kullandığımız çerez türlerini ve çerez tercihlerinizi nasıl yönetebileceğinizi anlamak için bu politikayı okumanızı öneririz.",
+        
+        tabs: {
+          what: "Çerezler Nedir",
+          types: "Çerez Türleri",
+          how: "Çerezleri Nasıl Kullanıyoruz",
+          thirdParty: "Üçüncü Taraf Çerezler",
+          manage: "Çerezleri Yönetme"
+        },
+        
+        whatAre: {
+          title: "Çerezler Nedir?",
+          description: "Çerezler, bir web sitesini ziyaret ettiğinizde bilgisayarınıza veya mobil cihazınıza kaydedilen küçük metin dosyalarıdır. Web sitelerinin daha verimli çalışmasını sağlamak ve site sahiplerine bilgi sağlamak için yaygın olarak kullanılırlar.",
+          purpose: "Çerezler, cihazınızı tanımamızı ve size kişiselleştirilmiş bir deneyim sunmamızı sağlar. Ayrıca hesabınızın güvenliğini sağlamak, hizmetimizin kullanımını analiz etmek ve pazarlama çabalarımıza yardımcı olmak için kullanılırlar."
+        },
+        
+        types: {
+          title: "Kullandığımız Çerez Türleri",
+          essential: {
+            title: "Temel Çerezler",
+            description: "Bu çerezler, web sitesinin düzgün çalışması için gereklidir. Sayfa gezintisi ve web sitesinin güvenli alanlarına erişim gibi temel işlevleri mümkün kılar. Bu çerezler olmadan web sitesi düzgün çalışamaz.",
+            examples: {
+              session: "Kimlik doğrulama için oturum çerezleri",
+              csrf: "Güvenlik için CSRF tokenları",
+              load: "Yük dengeleme çerezleri"
+            }
+          },
+          functional: {
+            title: "İşlevsel Çerezler",
+            description: "Bu çerezler, web sitesinin gelişmiş işlevsellik ve kişiselleştirme sunmasını sağlar. Bunlar bizim tarafımızdan veya sayfalarımıza eklediğimiz hizmetleri sunan üçüncü taraf sağlayıcılar tarafından ayarlanabilir.",
+            examples: {
+              language: "Dil tercihi çerezleri",
+              theme: "Kullanıcı arayüzü özelleştirme çerezleri"
+            }
+          },
+          analytics: {
+            title: "Analitik Çerezler",
+            description: "Bu çerezler, ziyaretçilerin web sitemizle nasıl etkileşime girdiğini anlamamıza yardımcı olur. Ziyaretçi sayısı, hemen çıkma oranı, trafik kaynağı gibi metrikler hakkında bilgi sağlarlar.",
+            examples: {
+              ga: "Google Analytics çerezleri",
+              heatmap: "Kullanıcı davranışı izleme çerezleri"
+            }
+          },
+          advertising: {
+            title: "Reklam Çerezleri",
+            description: "Bu çerezler, web siteleri arasında ziyaretçileri izlemek için kullanılır. Amaç, bireysel kullanıcı için ilgili ve ilgi çekici reklamlar göstermek ve böylece yayıncılar ve üçüncü taraf reklamverenler için daha değerli hale getirmektir."
+          }
+        },
+        
+        howWeUse: {
+          title: "Çerezleri Nasıl Kullanıyoruz",
+          description: "Çerezleri çeşitli nedenlerle kullanıyoruz, bunlar arasında:",
+          purposes: {
+            authentication: "Kullanıcıları doğrulamak ve kullanıcı hesaplarının sahte kullanımını önlemek için",
+            security: "Hizmetimizin güvenliğini artırmak için",
+            preferences: "Tercihleriniz ve ayarlarınız hakkında bilgi hatırlamak için",
+            analytics: "Web sitemizi nasıl kullandığınızı anlamamıza yardımcı olmak, bu da işlevselliği ve kullanıcı deneyimini iyileştirmemizi sağlar",
+            features: "Hizmetimizin belirli özelliklerini ve işlevlerini etkinleştirmek için"
+          }
+        },
+        
+        thirdParty: {
+          title: "Üçüncü Taraf Çerezler",
+          description: "Kendi çerezlerimize ek olarak, kullanım istatistiklerini raporlamak, reklam sunmak ve benzeri amaçlar için çeşitli üçüncü taraf çerezleri de kullanabiliriz.",
+          providers: {
+            analytics: "Web sitemizi nasıl kullandığınız, en sık ziyaret ettiğiniz sayfalar dahil olmak üzere bilgi toplamak için kullanılır. Bu bilgileri web sitemizi ve hizmetlerimizi iyileştirmek için kullanırız.",
+            payment: "Platformumuzdaki abonelikler ve satın alımlar için ödemeleri işlemek ve dolandırıcılığı önlemek için kullanılır.",
+            heatmap: "Isı haritaları ve oturum kayıtları aracılığıyla kullanıcıların sayfalarımızın farklı öğeleriyle nasıl etkileşime geçtiğini anlamak için kullanılır."
+          }
+        },
+        
+        manage: {
+          title: "Çerez Tercihlerinizi Yönetme",
+          description: "Çoğu web tarayıcısı, ayar tercihleri aracılığıyla çerezleri kontrol etmenize olanak tanır. Ancak, web sitelerinin çerez ayarlarını sınırlandırırsanız, bu genel kullanıcı deneyiminizi etkileyebilir ve web sitemizin belirli özellikleri beklendiği gibi çalışmayabilir.",
+          browser: {
+            title: "Tarayıcı Kontrolleri",
+            description: "Tarayıcı ayarlarınız aracılığıyla çerezleri yönetebilirsiniz. Popüler tarayıcılarda bunu nasıl yapacağınız aşağıda açıklanmıştır:",
+            chrome: "Ayarlar > Gizlilik ve güvenlik > Çerezler ve diğer site verileri",
+            firefox: "Seçenekler > Gizlilik ve Güvenlik > Çerezler ve Site Verileri",
+            safari: "Tercihler > Gizlilik > Çerezler ve web sitesi verileri",
+            edge: "Ayarlar > Çerezler ve site izinleri > Çerezler ve site verileri"
+          },
+          warning: "Lütfen, temel çerezleri devre dışı bırakmanın web sitemizin işlevselliğini etkileyeceğini ve bazı özelliklerin düzgün çalışmayabileceğini unutmayın."
+        },
+        
+        contactUs: {
+          title: "Bize Ulaşın",
+          description: "Çerez kullanımımız hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin:"
+        }
+      }
 }
