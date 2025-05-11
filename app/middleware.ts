@@ -96,6 +96,7 @@ const ROUTE_TO_OPERATION_MAP: Record<string, string> = {
   '/api/pdf/rotate': 'rotate',
   '/api/pdf/protect': 'protect',
   '/api/pdf/unlock': 'unlock',
+  '/api/pdf/remove': 'remove',
   '/api/ocr': 'ocr',
   '/api/pdf/sign': 'sign',
   '/api/pdf/edit': 'edit',
