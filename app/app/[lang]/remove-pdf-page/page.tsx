@@ -1,40 +1,43 @@
-// app/[lang]/remove-pdf/page.tsx
-import { Metadata } from 'next';
-import { PdfRemove } from '@/components/pdf-remove';
+// app/[lang]/remove-pdf-page/page.tsx
+import { Metadata } from "next";
 import {
   RemoveHeaderSection,
   HowToRemoveSection,
   BenefitsSection,
   UseCasesSection,
   RemovePdfFaqSection,
-  RelatedToolsSection
-} from './remove-content';
-import { SUPPORTED_LANGUAGES } from '@/src/lib/i18n/config';
-import { generatePageSeoMetadata } from '@/lib/seo/schemas';
-import { Suspense } from 'react';
+  RelatedToolsSection,
+} from "./remove-content";
+import { SUPPORTED_LANGUAGES } from "@/src/lib/i18n/config";
+import { generatePageSeoMetadata } from "@/lib/seo/schemas";
+import { PdfRemoveClient } from "./pdf-remove-client";
 
-export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
   const { lang: paramLang } = await params;
-  const lang = SUPPORTED_LANGUAGES.includes(paramLang as any) ? paramLang : 'en';
+  const lang = SUPPORTED_LANGUAGES.includes(paramLang as any)
+    ? paramLang
+    : "en";
 
   // Use the new SEO metadata generator
-  return generatePageSeoMetadata(lang as any, { 
-    translationPrefix: 'removePdf', 
-    canonicalPath: 'remove-pdf-page' 
-  }); 
+  return generatePageSeoMetadata(lang as any, {
+    translationPrefix: "removePdf",
+    canonicalPath: "remove-pdf-page",
+  });
 }
 
 export default function RemovePdfPage() {
   return (
     <div className="container max-w-5xl py-12 mx-auto">
       <RemoveHeaderSection />
-  <div className="mb-12">
-        <Suspense fallback={<div>Loading...</div>}>
-          <PdfRemove />
-        </Suspense>
-      </div>
+
       {/* Main Tool Card */}
-    
+      <div className="mb-12">
+        <PdfRemoveClient />
+      </div>
 
       {/* How It Works */}
       <HowToRemoveSection />
