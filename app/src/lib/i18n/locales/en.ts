@@ -3383,6 +3383,263 @@ export default {
         answer: "You'll need to unlock password-protected PDFs first."
       }
     }
-  }
+  },
+  
+    terms: {
+      title: "Terms of Service",
+      meta: {
+        title: "Terms of Service | MegaPDF - PDF Tools",
+        description: "Terms of Service for MegaPDF PDF Tools. Read about our terms and conditions for using our services."
+      },
+      lastUpdated: "Last Updated: March 18, 2025",
+      welcome: "Welcome to MegaPDF. Please read these Terms of Service carefully before using our website, mobile applications, and services (collectively, the Services).",
+      sections: {
+        acceptance: {
+          title: "1. Acceptance of Terms",
+          content: "By accessing or using our Services, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our Services."
+        },
+        services: {
+          title: "2. Description of Services",
+          description: "MegaPDF provides tools for PDF document conversion, manipulation, and optimization, including but not limited to:",
+          features: {
+            feature1: "Converting PDFs to various formats (DOCX, XLSX, JPG, etc.)",
+            feature2: "Converting documents to PDF format",
+            feature3: "Compressing PDF files",
+            feature4: "Merging multiple PDF files",
+            feature5: "Splitting PDF files into separate documents",
+            feature6: "Rotating PDF pages",
+            feature7: "Adding watermarks to PDF files",
+            feature8: "Other PDF processing functions"
+          }
+        },
+        account: {
+          title: "3. Account Registration",
+          registration: "3.1. Some features of our Services may require you to register for an account. When you register, you agree to provide accurate, current, and complete information.",
+          responsibility: "3.2. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.",
+          security: "3.3. You agree to notify us immediately of any unauthorized use of your account or any other breach of security."
+        },
+        obligations: {
+          title: "4. User Obligations",
+          lawfulUse: {
+            title: "4.1. Lawful Use.",
+            description: "You agree to use our Services only for lawful purposes and in accordance with these Terms. You agree not to use our Services:",
+            restrictions: {
+              restriction1: "In any way that violates any applicable federal, state, local, or international law or regulation",
+              restriction2: "To transmit any material that contains viruses, Trojan horses, worms, malware, or other harmful code",
+              restriction3: "To infringe upon or violate our intellectual property rights or the intellectual property rights of others"
+            }
+          },
+          content: {
+            title: "4.2. Content Ownership and Responsibility.",
+            description: "You retain all ownership rights to the files you upload to our Services. You are solely responsible for the content of your files and the legality of uploading, processing, and downloading such content."
+          },
+          sensitiveInfo: {
+            title: "4.3. No Sensitive Information.",
+            description: "You agree not to upload files containing sensitive personal information such as social security numbers, financial account information, health information, or any other information subject to specific regulatory protection."
+          }
+        },
+        privacy: {
+          title: "5. Privacy",
+          description: {
+            before: "Your privacy is important to us. Our ",
+            link: "Privacy Policy",
+            after: ", which is incorporated into these Terms by reference, explains how we collect, use, and disclose information about you."
+          }
+        },
+        intellectual: {
+          title: "6. Intellectual Property Rights",
+          ownership: {
+            title: "6.1. Our Intellectual Property.",
+            description: "The Services, including all content, features, and functionality, are owned by us, our licensors, or other providers and are protected by copyright, trademark, and other intellectual property laws."
+          },
+          license: {
+            title: "6.2. Limited License to Use.",
+            description: "We grant you a limited, non-exclusive, non-transferable, revocable license to use our Services for your personal or internal business purposes."
+          }
+        },
+        disclaimers: {
+          title: "7. Disclaimers and Limitations of Liability",
+          asis: {
+            title: "7.1. Service Provided As Is.",
+            description: "The Services are provided on an AS IS and AS AVAILABLE basis, without warranties of any kind, either express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, or non-infringement."
+          },
+          liability: {
+            title: "7.2. Limitation of Liability.",
+            description: "To the fullest extent permitted by applicable law, in no event will we or our affiliates, service providers, employees, agents, officers, or directors be liable for damages of any kind, under any legal theory, arising out of or in connection with your use or inability to use the Services, including any direct, indirect, special, incidental, consequential, or punitive damages."
+          }
+        },
+        termination: {
+          title: "8. Term and Termination",
+          duration: "8.1. These Terms shall remain in full force and effect while you use the Services.",
+          rights: "8.2. We may terminate or suspend your access to all or any part of the Services, with or without notice, for any conduct that we, in our sole discretion, believe is in violation of these Terms or is harmful to other users of the Services, us, or third parties, or for any other reason.",
+          effect: "8.3. Upon termination, your right to use the Services will immediately cease."
+        },
+        changes: {
+          title: "9. Changes to Terms",
+          description: "We reserve the right to modify these Terms at any time. We will provide notice of any material changes by posting the new Terms on the Services and updating the Last Updated date. Your continued use of the Services after such changes constitutes your acceptance of the new Terms."
+        },
+        contact: {
+          title: "10. Contact Information",
+          description: "If you have any questions about these Terms, please contact us at:",
+          email: {
+            label: "Email:",
+            value: "support@mega-pdf.com"
+          },
+          address: {
+            label: "Address:",
+            value: "Indonesia, Bangka Belitung"
+          }
+        }
+      },
+      agreement: "By using MegaPDF, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.",
+      viewPrivacyPolicy: "View Privacy Policy"
+    },
+    privacy: {
+      title: "Privacy Policy",
+      meta: {
+        title: "Privacy Policy | MegaPDF - PDF Tools",
+        description: "Privacy Policy for MegaPDF PDF Tools. Learn how we handle your data and protect your privacy."
+      },
+      lastUpdated: "Last Updated: March 18, 2025",
+      introduction: "This Privacy Policy describes how MegaPDF collects, uses, and discloses information when you use our website, mobile applications, and services (collectively, the Services).",
+      sections: {
+        informationWeCollect: {
+          title: "1. Information We Collect",
+          description: "We collect several types of information from and about users of our Services:"
+        },
+        informationYouProvide: {
+          title: "1.1. Information You Provide to Us",
+          account: {
+            label: "Account Information:",
+            description: "When you register for an account, we collect your name, email address, and password."
+          },
+          payment: {
+            label: "Payment Information:",
+            description: "If you purchase premium services, we collect payment information, which may include credit card details, billing address, and other financial information. Payment processing is handled by our third-party payment processors, and we do not store complete credit card information on our servers."
+          },
+          files: {
+            label: "Files and Content:",
+            description: "We collect the files you upload to our Services for processing (such as PDFs and other documents)."
+          },
+          communications: {
+            label: "Communications:",
+            description: "If you contact us directly, we may collect information about your communication and any additional information you provide."
+          }
+        },
+        automaticInformation: {
+          title: "1.2. Information We Collect Automatically",
+          usage: {
+            label: "Usage Data:",
+            description: "We collect information about how you interact with our Services, including the features you use, the time spent on the Services, and the pages you visit."
+          },
+          device: {
+            label: "Device and Connection Information:",
+            description: "We collect information about your device and internet connection, including your IP address, browser type, operating system, and device identifiers."
+          },
+          cookies: {
+            label: "Cookies and Similar Technologies:",
+            description: "We use cookies and similar tracking technologies to track activity on our Services and to maintain certain information. For more information about our use of cookies, please see Section 5 below."
+          }
+        },
+        howWeUse: {
+          title: "2. How We Use Your Information",
+          description: "We use the information we collect for various purposes, including to:",
+          purposes: {
+            purpose1: "Provide, maintain, and improve our Services",
+            purpose2: "Process and complete transactions, and send related information including confirmations",
+            purpose3: "Send administrative information, such as updates, security alerts, and support messages",
+            purpose4: "Respond to your comments, questions, and requests, and provide customer service",
+            purpose5: "Communicate with you about products, services, offers, promotions, and events",
+            purpose6: "Monitor and analyze trends, usage, and activities in connection with our Services",
+            purpose7: "Detect, investigate, and prevent fraudulent transactions and other illegal activities",
+            purpose8: "Personalize and improve your experience with our Services"
+          }
+        },
+        fileHandling: {
+          title: "3. How We Handle Your Files",
+          processing: {
+            title: "3.1. File Processing",
+            description: "Files you upload to our Services are processed on our servers to provide the requested conversion or manipulation functionality. This processing is typically automated and does not involve human review of your content."
+          },
+          storage: {
+            title: "3.2. File Storage and Retention",
+            temporary: {
+              label: "Temporary Storage:",
+              description: "Uploaded files are stored temporarily on our servers to provide our Services. Files are automatically deleted after 24 hours unless you are a premium user with extended storage options."
+            },
+            converted: {
+              label: "Converted Files:",
+              description: "The resulting converted or processed files are also stored temporarily and are available for download for 24 hours, after which they are automatically deleted."
+            }
+          },
+          security: {
+            title: "3.3. File Security",
+            description: "We implement reasonable security measures designed to protect your files from unauthorized access, disclosure, alteration, or destruction. However, please note that no method of transmission over the internet or method of electronic storage is 100% secure."
+          }
+        },
+        sharing: {
+          title: "4. Sharing of Information",
+          description: "We may share information as follows:",
+          serviceProviders: {
+            title: "4.1. Service Providers",
+            description: "We may share your information with third-party vendors, service providers, contractors, or agents who perform services on our behalf, such as payment processing, data analysis, email delivery, hosting services, and customer service."
+          },
+          businessTransfers: {
+            title: "4.2. Business Transfers",
+            description: "If we are involved in a merger, acquisition, financing, reorganization, bankruptcy, or sale of company assets, your information may be transferred as part of that transaction."
+          },
+          legal: {
+            title: "4.3. Legal Requirements",
+            description: "We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court or government agency)."
+          }
+        },
+        cookies: {
+          title: "5. Cookies and Tracking Technologies",
+          types: {
+            title: "5.1. Types of Cookies We Use",
+            essential: {
+              label: "Essential Cookies:",
+              description: "These cookies are necessary for the Services to function properly."
+            },
+            analytics: {
+              label: "Analytics Cookies:",
+              description: "We use these cookies to analyze how users interact with our Services, which helps us improve functionality and user experience."
+            },
+            preference: {
+              label: "Preference Cookies:",
+              description: "These cookies enable us to remember information that changes the way the Services behave or look, such as your preferred language or region."
+            }
+          }
+        },
+        rights: {
+          title: "6. Your Rights and Choices",
+          description: "Depending on your location, you may have certain rights regarding your personal information:",
+          options: {
+            option1: "Request access to your personal information",
+            option2: "Request correction of inaccurate information",
+            option3: "Request deletion of your information",
+            option4: "Object to our processing of your information",
+            option5: "Request restriction of processing",
+            option6: "Request data portability",
+            option7: "Withdraw consent at any time, where processing is based on consent"
+          }
+        },
+        contact: {
+          title: "7. Contact Information",
+          description: "If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:",
+          email: {
+            label: "Email:",
+            value: "privacy@mega-pdf.com"
+          },
+          address: {
+            label: "Address:",
+            value: "Indonesia, Bangka Belitung"
+          }
+        }
+      },
+      acknowledgment: "By using MegaPDF, you acknowledge that you have read and understood this Privacy Policy.",
+      viewTerms: "View Terms of Service"
+    }
+  
 }
 

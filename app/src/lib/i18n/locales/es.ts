@@ -3162,5 +3162,260 @@ export default {
         answer: "Primero necesitarás desbloquear los PDFs protegidos con contraseña."
       }
     }
-  }
+  },
+  terms: {
+    title: "Términos de Servicio",
+    meta: {
+      title: "Términos de Servicio | MegaPDF - Herramientas PDF",
+      description: "Términos de Servicio para las herramientas PDF de MegaPDF. Lea acerca de nuestros términos y condiciones para el uso de nuestros servicios."
+    },
+    lastUpdated: "Última actualización: 18 de marzo de 2025",
+    welcome: "Bienvenido a MegaPDF. Por favor, lea estos Términos de Servicio cuidadosamente antes de usar nuestro sitio web, aplicaciones móviles y servicios (colectivamente, los Servicios).",
+    sections: {
+      acceptance: {
+        title: "1. Aceptación de los Términos",
+        content: "Al acceder o usar nuestros Servicios, usted acepta estar sujeto a estos Términos. Si no está de acuerdo con estos Términos, por favor no utilice nuestros Servicios."
+      },
+      services: {
+        title: "2. Descripción de los Servicios",
+        description: "MegaPDF proporciona herramientas para la conversión, manipulación y optimización de documentos PDF, incluyendo, pero no limitado a:",
+        features: {
+          feature1: "Conversión de PDFs a varios formatos (DOCX, XLSX, JPG, etc.)",
+          feature2: "Conversión de documentos a formato PDF",
+          feature3: "Compresión de archivos PDF",
+          feature4: "Fusión de múltiples archivos PDF",
+          feature5: "División de archivos PDF en documentos separados",
+          feature6: "Rotación de páginas PDF",
+          feature7: "Añadir marcas de agua a archivos PDF",
+          feature8: "Otras funciones de procesamiento de PDF"
+        }
+      },
+      account: {
+        title: "3. Registro de Cuenta",
+        registration: "3.1. Algunas funciones de nuestros Servicios pueden requerir que se registre para obtener una cuenta. Al registrarse, usted acepta proporcionar información precisa, actual y completa.",
+        responsibility: "3.2. Usted es responsable de mantener la confidencialidad de las credenciales de su cuenta y de todas las actividades que ocurran bajo su cuenta.",
+        security: "3.3. Usted acepta notificarnos inmediatamente de cualquier uso no autorizado de su cuenta o cualquier otra violación de seguridad."
+      },
+      obligations: {
+        title: "4. Obligaciones del Usuario",
+        lawfulUse: {
+          title: "4.1. Uso Legal.",
+          description: "Usted acepta usar nuestros Servicios solo para fines legales y de acuerdo con estos Términos. Usted acepta no usar nuestros Servicios:",
+          restrictions: {
+            restriction1: "De ninguna manera que viole cualquier ley o regulación federal, estatal, local o internacional aplicable",
+            restriction2: "Para transmitir cualquier material que contenga virus, troyanos, gusanos, malware u otro código dañino",
+            restriction3: "Para infringir o violar nuestros derechos de propiedad intelectual o los derechos de propiedad intelectual de otros"
+          }
+        },
+        content: {
+          title: "4.2. Propiedad y Responsabilidad del Contenido.",
+          description: "Usted conserva todos los derechos de propiedad sobre los archivos que carga en nuestros Servicios. Usted es el único responsable del contenido de sus archivos y de la legalidad de cargar, procesar y descargar dicho contenido."
+        },
+        sensitiveInfo: {
+          title: "4.3. Sin Información Sensible.",
+          description: "Usted acepta no cargar archivos que contengan información personal sensible, como números de seguridad social, información de cuentas financieras, información de salud o cualquier otra información sujeta a protección regulatoria específica."
+        }
+      },
+      privacy: {
+        title: "5. Privacidad",
+        description: {
+          before: "Su privacidad es importante para nosotros. Nuestra ",
+          link: "Política de Privacidad",
+          after: ", que se incorpora a estos Términos por referencia, explica cómo recolectamos, usamos y divulgamos información sobre usted."
+        }
+      },
+      intellectual: {
+        title: "6. Derechos de Propiedad Intelectual",
+        ownership: {
+          title: "6.1. Nuestra Propiedad Intelectual.",
+          description: "Los Servicios, incluyendo todo el contenido, características y funcionalidades, son propiedad nuestra, de nuestros licenciantes u otros proveedores y están protegidos por leyes de derechos de autor, marcas registradas y otras leyes de propiedad intelectual."
+        },
+        license: {
+          title: "6.2. Licencia Limitada para Uso.",
+          description: "Le otorgamos una licencia limitada, no exclusiva, no transferible y revocable para usar nuestros Servicios para sus fines personales o comerciales internos."
+        }
+      },
+      disclaimers: {
+        title: "7. Descargos de Responsabilidad y Limitaciones de Responsabilidad",
+        asis: {
+          title: "7.1. Servicio Proporcionado Tal Cual.",
+          description: "Los Servicios se proporcionan TAL CUAL y SEGÚN DISPONIBILIDAD, sin garantías de ningún tipo, ya sean expresas o implícitas, incluyendo, pero no limitado a, garantías implícitas de comerciabilidad, aptitud para un propósito particular o no infracción."
+        },
+        liability: {
+          title: "7.2. Limitación de Responsabilidad.",
+          description: "En la máxima medida permitida por la ley aplicable, en ningún caso nosotros o nuestras afiliadas, proveedores de servicios, empleados, agentes, oficiales o directores seremos responsables por daños de ningún tipo, bajo ninguna teoría legal, que surjan de o en conexión con su uso o incapacidad para usar los Servicios, incluyendo cualquier daño directo, indirecto, especial, incidental, consecuente o punitivo."
+        }
+      },
+      termination: {
+        title: "8. Vigencia y Terminación",
+        duration: "8.1. Estos Términos permanecerán en pleno vigor y efecto mientras usted utilice los Servicios.",
+        rights: "8.2. Podemos terminar o suspender su acceso a todos o cualquier parte de los Servicios, con o sin notificación, por cualquier conducta que, a nuestro exclusivo criterio, consideremos que viola estos Términos o es perjudicial para otros usuarios de los Servicios, nosotros o terceros, o por cualquier otra razón.",
+        effect: "8.3. Tras la terminación, su derecho a usar los Servicios cesará inmediatamente."
+      },
+      changes: {
+        title: "9. Cambios a los Términos",
+        description: "Nos reservamos el derecho de modificar estos Términos en cualquier momento. Notificaremos cualquier cambio material publicando los nuevos Términos en los Servicios y actualizando la fecha de última actualización. Su uso continuado de los Servicios después de dichos cambios constituye su aceptación de los nuevos Términos."
+      },
+      contact: {
+        title: "10. Información de Contacto",
+        description: "Si tiene alguna pregunta sobre estos Términos, contáctenos en:",
+        email: {
+          label: "Correo electrónico:",
+          value: "support@mega-pdf.com"
+        },
+        address: {
+          label: "Dirección:",
+          value: "Indonesia, Bangka Belitung"
+        }
+      }
+    },
+    agreement: "Al usar MegaPDF, usted reconoce que ha leído, entendido y acepta estar sujeto a estos Términos de Servicio.",
+    viewPrivacyPolicy: "Ver Política de Privacidad"
+  },
+  privacy: {
+    title: "Política de Privacidad",
+    meta: {
+      title: "Política de Privacidad | MegaPDF - Herramientas PDF",
+      description: "Política de Privacidad para las herramientas PDF de MegaPDF. Conozca cómo manejamos sus datos y protegemos su privacidad."
+    },
+    lastUpdated: "Última actualización: 18 de marzo de 2025",
+    introduction: "Esta Política de Privacidad describe cómo MegaPDF recopila, utiliza y divulga información cuando utiliza nuestro sitio web, aplicaciones móviles y servicios (colectivamente, los Servicios).",
+    sections: {
+      informationWeCollect: {
+        title: "1. Información que recopilamos",
+        description: "Recopilamos varios tipos de información de y sobre los usuarios de nuestros Servicios:"
+      },
+      informationYouProvide: {
+        title: "1.1. Información que nos proporciona",
+        account: {
+          label: "Información de la cuenta:",
+          description: "Cuando se registra para obtener una cuenta, recopilamos su nombre, dirección de correo electrónico y contraseña."
+        },
+        payment: {
+          label: "Información de pago:",
+          description: "Si adquiere servicios premium, recopilamos información de pago, que puede incluir detalles de la tarjeta de crédito, dirección de facturación y otra información financiera. El procesamiento de pagos lo manejan nuestros procesadores de pagos de terceros, y no almacenamos información completa de tarjetas de crédito en nuestros servidores."
+        },
+        files: {
+          label: "Archivos y contenido:",
+          description: "Recopilamos los archivos que sube a nuestros Servicios para su procesamiento (como PDFs y otros documentos)."
+        },
+        communications: {
+          label: "Comunicaciones:",
+          description: "Si se pone en contacto con nosotros directamente, podemos recopilar información sobre su comunicación y cualquier información adicional que proporcione."
+        }
+      },
+      automaticInformation: {
+        title: "1.2. Información que recopilamos automáticamente",
+        usage: {
+          label: "Datos de uso:",
+          description: "Recopilamos información sobre cómo interactúa con nuestros Servicios, incluidas las funciones que utiliza, el tiempo que pasa en los Servicios y las páginas que visita."
+        },
+        device: {
+          label: "Información del dispositivo y conexión:",
+          description: "Recopilamos información sobre su dispositivo y conexión a Internet, incluida su dirección IP, tipo de navegador, sistema operativo e identificadores de dispositivo."
+        },
+        cookies: {
+          label: "Cookies y tecnologías similares:",
+          description: "Utilizamos cookies y tecnologías de seguimiento similares para rastrear la actividad en nuestros Servicios y mantener cierta información. Para obtener más información sobre nuestro uso de cookies, consulte la Sección 5 a continuación."
+        }
+      },
+      howWeUse: {
+        title: "2. Cómo usamos su información",
+        description: "Usamos la información que recopilamos para diversos fines, incluidos:",
+        purposes: {
+          purpose1: "Proporcionar, mantener y mejorar nuestros Servicios",
+          purpose2: "Procesar y completar transacciones, y enviar información relacionada, incluidas confirmaciones",
+          purpose3: "Enviar información administrativa, como actualizaciones, alertas de seguridad y mensajes de soporte",
+          purpose4: "Responder a sus comentarios, preguntas y solicitudes, y proporcionar servicio al cliente",
+          purpose5: "Comunicarnos con usted sobre productos, servicios, ofertas, promociones y eventos",
+          purpose6: "Monitorear y analizar tendencias, uso y actividades en relación con nuestros Servicios",
+          purpose7: "Detectar, investigar y prevenir transacciones fraudulentas y otras actividades ilegales",
+          purpose8: "Personalizar y mejorar su experiencia con nuestros Servicios"
+        }
+      },
+      fileHandling: {
+        title: "3. Cómo manejamos sus archivos",
+        processing: {
+          title: "3.1. Procesamiento de archivos",
+          description: "Los archivos que sube a nuestros Servicios se procesan en nuestros servidores para proporcionar la funcionalidad de conversión o manipulación solicitada. Este procesamiento suele ser automatizado y no implica una revisión humana de su contenido."
+        },
+        storage: {
+          title: "3.2. Almacenamiento y retención de archivos",
+          temporary: {
+            label: "Almacenamiento temporal:",
+            description: "Los archivos subidos se almacenan temporalmente en nuestros servidores para proporcionar nuestros Servicios. Los archivos se eliminan automáticamente después de 24 horas, a menos que sea un usuario premium con opciones de almacenamiento extendido."
+          },
+          converted: {
+            label: "Archivos convertidos:",
+            description: "Los archivos convertidos o procesados resultantes también se almacenan temporalmente y están disponibles para su descarga durante 24 horas, después de lo cual se eliminan automáticamente."
+          }
+        },
+        security: {
+          title: "3.3. Seguridad de los archivos",
+          description: "Implementamos medidas de seguridad razonables diseñadas para proteger sus archivos contra accesos no autorizados, divulgación, alteración o destrucción. Sin embargo, tenga en cuenta que ningún método de transmisión por Internet o de almacenamiento electrónico es 100% seguro."
+        }
+      },
+      sharing: {
+        title: "4. Compartir información",
+        description: "Podemos compartir información de la siguiente manera:",
+        serviceProviders: {
+          title: "4.1. Proveedores de servicios",
+          description: "Podemos compartir su información con proveedores, contratistas o agentes de terceros que realizan servicios en nuestro nombre, como procesamiento de pagos, análisis de datos, entrega de correo electrónico, servicios de alojamiento y servicio al cliente."
+        },
+        businessTransfers: {
+          title: "4.2. Transferencias comerciales",
+          description: "Si estamos involucrados en una fusión, adquisición, financiamiento, reorganización, quiebra o venta de activos de la empresa, su información puede transferirse como parte de esa transacción."
+        },
+        legal: {
+          title: "4.3. Requisitos legales",
+          description: "Podemos divulgar su información si así lo requiere la ley o en respuesta a solicitudes válidas de autoridades públicas (por ejemplo, un tribunal o una agencia gubernamental)."
+        }
+      },
+      cookies: {
+        title: "5. Cookies y tecnologías de seguimiento",
+        types: {
+          title: "5.1. Tipos de cookies que utilizamos",
+          essential: {
+            label: "Cookies esenciales:",
+            description: "Estas cookies son necesarias para que los Servicios funcionen correctamente."
+          },
+          analytics: {
+            label: "Cookies analíticas:",
+            description: "Utilizamos estas cookies para analizar cómo los usuarios interactúan con nuestros Servicios, lo que nos ayuda a mejorar la funcionalidad y la experiencia del usuario."
+          },
+          preference: {
+            label: "Cookies de preferencia:",
+            description: "Estas cookies nos permiten recordar información que cambia la forma en que los Servicios se comportan o se ven, como su idioma o región preferida."
+          }
+        }
+      },
+      rights: {
+        title: "6. Sus derechos y opciones",
+        description: "Dependiendo de su ubicación, puede tener ciertos derechos con respecto a su información personal:",
+        options: {
+          option1: "Solicitar acceso a su información personal",
+          option2: "Solicitar la corrección de información inexacta",
+          option3: "Solicitar la eliminación de su información",
+          option4: "Objetar nuestro procesamiento de su información",
+          option5: "Solicitar la restricción del procesamiento",
+          option6: "Solicitar la portabilidad de datos",
+          option7: "Retirar el consentimiento en cualquier momento, cuando el procesamiento se base en el consentimiento"
+        }
+      },
+      contact: {
+        title: "7. Información de contacto",
+        description: "Si tiene alguna pregunta o inquietud sobre esta Política de Privacidad o nuestras prácticas de datos, contáctenos en:",
+        email: {
+          label: "Correo electrónico:",
+          value: "privacy@mega-pdf.com"
+        },
+        address: {
+          label: "Dirección:",
+          value: "Indonesia, Bangka Belitung"
+        }
+      }
+    },
+    acknowledgment: "Al usar MegaPDF, usted reconoce que ha leído y entendido esta Política de Privacidad.",
+    viewTerms: "Ver Términos de Servicio"
+}
 }

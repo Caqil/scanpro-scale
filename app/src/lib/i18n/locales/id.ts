@@ -3168,5 +3168,261 @@ export default {
         answer: "Anda perlu membuka kunci PDF yang dilindungi kata sandi terlebih dahulu."
       }
     }
-  }
+  },
+  terms: {
+    title: "Syarat Layanan",
+    meta: {
+      title: "Syarat Layanan | MegaPDF - Alat PDF",
+      description: "Syarat Layanan untuk Alat PDF MegaPDF. Baca tentang syarat dan ketentuan kami untuk menggunakan layanan kami."
+    },
+    lastUpdated: "Terakhir Diperbarui: 18 Maret 2025",
+    welcome: "Selamat datang di MegaPDF. Harap baca Syarat Layanan ini dengan cermat sebelum menggunakan situs web, aplikasi seluler, dan layanan kami (secara kolektif disebut Layanan).",
+    sections: {
+      acceptance: {
+        title: "1. Penerimaan Syarat",
+        content: "Dengan mengakses atau menggunakan Layanan kami, Anda setuju untuk terikat oleh Syarat ini. Jika Anda tidak setuju dengan Syarat ini, harap jangan gunakan Layanan kami."
+      },
+      services: {
+        title: "2. Deskripsi Layanan",
+        description: "MegaPDF menyediakan alat untuk konversi, manipulasi, dan optimalisasi dokumen PDF, termasuk namun tidak terbatas pada:",
+        features: {
+          feature1: "Mengonversi PDF ke berbagai format (DOCX, XLSX, JPG, dll.)",
+          feature2: "Mengonversi dokumen ke format PDF",
+          feature3: "Mengompresi file PDF",
+          feature4: "Menggabungkan beberapa file PDF",
+          feature5: "Memisahkan file PDF menjadi dokumen terpisah",
+          feature6: "Memutar halaman PDF",
+          feature7: "Menambahkan tanda air ke file PDF",
+          feature8: "Fungsi pemrosesan PDF lainnya"
+        }
+      },
+      account: {
+        title: "3. Pendaftaran Akun",
+        registration: "3.1. Beberapa fitur Layanan kami mungkin mengharuskan Anda mendaftar akun. Saat mendaftar, Anda setuju untuk memberikan informasi yang akurat, terkini, dan lengkap.",
+        responsibility: "3.2. Anda bertanggung jawab untuk menjaga kerahasiaan kredensial akun Anda dan untuk semua aktivitas yang terjadi di bawah akun Anda.",
+        security: "3.3. Anda setuju untuk segera memberi tahu kami tentang penggunaan akun Anda yang tidak sah atau pelanggaran keamanan lainnya."
+      },
+      obligations: {
+        title: "4. Kewajiban Pengguna",
+        lawfulUse: {
+          title: "4.1. Penggunaan yang Sah.",
+          description: "Anda setuju untuk menggunakan Layanan kami hanya untuk tujuan yang sah dan sesuai dengan Syarat ini. Anda setuju untuk tidak menggunakan Layanan kami:",
+          restrictions: {
+            restriction1: "Dengan cara yang melanggar hukum atau peraturan federal, negara bagian, lokal, atau internasional yang berlaku",
+            restriction2: "Untuk mengirimkan materi yang mengandung virus, Trojan horse, worm, malware, atau kode berbahaya lainnya",
+            restriction3: "Untuk melanggar atau melanggar hak kekayaan intelektual kami atau hak kekayaan intelektual pihak lain"
+          }
+        },
+        content: {
+          title: "4.2. Kepemilikan dan Tanggung Jawab Konten.",
+          description: "Anda mempertahankan semua hak kepemilikan atas file yang Anda unggah ke Layanan kami. Anda bertanggung jawab penuh atas konten file Anda dan legalitas pengunggahan, pemrosesan, dan pengunduhan konten tersebut."
+        },
+        sensitiveInfo: {
+          title: "4.3. Tidak Ada Informasi Sensitif.",
+          description: "Anda setuju untuk tidak mengunggah file yang berisi informasi pribadi sensitif seperti nomor jaminan sosial, informasi akun keuangan, informasi kesehatan, atau informasi lain yang tunduk pada perlindungan peraturan khusus."
+        }
+      },
+      privacy: {
+        title: "5. Privasi",
+        description: {
+          before: "Privasi Anda penting bagi kami. ",
+          link: "Kebijakan Privasi",
+          after: " kami, yang dimasukkan ke dalam Syarat ini melalui referensi, menjelaskan bagaimana kami mengumpulkan, menggunakan, dan mengungkapkan informasi tentang Anda."
+        }
+      },
+      intellectual: {
+        title: "6. Hak Kekayaan Intelektual",
+        ownership: {
+          title: "6.1. Kekayaan Intelektual Kami.",
+          description: "Layanan, termasuk semua konten, fitur, dan fungsionalitas, dimiliki oleh kami, pemberi lisensi kami, atau penyedia lain dan dilindungi oleh undang-undang hak cipta, merek dagang, dan hak kekayaan intelektual lainnya."
+        },
+        license: {
+          title: "6.2. Lisensi Terbatas untuk Penggunaan.",
+          description: "Kami memberikan Anda lisensi terbatas, non-eksklusif, tidak dapat dipindahtangankan, dan dapat dicabut untuk menggunakan Layanan kami untuk tujuan pribadi atau bisnis internal Anda."
+        }
+      },
+      disclaimers: {
+        title: "7. Penafian dan Batasan Tanggung Jawab",
+        asis: {
+          title: "7.1. Layanan Disediakan Apa Adanya.",
+          description: "Layanan disediakan APA ADANYA dan SESUAI KETERSEDIAAN, tanpa jaminan apa pun, baik tersurat maupun tersirat, termasuk, namun tidak terbatas pada, jaminan tersirat tentang kelayakan untuk diperdagangkan, kesesuaian untuk tujuan tertentu, atau tidak adanya pelanggaran."
+        },
+        liability: {
+          title: "7.2. Batasan Tanggung Jawab.",
+          description: "Sejauh diizinkan oleh hukum yang berlaku, dalam keadaan apa pun kami atau afiliasi kami, penyedia layanan, karyawan, agen, pejabat, atau direktur tidak akan bertanggung jawab atas kerusakan apa pun, berdasarkan teori hukum apa pun, yang timbul dari atau sehubungan dengan penggunaan atau ketidakmampuan Anda untuk menggunakan Layanan, termasuk kerusakan langsung, tidak langsung, khusus, insidental, konsekuensial, atau hukuman."
+        }
+      },
+      termination: {
+        title: "8. Jangka Waktu dan Pengakhiran",
+        duration: "8.1. Syarat ini akan tetap berlaku sepenuhnya selama Anda menggunakan Layanan.",
+        rights: "8.2. Kami dapat mengakhiri atau menangguhkan akses Anda ke semua atau sebagian Layanan, dengan atau tanpa pemberitahuan, untuk perilaku apa pun yang kami, atas kebijakan kami sendiri, anggap melanggar Syarat ini atau merugikan pengguna lain dari Layanan, kami, atau pihak ketiga, atau untuk alasan lain apa pun.",
+        effect: "8.3. Setelah pengakhiran, hak Anda untuk menggunakan Layanan akan segera berhenti."
+      },
+      changes: {
+        title: "9. Perubahan Syarat",
+        description: "Kami berhak untuk mengubah Syarat ini kapan saja. Kami akan memberikan pemberitahuan tentang perubahan material dengan memposting Syarat baru di Layanan dan memperbarui tanggal Terakhir Diperbarui. Penggunaan Layanan yang berkelanjutan setelah perubahan tersebut merupakan penerimaan Anda atas Syarat baru."
+      },
+      contact: {
+        title: "10. Informasi Kontak",
+        description: "Jika Anda memiliki pertanyaan tentang Syarat ini, silakan hubungi kami di:",
+        email: {
+          label: "Email:",
+          value: "support@mega-pdf.com"
+        },
+        address: {
+          label: "Alamat:",
+          value: "Indonesia, Bangka Belitung"
+        }
+      }
+    },
+    agreement: "Dengan menggunakan MegaPDF, Anda mengakui bahwa Anda telah membaca, memahami, dan setuju untuk terikat oleh Syarat Layanan ini.",
+    viewPrivacyPolicy: "Lihat Kebijakan Privasi"
+  },
+
+  privacy: {
+    title: "Kebijakan Privasi",
+    meta: {
+      title: "Kebijakan Privasi | MegaPDF - Alat PDF",
+      description: "Kebijakan Privasi untuk Alat PDF MegaPDF. Pelajari bagaimana kami menangani data Anda dan melindungi privasi Anda."
+    },
+    lastUpdated: "Terakhir Diperbarui: 18 Maret 2025",
+    introduction: "Kebijakan Privasi ini menjelaskan bagaimana MegaPDF mengumpulkan, menggunakan, dan mengungkapkan informasi saat Anda menggunakan situs web, aplikasi seluler, dan layanan kami (secara kolektif disebut Layanan).",
+    sections: {
+      informationWeCollect: {
+        title: "1. Informasi yang Kami Kumpulkan",
+        description: "Kami mengumpulkan beberapa jenis informasi dari dan tentang pengguna Layanan kami:"
+      },
+      informationYouProvide: {
+        title: "1.1. Informasi yang Anda Berikan kepada Kami",
+        account: {
+          label: "Informasi Akun:",
+          description: "Saat Anda mendaftar untuk sebuah akun, kami mengumpulkan nama, alamat email, dan kata sandi Anda."
+        },
+        payment: {
+          label: "Informasi Pembayaran:",
+          description: "Jika Anda membeli layanan premium, kami mengumpulkan informasi pembayaran, yang dapat mencakup detail kartu kredit, alamat penagihan, dan informasi keuangan lainnya. Pemrosesan pembayaran ditangani oleh pemroses pembayaran pihak ketiga kami, dan kami tidak menyimpan informasi kartu kredit lengkap di server kami."
+        },
+        files: {
+          label: "File dan Konten:",
+          description: "Kami mengumpulkan file yang Anda unggah ke Layanan kami untuk diproses (seperti PDF dan dokumen lainnya)."
+        },
+        communications: {
+          label: "Komunikasi:",
+          description: "Jika Anda menghubungi kami secara langsung, kami dapat mengumpulkan informasi tentang komunikasi Anda dan informasi tambahan apa pun yang Anda berikan."
+        }
+      },
+      automaticInformation: {
+        title: "1.2. Informasi yang Kami Kumpulkan Secara Otomatis",
+        usage: {
+          label: "Data Penggunaan:",
+          description: "Kami mengumpulkan informasi tentang cara Anda berinteraksi dengan Layanan kami, termasuk fitur yang Anda gunakan, waktu yang dihabiskan di Layanan, dan halaman yang Anda kunjungi."
+        },
+        device: {
+          label: "Informasi Perangkat dan Koneksi:",
+          description: "Kami mengumpulkan informasi tentang perangkat Anda dan koneksi internet Anda, termasuk alamat IP, jenis browser, sistem operasi, dan pengenal perangkat."
+        },
+        cookies: {
+          label: "Cookie dan Teknologi Serupa:",
+          description: "Kami menggunakan cookie dan teknologi pelacakan serupa untuk melacak aktivitas di Layanan kami dan untuk menyimpan informasi tertentu. Untuk informasi lebih lanjut tentang penggunaan cookie kami, silakan lihat Bagian 5 di bawah ini."
+        }
+      },
+      howWeUse: {
+        title: "2. Bagaimana Kami Menggunakan Informasi Anda",
+        description: "Kami menggunakan informasi yang kami kumpulkan untuk berbagai tujuan, termasuk untuk:",
+        purposes: {
+          purpose1: "Menyediakan, memelihara, dan meningkatkan Layanan kami",
+          purpose2: "Memproses dan menyelesaikan transaksi, serta mengirimkan informasi terkait termasuk konfirmasi",
+          purpose3: "Mengirimkan informasi administratif, seperti pembaruan, peringatan keamanan, dan pesan dukungan",
+          purpose4: "Menanggapi komentar, pertanyaan, dan permintaan Anda, serta menyediakan layanan pelanggan",
+          purpose5: "Berkomunikasi dengan Anda tentang produk, layanan, penawaran, promosi, dan acara",
+          purpose6: "Memantau dan menganalisis tren, penggunaan, dan aktivitas sehubungan dengan Layanan kami",
+          purpose7: "Mendeteksi, menyelidiki, dan mencegah transaksi penipuan dan aktivitas ilegal lainnya",
+          purpose8: "Mempersonalisasi dan meningkatkan pengalaman Anda dengan Layanan kami"
+        }
+      },
+      fileHandling: {
+        title: "3. Bagaimana Kami Menangani File Anda",
+        processing: {
+          title: "3.1. Pemrosesan File",
+          description: "File yang Anda unggah ke Layanan kami diproses di server kami untuk menyediakan fungsi konversi atau manipulasi yang diminta. Pemrosesan ini biasanya otomatis dan tidak melibatkan peninjauan manusia atas konten Anda."
+        },
+        storage: {
+          title: "3.2. Penyimpanan dan Retensi File",
+          temporary: {
+            label: "Penyimpanan Sementara:",
+            description: "File yang diunggah disimpan sementara di server kami untuk menyediakan Layanan kami. File akan dihapus secara otomatis setelah 24 jam kecuali Anda adalah pengguna premium dengan opsi penyimpanan yang diperpanjang."
+          },
+          converted: {
+            label: "File yang Dikonversi:",
+            description: "File yang dihasilkan dari konversi atau pemrosesan juga disimpan sementara dan tersedia untuk diunduh selama 24 jam, setelah itu akan dihapus secara otomatis."
+          }
+        },
+        security: {
+          title: "3.3. Keamanan File",
+          description: "Kami menerapkan langkah-langkah keamanan yang wajar untuk melindungi file Anda dari akses, pengungkapan, perubahan, atau penghancuran yang tidak sah. Namun, harap diperhatikan bahwa tidak ada metode transmisi melalui internet atau metode penyimpanan elektronik yang 100% aman."
+        }
+      },
+      sharing: {
+        title: "4. Berbagi Informasi",
+        description: "Kami dapat membagikan informasi sebagai berikut:",
+        serviceProviders: {
+          title: "4.1. Penyedia Layanan",
+          description: "Kami dapat membagikan informasi Anda dengan vendor pihak ketiga, penyedia layanan, kontraktor, atau agen yang melakukan layanan atas nama kami, seperti pemrosesan pembayaran, analisis data, pengiriman email, layanan hosting, dan layanan pelanggan."
+        },
+        businessTransfers: {
+          title: "4.2. Transfer Bisnis",
+          description: "Jika kami terlibat dalam penggabungan, akuisisi, pembiayaan, reorganisasi, kebangkrutan, atau penjualan aset perusahaan, informasi Anda dapat ditransfer sebagai bagian dari transaksi tersebut."
+        },
+        legal: {
+          title: "4.3. Persyaratan Hukum",
+          description: "Kami dapat mengungkapkan informasi Anda jika diwajibkan oleh hukum atau sebagai tanggapan atas permintaan yang sah dari otoritas publik (misalnya, pengadilan atau badan pemerintah)."
+        }
+      },
+      cookies: {
+        title: "5. Cookie dan Teknologi Pelacakan",
+        types: {
+          title: "5.1. Jenis Cookie yang Kami Gunakan",
+          essential: {
+            label: "Cookie Esensial:",
+            description: "Cookie ini diperlukan agar Layanan dapat berfungsi dengan baik."
+          },
+          analytics: {
+            label: "Cookie Analitik:",
+            description: "Kami menggunakan cookie ini untuk menganalisis bagaimana pengguna berinteraksi dengan Layanan kami, yang membantu kami meningkatkan fungsionalitas dan pengalaman pengguna."
+          },
+          preference: {
+            label: "Cookie Preferensi:",
+            description: "Cookie ini memungkinkan kami untuk mengingat informasi yang mengubah cara Layanan berperilaku atau tampil, seperti bahasa atau wilayah yang Anda pilih."
+          }
+        }
+      },
+      rights: {
+        title: "6. Hak dan Pilihan Anda",
+        description: "Tergantung pada lokasi Anda, Anda mungkin memiliki hak tertentu terkait informasi pribadi Anda:",
+        options: {
+          option1: "Meminta akses ke informasi pribadi Anda",
+          option2: "Meminta koreksi informasi yang tidak akurat",
+          option3: "Meminta penghapusan informasi Anda",
+          option4: "Menolak pemrosesan informasi Anda oleh kami",
+          option5: "Meminta pembatasan pemrosesan",
+          option6: "Meminta portabilitas data",
+          option7: "Menarik persetujuan kapan saja, jika pemrosesan didasarkan pada persetujuan"
+        }
+      },
+      contact: {
+        title: "7. Informasi Kontak",
+        description: "Jika Anda memiliki pertanyaan atau kekhawatiran tentang Kebijakan Privasi ini atau praktik data kami, silakan hubungi kami di:",
+        email: {
+          label: "Email:",
+          value: "privacy@mega-pdf.com"
+        },
+        address: {
+          label: "Alamat:",
+          value: "Indonesia, Bangka Belitung"
+        }
+      }
+    },
+    acknowledgment: "Dengan menggunakan MegaPDF, Anda mengakui bahwa Anda telah membaca dan memahami Kebijakan Privasi ini.",
+    viewTerms: "Lihat Ketentuan Layanan"
+}
 }

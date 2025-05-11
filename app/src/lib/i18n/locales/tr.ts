@@ -3166,5 +3166,260 @@ export default {
             answer: "Önce PDF'in kilidini açmanız gerekir."
           }
         }
-      }
+      },
+      terms: {
+        title: "Hizmet Şartları",
+        meta: {
+          title: "Hizmet Şartları | MegaPDF - PDF Araçları",
+          description: "MegaPDF PDF Araçları için Hizmet Şartları. Hizmetlerimizi kullanma şartlarımız ve koşullarımız hakkında bilgi edinin."
+        },
+        lastUpdated: "Son Güncelleme: 18 Mart 2025",
+        welcome: "MegaPDF'ye hoş geldiniz. Lütfen web sitemizi, mobil uygulamalarımızı ve hizmetlerimizi (topluca Hizmetler olarak anılır) kullanmadan önce bu Hizmet Şartlarını dikkatlice okuyun.",
+        sections: {
+          acceptance: {
+            title: "1. Şartların Kabulü",
+            content: "Hizmetlerimize erişerek veya kullanarak, bu Şartlara bağlı olmayı kabul edersiniz. Bu Şartlara uymayı kabul etmiyorsanız, lütfen Hizmetlerimizi kullanmayın."
+          },
+          services: {
+            title: "2. Hizmetlerin Tanımı",
+            description: "MegaPDF, PDF belgelerinin dönüştürülmesi, işlenmesi ve optimize edilmesi için araçlar sağlar; bunlar arasında şunlar yer alır ancak bunlarla sınırlı değildir:",
+            features: {
+              feature1: "PDF'leri çeşitli formatlara (DOCX, XLSX, JPG vb.) dönüştürme",
+              feature2: "Belgeleri PDF formatına dönüştürme",
+              feature3: "PDF dosyalarını sıkıştırma",
+              feature4: "Birden fazla PDF dosyasını birleştirme",
+              feature5: "PDF dosyalarını ayrı belgelere ayırma",
+              feature6: "PDF sayfalarını döndürme",
+              feature7: "PDF dosyalarına filigran ekleme",
+              feature8: "Diğer PDF işleme fonksiyonları"
+            }
+          },
+          account: {
+            title: "3. Hesap Kaydı",
+            registration: "3.1. Hizmetlerimizin bazı özellikleri bir hesap kaydı gerektirebilir. Kayıt olurken, doğru, güncel ve tam bilgi sağlamayı kabul edersiniz.",
+            responsibility: "3.2. Hesap kimlik bilgilerinizin gizliliğini korumaktan ve hesabınız altında gerçekleşacto: 3.3. Hesabınızın yetkisiz kullanımı veya başka bir güvenlik ihlali durumunda derhal bizi bilgilendirmeyi kabul edersiniz."
+          },
+          obligations: {
+            title: "4. Kullanıcı Yükümlülükleri",
+            lawfulUse: {
+              title: "4.1. Yasal Kullanım.",
+              description: "Hizmetlerimizi yalnızca yasal amaçlarla ve bu Şartlara uygun olarak kullanmayı kabul edersiniz. Hizmetlerimizi şu şekilde kullanmamayı kabul edersiniz:",
+              restrictions: {
+                restriction1: "Geçerli federal, eyalet, yerel veya uluslararası yasa veya düzenlemeleri ihlal eden herhangi bir şekilde",
+                restriction2: "Virüs, Truva atı, solucan, kötü amaçlı yazılım veya diğer zararlı kod içeren materyalleri iletmek için",
+                restriction3: "Fikri mülkiyet haklarımıza veya başkalarının fikri mülkiyet haklarına tecavüz etmek veya bunları ihlal etmek için"
+              }
+          },
+            content: {
+              title: "4.2. İçerik Sahipliği ve Sorumluluğu.",
+              description: "Hizmetlerimize yüklediğiniz dosyaların tüm mülkiyet haklarını saklı tutarsınız. Dosyalarınızın içeriğinden ve bu içeriğin yüklenmesi, işlenmesi ve indirilmesinin yasallığından yalnızca siz sorumlusunuz."
+            },
+            sensitiveInfo: {
+              title: "4.3. Hassas Bilgi Yok.",
+              description: "Sosyal güvenlik numaraları, finansal hesap bilgileri, sağlık bilgileri veya belirli düzenleyici korumalara tabi olan diğer bilgiler gibi hassas kişisel bilgileri içeren dosyaları yüklememeyi kabul edersiniz."
+            }
+          },
+          privacy: {
+            title: "5. Gizlilik",
+            description: {
+              before: "Gizliliğiniz bizim için önemlidir. ",
+              link: "Gizlilik Politikası",
+              after: ", bu Şartlara atıf yoluyla dahil edilmiştir ve sizin hakkınızda bilgi toplama, kullanma ve ifşa etme şeklimizi açıklar."
+            }
+          },
+          intellectual: {
+            title: "6. Fikri Mülkiyet Hakları",
+            ownership: {
+              title: "6.1. Fikri Mülkiyetimiz.",
+              description: "Hizmetler, tüm içerik, özellikler ve işlevsellik dahil olmak üzere, bize, lisans verenlerimize veya diğer sağlayıcılara aittir ve telif hakkı, ticari marka ve diğer fikri mülkiyet yasalarıyla korunur."
+            },
+            license: {
+              title: "6.2. Kullanım için Sınırlı Lisans.",
+              description: "Size, kişisel veya dahili iş amaçlarınız için Hizmetlerimizi kullanmanız için sınırlı, münhasır olmayan, devredilemez ve iptal edilebilir bir lisans veriyoruz."
+            }
+          },
+          disclaimers: {
+            title: "7. Feragat ve Sorumluluk Sınırlamaları",
+            asis: {
+              title: "7.1. Hizmet Olduğu Gibi Sağlanır.",
+              description: "Hizmetler OLDUĞU GİBİ ve MEVCUT OLDUĞU ŞEKİLDE sağlanır, herhangi bir garanti olmaksızın, açık veya zımni, ticari elverişlilik, belirli bir amaca uygunluk veya ihlal etmeme zımni garantileri dahil ancak bunlarla sınırlı olmamak üzere."
+            },
+            liability: {
+              title: "7.2. Sorumluluk Sınırlaması.",
+              description: "Geçerli yasaların izin verdiği azami ölçüde, hiçbir durumda biz, bağlı kuruluşlarımız, hizmet sağlayıcılarımız, çalışanlarımız, temsilcilerimiz, memurlarımız veya yöneticilerimiz, Hizmetlerin kullanımı veya kullanılamaması ile bağlantılı olarak veya bunlardan kaynaklanan herhangi bir zarar için, herhangi bir yasal teori altında, doğrudan, dolaylı, özel, arızi, sonuçsal veya cezai zararlar dahil olmak üzere sorumlu olmayacaktır."
+            }
+          },
+          termination: {
+            title: "8. Süre ve Fesih",
+            duration: "8.1. Bu Şartlar, siz Hizmetleri kullandığınız sürece tam olarak yürürlükte kalacaktır.",
+            rights: "8.2. Tek taraflı takdirimize bağlı olarak, bu Şartları ihlal ettiğine veya diğer Hizmet kullanıcılarına, bize veya üçüncü taraflara zarar verdiğine inandığımız herhangi bir davranış için, bildirimde bulunarak veya bulunmadan, Hizmetlerin tümüne veya bir kısmına erişiminizi feshedebilir veya askıya alabiliriz, veya başka herhangi bir nedenle.",
+            effect: "8.3. Fesih üzerine, Hizmetleri kullanma hakkınız derhal sona erecektir."
+          },
+          changes: {
+            title: "9. Şartlardaki Değişiklikler",
+            description: "Bu Şartları istediğimiz zaman değiştirme hakkını saklı tutarız. Önemli değişiklikleri, yeni Şartları Hizmetlerde yayınlayarak ve Son Güncelleme tarihini güncelleyerek bildireceğiz. Bu tür değişikliklerden sonra Hizmetleri kullanmaya devam etmeniz, yeni Şartları kabul ettiğiniz anlamına gelir."
+          },
+          contact: {
+            title: "10. İletişim Bilgileri",
+            description: "Bu Şartlar hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin:",
+            email: {
+              label: "E-posta:",
+              value: "support@mega-pdf.com"
+            },
+            address: {
+              label: "Adres:",
+              value: "Endonezya, Bangka Belitung"
+            }
+          }
+        },
+        agreement: "MegaPDF'yi kullanarak, bu Hizmet Şartlarını okuduğunuzu, anladığınızı ve bunlara bağlı olmayı kabul ettiğinizi beyan edersiniz.",
+        viewPrivacyPolicy: "Gizlilik Politikasını Görüntüle"
+      },
+
+      privacy: {
+        title: "Gizlilik Politikası",
+        meta: {
+          title: "Gizlilik Politikası | MegaPDF - PDF Araçları",
+          description: "MegaPDF PDF Araçları için Gizlilik Politikası. Verilerinizi nasıl işlediğimizi ve gizliliğinizi nasıl koruduğumuzu öğrenin."
+        },
+        lastUpdated: "Son Güncelleme: 18 Mart 2025",
+        introduction: "Bu Gizlilik Politikası, MegaPDF'nin web sitemizi, mobil uygulamalarımızı ve hizmetlerimizi (topluca Hizmetler olarak anılır) kullanırken bilgileri nasıl topladığını, kullandığını ve ifşa ettiğini açıklar.",
+        sections: {
+          informationWeCollect: {
+            title: "1. Topladığımız Bilgiler",
+            description: "Hizmetlerimizin kullanıcılarından ve kullanıcılar hakkında birkaç tür bilgi topluyoruz:"
+          },
+          informationYouProvide: {
+            title: "1.1. Bize Sağladığınız Bilgiler",
+            account: {
+              label: "Hesap Bilgileri:",
+              description: "Bir hesap için kaydolduğunuzda, adınızı, e-posta adresinizi ve şifrenizi toplarız."
+            },
+            payment: {
+              label: "Ödeme Bilgileri:",
+              description: "Premium hizmetler satın alırsanız, kredi kartı bilgileri, fatura adresi ve diğer finansal bilgiler dahil olmak üzere ödeme bilgilerini toplarız. Ödeme işlemleri, üçüncü taraf ödeme işlemcilerimiz tarafından gerçekleştirilir ve sunucularımızda tam kredi kartı bilgilerini saklamayız."
+            },
+            files: {
+              label: "Dosyalar ve İçerik:",
+              description: "Hizmetlerimize işlenmek üzere yüklediğiniz dosyaları (PDF'ler ve diğer belgeler gibi) toplarız."
+            },
+            communications: {
+              label: "İletişimler:",
+              description: "Doğrudan bizimle iletişime geçerseniz, iletişimle ilgili bilgileri ve sağladığınız ek bilgileri toplayabiliriz."
+            }
+          },
+          automaticInformation: {
+            title: "1.2. Otomatik Olarak Topladığımız Bilgiler",
+            usage: {
+              label: "Kullanım Verileri:",
+              description: "Hizmetlerimizle nasıl etkileşimde bulunduğunuz hakkında bilgi toplarız; bu, kullandığınız özellikleri, Hizmetlerde geçirdiğiniz süreyi ve ziyaret ettiğiniz sayfaları içerir."
+            },
+            device: {
+              label: "Cihaz ve Bağlantı Bilgileri:",
+              description: "Cihazınız ve internet bağlantınız hakkında bilgi toplarız; bu, IP adresinizi, tarayıcı türünüzü, işletim sisteminizi ve cihaz tanımlayıcılarınızı içerir."
+            },
+            cookies: {
+              label: "Çerezler ve Benzer Teknolojiler:",
+              description: "Hizmetlerimizdeki aktiviteleri takip etmek ve belirli bilgileri saklamak için çerezler ve benzer izleme teknolojileri kullanırız. Çerez kullanımımız hakkında daha fazla bilgi için lütfen aşağıdaki Bölüm 5'e bakın."
+            }
+          },
+          howWeUse: {
+            title: "2. Bilgilerinizi Nasıl Kullanıyoruz",
+            description: "Topladığımız bilgileri çeşitli amaçlar için kullanırız, bunlar arasında:",
+            purposes: {
+              purpose1: "Hizmetlerimizi sağlamak, sürdürmek ve iyileştirmek",
+              purpose2: "İşlemleri işlemek ve tamamlamak, onaylar dahil ilgili bilgileri göndermek",
+              purpose3: "Güncellemeler, güvenlik uyarıları ve destek mesajları gibi idari bilgileri göndermek",
+              purpose4: "Yorumlarınıza, sorularınıza ve taleplerinize yanıt vermek ve müşteri hizmetleri sağlamak",
+              purpose5: "Ürünler, hizmetler, teklifler, promosyonlar ve etkinlikler hakkında sizinle iletişim kurmak",
+              purpose6: "Hizmetlerimizle bağlantılı trendleri, kullanımı ve aktiviteleri izlemek ve analiz etmek",
+              purpose7: "Sahte işlemleri ve diğer yasa dışı faaliyetleri tespit etmek, araştırmak ve önlemek",
+              purpose8: "Hizmetlerimizle olan deneyiminizi kişiselleştirmek ve iyileştirmek"
+            }
+          },
+          fileHandling: {
+            title: "3. Dosyalarınıza Nasıl Yaklaşıyoruz",
+            processing: {
+              title: "3.1. Dosya İşleme",
+              description: "Hizmetlerimize yüklediğiniz dosyalar, talep edilen dönüştürme veya manipülasyon işlevselliğini sağlamak için sunucularımızda işlenir. Bu işlem genellikle otomatiktir ve içeriğinizin insan tarafından incelenmesini içermez."
+            },
+            storage: {
+              title: "3.2. Dosya Depolama ve Saklama",
+              temporary: {
+                label: "Geçici Depolama:",
+                description: "Yüklenen dosyalar, Hizmetlerimizi sağlamak için sunucularımızda geçici olarak depolanır. Premium kullanıcı değilseniz ve genişletilmiş depolama seçenekleriniz yoksa, dosyalar 24 saat sonra otomatik olarak silinir."
+              },
+              converted: {
+                label: "Dönüştürülen Dosyalar:",
+                description: "Sonuç olarak dönüştürülen veya işlenen dosyalar da geçici olarak depolanır ve 24 saat boyunca indirilebilir, ardından otomatik olarak silinir."
+              }
+            },
+            security: {
+              title: "3.3. Dosya Güvenliği",
+              description: "Dosyalarınızı yetkisiz erişim, ifşa, değiştirme veya imha edilmekten korumak için tasarlanmış makul güvenlik önlemleri uygularız. Ancak, internet üzerinden hiçbir iletim yöntemi veya elektronik depolama yönteminin %100 güvenli olmadığını lütfen unutmayın."
+            }
+          },
+          sharing: {
+            title: "4. Bilgi Paylaşımı",
+            description: "Bilgileri aşağıdaki şekilde paylaşabiliriz:",
+            serviceProviders: {
+              title: "4.1. Hizmet Sağlayıcılar",
+              description: "Bilgilerinizi, ödeme işlemleri, veri analizi, e-posta teslimi, barındırma hizmetleri ve müşteri hizmetleri gibi bizim adımıza hizmetler gerçekleştiren üçüncü taraf satıcılar, hizmet sağlayıcılar, yükleniciler veya temsilcilerle paylaşabiliriz."
+            },
+            businessTransfers: {
+              title: "4.2. İş Transferleri",
+              description: "Bir birleşme, satın alma, finansman, yeniden yapılanma, iflas veya şirket varlıklarının satışı durumunda, bilgileriniz bu işlemin bir parçası olarak devredilebilir."
+            },
+            legal: {
+              title: "4.3. Yasal Gereklilikler",
+              description: "Yasalar gereği veya kamu otoritelerinden gelen geçerli taleplere yanıt olarak (örneğin, bir mahkeme veya devlet kurumu) bilgilerinizi ifşa edebiliriz."
+            }
+          },
+          cookies: {
+            title: "5. Çerezler ve İzleme Teknolojileri",
+            types: {
+              title: "5.1. Kullandığımız Çerez Türleri",
+              essential: {
+                label: "Temel Çerezler:",
+                description: "Bu çerezler, Hizmetlerin düzgün çalışması için gereklidir."
+              },
+              analytics: {
+                label: "Analitik Çerezler:",
+                description: "Kullanıcıların Hizmetlerimizle nasıl etkileşimde bulunduğunu analiz etmek için bu çerezleri kullanırız, bu da işlevselliği ve kullanıcı deneyimini iyileştirmemize yardımcı olur."
+              },
+              preference: {
+                label: "Tercih Çerezleri:",
+                description: "Bu çerezler, Hizmetlerin davranışını veya görünümünü değiştiren bilgileri, örneğin tercih ettiğiniz dil veya bölgeyi hatırlamamızı sağlar."
+              }
+            }
+          },
+          rights: {
+            title: "6. Haklarınız ve Seçenekleriniz",
+            description: "Bulunduğunuz bölgeye bağlı olarak, kişisel bilgilerinizle ilgili belirli haklara sahip olabilirsiniz:",
+            options: {
+              option1: "Kişisel bilgilerinize erişim talep etmek",
+              option2: "Yanlış bilgilerin düzeltilmesini talep etmek",
+              option3: "Bilgilerinizin silinmesini-demand etmek",
+              option4: "Bilgilerinizin işlenmesine itiraz etmek",
+              option5: "İşlemin kısıtlanmasını talep etmek",
+              option6: "Veri taşınabilirliğini talep etmek",
+              option7: "İşlemin rızaya dayalı olduğu durumlarda herhangi bir zamanda rızayı geri çekmek"
+            }
+          },
+          contact: {
+            title: "7. İletişim Bilgileri",
+            description: "Bu Gizlilik Politikası veya veri uygulamalarımız hakkında sorularınız veya endişeleriniz varsa, lütfen bizimle iletişime geçin:",
+            email: {
+              label: "E-posta:",
+              value: "privacy@mega-pdf.com"
+            },
+            address: {
+              label: "Adres:",
+              value: "Endonezya, Bangka Belitung"
+            }
+          }
+        },
+        acknowledgment: "MegaPDF'yi kullanarak, bu Gizlilik Politikasını okuduğunuzu ve anladığınızı kabul edersiniz.",
+        viewTerms: "Hizmet Şartlarını Görüntüle"
+    }
 }

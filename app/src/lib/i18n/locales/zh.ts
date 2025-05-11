@@ -3164,5 +3164,260 @@ export default {
             answer: "需先解锁PDF。"
           }
         }
-      }
+      },
+      terms: {
+        title: "服务条款",
+        meta: {
+          title: "服务条款 | MegaPDF - PDF工具",
+          description: "MegaPDF PDF工具的服务条款。了解我们使用服务的条款和条件。"
+        },
+        lastUpdated: "最后更新：2025年3月18日",
+        welcome: "欢迎使用MegaPDF。在使用我们的网站、移动应用程序和服务（统称为“服务”）之前，请仔细阅读本服务条款。",
+        sections: {
+          acceptance: {
+            title: "1. 接受条款",
+            content: "通过访问或使用我们的服务，您同意受本条款的约束。如果您不同意本条款，请勿使用我们的服务。"
+          },
+          services: {
+            title: "2. 服务描述",
+            description: "MegaPDF提供用于PDF文档转换、操作和优化的工具，包括但不限于：",
+            features: {
+              feature1: "将PDF转换为各种格式（DOCX、XLSX、JPG等）",
+              feature2: "将文档转换为PDF格式",
+              feature3: "压缩PDF文件",
+              feature4: "合并多个PDF文件",
+              feature5: "将PDF文件拆分为单独的文档",
+              feature6: "旋转PDF页面",
+              feature7: "为PDF文件添加水印",
+              feature8: "其他PDF处理功能"
+            }
+          },
+          account: {
+            title: "3. 账户注册",
+            registration: "3.1. 我们服务的某些功能可能需要您注册账户。注册时，您同意提供准确、最新且完整的个人信息。",
+            responsibility: "3.2. 您有责任维护账户凭证的机密性，并对您账户下发生的所有活动负责。",
+            security: "3.3. 您同意在发现任何未经授权使用您的账户或其他安全漏洞时立即通知我们。"
+          },
+          obligations: {
+            title: "4. 用户义务",
+            lawfulUse: {
+              title: "4.1. 合法使用。",
+              description: "您同意仅将我们的服务用于合法目的，并遵守本条款。您同意不将我们的服务用于：",
+              restrictions: {
+                restriction1: "以任何违反适用联邦、州、地方或国际法律或法规的方式",
+                restriction2: "传输包含病毒、特洛伊木马、蠕虫、恶意软件或其他有害代码的材料",
+                restriction3: "侵犯或违反我们的知识产权或其他人的知识产权"
+              }
+            },
+            content: {
+              title: "4.2. 内容所有权和责任。",
+              description: "您保留对上传至我们服务的所有文件的所有权。您对文件内容以及上传、处理和下载此类内容的合法性负全部责任。"
+            },
+            sensitiveInfo: {
+              title: "4.3. 无敏感信息。",
+              description: "您同意不上传包含敏感个人信息的文件，例如社会保障号码、财务账户信息、健康信息或受特定监管保护的其他信息。"
+            }
+          },
+          privacy: {
+            title: "5. 隐私",
+            description: {
+              before: "您的隐私对我们很重要。我们的",
+              link: "隐私政策",
+              after: "通过引用纳入本条款，解释了我们如何收集、使用和披露您的信息。"
+            }
+          },
+          intellectual: {
+            title: "6. 知识产权",
+            ownership: {
+              title: "6.1. 我们的知识产权。",
+              description: "服务（包括所有内容、功能和特性）由我们、我们的许可方或其他提供商拥有，并受版权、商标和其他知识产权法律的保护。"
+            },
+            license: {
+              title: "6.2. 有限使用许可。",
+              description: "我们授予您有限的、非独占的、不可转让且可撤销的许可，允许您将我们的服务用于个人或内部商业目的。"
+            }
+          },
+          disclaimers: {
+            title: "7. 免责声明和责任限制",
+            asis: {
+              title: "7.1. 服务按现状提供。",
+              description: "服务按现状和可用性提供，不提供任何明示或暗示的保证，包括但不限于适销性、特定用途适用性或非侵权的暗示保证。"
+            },
+            liability: {
+              title: "7.2. 责任限制。",
+              description: "在适用法律允许的最大范围内，在任何情况下，我们或我们的关联公司、服务提供商、员工、代理人、高级职员或董事均不对因您使用或无法使用服务而产生或与之相关的任何类型的损害承担责任，无论基于何种法律理论，包括任何直接、间接、特殊、附带、后果性或惩罚性损害。"
+            }
+          },
+          termination: {
+            title: "8. 期限和终止",
+            duration: "8.1. 本条款在您使用服务期间始终有效。",
+            rights: "8.2. 我们可自行决定以任何理由，包括但不限于我们认为违反本条款或对其他服务用户、我们或第三方有害的行为，随时终止或暂停您对全部或部分服务的访问，无论是否提前通知。",
+            effect: "8.3. 终止后，您使用服务的权利将立即终止。"
+          },
+          changes: {
+            title: "9. 条款变更",
+            description: "我们保留随时修改本条款的权利。我们将通过在服务上发布新条款并更新最后更新日期来通知任何重大变更。您在变更后继续使用服务即表示您接受新条款。"
+          },
+          contact: {
+            title: "10. 联系信息",
+            description: "如对本条款有任何疑问，请通过以下方式联系我们：",
+            email: {
+              label: "电子邮件：",
+              value: "support@mega-pdf.com"
+            },
+            address: {
+              label: "地址：",
+              value: "印度尼西亚，邦卡-勿里洞"
+            }
+          }
+        },
+        agreement: "通过使用MegaPDF，您确认您已阅读、理解并同意受本服务条款的约束。",
+        viewPrivacyPolicy: "查看隐私政策"
+      },
+      privacy: {
+        title: "隐私政策",
+        meta: {
+          title: "隐私政策 | MegaPDF - PDF工具",
+          description: "MegaPDF PDF工具的隐私政策。了解我们如何处理您的数据并保护您的隐私。"
+        },
+        lastUpdated: "最后更新：2025年3月18日",
+        introduction: "本隐私政策描述了MegaPDF在您使用我们的网站、移动应用程序和服务（统称为“服务”）时如何收集、使用和披露信息。",
+        sections: {
+          informationWeCollect: {
+            title: "1. 我们收集的信息",
+            description: "我们从服务的用户以及关于用户的几种类型的信息中收集："
+          },
+          informationYouProvide: {
+            title: "1.1. 您提供给我们的信息",
+            account: {
+              label: "账户信息：",
+              description: "当您注册账户时，我们会收集您的姓名、电子邮件地址和密码。"
+            },
+            payment: {
+              label: "支付信息：",
+              description: "如果您购买高级服务，我们会收集支付信息，可能包括信用卡详情、账单地址和其他财务信息。支付处理由我们的第三方支付处理器处理，我们不会在服务器上存储完整的信用卡信息。"
+            },
+            files: {
+              label: "文件和内容：",
+              description: "我们收集您上传到我们服务进行处理的文件（如PDF和其他文档）。"
+            },
+            communications: {
+              label: "通讯：",
+              description: "如果您直接与我们联系，我们可能会收集有关您通讯的信息以及您提供的任何其他信息。"
+            }
+          },
+          automaticInformation: {
+            title: "1.2. 我们自动收集的信息",
+            usage: {
+              label: "使用数据：",
+              description: "我们收集您与我们服务互动方式的信息，包括您使用的功能、在服务上花费的时间以及您访问的页面。"
+            },
+            device: {
+              label: "设备和连接信息：",
+              description: "我们收集有关您的设备和互联网连接的信息，包括您的IP地址、浏览器类型、操作系统和设备标识符。"
+            },
+            cookies: {
+              label: "Cookies及类似技术：",
+              description: "我们使用Cookies和类似的跟踪技术来跟踪我们服务上的活动并保留某些信息。有关我们使用Cookies的更多信息，请参阅下面的第5节。"
+            }
+          },
+          howWeUse: {
+            title: "2. 我们如何使用您的信息",
+            description: "我们将收集的信息用于多种目的，包括：",
+            purposes: {
+              purpose1: "提供、维护和改进我们的服务",
+              purpose2: "处理和完成交易，并发送相关信息，包括确认",
+              purpose3: "发送管理信息，如更新、安全警报和支持消息",
+              purpose4: "回应您的评论、问题和请求，并提供客户服务",
+              purpose5: "与您沟通有关产品、服务、优惠、促销和活动的信息",
+              purpose6: "监控和分析与我们服务相关的趋势、使用和活动",
+              purpose7: "检测、调查和防止欺诈交易和其他非法活动",
+              purpose8: "个性化和改进您与我们服务的体验"
+            }
+          },
+          fileHandling: {
+            title: "3. 我们如何处理您的文件",
+            processing: {
+              title: "3.1. 文件处理",
+              description: "您上传到我们服务的文件会在我们的服务器上处理，以提供请求的转换或操作功能。此处理通常是自动化的，不涉及人工审查您的内容。"
+            },
+            storage: {
+              title: "3.2. 文件存储和保留",
+              temporary: {
+                label: "临时存储：",
+                description: "上传的文件会临时存储在我们的服务器上以提供我们的服务。除非您是具有扩展存储选项的高级用户，否则文件将在24小时后自动删除。"
+              },
+              converted: {
+                label: "转换后的文件：",
+                description: "转换或处理后的结果文件也会临时存储，可供下载24小时，之后将自动删除。"
+              }
+            },
+            security: {
+              title: "3.3. 文件安全",
+              description: "我们实施了合理的安全措施，旨在保护您的文件免受未经授权的访问、披露、更改或销毁。然而，请注意，没有一种通过互联网传输或电子存储的方法是100%安全的。"
+            }
+          },
+          sharing: {
+            title: "4. 信息共享",
+            description: "我们可能按以下方式共享信息：",
+            serviceProviders: {
+              title: "4.1. 服务提供商",
+              description: "我们可能与代表我们执行服务的第三方供应商、服务提供商、承包商或代理共享您的信息，例如支付处理、数据分析、电子邮件传递、托管服务和客户服务。"
+            },
+            businessTransfers: {
+              title: "4.2. 业务转让",
+              description: "如果我们参与合并、收购、融资、重组、破产或公司资产出售，您的信息可能作为该交易的一部分被转让。"
+            },
+            legal: {
+              title: "4.3. 法律要求",
+              description: "如果法律要求或响应公共当局（例如法院或政府机构）的有效请求，我们可能披露您的信息。"
+            }
+          },
+          cookies: {
+            title: "5. Cookies和跟踪技术",
+            types: {
+              title: "5.1. 我们使用的Cookies类型",
+              essential: {
+                label: "必要Cookies：",
+                description: "这些Cookies对于服务的正常运行是必需的。"
+              },
+              analytics: {
+                label: "分析Cookies：",
+                description: "我们使用这些Cookies来分析用户如何与我们的服务互动，这有助于我们改进功能和用户体验。"
+              },
+              preference: {
+                label: "偏好Cookies：",
+                description: "这些Cookies使我们能够记住更改服务行为或外观的信息，例如您喜欢的语言或地区。"
+              }
+            }
+          },
+          rights: {
+            title: "6. 您的权利和选择",
+            description: "根据您所在的位置，您可能对您的个人信息拥有某些权利：",
+            options: {
+              option1: "请求访问您的个人信息",
+              option2: "请求更正不准确的信息",
+              option3: "请求删除您的信息",
+              option4: "反对我们处理您的信息",
+              option5: "请求限制处理",
+              option6: "请求数据可携带性",
+              option7: "在处理基于同意的情况下，随时撤回同意"
+            }
+          },
+          contact: {
+            title: "7. 联系信息",
+            description: "如果您对本隐私政策或我们的数据实践有任何疑问或担忧，请通过以下方式联系我们：",
+            email: {
+              label: "电子邮件：",
+              value: "privacy@mega-pdf.com"
+            },
+            address: {
+              label: "地址：",
+              value: "印度尼西亚，邦加-勿里洞"
+            }
+          }
+        },
+        acknowledgment: "使用MegaPDF，即表示您确认已阅读并理解本隐私政策。",
+        viewTerms: "查看服务条款"
+    }
 }

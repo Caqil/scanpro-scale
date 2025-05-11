@@ -3161,5 +3161,260 @@ export default {
         answer: "Sie müssen passwortgeschützte PDFs zunächst entsperren."
       }
     }
-  }
+  },
+  terms: {
+    title: "Nutzungsbedingungen",
+    meta: {
+      title: "Nutzungsbedingungen | MegaPDF - PDF-Tools",
+      description: "Nutzungsbedingungen für MegaPDF PDF-Tools. Lesen Sie unsere Bedingungen für die Nutzung unserer Dienste."
+    },
+    lastUpdated: "Zuletzt aktualisiert: 18. März 2025",
+    welcome: "Willkommen bei MegaPDF. Bitte lesen Sie diese Nutzungsbedingungen sorgfältig durch, bevor Sie unsere Website, mobilen Anwendungen und Dienste (zusammen die Dienste) nutzen.",
+    sections: {
+      acceptance: {
+        title: "1. Annahme der Bedingungen",
+        content: "Durch den Zugriff auf oder die Nutzung unserer Dienste erklären Sie sich mit diesen Bedingungen einverstanden. Wenn Sie diesen Bedingungen nicht zustimmen, nutzen Sie unsere Dienste bitte nicht."
+      },
+      services: {
+        title: "2. Beschreibung der Dienste",
+        description: "MegaPDF bietet Tools für die Konvertierung, Bearbeitung und Optimierung von PDF-Dokumenten, einschließlich, aber nicht beschränkt auf:",
+        features: {
+          feature1: "Konvertierung von PDFs in verschiedene Formate (DOCX, XLSX, JPG usw.)",
+          feature2: "Konvertierung von Dokumenten in das PDF-Format",
+          feature3: "Komprimierung von PDF-Dateien",
+          feature4: "Zusammenführen mehrerer PDF-Dateien",
+          feature5: "Aufteilen von PDF-Dateien in separate Dokumente",
+          feature6: "Drehen von PDF-Seiten",
+          feature7: "Hinzufügen von Wasserzeichen zu PDF-Dateien",
+          feature8: "Andere PDF-Verarbeitungsfunktionen"
+        }
+      },
+      account: {
+        title: "3. Kontoregistrierung",
+        registration: "3.1. Einige Funktionen unserer Dienste erfordern möglicherweise die Registrierung eines Kontos. Bei der Registrierung erklären Sie sich damit einverstanden, genaue, aktuelle und vollständige Informationen bereitzustellen.",
+        responsibility: "3.2. Sie sind für die Vertraulichkeit Ihrer Kontodaten und für alle Aktivitäten verantwortlich, die unter Ihrem Konto stattfinden.",
+        security: "3.3. Sie erklären sich damit einverstanden, uns unverzüglich über jede unbefugte Nutzung Ihres Kontos oder jede andere Sicherheitsverletzung zu informieren."
+      },
+      obligations: {
+        title: "4. Pflichten des Nutzers",
+        lawfulUse: {
+          title: "4.1. Rechtmäßige Nutzung.",
+          description: "Sie erklären sich damit einverstanden, unsere Dienste nur für rechtmäßige Zwecke und in Übereinstimmung mit diesen Bedingungen zu nutzen. Sie erklären sich damit einverstanden, unsere Dienste nicht zu nutzen:",
+          restrictions: {
+            restriction1: "In einer Weise, die gegen geltende bundes-, landes-, lokale oder internationale Gesetze oder Vorschriften verstößt",
+            restriction2: "Zur Übertragung von Material, das Viren, Trojaner, Würmer, Malware oder anderen schädlichen Code enthält",
+            restriction3: "Zur Verletzung oder zum Verstoß gegen unsere geistigen Eigentumsrechte oder die geistigen Eigentumsrechte anderer"
+          }
+        },
+        content: {
+          title: "4.2. Eigentum und Verantwortung für Inhalte.",
+          description: "Sie behalten alle Eigentumsrechte an den Dateien, die Sie auf unsere Dienste hochladen. Sie sind allein verantwortlich für den Inhalt Ihrer Dateien und die Rechtmäßigkeit des Hochladens, Verarbeitens und Herunterladens solcher Inhalte."
+        },
+        sensitiveInfo: {
+          title: "4.3. Keine sensiblen Informationen.",
+          description: "Sie erklären sich damit einverstanden, keine Dateien hochzuladen, die sensible persönliche Informationen wie Sozialversicherungsnummern, Finanzkontoinformationen, Gesundheitsinformationen oder andere Informationen enthalten, die besonderen regulatorischen Schutzbestimmungen unterliegen."
+        }
+      },
+      privacy: {
+        title: "5. Datenschutz",
+        description: {
+          before: "Ihre Privatsphäre ist uns wichtig. Unsere ",
+          link: "Datenschutzrichtlinie",
+          after: ", die durch Verweis in diese Bedingungen aufgenommen wird, erläutert, wie wir Informationen über Sie sammeln, verwenden und weitergeben."
+        }
+      },
+      intellectual: {
+        title: "6. Rechte an geistigem Eigentum",
+        ownership: {
+          title: "6.1. Unser geistiges Eigentum.",
+          description: "Die Dienste, einschließlich aller Inhalte, Funktionen und Funktionalitäten, gehören uns, unseren Lizenzgebern oder anderen Anbietern und sind durch Urheberrechte, Markenrechte und andere Gesetze zum Schutz geistigen Eigentums geschützt."
+        },
+        license: {
+          title: "6.2. Eingeschränkte Nutzungslizenz.",
+          description: "Wir gewähren Ihnen eine eingeschränkte, nicht exklusive, nicht übertragbare und widerrufliche Lizenz zur Nutzung unserer Dienste für Ihre persönlichen oder internen geschäftlichen Zwecke."
+        }
+      },
+      disclaimers: {
+        title: "7. Haftungsausschlüsse und Haftungsbeschränkungen",
+        asis: {
+          title: "7.1. Dienst wird wie besehen bereitgestellt.",
+          description: "Die Dienste werden auf einer WIE BESEHEN und WIE VERFÜGBAR Basis bereitgestellt, ohne jegliche Garantien, weder ausdrücklich noch stillschweigend, einschließlich, aber nicht beschränkt auf stillschweigende Garantien der Marktgängigkeit, Eignung für einen bestimmten Zweck oder Nichtverletzung."
+        },
+        liability: {
+          title: "7.2. Haftungsbeschränkung.",
+          description: "Soweit gesetzlich zulässig, haften wir oder unsere verbundenen Unternehmen, Dienstleister, Mitarbeiter, Vertreter, leitenden Angestellten oder Direktoren in keinem Fall für Schäden jeglicher Art, unter irgendeiner rechtlichen Theorie, die aus oder im Zusammenhang mit Ihrer Nutzung oder Unfähigkeit zur Nutzung der Dienste entstehen, einschließlich direkter, indirekter, besonderer, zufälliger, Folge- oder Strafschäden."
+        }
+      },
+      termination: {
+        title: "8. Laufzeit und Kündigung",
+        duration: "8.1. Diese Bedingungen bleiben in vollem Umfang in Kraft, solange Sie die Dienste nutzen.",
+        rights: "8.2. Wir können Ihren Zugang zu allen oder einem Teil der Dienste mit oder ohne Vorankündigung beenden oder aussetzen, für jedes Verhalten, das wir nach unserem alleinigen Ermessen als Verstoß gegen diese Bedingungen oder als schädlich für andere Nutzer der Dienste, uns oder Dritte erachten, oder aus irgendeinem anderen Grund.",
+        effect: "8.3. Bei Kündigung erlischt Ihr Recht zur Nutzung der Dienste sofort."
+      },
+      changes: {
+        title: "9. Änderungen der Bedingungen",
+        description: "Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Wir werden Sie über wesentliche Änderungen informieren, indem wir die neuen Bedingungen auf den Diensten veröffentlichen und das Datum der letzten Aktualisierung anpassen. Ihre fortgesetzte Nutzung der Dienste nach solchen Änderungen stellt Ihre Zustimmung zu den neuen Bedingungen dar."
+      },
+      contact: {
+        title: "10. Kontaktinformationen",
+        description: "Wenn Sie Fragen zu diesen Bedingungen haben, kontaktieren Sie uns bitte unter:",
+        email: {
+          label: "E-Mail:",
+          value: "support@mega-pdf.com"
+        },
+        address: {
+          label: "Adresse:",
+          value: "Indonesien, Bangka Belitung"
+        }
+      }
+    },
+    agreement: "Durch die Nutzung von MegaPDF bestätigen Sie, dass Sie diese Nutzungsbedingungen gelesen, verstanden und sich daran gebunden fühlen.",
+    viewPrivacyPolicy: "Datenschutzrichtlinie anzeigen"
+  },
+  privacy: {
+    title: "Datenschutzrichtlinie",
+    meta: {
+      title: "Datenschutzrichtlinie | MegaPDF - PDF-Tools",
+      description: "Datenschutzrichtlinie für MegaPDF PDF-Tools. Erfahren Sie, wie wir Ihre Daten behandeln und Ihre Privatsphäre schützen."
+    },
+    lastUpdated: "Zuletzt aktualisiert: 18. März 2025",
+    introduction: "Diese Datenschutzrichtlinie beschreibt, wie MegaPDF Informationen sammelt, verwendet und weitergibt, wenn Sie unsere Website, mobilen Anwendungen und Dienste (zusammen die Dienste) nutzen.",
+    sections: {
+      informationWeCollect: {
+        title: "1. Informationen, die wir sammeln",
+        description: "Wir sammeln verschiedene Arten von Informationen von und über Nutzer unserer Dienste:"
+      },
+      informationYouProvide: {
+        title: "1.1. Informationen, die Sie uns bereitstellen",
+        account: {
+          label: "Kontoinformationen:",
+          description: "Wenn Sie sich für ein Konto registrieren, sammeln wir Ihren Namen, Ihre E-Mail-Adresse und Ihr Passwort."
+        },
+        payment: {
+          label: "Zahlungsinformationen:",
+          description: "Wenn Sie Premium-Dienste kaufen, sammeln wir Zahlungsinformationen, die Kreditkartendaten, Rechnungsadresse und andere finanzielle Informationen umfassen können. Die Zahlungsabwicklung wird von unseren Drittanbietern durchgeführt, und wir speichern keine vollständigen Kreditkarteninformationen auf unseren Servern."
+        },
+        files: {
+          label: "Dateien und Inhalte:",
+          description: "Wir sammeln die Dateien, die Sie zur Verarbeitung auf unsere Dienste hochladen (wie PDFs und andere Dokumente)."
+        },
+        communications: {
+          label: "Kommunikation:",
+          description: "Wenn Sie uns direkt kontaktieren, können wir Informationen über Ihre Kommunikation und alle zusätzlichen Informationen sammeln, die Sie bereitstellen."
+        }
+      },
+      automaticInformation: {
+        title: "1.2. Informationen, die wir automatisch sammeln",
+        usage: {
+          label: "Nutzungsdaten:",
+          description: "Wir sammeln Informationen darüber, wie Sie mit unseren Diensten interagieren, einschließlich der Funktionen, die Sie nutzen, der Zeit, die Sie auf den Diensten verbringen, und der Seiten, die Sie besuchen."
+        },
+        device: {
+          label: "Geräte- und Verbindungsinformationen:",
+          description: "Wir sammeln Informationen über Ihr Gerät und Ihre Internetverbindung, einschließlich Ihrer IP-Adresse, des Browsertyps, des Betriebssystems und der Gerätekennungen."
+        },
+        cookies: {
+          label: "Cookies und ähnliche Technologien:",
+          description: "Wir verwenden Cookies und ähnliche Tracking-Technologien, um Aktivitäten auf unseren Diensten zu verfolgen und bestimmte Informationen zu speichern. Weitere Informationen über unsere Verwendung von Cookies finden Sie in Abschnitt 5 unten."
+        }
+      },
+      howWeUse: {
+        title: "2. Wie wir Ihre Informationen verwenden",
+        description: "Wir verwenden die gesammelten Informationen für verschiedene Zwecke, einschließlich um:",
+        purposes: {
+          purpose1: "Unsere Dienste bereitzustellen, zu warten und zu verbessern",
+          purpose2: "Transaktionen zu verarbeiten und abzuschließen sowie damit verbundene Informationen, einschließlich Bestätigungen, zu senden",
+          purpose3: "Administrative Informationen wie Updates, Sicherheitswarnungen und Support-Nachrichten zu senden",
+          purpose4: "Auf Ihre Kommentare, Fragen und Anfragen zu antworten und Kundenservice zu bieten",
+          purpose5: "Mit Ihnen über Produkte, Dienstleistungen, Angebote, Werbeaktionen und Veranstaltungen zu kommunizieren",
+          purpose6: "Trends, Nutzung und Aktivitäten im Zusammenhang mit unseren Diensten zu überwachen und zu analysieren",
+          purpose7: "Betrügerische Transaktionen und andere illegale Aktivitäten zu erkennen, zu untersuchen und zu verhindern",
+          purpose8: "Ihre Erfahrung mit unseren Diensten zu personalisieren und zu verbessern"
+        }
+      },
+      fileHandling: {
+        title: "3. Wie wir Ihre Dateien behandeln",
+        processing: {
+          title: "3.1. Dateiverarbeitung",
+          description: "Dateien, die Sie auf unsere Dienste hochladen, werden auf unseren Servern verarbeitet, um die gewünschte Konvertierungs- oder Manipulationsfunktion bereitzustellen. Diese Verarbeitung ist in der Regel automatisiert und beinhaltet keine menschliche Überprüfung Ihrer Inhalte."
+        },
+        storage: {
+          title: "3.2. Dateispeicherung und -aufbewahrung",
+          temporary: {
+            label: "Temporäre Speicherung:",
+            description: "Hochgeladene Dateien werden temporär auf unseren Servern gespeichert, um unsere Dienste bereitzustellen. Dateien werden nach 24 Stunden automatisch gelöscht, es sei denn, Sie sind ein Premium-Nutzer mit erweiterten Speicheroptionen."
+          },
+          converted: {
+            label: "Konvertierte Dateien:",
+            description: "Die resultierenden konvertierten oder verarbeiteten Dateien werden ebenfalls temporär gespeichert und stehen 24 Stunden lang zum Download zur Verfügung, danach werden sie automatisch gelöscht."
+          }
+        },
+        security: {
+          title: "3.3. Dateisicherheit",
+         奇description: "Wir setzen angemessene Sicherheitsmaßnahmen ein, um Ihre Dateien vor unbefugtem Zugriff, Offenlegung, Änderung oder Zerstörung zu schützen. Bitte beachten Sie jedoch, dass keine Methode der Übertragung über das Internet oder der elektronischen Speicherung zu 100 % sicher ist."
+        }
+      },
+      sharing: {
+        title: "4. Weitergabe von Informationen",
+        description: "Wir können Informationen wie folgt weitergeben:",
+        serviceProviders: {
+          title: "4.1. Dienstleister",
+          description: "Wir können Ihre Informationen mit Drittanbietern, Dienstleistern, Auftragnehmern oder Vertretern teilen, die Dienstleistungen in unserem Namen erbringen, wie Zahlungsabwicklung, Datenanalyse, E-Mail-Zustellung, Hosting-Dienste und Kundenservice."
+        },
+        businessTransfers: {
+          title: "4.2. Unternehmensübertragungen",
+          description: "Wenn wir an einer Fusion, Übernahme, Finanzierung, Reorganisation, Insolvenz oder einem Verkauf von Unternehmensvermögen beteiligt sind, können Ihre Informationen als Teil dieser Transaktion übertragen werden."
+        },
+        legal: {
+          title: "4.3. Gesetzliche Anforderungen",
+          description: "Wir können Ihre Informationen offenlegen, wenn dies gesetzlich vorgeschrieben ist oder als Reaktion auf gültige Anfragen von öffentlichen Behörden (z. B. einem Gericht oder einer Regierungsbehörde)."
+        }
+      },
+      cookies: {
+        title: "5. Cookies und Tracking-Technologien",
+        types: {
+          title: "5.1. Arten von Cookies, die wir verwenden",
+          essential: {
+            label: "Notwendige Cookies:",
+            description: "Diese Cookies sind notwendig, damit die Dienste ordnungsgemäß funktionieren."
+          },
+          analytics: {
+            label: "Analyse-Cookies:",
+            description: "Wir verwenden diese Cookies, um zu analysieren, wie Nutzer mit unseren Diensten interagieren, was uns hilft, die Funktionalität und Benutzererfahrung zu verbessern."
+          },
+          preference: {
+            label: "Präferenz-Cookies:",
+            description: "Diese Cookies ermöglichen es uns, Informationen zu speichern, die das Verhalten oder Aussehen der Dienste verändern, wie Ihre bevorzugte Sprache oder Region."
+          }
+        }
+      },
+      rights: {
+        title: "6. Ihre Rechte und Wahlmöglichkeiten",
+        description: "Je nach Ihrem Standort haben Sie möglicherweise bestimmte Rechte in Bezug auf Ihre persönlichen Informationen:",
+        options: {
+          option1: "Zugriff auf Ihre persönlichen Informationen anfordern",
+          option2: "Korrektur ungenauer Informationen anfordern",
+          option3: "Löschung Ihrer Informationen anfordern",
+          option4: "Widerspruch gegen unsere Verarbeitung Ihrer Informationen",
+          option5: "Einschränkung der Verarbeitung anfordern",
+          option6: "Datenportabilität anfordern",
+          option7: "Einwilligung jederzeit widerrufen, wenn die Verarbeitung auf Einwilligung basiert"
+        }
+      },
+      contact: {
+        title: "7. Kontaktinformationen",
+        description: "Wenn Sie Fragen oder Bedenken zu dieser Datenschutzrichtlinie oder unseren Datenpraktiken haben, kontaktieren Sie uns bitte unter:",
+        email: {
+          label: "E-Mail:",
+          value: "privacy@mega-pdf.com"
+        },
+        address: {
+          label: "Adresse:",
+          value: "Indonesien, Bangka Belitung"
+        }
+      }
+    },
+    acknowledgment: "Durch die Nutzung von MegaPDF bestätigen Sie, dass Sie diese Datenschutzrichtlinie gelesen und verstanden haben.",
+    viewTerms: "Nutzungsbedingungen anzeigen"
+}
 }
