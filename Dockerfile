@@ -50,7 +50,7 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Create required folders inside /app/public
-RUN mkdir -p public/{conversions,compressions,merges,splits,rotations,watermarked,watermarks,protected,unlocked,signatures,ocr,edited,processed,unwatermarked,redacted,repaired,pagenumbers,status}
+RUN mkdir -p public/{conversions,compressions,merges,splits,rotations,watermarked,watermarks,protected,unlocked,signatures,ocr,edited,processed,unwatermarked,redacted,repaired,pagenumbers,remove,status}
 
 # Expose port and set environment variables
 EXPOSE 3000
