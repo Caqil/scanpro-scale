@@ -3,82 +3,50 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { AdminStats } from "@/src/types/admin";
+import {
+  UserPlus,
+  CreditCard,
+  Activity,
+  Settings,
+  FileText,
+  Shield,
+  Key,
+  RefreshCw,
+} from "lucide-react";
 
-interface Activity {
-  id: string;
-  user: {
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  action: string;
-  target: string;
-  timestamp: string;
-  type: "user" | "subscription" | "api" | "system";
+interface RecentActivityProps {
+  activities: AdminStats["recentActivity"];
 }
 
-export function RecentActivity() {
-  // Mock activity data - in a real app, fetch from API
-  const activities: Activity[] = [
-    {
-      id: "1",
-      user: {
-        name: "John Doe",
-        email: "john@example.com",
-      },
-      action: "upgraded",
-      target: "Pro subscription",
-      timestamp: "2 minutes ago",
-      type: "subscription",
-    },
-    {
-      id: "2",
-      user: {
-        name: "Jane Smith",
-        email: "jane@example.com",
-      },
-      action: "created",
-      target: "API key",
-      timestamp: "5 minutes ago",
-      type: "api",
-    },
-    {
-      id: "3",
-      user: {
-        name: "System",
-        email: "system@megapdf.com",
-      },
-      action: "completed",
-      target: "Backup",
-      timestamp: "10 minutes ago",
-      type: "system",
-    },
-    {
-      id: "4",
-      user: {
-        name: "Bob Johnson",
-        email: "bob@example.com",
-      },
-      action: "signed up",
-      target: "New account",
-      timestamp: "15 minutes ago",
-      type: "user",
-    },
-    {
-      id: "5",
-      user: {
-        name: "Alice Brown",
-        email: "alice@example.com",
-      },
-      action: "performed",
-      target: "1000 PDF conversions",
-      timestamp: "20 minutes ago",
-      type: "api",
-    },
-  ];
+export function RecentActivity({ activities }: RecentActivityProps) {
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case "user_registered":
+        return <UserPlus className="h-4 w-4" />;
+      case "subscription_created":
+      case "subscription_updated":
+        return <CreditCard className="h-4 w-4" />;
+      case "api_call":
+        return <Activity className="h-4 w-4" />;
+      case "api_key_created":
+        return <Key className="h-4 w-4" />;
+      case "role_changed":
+        return <Shield className="h-4 w-4" />;
+      case "settings_updated":
+        return <Settings className="h-4 w-4" />;
+      case "document_processed":
+        return <FileText className="h-4 w-4" />;
+      case "system_event":
+        return <RefreshCw className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
+    }
+  };
 
-  const getActivityColor = (type: Activity["type"]) => {
+  const getActivityColor = (type: AdminStats["recentActivity"][0]["type"]) => {
     switch (type) {
       case "user":
         return "bg-blue-500";
@@ -93,6 +61,28 @@ export function RecentActivity() {
     }
   };
 
+  const formatAction = (action: string) => {
+    return action
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  if (!activities || activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            No recent activity found
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -101,15 +91,15 @@ export function RecentActivity() {
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center gap-4">
+            <div key={activity.id} className="flex items-start gap-4">
               <div className="relative">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={activity.user.avatar} />
                   <AvatarFallback>
-                    {activity.user.name
+                    {activity.userName
                       .split(" ")
                       .map((n) => n[0])
-                      .join("")}
+                      .join("")
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div
@@ -119,16 +109,24 @@ export function RecentActivity() {
                 />
               </div>
               <div className="flex-1 space-y-1">
-                <p className="text-sm">
-                  <span className="font-medium">{activity.user.name}</span>{" "}
-                  <span className="text-muted-foreground">
-                    {activity.action}
-                  </span>{" "}
-                  <span className="font-medium">{activity.target}</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {activity.timestamp}
-                </p>
+                <div className="flex items-center gap-2">
+                  {getActivityIcon(activity.action)}
+                  <p className="text-sm">
+                    <span className="font-medium">{activity.userName}</span>{" "}
+                    <span className="text-muted-foreground">
+                      {activity.details}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{activity.userEmail}</span>
+                  <span>•</span>
+                  <span>
+                    {formatDistanceToNow(new Date(activity.timestamp), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                </div>
               </div>
               <Badge variant="secondary" className="capitalize">
                 {activity.type}

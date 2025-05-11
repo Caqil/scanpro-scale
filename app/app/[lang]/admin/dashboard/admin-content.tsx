@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { AdminStats } from "@/src/types/admin";
@@ -17,31 +16,42 @@ import { SystemHealth } from "@/components/admin/dashboard/system-health";
 export function AdminDashboardContent() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
+      setRefreshing(true);
+
+      // Fetch data from the API route
       const response = await fetch("/api/admin/dashboard");
 
       if (!response.ok) {
         throw new Error("Failed to fetch dashboard stats");
       }
 
-      const data = await response.json();
+      const data: AdminStats = await response.json();
       setStats(data);
+
+      console.log("Dashboard stats loaded:", data); // Debug log
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  if (loading) {
+  useEffect(() => {
+    fetchDashboardStats();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchDashboardStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading && !stats) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -59,11 +69,21 @@ export function AdminDashboardContent() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of your platform metrics and health
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of your platform metrics and health
+          </p>
+        </div>
+        <button
+          onClick={fetchDashboardStats}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-4 py-2 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50"
+        >
+          <Loader2 className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       <StatsOverview stats={stats} />
@@ -74,7 +94,8 @@ export function AdminDashboardContent() {
             <CardTitle>User Growth</CardTitle>
           </CardHeader>
           <CardContent>
-            <UserGrowthChart />
+            {/* UserGrowthChart now receives real data from stats.userGrowth */}
+            <UserGrowthChart data={stats.userGrowth} />
           </CardContent>
         </Card>
 
@@ -90,7 +111,7 @@ export function AdminDashboardContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle>API Usage</CardTitle>
+          <CardTitle>API Usage by Operation</CardTitle>
         </CardHeader>
         <CardContent>
           <ApiUsageChart stats={stats} />
@@ -98,7 +119,8 @@ export function AdminDashboardContent() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <RecentActivity />
+        {/* RecentActivity now receives real data from stats.recentActivity */}
+        <RecentActivity activities={stats.recentActivity} />
         <SystemHealth stats={stats} />
       </div>
     </div>

@@ -30,6 +30,8 @@ import {
   UserX,
   CheckCircle,
   XCircle,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -43,6 +45,8 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { AdminUser } from "@/src/types/admin";
+import { UserDetailModal } from "./user-detail-modal";
+import { UserEditModal } from "./user-edit-modal";
 
 interface UserTableProps {
   users: AdminUser[];
@@ -62,6 +66,7 @@ export function UserTable({
   onUserUpdate,
 }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
     user: AdminUser;
     action: string;
@@ -110,6 +115,19 @@ export function UserTable({
 
   const handleAction = async (action: string, user: AdminUser) => {
     try {
+      if (action === "delete") {
+        const response = await fetch(`/api/admin/users/${user.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) throw new Error("Failed to delete user");
+
+        toast.success("User deleted successfully");
+        onUserUpdate();
+        setConfirmAction(null);
+        return;
+      }
+
       let updates = {};
       switch (action) {
         case "make-admin":
@@ -128,10 +146,10 @@ export function UserTable({
           return;
       }
 
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, updates }),
+        body: JSON.stringify(updates),
       });
 
       if (!response.ok) throw new Error("Failed to update user");
@@ -230,6 +248,10 @@ export function UserTable({
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Edit User
+                    </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Mail className="mr-2 h-4 w-4" />
                       Send Email
@@ -267,6 +289,19 @@ export function UserTable({
                       <Ban className="mr-2 h-4 w-4" />
                       Suspend User
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() =>
+                        setConfirmAction({
+                          user,
+                          action: "delete",
+                          open: true,
+                        })
+                      }
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -301,144 +336,29 @@ export function UserTable({
         </div>
       )}
 
-      {/* User Details Dialog */}
-      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarFallback>
-                    {selectedUser.name?.[0] || selectedUser.email?.[0] || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {selectedUser.name || "Unknown"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedUser.email}
-                  </p>
-                </div>
-              </div>
+      {/* User Details Modal */}
+      <UserDetailModal
+        user={selectedUser}
+        open={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        onAction={(action) => {
+          if (selectedUser) {
+            if (action === "email") {
+              window.location.href = `mailto:${selectedUser.email}`;
+            } else {
+              handleAction(action, selectedUser);
+            }
+          }
+        }}
+      />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">User ID</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedUser.id}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Role</p>
-                  <Badge
-                    variant={
-                      selectedUser.role === "admin"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                  >
-                    {selectedUser.role}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Created</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(selectedUser.createdAt)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Last Active</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(selectedUser.lastActive)}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium mb-2">Subscription</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Tier</span>
-                    <Badge
-                      variant={getTierColor(
-                        selectedUser.subscription?.tier || "free"
-                      )}
-                    >
-                      {selectedUser.subscription?.tier || "free"}
-                    </Badge>
-                  </div>
-                  {selectedUser.subscription && (
-                    <>
-                      <div className="flex justify-between">
-                        <span>Status</span>
-                        {getStatusBadge(selectedUser.subscription.status)}
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Next Payment</span>
-                        <span>
-                          {formatDate(
-                            selectedUser.subscription.currentPeriodEnd
-                          )}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium mb-2">Usage Statistics</h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium">This Month</p>
-                    <p className="text-2xl font-bold">
-                      {selectedUser.usage.thisMonth}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Last Month</p>
-                    <p className="text-2xl font-bold">
-                      {selectedUser.usage.lastMonth}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Total</p>
-                    <p className="text-2xl font-bold">
-                      {selectedUser.usage.total}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium mb-2">API Keys</h4>
-                <div className="space-y-2">
-                  {selectedUser.apiKeys.map((key) => (
-                    <div
-                      key={key.id}
-                      className="flex justify-between items-center p-2 border rounded"
-                    >
-                      <div>
-                        <p className="font-medium">{key.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Last used: {formatDate(key.lastUsed)}
-                        </p>
-                      </div>
-                      <Badge variant="outline">
-                        {key.permissions.length} permissions
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* User Edit Modal */}
+      <UserEditModal
+        user={editingUser}
+        open={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        onSave={onUserUpdate}
+      />
 
       {/* Confirmation Dialog */}
       <Dialog
@@ -451,6 +371,11 @@ export function UserTable({
             <DialogDescription>
               Are you sure you want to {confirmAction?.action.replace("-", " ")}{" "}
               this user?
+              {confirmAction?.action === "delete" && (
+                <p className="text-destructive mt-2">
+                  This action cannot be undone. All user data will be permanently deleted.
+                </p>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
@@ -459,7 +384,8 @@ export function UserTable({
             </Button>
             <Button
               variant={
-                confirmAction?.action.includes("suspend")
+                confirmAction?.action.includes("suspend") ||
+                confirmAction?.action === "delete"
                   ? "destructive"
                   : "default"
               }

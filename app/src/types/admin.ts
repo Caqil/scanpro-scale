@@ -1,5 +1,29 @@
-// types/admin.ts
+export interface ActivityLog {
+    id: string;
+    timestamp: Date;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    action: string;
+    resource: string;
+    details: string;
+    ipAddress: string;
+    userAgent: string;
+    status: 'success' | 'error' | 'warning';
+  }
 
+export interface RecentActivity {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    action: string;
+    resource: string;
+    details: string;
+    timestamp: Date;
+    type: 'user' | 'subscription' | 'api' | 'system';
+  }
+  
 export interface AdminStats {
     users: {
       total: number;
@@ -11,12 +35,6 @@ export interface AdminStats {
         pro: number;
         enterprise: number;
       };
-    };
-    revenue: {
-      total: number;
-      thisMonth: number;
-      lastMonth: number;
-      growth: number;
     };
     apiUsage: {
       totalRequests: number;
@@ -36,12 +54,18 @@ export interface AdminStats {
       memoryUsage: number;
       diskUsage: number;
     };
+    userGrowth: {
+      date: string;
+      users: number;
+      active: number;
+    }[];
+    recentActivity: RecentActivity[];
   }
   
   export interface AdminUser {
     id: string;
     name: string | null;
-    email: string | null;
+    email: string;
     role: string;
     createdAt: Date;
     lastActive: Date | null;
@@ -51,12 +75,12 @@ export interface AdminStats {
       currentPeriodEnd: Date | null;
       paypalSubscriptionId: string | null;
     } | null;
-    apiKeys: Array<{
+    apiKeys: {
       id: string;
       name: string;
       lastUsed: Date | null;
       permissions: string[];
-    }>;
+    }[];
     usage: {
       total: number;
       thisMonth: number;
@@ -65,18 +89,18 @@ export interface AdminStats {
   }
   
   export interface ApiUsageData {
-    daily: Array<{
+    daily: {
       date: string;
       requests: number;
       users: number;
-    }>;
+    }[];
     byOperation: Record<string, number>;
     byTier: Record<string, number>;
-    topEndpoints: Array<{
+    topEndpoints: {
       endpoint: string;
       count: number;
       avgResponseTime: number;
-    }>;
+    }[];
   }
   
   export interface SubscriptionData {
@@ -94,10 +118,10 @@ export interface AdminStats {
       revenue: number;
       churnRate: number;
     }>;
-    trends: Array<{
+    trends: {
       date: string;
       subscriptions: number;
       revenue: number;
       churn: number;
-    }>;
+    }[];
   }
