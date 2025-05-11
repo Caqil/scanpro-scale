@@ -4,7 +4,7 @@ Allow: /
 Disallow: /api/
 
 # Host
-Host: https://mega-pdf.com
+Host: http://localhost:3000
 
 # Sitemaps
-Sitemap: https://mega-pdf.com/sitemap.xml
+Sitemap: http://localhost:3000/sitemap.xml
