@@ -3,7 +3,8 @@ import { NextRequest } from 'next/server';
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+// Use the service name from KubeSphere
+const redis = new Redis(process.env.REDIS_URL || 'redis://redis-2hj6im:6379');
 
 interface RateLimitResult {
   success: boolean;
@@ -12,11 +13,11 @@ interface RateLimitResult {
 }
 
 export async function rateLimit(request: NextRequest): Promise<RateLimitResult> {
-  // Use headers or generate a unique ID as fallback
+  // Your existing rate limit code...
   const identifier =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     request.headers.get('x-real-ip') ||
-    `anon-${uuidv4()}`; // Temporary ID for anonymous users
+    `anon-${uuidv4()}`; 
 
   const key = `rate-limit:${identifier}`;
   const maxRequests = 100;
@@ -40,6 +41,6 @@ export async function rateLimit(request: NextRequest): Promise<RateLimitResult> 
     };
   } catch (error) {
     console.error('Rate limit error:', error);
-    return { success: true };
+    return { success: true }; // Fail open if Redis is unavailable
   }
 }

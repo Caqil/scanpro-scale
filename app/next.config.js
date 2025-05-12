@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   basePath: '',
-  assetPrefix: 'https://mega-pdf.com/',
+  assetPrefix: process.env.NEXT_PUBLIC_APP_URL,
   eslint: {
     ignoreDuringBuilds: true,
   },
