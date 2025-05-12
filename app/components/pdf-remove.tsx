@@ -9,8 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useLanguageStore } from "@/src/store/store";
 import {
-  UploadIcon,
-  Trash2Icon,
   CheckIcon,
   LoaderIcon,
   DownloadIcon,
@@ -18,11 +16,12 @@ import {
   XCircleIcon,
   ZoomInIcon,
   ZoomOutIcon,
-  ExpandIcon,
   EyeIcon,
   SaveIcon,
+  Trash2Icon,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FileDropzone } from "./dropzone";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -44,26 +43,9 @@ export function PdfRemove() {
   const [processing, setProcessing] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [processedPdfUrl, setProcessedPdfUrl] = useState<string>("");
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [previewPage, setPreviewPage] = useState<number | null>(null);
   const [previewScale, setPreviewScale] = useState<number>(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const uploadedFile = files[0];
-    if (uploadedFile.type !== "application/pdf") {
-      toast.error(t("removePdf.messages.invalidFile"));
-      return;
-    }
-
-    setFile(uploadedFile);
-    setSelectedPages(new Set());
-    setProcessedPdfUrl("");
-    processPdf(uploadedFile);
-  };
 
   const processPdf = async (pdfFile: File) => {
     setProcessing(true);
@@ -94,7 +76,7 @@ export function PdfRemove() {
       URL.revokeObjectURL(fileUrl);
     } catch (error) {
       console.error("Error processing PDF:", error);
-      toast.error(t("removePdf.messages.error"));
+      toast.error(t("removePdf.messages.error") || "Error processing PDF");
     } finally {
       setProcessing(false);
     }
@@ -108,7 +90,7 @@ export function PdfRemove() {
     } else {
       // Don't allow selecting all pages
       if (newSelectedPages.size >= pages.length - 1) {
-        toast.error(t("removePdf.messages.cannotRemoveAll"));
+        toast.error(t("removePdf.messages.cannotRemoveAll") || "Cannot remove all pages");
         return;
       }
       newSelectedPages.add(pageNumber);
@@ -165,14 +147,14 @@ export function PdfRemove() {
       if (result.success) {
         setProcessedPdfUrl(result.fileUrl);
         setProgress(100);
-        toast.success(t("removePdf.messages.success"));
+        toast.success(t("removePdf.messages.success") || "Pages removed successfully!");
       } else {
         throw new Error(result.error || t("removePdf.messages.error"));
       }
     } catch (error) {
       console.error("Error removing pages:", error);
       toast.error(
-        error instanceof Error ? error.message : t("removePdf.messages.error")
+        error instanceof Error ? error.message : t("removePdf.messages.error") || "Error removing pages"
       );
     } finally {
       setProcessing(false);
@@ -229,7 +211,7 @@ export function PdfRemove() {
                 )}
               </div>
               <div className="text-center mt-2 text-sm font-medium">
-                {t("removePdf.page")} {index + 1}
+                {t("removePdf.page") || "Page"} {index + 1}
               </div>
             </div>
           );
@@ -252,66 +234,29 @@ export function PdfRemove() {
     <div className="bg-muted/30 rounded-lg p-4 w-full">
       <div className="flex flex-col min-h-[600px] bg-background rounded-lg border shadow-sm">
         {/* File Upload Section */}
-        
         {!file && (
           <div className="flex-1 flex items-center justify-center p-6">
-            <div
-              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                isDragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-muted-foreground/20"
-              }`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDragOver(true);
-              }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDragOver(false);
-                const files = e.dataTransfer.files;
-                if (files && files.length > 0) {
-                  const uploadedFile = files[0];
-                  if (uploadedFile.type !== "application/pdf") {
-                    toast.error(t("removePdf.messages.invalidFile"));
-                    return;
-                  }
+            <FileDropzone
+              multiple={false}
+              maxSize={100 * 1024 * 1024} // 100MB
+              maxFiles={1}
+              acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+              disabled={processing}
+              onFileAccepted={(acceptedFiles) => {
+                if (acceptedFiles.length > 0) {
+                  const uploadedFile = acceptedFiles[0];
                   setFile(uploadedFile);
                   setSelectedPages(new Set());
                   setProcessedPdfUrl("");
                   processPdf(uploadedFile);
                 }
               }}
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf"
-                onChange={handleFileUpload}
-              />
-              <div className="mb-6 p-4 rounded-full bg-primary/10 mx-auto w-20 h-20 flex items-center justify-center">
-                <UploadIcon className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-3">
-                {t("removePdf.uploadTitle")}
-              </h3>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                {t("removePdf.uploadDesc")}
-              </p>
-              <Button
-                size="lg"
-                className="px-8"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {t("ui.browse")}
-              </Button>
-              <p className="mt-6 text-sm text-muted-foreground">
-                {t("ui.filesSecurity")}
-              </p>
-            </div>
+              title={t("removePdf.uploadTitle") || "Upload Your PDF"}
+              description={t("removePdf.uploadDesc") || "Upload a PDF file to remove pages. Your file will be processed securely."}
+              browseButtonText={t("ui.browse") || "Browse Files"}
+              browseButtonVariant="default"
+              securityText={t("ui.filesSecurity") || "Your files are secure and never stored permanently"}
+            />
           </div>
         )}
 
@@ -321,31 +266,31 @@ export function PdfRemove() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-semibold">
-                  {t("removePdf.selectPages")}
+                  {t("removePdf.selectPages") || "Select Pages to Remove"}
                 </h3>
                 <p className="text-muted-foreground">
-                  {t("removePdf.selectPagesDesc")}
+                  {t("removePdf.selectPagesDesc") || "Click on pages to mark them for removal"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {selectedPages.size} {t("removePdf.pagesSelected")} ·{" "}
-                  {getRemainingPages().length} {t("removePdf.pagesRemaining")}
+                  {selectedPages.size} {t("removePdf.pagesSelected") || "pages selected"} ·{" "}
+                  {getRemainingPages().length} {t("removePdf.pagesRemaining") || "pages remaining"}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => reset()}>
                   <RefreshCwIcon className="h-4 w-4 mr-2" />
-                  {t("ui.clearAll")}
+                  {t("ui.clearAll") || "Clear All"}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleSelectAll}>
                   <CheckIcon className="h-4 w-4 mr-2" />
                   {selectedPages.size === pages.length - 1
-                    ? t("removePdf.clearSelection")
-                    : t("removePdf.selectMax")}
+                    ? t("removePdf.clearSelection") || "Clear Selection"
+                    : t("removePdf.selectMax") || "Select Max"}
                 </Button>
                 {selectedPages.size > 0 && (
                   <Button size="sm" onClick={handleSaveDocument}>
                     <SaveIcon className="h-4 w-4 mr-2" />
-                    {t("removePdf.saveDocument")}
+                    {t("removePdf.saveDocument") || "Save Document"}
                   </Button>
                 )}
               </div>
@@ -361,10 +306,10 @@ export function PdfRemove() {
             <div className="bg-background rounded-lg p-8 shadow-sm border w-96 text-center">
               <LoaderIcon className="h-16 w-16 animate-spin text-primary mb-6 mx-auto" />
               <h3 className="text-xl font-semibold mb-3">
-                {t("removePdf.processing")}
+                {t("removePdf.processing") || "Processing PDF..."}
               </h3>
               <p className="text-muted-foreground mb-6">
-                {t("removePdf.messages.processing")}
+                {t("removePdf.messages.processing") || "Please wait while we process your PDF."}
               </p>
               <Progress value={progress} className="w-full h-2" />
             </div>
@@ -380,21 +325,21 @@ export function PdfRemove() {
                   <CheckIcon className="h-10 w-10" />
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">
-                  {t("removePdf.messages.success")}
+                  {t("removePdf.messages.success") || "Pages Removed Successfully!"}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {t("removePdf.messages.downloadReady")}
+                  {t("removePdf.messages.downloadReady") || "Your processed PDF is ready for download."}
                 </p>
                 <div className="flex gap-4 justify-center">
                   <Button variant="outline" onClick={reset}>
                     <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    {t("ui.startOver")}
+                    {t("ui.startOver") || "Start Over"}
                   </Button>
                   <Button
                     onClick={() => window.open(processedPdfUrl, "_blank")}
                   >
                     <DownloadIcon className="h-4 w-4 mr-2" />
-                    {t("ui.download")}
+                    {t("ui.download") || "Download"}
                   </Button>
                 </div>
               </CardContent>
@@ -411,7 +356,7 @@ export function PdfRemove() {
         <DialogContent className="w-[90vw] max-w-6xl h-[90vh] flex flex-col p-0">
           <DialogHeader className="p-4 pb-2">
             <DialogTitle>
-              {t("removePdf.pagePreview")}{" "}
+              {t("removePdf.pagePreview") || "Page Preview"}{" "}
               {previewPage !== null ? previewPage + 1 : ""}
             </DialogTitle>
           </DialogHeader>
@@ -461,7 +406,7 @@ export function PdfRemove() {
                       onClick={(e) => handlePageSelect(e, previewPage)}
                     >
                       <XCircleIcon className="h-4 w-4 mr-2" />
-                      {t("removePdf.removeFromDocument")}
+                      {t("removePdf.removeFromDocument") || "Remove from Document"}
                     </Button>
                   ) : (
                     <Button
@@ -471,7 +416,7 @@ export function PdfRemove() {
                       disabled={selectedPages.size >= pages.length - 1}
                     >
                       <Trash2Icon className="h-4 w-4 mr-2" />
-                      {t("removePdf.markForRemoval")}
+                      {t("removePdf.markForRemoval") || "Mark for Removal"}
                     </Button>
                   )}
                 </div>

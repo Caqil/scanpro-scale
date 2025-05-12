@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,7 +38,6 @@ import {
   Cross2Icon,
   CheckCircledIcon,
   CrossCircledIcon,
-  UploadIcon,
   DownloadIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -47,19 +45,14 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguageStore } from "@/src/store/store";
 import JSZip from "jszip";
+import { FileDropzone } from "./dropzone";
+import { FileWithStatus } from "@/src/types/file-status";
 
 // Form schema
 const formSchema = z.object({
   quality: z.enum(["high", "medium", "low"]).default("medium"),
   processAllTogether: z.boolean().default(true),
 });
-
-// File with processing status
-interface FileWithStatus {
-  file: File;
-  status: "idle" | "processing" | "completed" | "error";
-  error?: string;
-}
 
 interface CompressedFile {
   originalSize: number;
@@ -71,7 +64,6 @@ interface CompressedFile {
 }
 
 type FormValues = z.infer<typeof formSchema>;
-
 
 export function MultiPdfCompressor() {
   const { t } = useLanguageStore();
@@ -89,33 +81,6 @@ export function MultiPdfCompressor() {
       quality: "medium",
       processAllTogether: true,
     },
-  });
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { "application/pdf": [".pdf"] },
-    maxSize: 100 * 1024 * 1024, // 100MB
-    onDrop: (acceptedFiles, rejectedFiles) => {
-      if (rejectedFiles.length > 0) {
-        const rejection = rejectedFiles[0];
-        setError(
-          rejection.file.size > 100 * 1024 * 1024
-            ? t("fileUploader.maxSize")
-            : t("fileUploader.inputFormat")
-        );
-        return;
-      }
-      if (acceptedFiles.length > 0) {
-        setFiles((prev) => {
-          const existingFileNames = new Set(prev.map((f) => f.file.name));
-          const newFiles = acceptedFiles
-            .filter((file) => !existingFileNames.has(file.name))
-            .map((file) => ({ file, status: "idle" as const }));
-          return [...prev, ...newFiles];
-        });
-        setError(null);
-      }
-    },
-    multiple: true,
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -162,7 +127,7 @@ export function MultiPdfCompressor() {
       )
     );
     setProgress((prev) => ({ ...prev, [file.name]: 0 }));
-  
+
     try {
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
@@ -174,26 +139,26 @@ export function MultiPdfCompressor() {
           return { ...prev, [file.name]: currentProgress + 5 };
         });
       }, 300 + Math.random() * 300);
-  
+
       // Create a FormData instance
       const formData = new FormData();
       formData.append("file", file);
       formData.append("quality", quality);
-  
+
       // Call the backend API
       const response = await fetch("/api/pdf/compress", {
         method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Compression failed");
       }
-  
+
       const data = await response.json();
       clearInterval(progressInterval);
-  
+
       setProgress((prev) => ({ ...prev, [file.name]: 100 }));
       setCompressedFiles((prev) => ({
         ...prev,
@@ -206,15 +171,17 @@ export function MultiPdfCompressor() {
           originalName: file.name,
         },
       }));
-      
+
       setFiles((prev) =>
         prev.map((f) =>
           f.file.name === file.name ? { ...f, status: "completed" as const } : f
         )
       );
-      
+
       toast.success(t("compressPdf.success"), {
-        description: `${file.name} ${t("compressPdf.reducedBy")} ${data.compressionRatio}`,
+        description: `${file.name} ${t("compressPdf.reducedBy")} ${
+          data.compressionRatio
+        }`,
       });
     } catch (err) {
       setFiles((prev) =>
@@ -330,68 +297,52 @@ export function MultiPdfCompressor() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="border shadow-sm">
-          <CardHeader>
-            <CardTitle>{t("compressPdf.title")}</CardTitle>
-            <CardDescription>{t("compressPdf.description")}</CardDescription>
-          </CardHeader>
           <CardContent className="space-y-6">
-           
-              <FormField
-                control={form.control}
-                name="processAllTogether"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isProcessing}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>{t("compressPdf.processing.title")}</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        {t("compressPdf.processing.processAllTogether")}
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            <div
-              {...getRootProps()}
-              className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
-                isDragActive
-                  ? "border-primary bg-primary/10"
-                  : files.length > 0
-                  ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-                  : "border-muted-foreground/25 hover:border-muted-foreground/50",
-                isProcessing && "pointer-events-none opacity-80"
+            <FormField
+              control={form.control}
+              name="processAllTogether"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isProcessing}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>{t("compressPdf.processing.title")}</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      {t("compressPdf.processing.processAllTogether")}
+                    </p>
+                  </div>
+                </FormItem>
               )}
-            >
-              <input {...getInputProps()} disabled={isProcessing} />
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                  <UploadIcon className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="text-lg font-medium">
-                  {isDragActive
-                    ? t("fileUploader.dropHere")
-                    : t("fileUploader.dragAndDrop")}
-                </div>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  {t("fileUploader.dropHereDesc")} {t("fileUploader.maxSize")}
-                </p>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="mt-2"
-                >
-                  {t("fileUploader.browse")}
-                </Button>
-              </div>
-            </div>
+            />
+            <FileDropzone
+              multiple={true}
+              maxFiles={100}
+              disabled={isProcessing}
+              onFileAccepted={(acceptedFiles) => {
+                setFiles((prev) => {
+                  const existingFileNames = new Set(
+                    prev.map((f) => f.file.name)
+                  );
+                  const newFiles = acceptedFiles
+                    .filter((file) => !existingFileNames.has(file.name))
+                    .map((file) => ({ file, status: "idle" as const }));
+                  return [...prev, ...newFiles];
+                });
+                setError(null);
+              }}
+              title={t("fileUploader.dragAndDrop")}
+              description={`${t("fileUploader.dropHereDesc")} ${t(
+                "fileUploader.maxSize"
+              )}`}
+              browseButtonText={t("fileUploader.browse")}
+              browseButtonVariant="secondary"
+              securityText={t("fileUploader.filesSecurity")}
+            />
             {files.length > 0 && (
               <div className="border rounded-lg">
                 <div className="p-3 border-b bg-muted/30 flex justify-between items-center">
@@ -496,7 +447,6 @@ export function MultiPdfCompressor() {
                                   compressedFiles[fileItem.file.name].filename
                                 }
                                 onClick={(e) => {
-                                  // Prevent default to ensure download works
                                   e.stopPropagation();
                                 }}
                               >

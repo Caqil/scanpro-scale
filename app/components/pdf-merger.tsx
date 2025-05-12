@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,7 +16,6 @@ import {
   FileIcon,
   Cross2Icon,
   CheckCircledIcon,
-  UploadIcon,
   DownloadIcon,
   TrashIcon,
   MoveIcon,
@@ -27,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import useFileUpload from "@/hooks/useFileUpload";
+import { FileDropzone } from "./dropzone";
 
 // Interface for file with order
 interface FileWithOrder {
@@ -60,51 +59,6 @@ export function PdfMerger() {
   // Generate a unique ID
   const generateId = () =>
     `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-  // Set up dropzone for PDF files only
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      "application/pdf": [".pdf"],
-    },
-    maxSize: 100 * 1024 * 1024, // 100MB per file
-    onDrop: (acceptedFiles, rejectedFiles) => {
-      if (rejectedFiles.length > 0) {
-        const rejection = rejectedFiles[0];
-        if (rejection.file.size > 100 * 1024 * 1024) {
-          setError(
-            "One or more files are too large. Maximum size is 100MB per file."
-          );
-        } else {
-          setError("Please upload valid PDF files only.");
-        }
-        return;
-      }
-
-      if (acceptedFiles.length > 0) {
-        // Clear any previous errors
-        setError(null);
-        resetUpload();
-        // Add new files to the list, avoid duplicates
-        setFiles((prev) => {
-          const existingFileNames = new Set(prev.map((f) => f.file.name));
-          const newFiles = acceptedFiles
-            .filter((file) => !existingFileNames.has(file.name))
-            .map((file) => ({
-              file,
-              id: generateId(),
-              // Create preview URL for PDF files
-              preview: URL.createObjectURL(file),
-              isUploading: false,
-              uploadProgress: 0,
-              error: null,
-            }));
-
-          return [...prev, ...newFiles];
-        });
-      }
-    },
-    multiple: true,
-  });
 
   // Clean up previews when component unmounts
   const cleanUpPreviews = useCallback(() => {
@@ -188,7 +142,7 @@ export function PdfMerger() {
   // Process merging PDFs
   const handleMerge = async () => {
     if (files.length < 2) {
-      setError("Please upload at least two PDF files to merge");
+      setError(t("mergePdf.error.minFiles") || "Please upload at least two PDF files to merge");
       return;
     }
 
@@ -238,55 +192,46 @@ export function PdfMerger() {
       },
       onError: (err) => {
         setProgress(0);
-        setError(err.message || "An unknown error occurred");
+        setError(err.message || t("mergePdf.error.unknown") || "An unknown error occurred");
         setIsProcessing(false);
-        toast.error("Merge Failed");
+        toast.error(t("mergePdf.error.failed") || "Merge Failed");
       },
     });
   };
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader>
-        <CardTitle>{t("mergePdf.title") || "Merge PDF Files"}</CardTitle>
-      </CardHeader>
-
       <CardContent className="space-y-6">
         {/* File Drop Zone */}
-        <div
-          {...getRootProps()}
-          className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
-            isDragActive
-              ? "border-primary bg-primary/10"
-              : files.length > 0
-              ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-              : "border-muted-foreground/25 hover:border-muted-foreground/50",
-            (isProcessing || isUploading) && "pointer-events-none opacity-80"
-          )}
-        >
-          <input {...getInputProps()} disabled={isProcessing || isUploading} />
-
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-              <UploadIcon className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div className="text-lg font-medium">
-              {isDragActive
-                ? t("fileUploader.dropHere") || "Drop your PDF files here"
-                : t("fileUploader.dragAndDrop") || "Drag & drop your PDF files"}
-            </div>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              {t("fileUploader.dropHereDesc") ||
-                "Drop your PDF files here or click to browse."}{" "}
-              {t("fileUploader.maxSize") || "Maximum size is 100MB per file."}
-            </p>
-
-            <Button type="button" variant="default" size="sm" className="mt-2">
-              {t("fileUploader.browse") || "Browse Files"}
-            </Button>
-          </div>
-        </div>
+        <FileDropzone
+          multiple={true}
+          maxSize={100 * 1024 * 1024} // 100MB
+          disabled={isProcessing || isUploading}
+          maxFiles={100}
+          onFileAccepted={(acceptedFiles) => {
+            setError(null);
+            resetUpload();
+            setFiles((prev) => {
+              const existingFileNames = new Set(prev.map((f) => f.file.name));
+              const newFiles = acceptedFiles
+                .filter((file) => !existingFileNames.has(file.name))
+                .map((file) => ({
+                  file,
+                  id: generateId(),
+                  preview: URL.createObjectURL(file),
+                  isUploading: false,
+                  uploadProgress: 0,
+                  error: null,
+                }));
+              return [...prev, ...newFiles];
+            });
+          }}
+          title={t("fileUploader.dragAndDrop") || "Drag & drop your PDF files"}
+          description={`${t("fileUploader.dropHereDesc") || "Drop your PDF files here or click to browse."} ${t("fileUploader.maxSize") || "Maximum size is 100MB per file."}`}
+          browseButtonText={t("fileUploader.browse") || "Browse Files"}
+          browseButtonVariant="default"
+          securityText={t("fileUploader.filesSecurity") || "Your files are processed securely."}
+        />
 
         {/* File List */}
         {files.length > 0 && (
@@ -414,8 +359,8 @@ export function PdfMerger() {
             error={uploadError}
             label={
               isUploading
-                ? t("watermarkPdf.uploading")
-                : t("mergePdf.ui.processingMerge")
+                ? t("watermarkPdf.uploading") || "Uploading..."
+                : t("mergePdf.ui.processingMerge") || "Processing Merge..."
             }
             uploadStats={uploadStats}
           />
