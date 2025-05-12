@@ -1,4 +1,3 @@
-// app/[lang]/admin/dashboard/page.tsx
 import { Metadata } from "next";
 import { AdminDashboardContent } from "./admin-content";
 
