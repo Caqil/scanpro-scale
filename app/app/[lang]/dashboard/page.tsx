@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     include: {
       subscription: true,
       apiKeys: true,
-    },
+    }
   });
 
   if (!user) {
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 
   // Check if user is admin and redirect to admin dashboard
   if (user.role === "admin") {
-    redirect(`/admin/dashboard`);
+    redirect(`/en/admin/dashboard`);
   }
 
   // Get usage statistics for regular users
@@ -59,23 +59,25 @@ export default async function DashboardPage() {
   }
 
   // Calculate total operations and make sure usageStats exists
-  const totalOperations = Array.isArray(usageStats)
-    ? usageStats.reduce((sum: number, stat: UsageStats) => sum + stat.count, 0)
-    : 0;
+  const totalOperations = Array.isArray(usageStats) ? usageStats.reduce(
+    (sum: number, stat: UsageStats) => sum + stat.count, 
+    0
+  ) : 0;
 
   // Get usage by operation type
-  const operationCounts = Array.isArray(usageStats)
-    ? usageStats.reduce((acc: Record<string, number>, stat: UsageStats) => {
-        acc[stat.operation] = (acc[stat.operation] || 0) + stat.count;
-        return acc;
-      }, {} as Record<string, number>)
-    : {};
+  const operationCounts = Array.isArray(usageStats) ? usageStats.reduce(
+    (acc: Record<string, number>, stat: UsageStats) => {
+      acc[stat.operation] = (acc[stat.operation] || 0) + stat.count;
+      return acc;
+    },
+    {} as Record<string, number>
+  ) : {};
 
   return (
     <div className="container max-w-6xl py-8">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <DashboardContent
-        user={user}
+      <DashboardContent 
+        user={user} 
         usageStats={{
           totalOperations,
           operationCounts,

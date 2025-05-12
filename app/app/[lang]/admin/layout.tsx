@@ -1,3 +1,4 @@
+// app/[lang]/admin/layout.tsx
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -23,15 +24,15 @@ export default async function AdminLayout({
   });
 
   if (user?.role !== "admin") {
-    redirect(`/admin/dashboard`);
+    redirect(`/en/admin/dashboard`);
   }
 
   return (
     <div className="flex h-screen bg-background">
       <AdminSidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader user={session.user} />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );
