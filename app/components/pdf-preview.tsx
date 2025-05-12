@@ -2,27 +2,31 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  ChevronLeftIcon, 
-  ChevronRightIcon, 
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   PlusIcon,
-  MinusIcon
+  MinusIcon,
 } from "lucide-react";
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from "pdfjs-dist";
 
 interface PdfPreviewProps {
   file: File;
-  onPositionChange: (x: number, y: number, pageNumber: number, scale: number, pageHeight: number) => void; // Added pageHeight
+  onPositionChange: (
+    x: number,
+    y: number,
+    pageNumber: number,
+    scale: number,
+    pageHeight: number
+  ) => void; // Added pageHeight
 }
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
 ).toString();
 
-export function PdfPreview({
-  file,
-}: PdfPreviewProps) {
+export function PdfPreview({ file }: PdfPreviewProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -71,9 +75,9 @@ export function PdfPreview({
       try {
         const page = await pdfRef.current.getPage(pageNumber);
         const viewport = page.getViewport({ scale });
-        
+
         const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext("2d");
         if (!context) return;
 
         canvas.height = viewport.height;
@@ -82,7 +86,7 @@ export function PdfPreview({
 
         const renderContext = {
           canvasContext: context,
-          viewport: viewport
+          viewport: viewport,
         };
 
         await page.render(renderContext).promise;
@@ -97,19 +101,20 @@ export function PdfPreview({
     }
   }, [pageNumber, scale, loading, error]);
 
-  const goToPrevPage = () => setPageNumber(prev => Math.max(prev - 1, 1));
-  const goToNextPage = () => setPageNumber(prev => Math.min(prev + 1, numPages));
-  const zoomIn = () => setScale(prev => Math.min(prev + 0.1, 2.0));
-  const zoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5));
+  const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () =>
+    setPageNumber((prev) => Math.min(prev + 1, numPages));
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.1, 2.0));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.5));
 
   const handleDragStart = (e: React.MouseEvent) => {
     if (!signatureRef.current) return;
-    
+
     setIsDragging(true);
     const rect = signatureRef.current.getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
     e.preventDefault();
   };
@@ -120,7 +125,6 @@ export function PdfPreview({
     e.preventDefault();
   };
 
-
   const LoadingComponent = () => (
     <div className="flex items-center justify-center h-80">
       <div className="animate-spin mr-2 h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
@@ -130,16 +134,16 @@ export function PdfPreview({
 
   const ErrorComponent = () => (
     <div className="flex flex-col items-center justify-center h-80 text-red-500">
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="mb-2"
       >
         <circle cx="12" cy="12" r="10"></circle>
@@ -154,27 +158,49 @@ export function PdfPreview({
     <div className="flex flex-col items-center border rounded-lg p-4 bg-muted/10">
       <div className="flex justify-between w-full mb-4">
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={goToPrevPage} disabled={pageNumber <= 1 || loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPrevPage}
+            disabled={pageNumber <= 1 || loading}
+          >
             <ChevronLeftIcon className="h-4 w-4" />
           </Button>
-          <span className="text-sm mx-2">Page {pageNumber} of {numPages}</span>
-          <Button variant="outline" size="sm" onClick={goToNextPage} disabled={pageNumber >= numPages || loading}>
+          <span className="text-sm mx-2">
+            Page {pageNumber} of {numPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={pageNumber >= numPages || loading}
+          >
             <ChevronRightIcon className="h-4 w-4" />
           </Button>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={zoomOut} disabled={scale <= 0.5 || loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={zoomOut}
+            disabled={scale <= 0.5 || loading}
+          >
             <MinusIcon className="h-4 w-4" />
           </Button>
           <span className="text-sm mx-2">{Math.round(scale * 100)}%</span>
-          <Button variant="outline" size="sm" onClick={zoomIn} disabled={scale >= 2.0 || loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={zoomIn}
+            disabled={scale >= 2.0 || loading}
+          >
             <PlusIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
-      
-      <div 
-        ref={containerRef} 
+
+      <div
+        ref={containerRef}
         className="relative border overflow-hidden bg-white rounded-md w-full"
         style={{ minHeight: 500, maxHeight: 700 }}
       >
@@ -185,7 +211,6 @@ export function PdfPreview({
         ) : (
           <div className="relative">
             <canvas ref={canvasRef} className="w-full" />
-            
           </div>
         )}
       </div>
