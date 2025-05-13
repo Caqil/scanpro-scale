@@ -157,108 +157,122 @@ export async function apiMiddleware(request: NextRequest) {
     });
 
     // --- Handle charging for operations ---
-    
-    // Get the user from the API key
-    const user = keyRecord.user;
+    try {
+        // Get the user from the API key
+        const user = keyRecord.user;
 
-    if (!user) {
-        return NextResponse.json(
-            { error: 'User not found' },
-            { status: 500 }
-        );
-    }
+        if (!user) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 500 }
+            );
+        }
 
-    // Check if free operations should be reset
-    const now = new Date();
-    let freeOpsUsed = user.freeOperationsUsed || 0;
-    
-    if (user.freeOperationsReset && user.freeOperationsReset < now) {
-        // Reset free operations counter
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                freeOperationsUsed: 0,
-                freeOperationsReset: new Date(now.getFullYear(), now.getMonth() + 1, 1) // First day of next month
-            }
-        });
+        // Current date for comparison
+        const now = new Date();
         
-        // Update local variable
-        freeOpsUsed = 0;
-    }
-
-    // Check if free operations are available
-    if (freeOpsUsed < FREE_OPERATIONS_MONTHLY) {
-        // Use a free operation
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                freeOperationsUsed: { increment: 1 }
-            }
-        });
+        // Initialize operation counters and user data for possible updates
+        let freeOpsUsed = user.freeOperationsUsed || 0;
+        let newBalance = user.balance || 0;
+        let resetDate = user.freeOperationsReset;
+        let usedFreeOperation = false;
         
-        // Track the operation in usage stats
+        // Check if free operations should be reset
+        if (resetDate && resetDate < now) {
+            // Calculate new reset date (first day of next month)
+            const nextResetDate = new Date();
+            nextResetDate.setDate(1); // First day of current month
+            nextResetDate.setMonth(nextResetDate.getMonth() + 1); // First day of next month
+            nextResetDate.setHours(0, 0, 0, 0);
+            
+            // Reset free operations counter
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    freeOperationsUsed: 0,
+                    freeOperationsReset: nextResetDate
+                }
+            });
+            
+            freeOpsUsed = 0;
+            resetDate = nextResetDate;
+        }
+        
+        // Check if free operations are available
+        if (freeOpsUsed < FREE_OPERATIONS_MONTHLY) {
+            // Use a free operation
+            usedFreeOperation = true;
+            
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    freeOperationsUsed: { increment: 1 }
+                }
+            });
+            
+            freeOpsUsed++;
+        } else {
+            // No free operations left, use balance
+            if (newBalance < OPERATION_COST) {
+                return NextResponse.json(
+                    {
+                        error: 'Insufficient balance',
+                        currentBalance: newBalance,
+                        requiredBalance: OPERATION_COST,
+                        message: `Please add funds to your account. Each operation costs $${OPERATION_COST.toFixed(3)}.`
+                    },
+                    { status: 402 } // 402 Payment Required
+                );
+            }
+            
+            // Deduct the cost from balance
+            newBalance -= OPERATION_COST;
+            
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    balance: newBalance
+                }
+            });
+            
+            // Record transaction
+            await prisma.transaction.create({
+                data: {
+                    userId: user.id,
+                    amount: -OPERATION_COST,
+                    balanceAfter: newBalance,
+                    description: `Operation: ${operation}`,
+                    status: 'completed'
+                }
+            });
+        }
+        
+        // Track the operation in usage stats (regardless of whether it was free or paid)
         await recordOperationUsage(user.id, operation);
         
         // Continue with the request
         const response = NextResponse.next();
         
-        // Add operation information headers
-        response.headers.set('X-Operation-Cost', '0'); // Free operation
-        response.headers.set('X-Free-Operations-Used', (freeOpsUsed + 1).toString());
-        response.headers.set('X-Free-Operations-Remaining', (FREE_OPERATIONS_MONTHLY - freeOpsUsed - 1).toString());
+        // Add header information about the operation cost and remaining balance
+        if (usedFreeOperation) {
+            response.headers.set('X-Operation-Cost', '0'); // Free operation
+            response.headers.set('X-Free-Operations-Used', freeOpsUsed.toString());
+            response.headers.set('X-Free-Operations-Remaining', (FREE_OPERATIONS_MONTHLY - freeOpsUsed).toString());
+        } else {
+            response.headers.set('X-Operation-Cost', OPERATION_COST.toString());
+            response.headers.set('X-Current-Balance', newBalance.toString());
+            response.headers.set('X-Free-Operations-Used', FREE_OPERATIONS_MONTHLY.toString()); 
+            response.headers.set('X-Free-Operations-Remaining', '0');
+        }
         
         return response;
-    }
-    
-    // If no free operations left, check if user has enough balance
-    const userBalance = user.balance || 0;
-    
-    if (userBalance < OPERATION_COST) {
+    } catch (error) {
+        console.error('Error processing operation charge:', error);
         return NextResponse.json(
-            {
-                error: 'Insufficient balance',
-                currentBalance: userBalance,
-                requiredBalance: OPERATION_COST,
-                message: `Please add funds to your account. Each operation costs $${OPERATION_COST.toFixed(3)}.`
-            },
-            { status: 402 } // 402 Payment Required
+            { error: 'Failed to process operation' },
+            { status: 500 }
         );
     }
-    
-    // Deduct from balance
-    const newBalance = userBalance - OPERATION_COST;
-    
-    // Update user's balance
-    await prisma.user.update({
-        where: { id: user.id },
-        data: {
-            balance: newBalance
-        }
-    });
-    
-    // Record transaction
-    await prisma.transaction.create({
-        data: {
-            userId: user.id,
-            amount: -OPERATION_COST,
-            balanceAfter: newBalance,
-            description: `Operation: ${operation}`
-        }
-    });
-    
-    // Track the operation in usage stats
-    await recordOperationUsage(user.id, operation);
-    
-    // Continue with the request
-    const response = NextResponse.next();
-    
-    // Add balance headers
-    response.headers.set('X-Operation-Cost', OPERATION_COST.toString());
-    response.headers.set('X-Current-Balance', newBalance.toString());
-    response.headers.set('X-Free-Operations-Used', freeOpsUsed.toString());
-    response.headers.set('X-Free-Operations-Remaining', '0');
-    
-    return response;
 }
 
 // Helper function to record operation usage
@@ -266,24 +280,29 @@ async function recordOperationUsage(userId: string, operation: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    await prisma.usageStats.upsert({
-        where: {
-            userId_operation_date: {
+    try {
+        await prisma.usageStats.upsert({
+            where: {
+                userId_operation_date: {
+                    userId,
+                    operation,
+                    date: today
+                }
+            },
+            update: {
+                count: { increment: 1 }
+            },
+            create: {
                 userId,
                 operation,
+                count: 1,
                 date: today
             }
-        },
-        update: {
-            count: { increment: 1 }
-        },
-        create: {
-            userId,
-            operation,
-            count: 1,
-            date: today
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error recording operation usage:', error);
+        // Continue execution even if recording usage fails
+    }
 }
 
 export const config = {

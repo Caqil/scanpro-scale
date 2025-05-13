@@ -1,81 +1,84 @@
-// app/api/user/deposit/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from "@/lib/auth";
+import {	authOptions } from '@/lib/auth';
 import { verifyPayPalOrder } from '@/lib/paypal';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
+  console.log('POST /api/user/deposit/verify called at', new Date().toISOString());
+
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      console.log('Unauthorized request: No session or user ID');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { orderId } = await request.json();
-    
+    const body = await request.json();
+    console.log('Request body:', body);
+    const { orderId } = body;
+
     if (!orderId) {
-      return NextResponse.json(
-        { error: 'Order ID is required' },
-        { status: 400 }
-      );
+      console.log('Missing orderId in request body');
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
-    // Verify the transaction belongs to this user
     const transaction = await prisma.transaction.findFirst({
       where: {
         paymentId: orderId,
         userId: session.user.id,
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     });
 
     if (!transaction) {
-      return NextResponse.json({
-        success: false,
-        message: 'Transaction not found or not in pending status'
-      }, { status: 404 });
+      console.log('Transaction not found:', { orderId, userId: session.user.id });
+      return NextResponse.json(
+        { success: false, message: 'Transaction not found or not in pending status' },
+        { status: 404 }
+      );
     }
 
-    try {
-      // Verify order with PayPal
-      const { verified, amount, error } = await verifyPayPalOrder(orderId);
-      
-      if (!verified) {
-        return NextResponse.json({
-          success: false,
-          message: error || 'Order not confirmed by PayPal',
-        });
-      }
+    const { verified, amount, error } = await verifyPayPalOrder(orderId);
+    console.log('PayPal verification result:', { verified, amount, error });
 
-      // Get the user's updated balance
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { balance: true }
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: 'Deposit completed successfully',
-        amount,
-        newBalance: user?.balance || 0
-      });
-    } catch (verifyError) {
-      console.error('Error verifying payment:', verifyError);
-      return NextResponse.json({
-        success: false,
-        message: 'Error verifying payment',
-      });
+    if (!verified) {
+      return NextResponse.json(
+        { success: false, message: error || 'Order not confirmed by PayPal' },
+        { status: 400 }
+      );
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { balance: true },
+    });
+
+    if (!user) {
+      console.log('User not found:', session.user.id);
+      return NextResponse.json(
+        { success: false, message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Deposit completed successfully',
+      amount,
+      newBalance: user.balance || 0,
+    });
   } catch (error) {
     console.error('Error processing deposit verification:', error);
     return NextResponse.json(
-      { error: 'Failed to verify deposit' },
+      { error: 'Failed to verify deposit', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
+}
+
+// Handle other methods
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
 }

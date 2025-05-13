@@ -41,23 +41,32 @@ export async function canPerformOperation(userId: string): Promise<{
 
     // Check if free operations reset time has passed
     const now = new Date();
+    let freeOpsUsed = user.freeOperationsUsed || 0;
+    let freeOpsReset = user.freeOperationsReset;
+    
     if (user.freeOperationsReset < now) {
+      // Calculate new reset date (first day of next month)
+      const nextResetDate = new Date();
+      nextResetDate.setDate(1);
+      nextResetDate.setMonth(nextResetDate.getMonth() + 1);
+      nextResetDate.setHours(0, 0, 0, 0);
+      
       // Reset free operations counter
       await prisma.user.update({
         where: { id: userId },
         data: {
           freeOperationsUsed: 0,
-          freeOperationsReset: new Date(now.getFullYear(), now.getMonth() + 1, 1) // First day of next month
+          freeOperationsReset: nextResetDate
         }
       });
       
-      // Update user object with reset values
-      user.freeOperationsUsed = 0;
-      user.freeOperationsReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      // Update local variables
+      freeOpsUsed = 0;
+      freeOpsReset = nextResetDate;
     }
 
     // Check if user has free operations remaining
-    const remainingFreeOps = FREE_OPERATIONS_MONTHLY - user.freeOperationsUsed;
+    const remainingFreeOps = FREE_OPERATIONS_MONTHLY - freeOpsUsed;
     
     if (remainingFreeOps > 0) {
       return {
@@ -100,6 +109,7 @@ export async function canPerformOperation(userId: string): Promise<{
 
 /**
  * Record an operation, either using free operation quota or deducting from balance
+ * This function handles the actual business logic of using free operations or charging the user
  */
 export async function recordOperation(
   userId: string, 
@@ -137,19 +147,25 @@ export async function recordOperation(
 
       // Check if free operations should be reset
       const now = new Date();
-      let freeOpsUsed = user.freeOperationsUsed;
+      let freeOpsUsed = user.freeOperationsUsed || 0;
       let resetDate = user.freeOperationsReset;
       
       if (user.freeOperationsReset < now) {
+        // Calculate new reset date (first day of next month)
+        const nextResetDate = new Date();
+        nextResetDate.setDate(1);
+        nextResetDate.setMonth(nextResetDate.getMonth() + 1); 
+        nextResetDate.setHours(0, 0, 0, 0);
+        
         // Reset free operations counter
         freeOpsUsed = 0;
-        resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        resetDate = nextResetDate;
         
         await tx.user.update({
           where: { id: userId },
           data: {
             freeOperationsUsed: 0,
-            freeOperationsReset: resetDate
+            freeOperationsReset: nextResetDate
           }
         });
       }
@@ -165,27 +181,7 @@ export async function recordOperation(
         });
 
         // Track the operation in usage stats
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        await tx.usageStats.upsert({
-          where: {
-            userId_operation_date: {
-              userId,
-              operation: operationType,
-              date: today
-            }
-          },
-          update: {
-            count: { increment: 1 }
-          },
-          create: {
-            userId,
-            operation: operationType,
-            count: 1,
-            date: today
-          }
-        });
+        await trackOperationInTransaction(tx, userId, operationType);
 
         return {
           success: true,
@@ -195,7 +191,7 @@ export async function recordOperation(
         };
       }
 
-      // If no free operations, use balance
+      // If no free operations left, use balance
       if (user.balance < OPERATION_COST) {
         return {
           success: false,
@@ -222,32 +218,13 @@ export async function recordOperation(
           userId,
           amount: -OPERATION_COST,
           balanceAfter: newBalance,
-          description: `Operation: ${operationType}`
+          description: `Operation: ${operationType}`,
+          status: 'completed'
         }
       });
 
       // Track the operation in usage stats
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      await tx.usageStats.upsert({
-        where: {
-          userId_operation_date: {
-            userId,
-            operation: operationType,
-            date: today
-          }
-        },
-        update: {
-          count: { increment: 1 }
-        },
-        create: {
-          userId,
-          operation: operationType,
-          count: 1,
-          date: today
-        }
-      });
+      await trackOperationInTransaction(tx, userId, operationType);
 
       return {
         success: true,
@@ -266,6 +243,118 @@ export async function recordOperation(
       error: 'Failed to record operation'
     };
   }
+}
+
+/**
+ * Helper function to track operation usage within a transaction
+ */
+async function trackOperationInTransaction(tx: any, userId: string, operation: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    await tx.usageStats.upsert({
+        where: {
+            userId_operation_date: {
+                userId,
+                operation,
+                date: today
+            }
+        },
+        update: {
+            count: { increment: 1 }
+        },
+        create: {
+            userId,
+            operation,
+            count: 1,
+            date: today,
+            updatedAt: new Date()
+        }
+    });
+}
+
+/**
+ * Track API usage for a user
+ * This creates or updates a usage record for the current day
+ */
+export async function trackApiUsage(userId: string, operation: string) {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Upsert the usage record (creates or updates)
+        await prisma.usageStats.upsert({
+            where: {
+                userId_operation_date: {
+                    userId,
+                    operation,
+                    date: today
+                }
+            },
+            update: {
+                count: { increment: 1 },
+                updatedAt: new Date()
+            },
+            create: {
+                userId,
+                operation,
+                count: 1,
+                date: today,
+                updatedAt: new Date()
+            }
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Error tracking API usage:', error);
+        // Don't fail the main operation if tracking fails
+        return false;
+    }
+}
+
+/**
+ * Get the current usage for a user
+ * Returns total operations and breakdown by operation type
+ */
+export async function getUserUsage(userId: string) {
+    try {
+        const firstDayOfMonth = new Date();
+        firstDayOfMonth.setDate(1);
+        firstDayOfMonth.setHours(0, 0, 0, 0);
+
+        const usageStats = await prisma.usageStats.findMany({
+            where: {
+                userId,
+                date: { gte: firstDayOfMonth }
+            }
+        });
+
+        // Calculate total operations
+        const totalOperations = usageStats.reduce(
+            (sum, stat) => sum + stat.count,
+            0
+        );
+
+        // Get usage by operation type
+        const operationCounts = usageStats.reduce(
+            (acc: Record<string, number>, stat) => {
+                acc[stat.operation] = (acc[stat.operation] || 0) + stat.count;
+                return acc;
+            },
+            {}
+        );
+
+        return {
+            totalOperations,
+            operationCounts
+        };
+    } catch (error) {
+        console.error('Error getting user usage:', error);
+        return {
+            totalOperations: 0,
+            operationCounts: {}
+        };
+    }
 }
 
 /**
@@ -380,14 +469,15 @@ export async function getUserBalanceInfo(userId: string): Promise<{
 
     // Check if free operations should be reset
     const now = new Date();
-    let freeOpsUsed = user.freeOperationsUsed;
+    let freeOpsUsed = user.freeOperationsUsed || 0;
     let resetDate = user.freeOperationsReset;
     
     if (user.freeOperationsReset < now) {
-      // Reset would happen on next operation, but for display purposes
-      // we'll show that they have full free operations available
+      // We don't actually reset here but just report it as if we did
+      // The actual reset happens when an operation is performed
       freeOpsUsed = 0;
       resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      resetDate.setHours(0, 0, 0, 0);
     }
 
     // Get recent transactions
@@ -400,7 +490,7 @@ export async function getUserBalanceInfo(userId: string): Promise<{
     return {
       balance: user.balance,
       freeOperationsUsed: freeOpsUsed,
-      freeOperationsRemaining: FREE_OPERATIONS_MONTHLY - freeOpsUsed,
+      freeOperationsRemaining: Math.max(0, FREE_OPERATIONS_MONTHLY - freeOpsUsed),
       freeOperationsResetDate: resetDate,
       transactions
     };

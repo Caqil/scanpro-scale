@@ -2,9 +2,7 @@
 import { prisma } from '@/lib/prisma';
 
 // API base URL based on environment
-export const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com';
+export const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
 
 /**
  * Get PayPal access token for API requests

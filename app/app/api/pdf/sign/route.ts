@@ -9,6 +9,7 @@ import sharp from "sharp";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { processOperationCharge } from "@/lib/operation-handler";
 
 const execPromise = promisify(exec);
 
@@ -31,7 +32,15 @@ async function ensureDirectories() {
 // Interface for element data coming from frontend
 interface SignatureElement {
   id: string;
-  type: "signature" | "text" | "stamp" | "initials" | "name" | "date" | "drawing" | "image";
+  type:
+    | "signature"
+    | "text"
+    | "stamp"
+    | "initials"
+    | "name"
+    | "date"
+    | "drawing"
+    | "image";
   position: { x: number; y: number };
   size: { width: number; height: number };
   data: string;
@@ -107,7 +116,11 @@ async function extractTextFromPdf(pdfPath: string): Promise<string> {
 }
 
 // Create searchable PDF using OCRmyPDF
-async function createSearchablePdf(pdfPath: string, outputPath: string, language: string = "eng"): Promise<boolean> {
+async function createSearchablePdf(
+  pdfPath: string,
+  outputPath: string,
+  language: string = "eng"
+): Promise<boolean> {
   try {
     const scriptPath = join(process.cwd(), "scripts", "ocr.py");
     const command = `python3 "${scriptPath}" "${pdfPath}" "${outputPath}" "${language}"`;
@@ -121,15 +134,22 @@ async function createSearchablePdf(pdfPath: string, outputPath: string, language
 }
 
 // Convert SVG string to PNG data URL with transparency
-async function svgToPngDataUrl(svgString: string, width: number, height: number): Promise<string> {
+async function svgToPngDataUrl(
+  svgString: string,
+  width: number,
+  height: number
+): Promise<string> {
   try {
     // Ensure SVG has transparent background by adding background: transparent or by not specifying a background
-    if (!svgString.includes('background')) {
+    if (!svgString.includes("background")) {
       // Only add if not already specified
       const svgOpenTag = svgString.match(/<svg[^>]*>/);
       if (svgOpenTag) {
-        const styleAttr = svgOpenTag[0].includes('style=')
-          ? svgOpenTag[0].replace(/style="([^"]*)"/, (match, p1) => `style="${p1};background:transparent"`)
+        const styleAttr = svgOpenTag[0].includes("style=")
+          ? svgOpenTag[0].replace(
+              /style="([^"]*)"/,
+              (match, p1) => `style="${p1};background:transparent"`
+            )
           : svgOpenTag[0].replace(/>$/, ' style="background:transparent">');
 
         svgString = svgString.replace(/<svg[^>]*>/, styleAttr);
@@ -142,7 +162,7 @@ async function svgToPngDataUrl(svgString: string, width: number, height: number)
       .png()
       .toBuffer();
 
-    return `data:image/png;base64,${buffer.toString('base64')}`;
+    return `data:image/png;base64,${buffer.toString("base64")}`;
   } catch (error) {
     console.error("Error converting SVG to PNG:", error);
     throw error;
@@ -150,13 +170,16 @@ async function svgToPngDataUrl(svgString: string, width: number, height: number)
 }
 
 // Process image buffer to ensure transparency
-async function ensureTransparentBackground(imageBuffer: Buffer, isJpeg: boolean): Promise<Buffer> {
+async function ensureTransparentBackground(
+  imageBuffer: Buffer,
+  isJpeg: boolean
+): Promise<Buffer> {
   try {
     if (isJpeg) {
       // If JPEG (which doesn't support transparency), convert to PNG and make white transparent
       return await sharp(imageBuffer)
-        .toFormat('png')
-        .ensureAlpha()  // Ensure alpha channel exists
+        .toFormat("png")
+        .ensureAlpha() // Ensure alpha channel exists
         .composite([
           {
             input: {
@@ -164,25 +187,22 @@ async function ensureTransparentBackground(imageBuffer: Buffer, isJpeg: boolean)
                 width: 1,
                 height: 1,
                 channels: 4,
-                background: { r: 0, g: 0, b: 0, alpha: 0 }
-              }
+                background: { r: 0, g: 0, b: 0, alpha: 0 },
+              },
             },
-            blend: 'dest-in',  // Use the source alpha
+            blend: "dest-in", // Use the source alpha
             raw: {
               width: 1,
               height: 1,
-              channels: 4
-            }
-          }
+              channels: 4,
+            },
+          },
         ])
         .png()
         .toBuffer();
     } else {
       // If PNG, ensure alpha channel exists and is used
-      return await sharp(imageBuffer)
-        .ensureAlpha()
-        .png()
-        .toBuffer();
+      return await sharp(imageBuffer).ensureAlpha().png().toBuffer();
     }
   } catch (error) {
     console.error("Error ensuring transparent background:", error);
@@ -192,7 +212,10 @@ async function ensureTransparentBackground(imageBuffer: Buffer, isJpeg: boolean)
 
 // Determine if a string is an SVG
 function isSvgString(str: string): boolean {
-  return str.trim().startsWith('<svg') || (str.includes('<?xml') && str.includes('<svg'));
+  return (
+    str.trim().startsWith("<svg") ||
+    (str.includes("<?xml") && str.includes("<svg"))
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -206,6 +229,7 @@ export async function POST(request: NextRequest) {
 
     if (apiKey) {
       console.log("Validating API key for signing operation");
+      const operationType = "sign";
       const validation = await validateApiKey(apiKey, "sign");
 
       if (!validation.valid) {
@@ -217,7 +241,25 @@ export async function POST(request: NextRequest) {
       }
 
       if (validation.userId) {
-        trackApiUsage(validation.userId, "sign");
+        trackApiUsage(validation.userId, operationType);
+        const chargeResult = await processOperationCharge(
+          validation.userId,
+          operationType
+        );
+        if (!chargeResult.success) {
+          return NextResponse.json(
+            {
+              error:
+                chargeResult.error || "Insufficient balance or free operations",
+              details: {
+                balance: chargeResult.currentBalance,
+                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
       }
     }
 
@@ -228,20 +270,33 @@ export async function POST(request: NextRequest) {
 
     const pdfFile = formData.get("file") as File | null;
     if (!pdfFile) {
-      return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No PDF file uploaded" },
+        { status: 400 }
+      );
     }
 
-    const elements: SignatureElement[] = JSON.parse(formData.get("elements") as string || "[]");
-    const pages: PageData[] = JSON.parse(formData.get("pages") as string || "[]");
+    const elements: SignatureElement[] = JSON.parse(
+      (formData.get("elements") as string) || "[]"
+    );
+    const pages: PageData[] = JSON.parse(
+      (formData.get("pages") as string) || "[]"
+    );
     const shouldPerformOcr = formData.get("performOcr") === "true";
     const ocrLanguage = (formData.get("ocrLanguage") as string) || "eng";
 
     if (!elements || !Array.isArray(elements) || elements.length === 0) {
-      return NextResponse.json({ error: "No elements provided for signing" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No elements provided for signing" },
+        { status: 400 }
+      );
     }
 
     if (!pages || !Array.isArray(pages) || pages.length === 0) {
-      return NextResponse.json({ error: "No pages data provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No pages data provided" },
+        { status: 400 }
+      );
     }
 
     const sessionId = uuidv4();
@@ -278,13 +333,22 @@ export async function POST(request: NextRequest) {
       const scaleY = pdfPageHeight / pageData.height; // UI height to PDF height
 
       for (const element of pageElements) {
-        console.log(`Adding element type ${element.type} to page ${pageIndex + 1}`);
+        console.log(
+          `Adding element type ${element.type} to page ${pageIndex + 1}`
+        );
 
         // Convert UI coordinates (top-left origin) to PDF coordinates (bottom-left origin)
         const pdfX = element.position.x * scaleX;
-        const pdfY = pdfPageHeight - (element.position.y * scaleY) - (element.size.height * scaleY);
+        const pdfY =
+          pdfPageHeight -
+          element.position.y * scaleY -
+          element.size.height * scaleY;
 
-        if (element.type === "signature" || element.type === "image" || element.type === "drawing") {
+        if (
+          element.type === "signature" ||
+          element.type === "image" ||
+          element.type === "drawing"
+        ) {
           if (element.data.startsWith("data:image")) {
             const base64Data = element.data.split(",")[1];
             const buffer = Buffer.from(base64Data, "base64");
@@ -292,7 +356,10 @@ export async function POST(request: NextRequest) {
 
             try {
               // Process image to ensure transparent background
-              const transparentBuffer = await ensureTransparentBackground(buffer, isJpeg);
+              const transparentBuffer = await ensureTransparentBackground(
+                buffer,
+                isJpeg
+              );
 
               // Embed the PNG with transparency
               const elementImage = await pdfDoc.embedPng(transparentBuffer);
@@ -302,24 +369,40 @@ export async function POST(request: NextRequest) {
                 y: pdfY,
                 width: element.size.width * scaleX,
                 height: element.size.height * scaleY,
-                rotate: element.rotation ? degrees(element.rotation) : undefined,
+                rotate: element.rotation
+                  ? degrees(element.rotation)
+                  : undefined,
                 opacity: element.scale || 1.0,
               });
 
-              console.log(`Added ${element.type} to page ${pageIndex + 1} at (${pdfX}, ${pdfY})`);
+              console.log(
+                `Added ${element.type} to page ${
+                  pageIndex + 1
+                } at (${pdfX}, ${pdfY})`
+              );
             } catch (error) {
               console.error(`Error embedding ${element.type}:`, error);
             }
           }
-        } else if (element.type === "text" || element.type === "name" || element.type === "date") {
+        } else if (
+          element.type === "text" ||
+          element.type === "name" ||
+          element.type === "date"
+        ) {
           try {
             // Map common font names to standard PDF fonts
             let fontName;
             const fontFamily = element.fontFamily?.toLowerCase() || "arial";
 
-            if (fontFamily.includes("arial") || fontFamily.includes("helvetica")) {
+            if (
+              fontFamily.includes("arial") ||
+              fontFamily.includes("helvetica")
+            ) {
               fontName = StandardFonts.Helvetica;
-            } else if (fontFamily.includes("times") || fontFamily.includes("serif")) {
+            } else if (
+              fontFamily.includes("times") ||
+              fontFamily.includes("serif")
+            ) {
               fontName = StandardFonts.TimesRoman;
             } else if (fontFamily.includes("courier")) {
               fontName = StandardFonts.Courier;
@@ -337,13 +420,17 @@ export async function POST(request: NextRequest) {
 
             // Set text content based on element type
             let textContent = element.data;
-            if (element.type === "date" && (textContent === "Date Placeholder" || !textContent)) {
+            if (
+              element.type === "date" &&
+              (textContent === "Date Placeholder" || !textContent)
+            ) {
               textContent = new Date().toLocaleDateString();
             }
 
             // Calculate text height for vertical centering
             const textHeight = font.heightAtSize(fontSize);
-            const verticalOffset = (element.size.height * scaleY - textHeight) / 2;
+            const verticalOffset =
+              (element.size.height * scaleY - textHeight) / 2;
 
             page.drawText(textContent, {
               x: pdfX + 5, // Add a small padding
@@ -355,7 +442,11 @@ export async function POST(request: NextRequest) {
               opacity: element.scale || 1.0,
             });
 
-            console.log(`Added text to page ${pageIndex + 1} at (${pdfX}, ${pdfY}): "${textContent}"`);
+            console.log(
+              `Added text to page ${
+                pageIndex + 1
+              } at (${pdfX}, ${pdfY}): "${textContent}"`
+            );
           } catch (error) {
             console.error(`Error adding text:`, error);
           }
@@ -378,11 +469,15 @@ export async function POST(request: NextRequest) {
                 y: pdfY,
                 width: element.size.width * scaleX,
                 height: element.size.height * scaleY,
-                rotate: element.rotation ? degrees(element.rotation) : undefined,
+                rotate: element.rotation
+                  ? degrees(element.rotation)
+                  : undefined,
                 opacity: element.scale || 1.0,
               });
 
-              console.log(`Added stamp (SVG converted to PNG) to page ${pageIndex + 1}`);
+              console.log(
+                `Added stamp (SVG converted to PNG) to page ${pageIndex + 1}`
+              );
             } else if (element.data.startsWith("data:image")) {
               // Handle image-based stamps
               const base64Data = element.data.split(",")[1];
@@ -390,7 +485,10 @@ export async function POST(request: NextRequest) {
               const isJpeg = element.data.includes("image/jpeg");
 
               // Process stamp to ensure transparent background
-              const transparentBuffer = await ensureTransparentBackground(buffer, isJpeg);
+              const transparentBuffer = await ensureTransparentBackground(
+                buffer,
+                isJpeg
+              );
               const stampImage = await pdfDoc.embedPng(transparentBuffer);
 
               page.drawImage(stampImage, {
@@ -398,7 +496,9 @@ export async function POST(request: NextRequest) {
                 y: pdfY,
                 width: element.size.width * scaleX,
                 height: element.size.height * scaleY,
-                rotate: element.rotation ? degrees(element.rotation) : undefined,
+                rotate: element.rotation
+                  ? degrees(element.rotation)
+                  : undefined,
                 opacity: element.scale || 1.0,
               });
 
@@ -434,7 +534,11 @@ export async function POST(request: NextRequest) {
     if (shouldPerformOcr) {
       try {
         console.log("Creating searchable PDF with OCR...");
-        const ocrSuccess = await createSearchablePdf(outputPdfPath, ocrPdfPath, ocrLanguage);
+        const ocrSuccess = await createSearchablePdf(
+          outputPdfPath,
+          ocrPdfPath,
+          ocrLanguage
+        );
 
         if (ocrSuccess) {
           const extractedText = await extractTextFromPdf(ocrPdfPath);
@@ -449,13 +553,16 @@ export async function POST(request: NextRequest) {
           console.log("Searchable PDF created successfully");
         } else {
           responseData.ocrComplete = false;
-          responseData.ocrError = "OCR failed - OCRmyPDF may not be installed or configured correctly";
+          responseData.ocrError =
+            "OCR failed - OCRmyPDF may not be installed or configured correctly";
           console.log("OCR failed - check if OCRmyPDF is installed");
         }
       } catch (error) {
         console.error("Error during OCR processing:", error);
         responseData.ocrComplete = false;
-        responseData.ocrError = `OCR failed: ${error instanceof Error ? error.message : String(error)}`;
+        responseData.ocrError = `OCR failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`;
       }
     }
 
@@ -464,7 +571,10 @@ export async function POST(request: NextRequest) {
     console.error("PDF signing error:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "An unknown error occurred during PDF signing",
+        error:
+          error instanceof Error
+            ? error.message
+            : "An unknown error occurred during PDF signing",
         success: false,
       },
       { status: 500 }

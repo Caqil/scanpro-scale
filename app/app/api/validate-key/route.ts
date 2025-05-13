@@ -1,12 +1,13 @@
+// app/api/validate-key/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { FREE_OPERATIONS_MONTHLY, OPERATION_COST } from '@/lib/balance-service';
 
 // In-memory API key cache for faster validation
 type ApiKeyCache = {
     [key: string]: {
         userId: string;
         permissions: string[];
-        tier: string;
         valid: boolean;
         timestamp: number;
     }
@@ -15,13 +16,6 @@ type ApiKeyCache = {
 const API_KEY_CACHE: ApiKeyCache = {};
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const CACHE_CLEANUP_INTERVAL = 15 * 60 * 1000; // 15 minutes
-
-const rateLimits = {
-    free: { limit: 100, window: '1 h' },
-    basic: { limit: 1000, window: '1 h' },
-    pro: { limit: 2000, window: '1 h' },
-    enterprise: { limit: 5000, window: '1 h' },
-};
 
 // Schedule cache cleanup
 if (typeof global !== 'undefined') {
@@ -63,9 +57,7 @@ async function validateApiKey(apiKey: string, operation?: string) {
         return {
             valid: true,
             userId: cachedData.userId,
-            tier: cachedData.tier,
-            permissions: cachedData.permissions,
-            limit: rateLimits[cachedData.tier as keyof typeof rateLimits].limit
+            permissions: cachedData.permissions
         };
     }
 
@@ -73,11 +65,20 @@ async function validateApiKey(apiKey: string, operation?: string) {
     try {
         const keyRecord = await prisma.apiKey.findUnique({
             where: { key: apiKey },
-            include: { user: { include: { subscription: true } } }
+            include: { 
+                user: { 
+                    select: { 
+                        id: true, 
+                        balance: true,
+                        freeOperationsUsed: true,
+                        freeOperationsReset: true
+                    } 
+                } 
+            }
         });
 
         if (!keyRecord) {
-            API_KEY_CACHE[apiKey] = { userId: '', permissions: [], tier: 'free', valid: false, timestamp: Date.now() };
+            API_KEY_CACHE[apiKey] = { userId: '', permissions: [], valid: false, timestamp: Date.now() };
             return { valid: false, error: 'Invalid API key', status: 401 };
         }
 
@@ -85,7 +86,6 @@ async function validateApiKey(apiKey: string, operation?: string) {
             API_KEY_CACHE[apiKey] = {
                 userId: keyRecord.userId,
                 permissions: keyRecord.permissions,
-                tier: keyRecord.user.subscription?.tier || 'free',
                 valid: false,
                 timestamp: Date.now()
             };
@@ -101,34 +101,42 @@ async function validateApiKey(apiKey: string, operation?: string) {
             data: { lastUsed: new Date() }
         });
 
-        const tier = keyRecord.user.subscription?.tier || 'free';
+        // Check balance info and update cache
         API_KEY_CACHE[apiKey] = {
             userId: keyRecord.userId,
             permissions: keyRecord.permissions,
-            tier,
             valid: true,
             timestamp: Date.now()
         };
 
+        // Check free operations reset date
+        const now = new Date();
+        let freeOpsRemaining = 0;
+        let currentBalance = keyRecord.user.balance || 0;
+        
+        if (keyRecord.user.freeOperationsReset && keyRecord.user.freeOperationsReset < now) {
+            // Reset will happen on operation, but for display we show full ops
+            freeOpsRemaining = FREE_OPERATIONS_MONTHLY;
+        } else {
+            // Calculate remaining free operations
+            freeOpsRemaining = Math.max(0, FREE_OPERATIONS_MONTHLY - (keyRecord.user.freeOperationsUsed || 0));
+        }
+
+        // Check payment capability
+        const canPerformFree = freeOpsRemaining > 0;
+        const canPerformPaid = currentBalance >= OPERATION_COST;
+
         return {
             valid: true,
             userId: keyRecord.userId,
-            tier,
             permissions: keyRecord.permissions,
-            limit: rateLimits[tier as keyof typeof rateLimits].limit
+            freeOperationsRemaining: freeOpsRemaining,
+            currentBalance: currentBalance,
+            canPerformOperation: canPerformFree || canPerformPaid,
+            status: 200
         };
     } catch (error) {
         console.error('Database error during API key validation:', error);
-        if (apiKey === process.env.SYSTEM_API_KEY) {
-            return {
-                valid: true,
-                userId: 'system',
-                tier: 'enterprise',
-                permissions: ['*'],
-                limit: rateLimits.enterprise.limit,
-                emergency: true
-            };
-        }
         return { valid: false, error: 'Error validating API key', status: 500 };
     }
 }

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir, readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { trackApiUsage, validateApiKey } from '@/lib/validate-key';
+import { processOperationCharge } from '@/lib/operation-handler';
 
 // Promisify exec for async/await
 const execAsync = promisify(exec);
@@ -409,6 +410,7 @@ export async function POST(request: NextRequest) {
 
         if (apiKey) {
             console.log('Validating API key for split operation');
+            const operationType = "split";
             const validation = await validateApiKey(apiKey, 'split');
 
             if (!validation.valid) {
@@ -420,8 +422,26 @@ export async function POST(request: NextRequest) {
             }
 
             if (validation.userId) {
-                trackApiUsage(validation.userId, 'split');
-            }
+                    trackApiUsage(validation.userId, operationType);
+                    const chargeResult = await processOperationCharge(
+                      validation.userId,
+                      operationType
+                    );
+                    if (!chargeResult.success) {
+                      return NextResponse.json(
+                        {
+                          error:
+                            chargeResult.error || "Insufficient balance or free operations",
+                          details: {
+                            balance: chargeResult.currentBalance,
+                            freeOperationsRemaining: chargeResult.freeOperationsRemaining,
+                            operationCost: 0.005,
+                          },
+                        },
+                        { status: 402 } // Payment Required status code
+                      );
+                    }
+                  }
         }
 
         await ensureDirectories();
