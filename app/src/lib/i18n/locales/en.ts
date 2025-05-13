@@ -3734,5 +3734,56 @@ export default {
         description: "If you have any questions about our use of cookies, please contact us at:"
       }
     },
+    balancePanel: {
+      title: {
+        currentBalance: "Current Balance",
+        freeOperations: "Free Operations",
+        operationsCoverage: "Operations Coverage",
+        transactionHistory: "Transaction History",
+        depositFunds: "Deposit Funds"
+      },
+      description: {
+        operationCost: "Operations cost $0.005 each",
+        resetsOn: "Resets on {date}",
+        operationsWithBalance: "Operations available with current balance",
+        transactionDescription: "View your recent transactions and operations",
+        depositDescription: "Add money to your account to use for operations",
+        operationsCoverageInfo: "{count} operations",
+        operationCostInfo: "Each operation costs $0.005. Unused funds stay in your account."
+      },
+      button: {
+        addFunds: "Add Funds",
+        deposit: "Deposit with PayPal",
+        processing: "Processing..."
+      },
+      tabs: {
+        transactions: "Transactions",
+        deposit: "Deposit Funds"
+      },
+      form: {
+        depositAmount: "Deposit Amount (USD)",
+        enterAmount: "Enter amount",
+        operationsCoverage: "Operations Coverage:"
+      },
+      table: {
+        recentTransactions: "Recent transactions",
+        date: "Date",
+        description: "Description",
+        amount: "Amount",
+        balance: "Balance",
+        pending: "(Pending)",
+        failed: "(Failed)"
+      },
+      status: {
+        loading: "Loading transactions...",
+        noTransactions: "No transactions yet"
+      },
+      errors: {
+        invalidAmount: "Please enter a valid amount",
+        minimumDeposit: "Minimum deposit amount is $5.00",
+        depositFailed: "Failed to process deposit"
+      }
+  },
+  
 }
 

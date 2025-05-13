@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardContent } from "./dashboard-content";
+import { FREE_OPERATIONS_MONTHLY } from "@/lib/validate-key";
 
 // Define the UsageStats type based on your Prisma schema
 type UsageStats = {
@@ -12,6 +13,18 @@ type UsageStats = {
   operation: string;
   count: number;
   date: Date;
+};
+
+// Define the Transaction type
+type Transaction = {
+  id: string;
+  userId: string;
+  amount: number;
+  balanceAfter: number;
+  description: string;
+  paymentId: string | null;
+  status: string;
+  createdAt: Date;
 };
 
 export default async function DashboardPage() {
@@ -80,12 +93,12 @@ export default async function DashboardPage() {
     : {};
 
   // Get recent transactions
-  let recentTransactions = [];
+  let recentTransactions: Transaction[] = [];
   try {
     recentTransactions = await prisma.transaction.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      take: 5, // Get 5 most recent transactions
+      take: 10, // Get 10 most recent transactions
     });
   } catch (error) {
     console.error("Error fetching recent transactions:", error);
@@ -94,10 +107,13 @@ export default async function DashboardPage() {
 
   // Check if user's free operations reset date is past and should be reset
   const now = new Date();
+  let effectiveFreeOpsUsed = user.freeOperationsUsed || 0;
+  let nextResetDate = user.freeOperationsReset;
+
   if (user.freeOperationsReset && user.freeOperationsReset < now) {
     try {
       // Calculate new reset date (first day of next month)
-      const nextResetDate = new Date();
+      nextResetDate = new Date();
       nextResetDate.setDate(1);
       nextResetDate.setMonth(nextResetDate.getMonth() + 1);
       nextResetDate.setHours(0, 0, 0, 0);
@@ -111,13 +127,27 @@ export default async function DashboardPage() {
         },
       });
 
-      // Update local user object to reflect the reset
-      user.freeOperationsUsed = 0;
-      user.freeOperationsReset = nextResetDate;
+      // Update local variable to reflect the reset
+      effectiveFreeOpsUsed = 0;
     } catch (resetError) {
       console.error("Error resetting free operations:", resetError);
     }
   }
+
+  // Calculate remaining free operations
+  const freeOperationsRemaining = Math.max(
+    0,
+    FREE_OPERATIONS_MONTHLY - effectiveFreeOpsUsed
+  );
+
+  // Format the reset date for display
+  const resetDateFormatted = nextResetDate
+    ? new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(nextResetDate)
+    : "Unknown";
 
   return (
     <div className="container max-w-6xl py-8">
@@ -125,7 +155,11 @@ export default async function DashboardPage() {
       <DashboardContent
         user={{
           ...user,
+          freeOperationsUsed: effectiveFreeOpsUsed,
+          freeOperationsRemaining,
+          freeOperationsResetDate: resetDateFormatted,
           transactions: recentTransactions,
+          balance: user.balance || 0,
         }}
         usageStats={{
           totalOperations,

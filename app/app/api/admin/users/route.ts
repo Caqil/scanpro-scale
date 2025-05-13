@@ -24,16 +24,15 @@ export async function GET(request: Request) {
       ];
     }
 
+    // Handle tier filtering in pay-as-you-go model
     if (tier && tier !== 'all') {
       if (tier === 'free') {
-        where.subscription = null;
-      } else {
-        where.subscription = { tier };
+        // Free users have no transactions
+        where.transactions = { none: {} };
+      } else if (tier === 'paid') {
+        // Paid users have at least one transaction
+        where.transactions = { some: {} };
       }
-    }
-
-    if (status && status !== 'all') {
-      where.subscription = { ...where.subscription, status };
     }
 
     // Get users with pagination
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         include: {
-          subscription: true,
           apiKeys: {
             select: {
               id: true,
@@ -54,7 +52,8 @@ export async function GET(request: Request) {
           },
           _count: {
             select: {
-              usageStats: true
+              usageStats: true,
+              transactions: true
             }
           }
         },
@@ -87,7 +86,7 @@ export async function GET(request: Request) {
       _sum: { count: true }
     });
 
-    // Format user data
+    // Format user data to include balance information
     const formattedUsers = users.map(user => {
       const totalUsage = usageData.find(u => u.userId === user.id)?._sum.count || 0;
       const monthlyUsage = thisMonthUsage.find(u => u.userId === user.id)?._sum.count || 0;
@@ -99,6 +98,10 @@ export async function GET(request: Request) {
         .filter(Boolean)
         .sort((a, b) => b!.getTime() - a!.getTime())[0];
 
+      // Determine user tier based on transaction history
+      const hasPaid = user._count.transactions > 0;
+      const accountTier = hasPaid ? 'paid' : 'free';
+
       return {
         id: user.id,
         name: user.name,
@@ -106,12 +109,14 @@ export async function GET(request: Request) {
         role: user.role,
         createdAt: user.createdAt,
         lastActive: lastApiUsed || user.updatedAt,
-        subscription: user.subscription ? {
-          tier: user.subscription.tier,
-          status: user.subscription.status,
-          currentPeriodEnd: user.subscription.currentPeriodEnd,
-          paypalSubscriptionId: user.subscription.paypalSubscriptionId
-        } : null,
+        balance: user.balance || 0,
+        freeOperationsUsed: user.freeOperationsUsed || 0,
+        freeOperationsRemaining: Math.max(0, 500 - (user.freeOperationsUsed || 0)), // 500 is FREE_OPERATIONS_MONTHLY
+        // Map to subscription format for backward compatibility
+        subscription: {
+          tier: accountTier,
+          status: 'active' // Always active in pay-as-you-go
+        },
         apiKeys: user.apiKeys,
         usage: {
           total: totalUsage,
@@ -131,7 +136,7 @@ export async function GET(request: Request) {
   });
 }
 
-// Update user role or subscription
+// Update user role or balance
 export async function PATCH(request: Request) {
   return withAdminAuth(async () => {
     const { userId, updates } = await request.json();
@@ -144,15 +149,123 @@ export async function PATCH(request: Request) {
     }
 
     // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updates,
-      include: {
-        subscription: true,
-        apiKeys: true
+    const updateData: any = {};
+    
+    // Only update fields that are explicitly provided in the request
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.email !== undefined) updateData.email = updates.email;
+    if (updates.role !== undefined) updateData.role = updates.role;
+    if (updates.balance !== undefined) updateData.balance = parseFloat(updates.balance);
+    if (updates.freeOperationsUsed !== undefined) updateData.freeOperationsUsed = parseInt(updates.freeOperationsUsed);
+    
+    // Handle suspended status
+    if (updates.suspended !== undefined) {
+      updateData.role = updates.suspended ? 'suspended' : 'user';
+    }
+
+    // Only update user if there are fields to update
+    if (Object.keys(updateData).length > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      });
+    }
+
+    // If balance was changed, create a transaction record
+    if (updates.balance !== undefined) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { balance: true }
+      });
+
+      if (user) {
+        // Calculate the amount added (positive) or subtracted (negative)
+        const currentBalance = user.balance || 0;
+        const previousBalance = currentBalance - (parseFloat(updates.balance) - currentBalance);
+        const amount = currentBalance - previousBalance;
+
+        // Create transaction record
+        await prisma.transaction.create({
+          data: {
+            userId,
+            amount,
+            balanceAfter: currentBalance,
+            description: amount > 0 
+              ? 'Admin balance adjustment (added funds)' 
+              : 'Admin balance adjustment (removed funds)',
+            status: 'completed'
+          }
+        });
       }
+    }
+
+    // Fetch updated user with all relations
+    const finalUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        apiKeys: {
+          select: {
+            id: true,
+            name: true,
+            lastUsed: true,
+            permissions: true,
+          },
+        },
+        // Calculate usage statistics
+        usageStats: {
+          where: {
+            date: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // First day of current month
+            },
+          },
+        },
+        _count: {
+          select: {
+            transactions: true
+          }
+        }
+      },
     });
 
-    return NextResponse.json(updatedUser);
+    if (!finalUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Calculate usage data
+    const totalUsage = await prisma.usageStats.aggregate({
+      where: { userId },
+      _sum: { count: true },
+    });
+
+    const thisMonthUsage = finalUser.usageStats.reduce((sum, stat) => sum + stat.count, 0);
+    
+    // Format the response
+    const hasPaid = finalUser._count.transactions > 0;
+    const formattedUser = {
+      id: finalUser.id,
+      name: finalUser.name,
+      email: finalUser.email,
+      role: finalUser.role,
+      createdAt: finalUser.createdAt,
+      lastActive: finalUser.updatedAt,
+      balance: finalUser.balance || 0,
+      freeOperationsUsed: finalUser.freeOperationsUsed || 0,
+      freeOperationsRemaining: Math.max(0, 500 - (finalUser.freeOperationsUsed || 0)),
+      subscription: {
+        tier: hasPaid ? 'paid' : 'free',
+        status: 'active'
+      },
+      apiKeys: finalUser.apiKeys,
+      usage: {
+        total: totalUsage._sum.count || 0,
+        thisMonth: thisMonthUsage,
+        lastMonth: 0, // You can calculate this if needed
+      },
+    };
+
+    return NextResponse.json({ success: true, user: formattedUser });
   });
 }

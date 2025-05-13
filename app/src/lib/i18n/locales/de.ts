@@ -3510,5 +3510,55 @@ cookies: {
     title: "Kontaktieren Sie uns",
     description: "Wenn Sie Fragen zu unserer Verwendung von Cookies haben, kontaktieren Sie uns bitte unter:"
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "Aktueller Saldo",
+    freeOperations: "Kostenlose Operationen",
+    operationsCoverage: "Operationsabdeckung",
+    transactionHistory: "Transaktionsverlauf",
+    depositFunds: "Guthaben einzahlen"
+  },
+  description: {
+    operationCost: "Operationen kosten 0,005 $ pro Stück",
+    resetsOn: "Setzt zurück am {date}",
+    operationsWithBalance: "Mit aktuellem Saldo verfügbare Operationen",
+    transactionDescription: "Sehen Sie Ihre kürzlichen Transaktionen und Operationen",
+    depositDescription: "Fügen Sie Geld zu Ihrem Konto hinzu, um es für Operationen zu verwenden",
+    operationsCoverageInfo: "{count} Operationen",
+    operationCostInfo: "Jede Operation kostet 0,005 $. Nicht genutzte Gelder bleiben auf Ihrem Konto."
+  },
+  button: {
+    addFunds: "Guthaben hinzufügen",
+    deposit: "Einzahlung mit PayPal",
+    processing: "Wird verarbeitet..."
+  },
+  tabs: {
+    transactions: "Transaktionen",
+    deposit: "Guthaben einzahlen"
+  },
+  form: {
+    depositAmount: "Einzahlungsbetrag (USD)",
+    enterAmount: "Betrag eingeben",
+    operationsCoverage: "Operationsabdeckung:"
+  },
+  table: {
+    recentTransactions: "Kürzliche Transaktionen",
+    date: "Datum",
+    description: "Beschreibung",
+    amount: "Betrag",
+    balance: "Saldo",
+    pending: "(Ausstehend)",
+    failed: "(Fehlgeschlagen)"
+  },
+  status: {
+    loading: "Transaktionen werden geladen...",
+    noTransactions: "Noch keine Transaktionen"
+  },
+  errors: {
+    invalidAmount: "Bitte geben Sie einen gültigen Betrag ein",
+    minimumDeposit: "Der Mindesteinzahlungsbetrag beträgt 5,00 $",
+    depositFailed: "Einzahlung konnte nicht verarbeitet werden"
+  }
 }
 }

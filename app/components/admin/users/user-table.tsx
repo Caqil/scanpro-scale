@@ -27,20 +27,19 @@ import {
   Key,
   Mail,
   Eye,
-  UserX,
-  CheckCircle,
-  XCircle,
   Edit2,
   Trash2,
+  RefreshCw,
+  Wallet
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -85,34 +84,6 @@ export function UserTable({
     }).format(amount);
   };
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case "free":
-        return "outline";
-      case "basic":
-        return "default";
-      case "pro":
-        return "secondary";
-      case "enterprise":
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Active</Badge>;
-      case "canceled":
-        return <Badge variant="outline">Canceled</Badge>;
-      case "expired":
-        return <Badge variant="destructive">Expired</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
   const handleAction = async (action: string, user: AdminUser) => {
     try {
       if (action === "delete") {
@@ -137,10 +108,13 @@ export function UserTable({
           updates = { role: "user" };
           break;
         case "suspend":
-          updates = { suspended: true };
+          updates = { role: "suspended" };
           break;
         case "unsuspend":
-          updates = { suspended: false };
+          updates = { role: "user" };
+          break;
+        case "reset-free-operations":
+          updates = { freeOperationsUsed: 0 };
           break;
         default:
           return;
@@ -178,8 +152,8 @@ export function UserTable({
           <TableRow>
             <TableHead>User</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Subscription</TableHead>
-            <TableHead>Usage</TableHead>
+            <TableHead>Account Status</TableHead>
+            <TableHead>Balance</TableHead>
             <TableHead>Last Active</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
@@ -204,30 +178,34 @@ export function UserTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={user.role === "admin" ? "destructive" : "secondary"}
+                  variant={user.role === "admin" ? "destructive" : user.role === "suspended" ? "outline" : "secondary"}
                 >
                   {user.role}
                 </Badge>
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
-                  <Badge
-                    variant={getTierColor(user.subscription?.tier || "free")}
-                  >
-                    {user.subscription?.tier || "free"}
-                  </Badge>
-                  {user.subscription?.status && (
-                    <div>{getStatusBadge(user.subscription.status)}</div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {user.freeOperationsRemaining} / 500
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      free ops
+                    </span>
+                  </div>
+                  <div>
+                    <Badge
+                      variant="outline"
+                    >
+                      {user.subscription?.tier || "free"}
+                    </Badge>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
-                  <p>{user.usage.thisMonth} this month</p>
-                  <p className="text-xs text-muted-foreground">
-                    {user.usage.total} total
-                  </p>
-                </div>
+                <Badge variant="secondary">
+                  {formatCurrency(user.balance || 0)}
+                </Badge>
               </TableCell>
               <TableCell>
                 <span className="text-sm text-muted-foreground">
@@ -256,6 +234,18 @@ export function UserTable({
                       <Mail className="mr-2 h-4 w-4" />
                       Send Email
                     </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => 
+                        setConfirmAction({
+                          user,
+                          action: "reset-free-operations",
+                          open: true
+                        })
+                      }
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Reset Free Ops
+                    </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Key className="mr-2 h-4 w-4" />
                       View API Keys
@@ -281,13 +271,13 @@ export function UserTable({
                       onClick={() =>
                         setConfirmAction({
                           user,
-                          action: "suspend",
+                          action: user.role === "suspended" ? "unsuspend" : "suspend",
                           open: true,
                         })
                       }
                     >
                       <Ban className="mr-2 h-4 w-4" />
-                      Suspend User
+                      {user.role === "suspended" ? "Unsuspend User" : "Suspend User"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"

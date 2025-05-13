@@ -3512,5 +3512,55 @@ export default {
           title: "Contactez-Nous",
           description: "Si vous avez des questions concernant notre utilisation des cookies, veuillez nous contacter à :"
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "Solde actuel",
+          freeOperations: "Opérations gratuites",
+          operationsCoverage: "Couverture des opérations",
+          transactionHistory: "Historique des transactions",
+          depositFunds: "Déposer des fonds"
+        },
+        description: {
+          operationCost: "Les opérations coûtent 0,005 $ chacune",
+          resetsOn: "Réinitialisé le {date}",
+          operationsWithBalance: "Opérations disponibles avec le solde actuel",
+          transactionDescription: "Consultez vos transactions et opérations récentes",
+          depositDescription: "Ajoutez de l'argent à votre compte pour l'utiliser dans des opérations",
+          operationsCoverageInfo: "{count} opérations",
+          operationCostInfo: "Chaque opération coûte 0,005 $. Les fonds non utilisés restent sur votre compte."
+        },
+        button: {
+          addFunds: "Ajouter des fonds",
+          deposit: "Déposer avec PayPal",
+          processing: "En cours de traitement..."
+        },
+        tabs: {
+          transactions: "Transactions",
+          deposit: "Déposer des fonds"
+        },
+        form: {
+          depositAmount: "Montant du dépôt (USD)",
+          enterAmount: "Entrez le montant",
+          operationsCoverage: "Couverture des opérations :"
+        },
+        table: {
+          recentTransactions: "Transactions récentes",
+          date: "Date",
+          description: "Description",
+          amount: "Montant",
+          balance: "Solde",
+          pending: "(En attente)",
+          failed: "(Échoué)"
+        },
+        status: {
+          loading: "Chargement des transactions...",
+          noTransactions: "Aucune transaction pour le moment"
+        },
+        errors: {
+          invalidAmount: "Veuillez entrer un montant valide",
+          minimumDeposit: "Le montant minimum du dépôt est de 5,00 $",
+          depositFailed: "Échec du traitement du dépôt"
+        }
+    }
 }

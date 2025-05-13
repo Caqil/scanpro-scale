@@ -1,4 +1,4 @@
-// components/admin/sidebar.tsx
+// components/admin/admin-sidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -13,6 +13,7 @@ import {
   FileText,
   Activity,
   Shield,
+  Wallet,
 } from "lucide-react";
 import { LanguageLink } from "../language-link";
 
@@ -28,9 +29,9 @@ const navItems = [
     icon: Users,
   },
   {
-    title: "Subscriptions",
-    href: "/admin/subscriptions",
-    icon: CreditCard,
+    title: "Transactions",
+    href: "/admin/transactions",
+    icon: Wallet,
   },
   {
     title: "API Usage",

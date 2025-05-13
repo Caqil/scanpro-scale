@@ -3515,5 +3515,55 @@ export default {
           title: "Bize Ulaşın",
           description: "Çerez kullanımımız hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin:"
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "Mevcut Bakiye",
+          freeOperations: "Ücretsiz İşlemler",
+          operationsCoverage: "İşlem Kapsamı",
+          transactionHistory: "İşlem Geçmişi",
+          depositFunds: "Fon Yatırma"
+        },
+        description: {
+          operationCost: "İşlemler her biri için $0.005 tutar",
+          resetsOn: "{date} tarihinde sıfırlanır",
+          operationsWithBalance: "Mevcut bakiye ile kullanılabilir işlemler",
+          transactionDescription: "Son işlemlerinizi ve operasyonlarınızı görüntüleyin",
+          depositDescription: "İşlemler için hesabınıza para ekleyin",
+          operationsCoverageInfo: "{count} işlem",
+          operationCostInfo: "Her işlem $0.005 tutar. Kullanılmayan fonlar hesabınızda kalır."
+        },
+        button: {
+          addFunds: "Fon Ekle",
+          deposit: "PayPal ile Yatır",
+          processing: "İşleniyor..."
+        },
+        tabs: {
+          transactions: "İşlemler",
+          deposit: "Fon Yatırma"
+        },
+        form: {
+          depositAmount: "Yatırma Miktarı (USD)",
+          enterAmount: "Miktar girin",
+          operationsCoverage: "İşlem Kapsamı:"
+        },
+        table: {
+          recentTransactions: "Son İşlemler",
+          date: "Tarih",
+          description: "Açıklama",
+          amount: "Miktar",
+          balance: "Bakiye",
+          pending: "(Beklemede)",
+          failed: "(Başarısız)"
+        },
+        status: {
+          loading: "İşlemler yükleniyor...",
+          noTransactions: "Henüz işlem yok"
+        },
+        errors: {
+          invalidAmount: "Lütfen geçerli bir miktar girin",
+          minimumDeposit: "Minimum yatırma miktarı $5.00'dır",
+          depositFailed: "Yatırma işlemi başarısız oldu"
+        }
+    }
 }

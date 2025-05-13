@@ -35,8 +35,8 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
     name: "",
     email: "",
     role: "user",
-    tier: "free",
-    status: "active",
+    balance: "0",
+    freeOperationsUsed: "0",
   });
   const [saving, setSaving] = useState(false);
 
@@ -47,8 +47,8 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
         name: user.name || "",  // Handle null values
         email: user.email || "",  // Handle null values
         role: user.role || "user",
-        tier: user.subscription?.tier || "free",
-        status: user.subscription?.status || "active",
+        balance: user.balance?.toString() || "0",
+        freeOperationsUsed: user.freeOperationsUsed?.toString() || "0",
       });
     }
   }, [user]);
@@ -70,10 +70,8 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
           name: formData.name || null,  // Send null if empty
           email: formData.email || null,  // Send null if empty
           role: formData.role,
-          subscription: {
-            tier: formData.tier,
-            status: formData.status,
-          },
+          balance: parseFloat(formData.balance),
+          freeOperationsUsed: parseInt(formData.freeOperationsUsed),
         }),
       });
 
@@ -98,8 +96,8 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
       name: "",
       email: "",
       role: "user",
-      tier: "free",
-      status: "active",
+      balance: "0",
+      freeOperationsUsed: "0",
     });
     onClose();
   };
@@ -111,7 +109,7 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Update user information and subscription details.
+              Update user information and account details.
             </DialogDescription>
           </DialogHeader>
 
@@ -163,51 +161,43 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tier" className="text-right">
-                Subscription
+              <Label htmlFor="balance" className="text-right">
+                Balance
               </Label>
-              <Select
-                value={formData.tier}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, tier: value })
+              <Input
+                id="balance"
+                type="number"
+                step="0.01"
+                value={formData.balance}
+                onChange={(e) =>
+                  setFormData({ ...formData, balance: e.target.value })
                 }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="0.00"
+                className="col-span-3"
+              />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
+              <Label htmlFor="freeOperationsUsed" className="text-right">
+                Free Ops Used
               </Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+              <Input
+                id="freeOperationsUsed"
+                type="number"
+                min="0"
+                value={formData.freeOperationsUsed}
+                onChange={(e) =>
+                  setFormData({ ...formData, freeOperationsUsed: e.target.value })
                 }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="canceled">Canceled</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="0"
+                className="col-span-3"
+              />
             </div>
           </div>
 

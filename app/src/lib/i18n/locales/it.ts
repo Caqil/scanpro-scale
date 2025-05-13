@@ -3574,5 +3574,55 @@ cookies: {
     title: "Contattaci",
     description: "Se hai domande sul nostro utilizzo dei cookie, contattaci all'indirizzo:"
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "Saldo attuale",
+    freeOperations: "Operazioni gratuite",
+    operationsCoverage: "Copertura delle operazioni",
+    transactionHistory: "Cronologia delle transazioni",
+    depositFunds: "Deposita fondi"
+  },
+  description: {
+    operationCost: "Le operazioni costano $0.005 ciascuna",
+    resetsOn: "Si azzera il {date}",
+    operationsWithBalance: "Operazioni disponibili con il saldo attuale",
+    transactionDescription: "Visualizza le tue transazioni e operazioni recenti",
+    depositDescription: "Aggiungi denaro al tuo account per utilizzarlo per le operazioni",
+    operationsCoverageInfo: "{count} operazioni",
+    operationCostInfo: "Ogni operazione costa $0.005. I fondi non utilizzati rimangono nel tuo account."
+  },
+  button: {
+    addFunds: "Aggiungi fondi",
+    deposit: "Deposita con PayPal",
+    processing: "In elaborazione..."
+  },
+  tabs: {
+    transactions: "Transazioni",
+    deposit: "Deposita fondi"
+  },
+  form: {
+    depositAmount: "Importo del deposito (USD)",
+    enterAmount: "Inserisci l'importo",
+    operationsCoverage: "Copertura delle operazioni:"
+  },
+  table: {
+    recentTransactions: "Transazioni recenti",
+    date: "Data",
+    description: "Descrizione",
+    amount: "Importo",
+    balance: "Saldo",
+    pending: "(In attesa)",
+    failed: "(Fallito)"
+  },
+  status: {
+    loading: "Caricamento delle transazioni...",
+    noTransactions: "Nessuna transazione finora"
+  },
+  errors: {
+    invalidAmount: "Inserisci un importo valido",
+    minimumDeposit: "L'importo minimo del deposito è $5.00",
+    depositFailed: "Impossibile elaborare il deposito"
+  }
 }
 }

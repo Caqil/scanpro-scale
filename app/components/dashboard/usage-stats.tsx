@@ -144,7 +144,7 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("dashboard.freeOperations") || "Free Operations"}
+              {t("balancePanel.title.freeOperations") || "Free Operations"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -152,8 +152,8 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
               {freeOperationsRemaining} / {FREE_OPERATIONS_MONTHLY}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.resetsOn") || "Resets on"}{" "}
-              {formatDate(user.freeOperationsReset)}
+              {t("balancePanel.description.resetsOn").replace("{date}", formatDate(user.freeOperationsReset)) || "Resets on"}{" "}
+              
             </p>
             <Progress value={freeOpsPercentage} className="mt-2" />
           </CardContent>
@@ -162,7 +162,7 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("dashboard.balance") || "Balance"}
+              {t("balancePanel.table.balance") || "Balance"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -170,7 +170,7 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
               ${(user.balance || 0).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.coveredOperations") || "Covers"}{" "}
+              {t("balancePanel.title.operationsCoverage") || "Covers"}{" "}
               {operationsCoverage} {t("dashboard.operations") || "operations"}
             </p>
           </CardContent>

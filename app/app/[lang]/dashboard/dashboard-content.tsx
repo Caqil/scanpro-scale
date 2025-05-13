@@ -13,6 +13,7 @@ import {
   EmailVerifiedAlert,
 } from "@/components/email-verification-alert";
 import { BalancePanel } from "@/components/balance-panel";
+import { useLanguageStore } from "@/src/store/store";
 
 interface DashboardContentProps {
   user: any;
@@ -28,7 +29,7 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
   const router = useRouter();
   const pathname = usePathname();
   const justVerified = searchParams?.get("verified") === "true";
-
+  const { t } = useLanguageStore();
   // Effect to redirect admin users
   useEffect(() => {
     if (user.role === "admin" && pathname) {
@@ -66,10 +67,19 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="subscription">Balance</TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="overview">
+            {t("dashboard.overview") || "Overview"}
+          </TabsTrigger>
+          <TabsTrigger value="api-keys">
+            {t("dashboard.apiKeys") || "API Keys"}
+          </TabsTrigger>
+          <TabsTrigger value="subscription">
+            {t("balancePanel.table.balance") || "Balance"}
+          </TabsTrigger>
+          <TabsTrigger value="profile">
+            {" "}
+            {t("nav.profile") || "Profile"}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

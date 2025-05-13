@@ -3641,5 +3641,55 @@ export default {
           title: "تواصل معنا",
           description: "إذا كانت لديك أي أسئلة حول استخدامنا لملفات تعريف الارتباط، يرجى التواصل معنا على:"
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "الرصيد الحالي",
+          freeOperations: "العمليات المجانية",
+          operationsCoverage: "تغطية العمليات",
+          transactionHistory: "سجل المعاملات",
+          depositFunds: "إيداع الأموال"
+        },
+        description: {
+          operationCost: "تكلفة العمليات 0.005 دولار لكل عملية",
+          resetsOn: "يتم إعادة التعيين في {date}",
+          operationsWithBalance: "العمليات المتاحة مع الرصيد الحالي",
+          transactionDescription: "عرض معاملاتك وعملياتك الأخيرة",
+          depositDescription: "أضف أموالاً إلى حسابك لاستخدامها في العمليات",
+          operationsCoverageInfo: "{count} عمليات",
+          operationCostInfo: "تكلف كل عملية 0.005 دولار. الأموال غير المستخدمة تبقى في حسابك."
+        },
+        button: {
+          addFunds: "إضافة أموال",
+          deposit: "إيداع عبر PayPal",
+          processing: "جارٍ المعالجة..."
+        },
+        tabs: {
+          transactions: "المعاملات",
+          deposit: "إيداع الأموال"
+        },
+        form: {
+          depositAmount: "مبلغ الإيداع (دولار أمريكي)",
+          enterAmount: "أدخل المبلغ",
+          operationsCoverage: "تغطية العمليات:"
+        },
+        table: {
+          recentTransactions: "المعاملات الأخيرة",
+          date: "التاريخ",
+          description: "الوصف",
+          amount: "المبلغ",
+          balance: "الرصيد",
+          pending: "(معلق)",
+          failed: "(فشل)"
+        },
+        status: {
+          loading: "جارٍ تحميل المعاملات...",
+          noTransactions: "لا توجد معاملات بعد"
+        },
+        errors: {
+          invalidAmount: "الرجاء إدخال مبلغ صالح",
+          minimumDeposit: "الحد الأدنى لمبلغ الإيداع هو 5.00 دولار",
+          depositFailed: "فشل في معالجة الإيداع"
+        }
+    }
 }

@@ -47,29 +47,12 @@ export function UserFilters({ filters, onFilterChange }: UserFiltersProps) {
         onValueChange={(value) => handleFilterChange("tier", value)}
       >
         <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Subscription" />
+          <SelectValue placeholder="Account Type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Tiers</SelectItem>
+          <SelectItem value="all">All Types</SelectItem>
           <SelectItem value="free">Free</SelectItem>
-          <SelectItem value="basic">Basic</SelectItem>
-          <SelectItem value="pro">Pro</SelectItem>
-          <SelectItem value="enterprise">Enterprise</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={filters.status}
-        onValueChange={(value) => handleFilterChange("status", value)}
-      >
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="canceled">Canceled</SelectItem>
-          <SelectItem value="expired">Expired</SelectItem>
+          <SelectItem value="paid">Paid</SelectItem>
         </SelectContent>
       </Select>
 
@@ -84,6 +67,7 @@ export function UserFilters({ filters, onFilterChange }: UserFiltersProps) {
           <SelectItem value="all">All Roles</SelectItem>
           <SelectItem value="user">User</SelectItem>
           <SelectItem value="admin">Admin</SelectItem>
+          <SelectItem value="suspended">Suspended</SelectItem>
         </SelectContent>
       </Select>
 

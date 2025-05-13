@@ -8,7 +8,6 @@ import { Loader2 } from "lucide-react";
 import { AdminStats } from "@/src/types/admin";
 import { StatsOverview } from "@/components/admin/dashboard/stats-overview";
 import { UserGrowthChart } from "@/components/admin/dashboard/user-growth-chart";
-import { SubscriptionChart } from "@/components/admin/dashboard/subscription-chart";
 import { ApiUsageChart } from "@/components/admin/dashboard/api-usage-chart";
 import { RecentActivity } from "@/components/admin/dashboard/recent-activity";
 import { SystemHealth } from "@/components/admin/dashboard/system-health";
@@ -94,17 +93,16 @@ export function AdminDashboardContent() {
             <CardTitle>User Growth</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* UserGrowthChart now receives real data from stats.userGrowth */}
             <UserGrowthChart data={stats.userGrowth} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Subscription Distribution</CardTitle>
+            <CardTitle>Transaction Volume</CardTitle>
           </CardHeader>
           <CardContent>
-            <SubscriptionChart stats={stats} />
+            <ApiUsageChart stats={stats} />
           </CardContent>
         </Card>
       </div>
@@ -119,7 +117,6 @@ export function AdminDashboardContent() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* RecentActivity now receives real data from stats.recentActivity */}
         <RecentActivity activities={stats.recentActivity} />
         <SystemHealth stats={stats} />
       </div>

@@ -21,7 +21,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDistanceToNow } from "date-fns";
-import { Ban, CheckCircle, Key, Shield, Mail } from "lucide-react";
+import {
+  Ban,
+  CheckCircle,
+  Key,
+  Shield,
+  Mail,
+  Eye,
+  UserX,
+  Edit2,
+  Plus,
+  Minus,
+} from "lucide-react";
 import { AdminUser } from "@/src/types/admin";
 
 interface UserDetailModalProps {
@@ -55,9 +66,16 @@ export function UserDetailModal({
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-8xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
         </DialogHeader>
@@ -84,9 +102,9 @@ export function UserDetailModal({
                   >
                     {user.role}
                   </Badge>
-                  {user.subscription && (
-                    <Badge variant="outline">{user.subscription.tier}</Badge>
-                  )}
+                  <Badge variant="outline">
+                    {user.subscription?.tier || "free"}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -125,7 +143,7 @@ export function UserDetailModal({
           <Tabs defaultValue="overview" className="w-full">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="subscription">Subscription</TabsTrigger>
+              <TabsTrigger value="balance">Balance</TabsTrigger>
               <TabsTrigger value="api-keys">API Keys</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
@@ -190,56 +208,84 @@ export function UserDetailModal({
               </div>
             </TabsContent>
 
-            <TabsContent value="subscription" className="space-y-4">
-              {user.subscription ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Subscription Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium">Plan</p>
-                        <Badge>{user.subscription.tier}</Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Status</p>
-                        <Badge
-                          variant={
-                            user.subscription.status === "active"
-                              ? "default"
-                              : "destructive"
-                          }
-                        >
-                          {user.subscription.status}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          Current Period End
+            <TabsContent value="balance" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Balance</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Current Balance</p>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(user.balance || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Free Operations</p>
+                      <div className="flex gap-2 items-center">
+                        <p className="text-lg font-semibold">
+                          {user.freeOperationsRemaining || 0}
                         </p>
-                        <p className="text-sm">
-                          {formatDate(user.subscription.currentPeriodEnd)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          PayPal Subscription ID
-                        </p>
-                        <p className="text-sm font-mono">
-                          {user.subscription.paypalSubscriptionId || "N/A"}
-                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          remaining this month
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="py-6 text-center text-muted-foreground">
-                    User has no active subscription
-                  </CardContent>
-                </Card>
-              )}
+                    <div>
+                      <p className="text-sm font-medium">Account Tier</p>
+                      <Badge>{user.subscription?.tier || "free"}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Operations This Month
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {user.usage.thisMonth}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onAction("add-balance")}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Balance
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onAction("subtract-balance")}
+                    >
+                      <Minus className="mr-2 h-4 w-4" />
+                      Subtract Balance
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onAction("reset-free-operations")}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Reset Free Operations
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transaction History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center py-4 text-muted-foreground">
+                    Transaction history will appear here. Currently, you need to
+                    implement fetching transaction records for this user.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="api-keys" className="space-y-4">

@@ -3514,5 +3514,55 @@ cookies: {
     title: "문의하기",
     description: "쿠키 사용에 대한 질문이 있으시면 다음으로 문의해 주세요:"
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "현재 잔액",
+    freeOperations: "무료 작업",
+    operationsCoverage: "작업 범위",
+    transactionHistory: "거래 내역",
+    depositFunds: "자금 입금"
+  },
+  description: {
+    operationCost: "작업당 0.005달러의 비용이 듭니다",
+    resetsOn: "{date}에 초기화됩니다",
+    operationsWithBalance: "현재 잔액으로 가능한 작업",
+    transactionDescription: "최근 거래 및 작업 보기",
+    depositDescription: "작업에 사용할 계좌에 자금을 추가하세요",
+    operationsCoverageInfo: "{count} 작업",
+    operationCostInfo: "각 작업은 0.005달러의 비용이 듭니다. 사용하지 않은 자금은 계좌에 남습니다."
+  },
+  button: {
+    addFunds: "자금 추가",
+    deposit: "PayPal로 입금",
+    processing: "처리 중..."
+  },
+  tabs: {
+    transactions: "거래",
+    deposit: "자금 입금"
+  },
+  form: {
+    depositAmount: "입금액 (USD)",
+    enterAmount: "금액 입력",
+    operationsCoverage: "작업 범위:"
+  },
+  table: {
+    recentTransactions: "최근 거래",
+    date: "날짜",
+    description: "설명",
+    amount: "금액",
+    balance: "잔액",
+    pending: "(보류 중)",
+    failed: "(실패)"
+  },
+  status: {
+    loading: "거래를 불러오는 중...",
+    noTransactions: "아직 거래가 없습니다"
+  },
+  errors: {
+    invalidAmount: "유효한 금액을 입력하세요",
+    minimumDeposit: "최소 입금액은 5.00달러입니다",
+    depositFailed: "입금 처리에 실패했습니다"
+  }
 }
 }

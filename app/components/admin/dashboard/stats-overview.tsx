@@ -38,15 +38,17 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       icon: Activity,
       color: "text-green-500",
     },
-    // {
-    //   title: "Monthly Revenue",
-    //   value: formatCurrency(stats.revenue.thisMonth),
-    //   description: `${
-    //     stats.revenue.growth > 0 ? "+" : ""
-    //   }${stats.revenue.growth.toFixed(1)}% from last month`,
-    //   icon: CreditCard,
-    //   color: stats.revenue.growth > 0 ? "text-green-500" : "text-red-500",
-    // },
+    {
+      title: "Monthly Revenue",
+      value: stats.revenue ? formatCurrency(stats.revenue.thisMonth) : "$0.00",
+      description: stats.revenue
+        ? `${stats.revenue.growth > 0 ? "+" : ""}${stats.revenue.growth.toFixed(
+            1
+          )}% from last month`
+        : "Pay as you go model",
+      icon: CreditCard,
+      color: "text-green-500",
+    },
     {
       title: "API Requests",
       value: formatNumber(stats.apiUsage.totalRequests),

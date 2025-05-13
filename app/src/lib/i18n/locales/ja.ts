@@ -3358,5 +3358,55 @@ cookies: {
     title: "お問い合わせ",
     description: "クッキーの使用に関するご質問がある場合は、以下までご連絡ください："
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "現在の残高",
+    freeOperations: "無料操作",
+    operationsCoverage: "操作のカバレッジ",
+    transactionHistory: "取引履歴",
+    depositFunds: "資金を入金"
+  },
+  description: {
+    operationCost: "操作は1回あたり0.005ドルかかります",
+    resetsOn: "{date}にリセットされます",
+    operationsWithBalance: "現在の残高で利用可能な操作",
+    transactionDescription: "最近の取引と操作を表示",
+    depositDescription: "操作に使用するためにアカウントに資金を追加",
+    operationsCoverageInfo: "{count}操作",
+    operationCostInfo: "各操作は0.005ドルかかります。未使用の資金はアカウントに残ります。"
+  },
+  button: {
+    addFunds: "資金を追加",
+    deposit: "PayPalで入金",
+    processing: "処理中..."
+  },
+  tabs: {
+    transactions: "取引",
+    deposit: "資金を入金"
+  },
+  form: {
+    depositAmount: "入金額（USD）",
+    enterAmount: "金額を入力",
+    operationsCoverage: "操作のカバレッジ："
+  },
+  table: {
+    recentTransactions: "最近の取引",
+    date: "日付",
+    description: "説明",
+    amount: "金額",
+    balance: "残高",
+    pending: "（保留中）",
+    failed: "（失敗）"
+  },
+  status: {
+    loading: "取引を読み込み中...",
+    noTransactions: "まだ取引がありません"
+  },
+  errors: {
+    invalidAmount: "有効な金額を入力してください",
+    minimumDeposit: "最低入金額は5.00ドルです",
+    depositFailed: "入金の処理に失敗しました"
+  }
 }
 }

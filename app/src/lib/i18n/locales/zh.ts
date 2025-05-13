@@ -3513,5 +3513,55 @@ export default {
           title: "联系我们",
           description: "如果您对我们使用Cookie有任何疑问，请通过以下方式联系我们："
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "当前余额",
+          freeOperations: "免费操作",
+          operationsCoverage: "操作覆盖",
+          transactionHistory: "交易历史",
+          depositFunds: "存款"
+        },
+        description: {
+          operationCost: "每次操作费用为0.005美元",
+          resetsOn: "在{date}重置",
+          operationsWithBalance: "当前余额可用的操作",
+          transactionDescription: "查看您最近的交易和操作",
+          depositDescription: "向您的账户添加资金以用于操作",
+          operationsCoverageInfo: "{count}次操作",
+          operationCostInfo: "每次操作费用为0.005美元。未使用的资金将留在您的账户中。"
+        },
+        button: {
+          addFunds: "添加资金",
+          deposit: "通过PayPal存款",
+          processing: "处理中..."
+        },
+        tabs: {
+          transactions: "交易",
+          deposit: "存款"
+        },
+        form: {
+          depositAmount: "存款金额（美元）",
+          enterAmount: "输入金额",
+          operationsCoverage: "操作覆盖："
+        },
+        table: {
+          recentTransactions: "最近交易",
+          date: "日期",
+          description: "描述",
+          amount: "金额",
+          balance: "余额",
+          pending: "（待处理）",
+          failed: "（失败）"
+        },
+        status: {
+          loading: "正在加载交易...",
+          noTransactions: "暂无交易"
+        },
+        errors: {
+          invalidAmount: "请输入有效金额",
+          minimumDeposit: "最低存款金额为5.00美元",
+          depositFailed: "存款处理失败"
+        }
+    }
 }

@@ -3518,5 +3518,55 @@ cookies: {
     title: "Hubungi Kami",
     description: "Jika Anda memiliki pertanyaan tentang penggunaan cookie kami, silakan hubungi kami di:"
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "Saldo Saat Ini",
+    freeOperations: "Operasi Gratis",
+    operationsCoverage: "Cakupan Operasi",
+    transactionHistory: "Riwayat Transaksi",
+    depositFunds: "Setor Dana"
+  },
+  description: {
+    operationCost: "Operasi dikenakan biaya $0.005 per operasi",
+    resetsOn: "Direset pada {date}",
+    operationsWithBalance: "Operasi yang tersedia dengan saldo saat ini",
+    transactionDescription: "Lihat transaksi dan operasi terbaru Anda",
+    depositDescription: "Tambahkan uang ke akun Anda untuk digunakan dalam operasi",
+    operationsCoverageInfo: "{count} operasi",
+    operationCostInfo: "Setiap operasi dikenakan biaya $0.005. Dana yang tidak digunakan tetap di akun Anda."
+  },
+  button: {
+    addFunds: "Tambah Dana",
+    deposit: "Setor dengan PayPal",
+    processing: "Sedang diproses..."
+  },
+  tabs: {
+    transactions: "Transaksi",
+    deposit: "Setor Dana"
+  },
+  form: {
+    depositAmount: "Jumlah Setoran (USD)",
+    enterAmount: "Masukkan jumlah",
+    operationsCoverage: "Cakupan Operasi:"
+  },
+  table: {
+    recentTransactions: "Transaksi terbaru",
+    date: "Tanggal",
+    description: "Deskripsi",
+    amount: "Jumlah",
+    balance: "Saldo",
+    pending: "(Tertunda)",
+    failed: "(Gagal)"
+  },
+  status: {
+    loading: "Memuat transaksi...",
+    noTransactions: "Belum ada transaksi"
+  },
+  errors: {
+    invalidAmount: "Harap masukkan jumlah yang valid",
+    minimumDeposit: "Jumlah setoran minimum adalah $5.00",
+    depositFailed: "Gagal memproses setoran"
+  }
 }
 }

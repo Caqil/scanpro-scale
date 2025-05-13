@@ -3514,5 +3514,55 @@ export default {
           title: "Свяжитесь с нами",
           description: "Если у вас есть вопросы о том, как мы используем файлы cookie, пожалуйста, свяжитесь с нами по адресу:"
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "Текущий баланс",
+          freeOperations: "Бесплатные операции",
+          operationsCoverage: "Покрытие операций",
+          transactionHistory: "История транзакций",
+          depositFunds: "Пополнить средства"
+        },
+        description: {
+          operationCost: "Операции стоят $0.005 за каждую",
+          resetsOn: "Сбрасывается {date}",
+          operationsWithBalance: "Операции, доступные с текущим балансом",
+          transactionDescription: "Просмотрите ваши недавние транзакции и операции",
+          depositDescription: "Добавьте деньги на свой счет для использования в операциях",
+          operationsCoverageInfo: "{count} операций",
+          operationCostInfo: "Каждая операция стоит $0.005. Неиспользованные средства остаются на вашем счете."
+        },
+        button: {
+          addFunds: "Добавить средства",
+          deposit: "Пополнить через PayPal",
+          processing: "Обработка..."
+        },
+        tabs: {
+          transactions: "Транзакции",
+          deposit: "Пополнить средства"
+        },
+        form: {
+          depositAmount: "Сумма пополнения (USD)",
+          enterAmount: "Введите сумму",
+          operationsCoverage: "Покрытие операций:"
+        },
+        table: {
+          recentTransactions: "Недавние транзакции",
+          date: "Дата",
+          description: "Описание",
+          amount: "Сумма",
+          balance: "Баланс",
+          pending: "(В ожидании)",
+          failed: "(Не удалось)"
+        },
+        status: {
+          loading: "Загрузка транзакций...",
+          noTransactions: "Транзакций пока нет"
+        },
+        errors: {
+          invalidAmount: "Пожалуйста, введите действительную сумму",
+          minimumDeposit: "Минимальная сумма пополнения — $5.00",
+          depositFailed: "Не удалось обработать пополнение"
+        }
+    }
 }

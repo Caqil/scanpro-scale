@@ -3513,5 +3513,55 @@ export default {
           title: "हमसे संपर्क करें",
           description: "यदि आपके पास हमारी कुकीज़ के उपयोग के बारे में कोई प्रश्न हैं, तो कृपया हमसे संपर्क करें:"
         }
-      }
+      },
+      balancePanel: {
+        title: {
+          currentBalance: "वर्तमान शेष",
+          freeOperations: "मुफ्त संचालन",
+          operationsCoverage: "संचालन कवरेज",
+          transactionHistory: "लेनदेन इतिहास",
+          depositFunds: "धनराशि जमा करें"
+        },
+        description: {
+          operationCost: "संचालन की लागत $0.005 प्रति संचालन है",
+          resetsOn: "{date} को रीसेट होता है",
+          operationsWithBalance: "वर्तमान शेष के साथ उपलब्ध संचालन",
+          transactionDescription: "अपने हाल के लेनदेन और संचालन देखें",
+          depositDescription: "संचालन के लिए अपने खाते में पैसे जोड़ें",
+          operationsCoverageInfo: "{count} संचालन",
+          operationCostInfo: "प्रत्येक संचालन की लागत $0.005 है। अप्रयुक्त धनराशि आपके खाते में रहती है।"
+        },
+        button: {
+          addFunds: "धनराशि जोड़ें",
+          deposit: "PayPal के साथ जमा करें",
+          processing: "प्रोसेसिंग..."
+        },
+        tabs: {
+          transactions: "लेनदेन",
+          deposit: "धनराशि जमा करें"
+        },
+        form: {
+          depositAmount: "जमा राशि (USD)",
+          enterAmount: "राशि दर्ज करें",
+          operationsCoverage: "संचालन कवरेज:"
+        },
+        table: {
+          recentTransactions: "हाल के लेनदेन",
+          date: "तारीख",
+          description: "विवरण",
+          amount: "राशि",
+          balance: "शेष",
+          pending: "(लंबित)",
+          failed: "(असफल)"
+        },
+        status: {
+          loading: "लेनदेन लोड हो रहे हैं...",
+          noTransactions: "अभी तक कोई लेनदेन नहीं"
+        },
+        errors: {
+          invalidAmount: "कृपया एक मान्य राशि दर्ज करें",
+          minimumDeposit: "न्यूनतम जमा राशि $5.00 है",
+          depositFailed: "जमा प्रक्रिया विफल रही"
+        }
+    }
 }

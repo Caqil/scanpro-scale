@@ -43,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLanguageStore } from "@/src/store/store";
 
 interface ApiKey {
   id: string;
@@ -55,6 +56,7 @@ interface ApiKey {
 }
 
 export function ApiKeyManager() {
+  const { t } = useLanguageStore();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState("");
@@ -200,7 +202,8 @@ export function ApiKeyManager() {
   const revokeApiKey = async (keyId: string) => {
     if (
       !confirm(
-        "Are you sure you want to revoke this API key? This action cannot be undone."
+        t("dashboard.confirmRevoke") ||
+          "Are you sure you want to revoke this API key? This action cannot be undone."
       )
     ) {
       return;
@@ -213,7 +216,9 @@ export function ApiKeyManager() {
 
       if (!response.ok) throw new Error("Failed to revoke API key");
 
-      toast.success("API key revoked successfully");
+      toast.success(
+        t("dashboard.keyRevoked") || "API key revoked successfully"
+      );
       loadApiKeys();
     } catch (error) {
       console.error("Error revoking API key:", error);
@@ -227,7 +232,9 @@ export function ApiKeyManager() {
       .writeText(text)
       .then(() => {
         setIsCopied(true);
-        toast.success("API key copied to clipboard");
+        toast.success(
+          t("dashboard.keyCopied") || "API key copied to clipboard"
+        );
         setTimeout(() => setIsCopied(false), 2000);
       })
       .catch((err) => {
@@ -245,7 +252,7 @@ export function ApiKeyManager() {
 
   // Format date for display
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Never";
+    if (!dateString) return t("dashboard.never") || "Never";
     return new Date(dateString).toLocaleString();
   };
 
@@ -253,10 +260,9 @@ export function ApiKeyManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">API Keys</h2>
-          <p className="text-muted-foreground">
-            Manage your API keys for programmatic access to MegaPDF services.
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">
+            {t("dashboard.apiKeys") || "API Keys"}
+          </h2>
         </div>
         <Dialog
           open={createDialogOpen}
@@ -267,14 +273,17 @@ export function ApiKeyManager() {
         >
           <DialogTrigger asChild>
             <Button>
-              <Plus className="mr-2 h-4 w-4" /> Create New API Key
+              <Plus className="mr-2 h-4 w-4" />{" "}
+              {t("dashboard.createApiKey") || "Create API Key"}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[550px]">
             {!newKey ? (
               <>
                 <DialogHeader>
-                  <DialogTitle>Create New API Key</DialogTitle>
+                  <DialogTitle>
+                    {t("dashboard.createApiKey") || "Create API Key"}
+                  </DialogTitle>
                   <DialogDescription>
                     Create an API key to access MegaPDF services
                     programmatically.
@@ -282,10 +291,15 @@ export function ApiKeyManager() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">API Key Name</Label>
+                    <Label htmlFor="name">
+                      {t("dashboard.keyName") || "Key Name"}
+                    </Label>
                     <Input
                       id="name"
-                      placeholder="e.g., Development, Production, Test"
+                      placeholder={
+                        t("dashboard.keyNamePlaceholder") ||
+                        "e.g., Development, Production, Test"
+                      }
                       value={newKeyName}
                       onChange={(e) => setNewKeyName(e.target.value)}
                     />
@@ -294,7 +308,7 @@ export function ApiKeyManager() {
                   <Separator className="my-4" />
 
                   <div className="space-y-2">
-                    <Label>Permissions</Label>
+                    <Label>{t("dashboard.permissions") || "Permissions"}</Label>
                     <p className="text-sm text-muted-foreground mb-4">
                       Select the operations this API key will be allowed to
                       perform.
@@ -395,17 +409,21 @@ export function ApiKeyManager() {
                     Cancel
                   </Button>
                   <Button onClick={createApiKey} disabled={creatingKey}>
-                    {creatingKey ? "Creating..." : "Create API Key"}
+                    {creatingKey
+                      ? "Creating..."
+                      : t("dashboard.generateKey") || "Generate Key"}
                   </Button>
                 </DialogFooter>
               </>
             ) : (
               <>
                 <DialogHeader>
-                  <DialogTitle>API Key Created</DialogTitle>
+                  <DialogTitle>
+                    {t("dashboard.newApiKeyCreated") || "API Key Created"}
+                  </DialogTitle>
                   <DialogDescription>
-                    Your new API key has been created. Make sure to copy it now
-                    as it won't be shown again.
+                    {t("dashboard.copyKeyDesc") ||
+                      "Your new API key has been created. Make sure to copy it now as it won't be shown again."}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -454,7 +472,7 @@ export function ApiKeyManager() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Permissions</Label>
+                    <Label>{t("dashboard.permissions") || "Permissions"}</Label>
                     <div className="flex flex-wrap gap-2">
                       {newKey.permissions.includes("*") ? (
                         <Badge variant="outline">All Permissions</Badge>
@@ -479,7 +497,7 @@ export function ApiKeyManager() {
                       resetNewKeyForm();
                     }}
                   >
-                    Done
+                    {t("dashboard.copyAndClose") || "Done"}
                   </Button>
                 </DialogFooter>
               </>
@@ -492,32 +510,50 @@ export function ApiKeyManager() {
       {usageStats && (
         <Card>
           <CardHeader>
-            <CardTitle>API Usage This Month</CardTitle>
+            <CardTitle>
+              {t("dashboard.totalUsage") || "API Usage This Month"}
+            </CardTitle>
             <CardDescription>
-              Your API usage statistics for the current billing period.
+              {t("dashboard.apiUsageBreakdown") ||
+                "Your API usage statistics for the current billing period."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Total Operations</span>
+                <span className="text-sm font-medium">
+                  {t("dashboard.totalUsage") || "Total Operations"}
+                </span>
                 <span className="font-mono text-lg">
-                  {usageStats.totalOperations}
+                  {usageStats.totalOperations}{" "}
+                  {t("dashboard.operationsThisMonth") ||
+                    "operations this month"}
                 </span>
               </div>
               <Separator />
               <div className="space-y-2">
                 <h4 className="text-sm font-medium mb-2">
-                  Operations Breakdown
+                  {t("dashboard.usageByOperation") || "Operations Breakdown"}
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {Object.entries(usageStats.operationCounts).map(
                     ([operation, count]) => (
                       <div key={operation} className="flex justify-between">
                         <span className="text-sm capitalize">{operation}</span>
-                        <span className="text-sm font-mono">{count}</span>
+                        <span className="text-sm font-mono">
+                          {count} (
+                          {Math.round(
+                            (count / usageStats.totalOperations) * 100
+                          )}
+                          % {t("dashboard.percentageOfTotal") || "of total"})
+                        </span>
                       </div>
                     )
+                  )}
+                  {Object.keys(usageStats.operationCounts).length === 0 && (
+                    <div className="col-span-3 text-center py-2 text-muted-foreground">
+                      {t("dashboard.noData") || "No data available"}
+                    </div>
                   )}
                 </div>
               </div>
@@ -536,22 +572,30 @@ export function ApiKeyManager() {
           ) : apiKeys.length === 0 ? (
             <div className="text-center py-8">
               <Key className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No API Keys</h3>
+              <h3 className="text-lg font-medium mb-2">
+                {t("dashboard.noApiKeys") || "No API Keys"}
+              </h3>
               <p className="text-muted-foreground mb-4">
-                You haven't created any API keys yet.
+                {t("dashboard.noApiKeysDesc") ||
+                  "You haven't created any API keys yet."}
               </p>
               <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Create API Key
+                <Plus className="mr-2 h-4 w-4" />{" "}
+                {t("dashboard.createFirstApiKey") || "Create API Key"}
               </Button>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>{t("dashboard.keyName") || "Name"}</TableHead>
                   <TableHead>API Key</TableHead>
-                  <TableHead>Permissions</TableHead>
-                  <TableHead>Last Used</TableHead>
+                  <TableHead>
+                    {t("dashboard.permissions") || "Permissions"}
+                  </TableHead>
+                  <TableHead>
+                    {t("dashboard.lastUsed") || "Last Used"}
+                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -613,22 +657,6 @@ export function ApiKeyManager() {
           )}
         </CardContent>
       </Card>
-
-      {/* API Documentation Link */}
-      <div className="text-center py-6">
-        <p className="text-muted-foreground mb-4">
-          Need help integrating with our API?
-        </p>
-        <a
-          href="/documentation/api"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:text-primary/80 inline-flex items-center"
-        >
-          <DownloadIcon className="h-4 w-4 mr-2" />
-          View API Documentation
-        </a>
-      </div>
     </div>
   );
 }

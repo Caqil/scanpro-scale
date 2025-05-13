@@ -3509,5 +3509,55 @@ cookies: {
     title: "Contáctenos",
     description: "Si tiene alguna pregunta sobre nuestro uso de cookies, por favor contáctenos en:"
   }
+},
+balancePanel: {
+  title: {
+    currentBalance: "Saldo actual",
+    freeOperations: "Operaciones gratuitas",
+    operationsCoverage: "Cobertura de operaciones",
+    transactionHistory: "Historial de transacciones",
+    depositFunds: "Depositar fondos"
+  },
+  description: {
+    operationCost: "Las operaciones cuestan $0.005 cada una",
+    resetsOn: "Se restablece el {date}",
+    operationsWithBalance: "Operaciones disponibles con el saldo actual",
+    transactionDescription: "Consulta tus transacciones y operaciones recientes",
+    depositDescription: "Añade dinero a tu cuenta para usar en operaciones",
+    operationsCoverageInfo: "{count} operaciones",
+    operationCostInfo: "Cada operación cuesta $0.005. Los fondos no utilizados permanecen en tu cuenta."
+  },
+  button: {
+    addFunds: "Añadir fondos",
+    deposit: "Depositar con PayPal",
+    processing: "Procesando..."
+  },
+  tabs: {
+    transactions: "Transacciones",
+    deposit: "Depositar fondos"
+  },
+  form: {
+    depositAmount: "Monto del depósito (USD)",
+    enterAmount: "Ingresa el monto",
+    operationsCoverage: "Cobertura de operaciones:"
+  },
+  table: {
+    recentTransactions: "Transacciones recientes",
+    date: "Fecha",
+    description: "Descripción",
+    amount: "Monto",
+    balance: "Saldo",
+    pending: "(Pendiente)",
+    failed: "(Fallido)"
+  },
+  status: {
+    loading: "Cargando transacciones...",
+    noTransactions: "Aún no hay transacciones"
+  },
+  errors: {
+    invalidAmount: "Por favor, ingresa un monto válido",
+    minimumDeposit: "El monto mínimo de depósito es $5.00",
+    depositFailed: "No se pudo procesar el depósito"
+  }
 }
 }
