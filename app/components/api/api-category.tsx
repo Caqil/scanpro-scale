@@ -85,7 +85,7 @@ export default function APICategories() {
               {category.description}
             </CardDescription>
             <Button variant="secondary" size="sm" className="w-full" asChild>
-              <Link href={`/developer/api/${category.path}`}>
+              <Link href={`/en/developer/api/${category.path}`}>
                 View Documentation <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
