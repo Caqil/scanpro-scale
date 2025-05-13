@@ -1,4 +1,4 @@
-// lib/validate-key.ts updated for pay-as-you-go
+// lib/validate-key.ts updated for pay-as-you-go model
 import { prisma } from '@/lib/prisma';
 
 // Cost per operation in USD
@@ -30,12 +30,10 @@ export const API_OPERATIONS = [
     'remove'
 ];
 
-// Define usage limits by operation price (keeping this for backward compatibility)
+// Define limits based on free/paid status only
 export const USAGE_LIMITS = {
     free: FREE_OPERATIONS_MONTHLY,
-    basic: 5000,
-    pro: 50000,
-    enterprise: 100000
+    paid: Number.MAX_SAFE_INTEGER  // Paid users limited only by their balance
 };
 
 /**

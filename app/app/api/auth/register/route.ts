@@ -35,7 +35,13 @@ export async function POST(request: NextRequest) {
         // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // Create user
+        // Set next month as free operations reset date
+        const resetDate = new Date();
+        resetDate.setDate(1); // First day of current month
+        resetDate.setMonth(resetDate.getMonth() + 1); // First day of next month
+        resetDate.setHours(0, 0, 0, 0);
+
+        // Create user with pay-as-you-go defaults
         const user = await prisma.user.create({
             data: {
                 name,
@@ -43,12 +49,9 @@ export async function POST(request: NextRequest) {
                 password: hashedPassword,
                 verificationToken,
                 isEmailVerified: false,
-                subscription: {
-                    create: {
-                        tier: 'free',
-                        status: 'active'
-                    }
-                }
+                balance: 0, // Initialize with zero balance
+                freeOperationsUsed: 0, // Initialize with zero operations used
+                freeOperationsReset: resetDate // Set reset date to start of next month
             }
         });
 
@@ -67,7 +70,10 @@ export async function POST(request: NextRequest) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                isEmailVerified: user.isEmailVerified
+                isEmailVerified: user.isEmailVerified,
+                balance: user.balance,
+                freeOperationsUsed: user.freeOperationsUsed,
+                freeOperationsReset: user.freeOperationsReset
             },
             emailSent: emailResult.success
         });

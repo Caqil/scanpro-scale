@@ -1,6 +1,4 @@
 // app/[lang]/dashboard/balance/cancel/page.tsx
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { LanguageLink } from "@/components/language-link";
 import {
@@ -37,13 +35,13 @@ export default function DepositCancelPage() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <LanguageLink href="/en/dashboard">
+          <LanguageLink href={`/en/dashboard`}>
             <Button variant="outline">
               <Home className="mr-2 h-4 w-4" />
               Dashboard
             </Button>
           </LanguageLink>
-          <LanguageLink href="/en/dashboard">
+          <LanguageLink href={`/en/dashboard`}>
             <Button>
               <CreditCard className="mr-2 h-4 w-4" />
               Try Again

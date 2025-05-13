@@ -1,6 +1,5 @@
 // app/api/keys/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { headers, cookies } from 'next/headers';
 import { getServerSession } from 'next-auth';
 import { randomBytes } from 'crypto';
 import { authOptions } from "@/lib/auth";
@@ -26,7 +25,7 @@ function generateApiKey(): string {
 // List API keys
 export async function GET(request: NextRequest) {
     try {
-        // Properly pass the request headers and cookies to getServerSession
+        // Get the current session
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -78,28 +77,37 @@ export async function POST(request: NextRequest) {
 
         const { name, permissions } = await request.json();
 
-        // Check subscription limits on number of keys
-        const userWithSub = await prisma.user.findUnique({
+        // Get user with their API keys
+        const user = await prisma.user.findUnique({
             where: { id: session.user.id },
-            include: { subscription: true, apiKeys: true }
+            include: { apiKeys: true, transactions: { take: 1 } }
         });
 
+        if (!user) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        // Define key limits based on whether user is paid or free
+        // A user is considered "paid" if they have made at least one deposit
+        const isPaidUser = user.transactions.length > 0 || (user.balance && user.balance > 0);
+        
+        // Key limits by user type
         const keyLimits: Record<string, number> = {
-            free: 1,
-            basic: 3,
-            pro: 10,
-            enterprise: 50
+            free: 1,   // Free users get 1 key
+            paid: 10   // Paid users get 10 keys
         };
 
-        const tier = userWithSub?.subscription?.tier || 'free';
-        const keyLimit = keyLimits[tier as keyof typeof keyLimits];
-
-        // Safely check the length of apiKeys
-        const currentKeyCount = userWithSub?.apiKeys?.length ?? 0;
+        // Determine user's key limit
+        const userType = isPaidUser ? 'paid' : 'free';
+        const keyLimit = keyLimits[userType];
+        const currentKeyCount = user.apiKeys.length;
 
         if (currentKeyCount >= keyLimit) {
             return NextResponse.json(
-                { error: `Your ${tier} plan allows a maximum of ${keyLimit} API keys` },
+                { error: `As a ${userType} user, you are limited to ${keyLimit} API ${keyLimit === 1 ? 'key' : 'keys'}. Add funds to your account to increase this limit.` },
                 { status: 403 }
             );
         }
@@ -120,22 +128,26 @@ export async function POST(request: NextRequest) {
             }
         }
         
-        // If no valid permissions were provided, use defaults based on subscription tier
+        // If no valid permissions were provided, use defaults based on user type
         if (validatedPermissions.length === 0) {
-            switch(tier) {
-                case 'enterprise':
-                    validatedPermissions = ['*']; // All permissions
-                    break;
-                case 'pro':
-                    validatedPermissions = API_OPERATIONS; // All specific operations
-                    break;
-                case 'basic':
-                    // Standard operations for basic tier
-                    validatedPermissions = ['convert', 'compress', 'merge', 'split', 'protect', 'unlock'];
-                    break;
-                default: // free tier
-                    // Limited operations for free tier
-                    validatedPermissions = ['convert', 'compress', 'merge', 'split'];
+            if (isPaidUser) {
+                // Paid users get all operations
+                validatedPermissions = ['*'];
+            } else {
+                // Free users get limited operations
+                validatedPermissions = ['convert', 'compress', 'merge', 'split'];
+            }
+        } else {
+            // Restrict free users from certain operations
+            if (!isPaidUser) {
+                const allowedFreeOperations = ['convert', 'compress', 'merge', 'split'];
+                validatedPermissions = validatedPermissions.filter(perm => 
+                    allowedFreeOperations.includes(perm) || perm === '*'
+                );
+                // Replace wildcard with just the allowed operations for free users
+                if (validatedPermissions.includes('*')) {
+                    validatedPermissions = allowedFreeOperations;
+                }
             }
         }
 

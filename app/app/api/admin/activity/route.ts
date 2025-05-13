@@ -4,8 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { withAdminAuth } from '@/lib/admin-auth';
 import { ActivityLog } from '@/src/types/admin';
 
-
-
 export async function GET(request: Request) {
   return withAdminAuth(async () => {
     try {
@@ -62,7 +60,7 @@ export async function GET(request: Request) {
         apiLogs.forEach((log) => {
           activities.push({
             id: log.id,
-            timestamp: log.date,
+            timestamp: log.date.toISOString(),
             userId: log.userId,
             userName: log.user.name || 'Unknown',
             userEmail: log.user.email || 'Unknown',
@@ -107,7 +105,7 @@ export async function GET(request: Request) {
           
           activities.push({
             id: `session-${session.id}`,
-            timestamp: loginTime,
+            timestamp: loginTime.toISOString(),
             userId: session.userId,
             userName: session.user.name || 'Unknown',
             userEmail: session.user.email || 'Unknown',
@@ -136,7 +134,7 @@ export async function GET(request: Request) {
         newUsers.forEach((user) => {
           activities.push({
             id: `reg-${user.id}`,
-            timestamp: user.createdAt,
+            timestamp: user.createdAt.toISOString(),
             userId: user.id,
             userName: user.name || 'Unknown',
             userEmail: user.email || 'Unknown',
@@ -150,11 +148,11 @@ export async function GET(request: Request) {
         });
       }
 
-      // Get subscription activities
-      if (type === 'all' || type === 'subscription') {
-        const subscriptions = await prisma.subscription.findMany({
+      // Get transaction activities (replaces subscription activities)
+      if (type === 'all' || type === 'transaction') {
+        const transactions = await prisma.transaction.findMany({
           where: {
-            updatedAt: { gte: dateFilter },
+            createdAt: { gte: dateFilter },
             user: {
               OR: [
                 { name: { contains: search, mode: 'insensitive' } },
@@ -165,27 +163,45 @@ export async function GET(request: Request) {
           include: {
             user: true,
           },
-          orderBy: { updatedAt: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: Math.floor(limit / 3),
         });
 
-        subscriptions.forEach((subscription) => {
-          const action = subscription.createdAt.getTime() === subscription.updatedAt.getTime()
-            ? 'subscription.created'
-            : 'subscription.updated';
+        transactions.forEach((transaction) => {
+          // Determine transaction type based on amount and description
+          let action = 'transaction';
+          let details = '';
+          
+          if (transaction.amount > 0) {
+            action = 'balance.deposit';
+            details = `Deposited $${transaction.amount.toFixed(2)} to account balance`;
+          } else if (transaction.amount < 0) {
+            action = 'balance.charge';
+            details = `Charged $${Math.abs(transaction.amount).toFixed(2)} for operation`;
+            if (transaction.description.includes('Operation')) {
+              const operationMatch = transaction.description.match(/Operation: (\w+)/);
+              if (operationMatch && operationMatch[1]) {
+                details += ` (${operationMatch[1]})`;
+              }
+            }
+          } else {
+            action = 'balance.adjustment';
+            details = 'Balance adjustment';
+          }
             
           activities.push({
-            id: `sub-${subscription.id}`,
-            timestamp: subscription.updatedAt,
-            userId: subscription.userId,
-            userName: subscription.user.name || 'Unknown',
-            userEmail: subscription.user.email || 'Unknown',
+            id: `txn-${transaction.id}`,
+            timestamp: transaction.createdAt.toISOString(),
+            userId: transaction.userId,
+            userName: transaction.user.name || 'Unknown',
+            userEmail: transaction.user.email || 'Unknown',
             action,
-            resource: 'subscription',
-            details: `${action === 'subscription.created' ? 'Created' : 'Updated'} ${subscription.tier} subscription`,
+            resource: 'transaction',
+            details,
             ipAddress: '127.0.0.1',
             userAgent: 'Mozilla/5.0',
-            status: subscription.status === 'active' ? 'success' : 'warning',
+            status: transaction.status === 'completed' ? 'success' : 
+                   transaction.status === 'pending' ? 'warning' : 'error',
           });
         });
       }
@@ -212,7 +228,7 @@ export async function GET(request: Request) {
         apiKeys.forEach((apiKey) => {
           activities.push({
             id: `key-${apiKey.id}`,
-            timestamp: apiKey.createdAt,
+            timestamp: apiKey.createdAt.toISOString(),
             userId: apiKey.userId,
             userName: apiKey.user.name || 'Unknown',
             userEmail: apiKey.user.email || 'Unknown',
@@ -233,7 +249,7 @@ export async function GET(request: Request) {
       }
 
       // Sort by timestamp
-      filteredActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      filteredActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
       // Apply pagination
       const skip = (page - 1) * limit;
@@ -245,7 +261,7 @@ export async function GET(request: Request) {
         byType: {
           auth: filteredActivities.filter(a => a.resource === 'auth').length,
           api: filteredActivities.filter(a => a.resource.includes('api') || a.action.includes('api')).length,
-          subscription: filteredActivities.filter(a => a.resource === 'subscription').length,
+          transaction: filteredActivities.filter(a => a.resource === 'transaction').length,
           system: 0, // You can add system events if needed
         },
         byStatus: {

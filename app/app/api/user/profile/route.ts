@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from "@/lib/auth";
 import { prisma } from '@/lib/prisma';
-import { USAGE_LIMITS } from '@/lib/validate-key';
+import { FREE_OPERATIONS_MONTHLY } from '@/lib/validate-key';
 
 export async function PUT(request: NextRequest) {
     try {
@@ -44,17 +44,53 @@ export async function PUT(request: NextRequest) {
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        
-        // Get user subscription info
-        const subscription = await prisma.subscription.findUnique({
-            where: { userId: session.user.id },
+
+        // Get user with balance information
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: {
+                balance: true,
+                freeOperationsUsed: true,
+                freeOperationsReset: true,
+                transactions: {
+                    where: {
+                        amount: { gt: 0 },
+                        status: 'completed'
+                    },
+                    take: 1
+                }
+            }
         });
-        
-        // Get usage statistics
+
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // Determine if user is paid or free based on having transactions
+        const hasPaidDeposits = user.transactions.length > 0 || (user.balance && user.balance > 0);
+        const tier = hasPaidDeposits ? "paid" : "free";
+
+        // Calculate free operations remaining and reset date
+        let freeOpsRemaining = 0;
+        let resetDate = user.freeOperationsReset;
+        const now = new Date();
+
+        // Check if reset date has passed
+        if (resetDate && resetDate < now) {
+            // If reset date has passed, user has all free operations available
+            freeOpsRemaining = FREE_OPERATIONS_MONTHLY;
+            
+            // Calculate next reset date (first day of next month)
+            resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        } else {
+            // Otherwise calculate remaining based on used count
+            freeOpsRemaining = Math.max(0, FREE_OPERATIONS_MONTHLY - (user.freeOperationsUsed || 0));
+        }
+
+        // Get this month's usage
         const firstDayOfMonth = new Date();
         firstDayOfMonth.setDate(1);
         firstDayOfMonth.setHours(0, 0, 0, 0);
@@ -67,23 +103,35 @@ export async function GET() {
             _sum: { count: true },
         });
         
-        // Default to free tier if no subscription exists
-        const tier = subscription?.tier || "free";
         const operations = usage._sum.count || 0;
+        
+        // Get user's current balance
+        const currentBalance = user.balance || 0;
+        
+        // For backward compatibility with frontend, simulate subscription period
+        // Using today as start and end of next month as end
+        const currentPeriodStart = new Date();
+        const currentPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
         
         return NextResponse.json({
             tier,
-            status: subscription?.status || "active",
-            currentPeriodStart: subscription?.currentPeriodStart,
-            currentPeriodEnd: subscription?.currentPeriodEnd,
-            canceledAt: subscription?.canceledAt,
+            status: "active", // Always active in pay-as-you-go
+            currentPeriodStart,
+            currentPeriodEnd,
             operations,
-            limit: USAGE_LIMITS[tier as keyof typeof USAGE_LIMITS] || USAGE_LIMITS.free,
+            // In pay-as-you-go model, free users have FREE_OPERATIONS_MONTHLY limit
+            // Paid users are charged per operation and have no hard limit
+            limit: FREE_OPERATIONS_MONTHLY,
+            // Add pay-as-you-go specific fields
+            balance: currentBalance,
+            freeOperationsUsed: user.freeOperationsUsed || 0,
+            freeOperationsRemaining: freeOpsRemaining,
+            freeOperationsReset: resetDate
         });
     } catch (error) {
-        console.error("Error fetching user subscription data:", error);
+        console.error("Error fetching user profile:", error);
         return NextResponse.json(
-            { error: "Failed to fetch subscription data" },
+            { error: "Failed to fetch user profile data" },
             { status: 500 }
         );
     }

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAdminAuth } from '@/lib/admin-auth';
+import { USAGE_LIMITS } from '@/lib/validate-key';
 
 export async function PATCH(
   request: Request,
@@ -12,7 +13,7 @@ export async function PATCH(
       // Await the params object
       const { userId } = await params;
       const body = await request.json();
-      const { name, email, role, subscription } = body;
+      const { name, email, role, balance, freeOperationsUsed, freeOperationsReset } = body;
 
       // Validate input
       if (!userId) {
@@ -29,6 +30,11 @@ export async function PATCH(
       if (name !== undefined) updateData.name = name;
       if (email !== undefined) updateData.email = email;
       if (role !== undefined) updateData.role = role;
+      
+      // Handle pay-as-you-go fields
+      if (balance !== undefined) updateData.balance = parseFloat(balance);
+      if (freeOperationsUsed !== undefined) updateData.freeOperationsUsed = parseInt(freeOperationsUsed);
+      if (freeOperationsReset !== undefined) updateData.freeOperationsReset = new Date(freeOperationsReset);
 
       // Only update user if there are fields to update
       if (Object.keys(updateData).length > 0) {
@@ -38,27 +44,24 @@ export async function PATCH(
         });
       }
 
-      // Update subscription if provided
-      if (subscription && subscription.tier !== undefined) {
-        const existingSubscription = await prisma.subscription.findUnique({
-          where: { userId: userId },
+      // If balance was modified, create a transaction record
+      if (balance !== undefined) {
+        // Get current user data to determine balance difference
+        const currentUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { balance: true }
         });
 
-        if (existingSubscription) {
-          await prisma.subscription.update({
-            where: { id: existingSubscription.id },
+        if (currentUser) {
+          // Create transaction for the balance adjustment
+          await prisma.transaction.create({
             data: {
-              tier: subscription.tier,
-              status: subscription.status || existingSubscription.status,
-            },
-          });
-        } else {
-          await prisma.subscription.create({
-            data: {
-              userId: userId,
-              tier: subscription.tier,
-              status: subscription.status || 'active',
-            },
+              userId,
+              amount: updateData.balance - (currentUser.balance || 0), // Positive for addition, negative for subtraction
+              balanceAfter: updateData.balance,
+              description: 'Admin balance adjustment',
+              status: 'completed'
+            }
           });
         }
       }
@@ -67,7 +70,6 @@ export async function PATCH(
       const finalUser = await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          subscription: true,
           apiKeys: {
             select: {
               id: true,
@@ -84,6 +86,17 @@ export async function PATCH(
               },
             },
           },
+          // Get transaction count to determine if user is paid
+          _count: {
+            select: {
+              transactions: {
+                where: {
+                  amount: { gt: 0 },
+                  status: 'completed'
+                }
+              }
+            }
+          }
         },
       });
 
@@ -102,6 +115,9 @@ export async function PATCH(
 
       const thisMonthUsage = finalUser.usageStats.reduce((sum, stat) => sum + stat.count, 0);
       
+      // Determine user tier based on whether they've made deposits
+      const hasPaidDeposits = finalUser._count.transactions > 0;
+      const userTier = hasPaidDeposits ? USAGE_LIMITS.paid : USAGE_LIMITS.free;
       // Format the response to match AdminUser type
       const formattedUser = {
         id: finalUser.id,
@@ -110,7 +126,15 @@ export async function PATCH(
         role: finalUser.role,
         createdAt: finalUser.createdAt,
         lastActive: finalUser.updatedAt,
-        subscription: finalUser.subscription,
+        balance: finalUser.balance || 0,
+        freeOperationsUsed: finalUser.freeOperationsUsed || 0,
+        freeOperationsReset: finalUser.freeOperationsReset,
+        freeOperationsRemaining: Math.max(0, 500 - (finalUser.freeOperationsUsed || 0)), // Assuming 500 free ops
+        // Include subscription for backward compatibility with frontend
+        subscription: {
+          tier: userTier,
+          status: 'active'
+        },
         apiKeys: finalUser.apiKeys,
         usage: {
           total: totalUsage._sum.count || 0,
