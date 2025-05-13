@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -12,10 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Calculator } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { LanguageLink } from "@/components/language-link";
-import { toast } from "sonner";
+import { Slider } from "@/components/ui/slider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,173 +28,50 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface PlanFeature {
-  name: string;
-  free: boolean | string;
-  basic: boolean | string;
-  pro: boolean | string;
-  enterprise: boolean | string;
-}
-
 export function PricingContent() {
   const { t } = useLanguageStore();
   const router = useRouter();
   const { data: session } = useSession();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const pricing = {
-    basic: 9.99,
-    pro: 29.99,
-    enterprise: 99.99,
+  const [operationsEstimate, setOperationsEstimate] = useState(2000);
+  const [depositAmount, setDepositAmount] = useState(10);
+
+  // Cost per operation in dollars
+  const OPERATION_COST = 0.005;
+
+  // Calculate deposit needed for operations
+  const calculateDeposit = (operations: number) => {
+    return Math.ceil(operations * OPERATION_COST);
   };
 
-  const planFeatures: PlanFeature[] = [
-    {
-      name: t("pricing.features.operations"),
-      free: t("pricing.features.amount.free"),
-      basic: t("pricing.features.amount.basic"),
-      pro: t("pricing.features.amount.pro"),
-      enterprise: t("pricing.features.amount.enterprise"),
-    },
-    {
-      name: t("pricing.features.apiAccess"),
-      free: t("pricing.features.apiKeys.free"),
-      basic: t("pricing.features.apiKeys.basic"),
-      pro: t("pricing.features.apiKeys.pro"),
-      enterprise: t("pricing.features.apiKeys.enterprise"),
-    },
-    {
-      name: t("pricing.features.fileSizes"),
-      free: t("pricing.features.fileSize.pro"),
-      basic: t("pricing.features.fileSize.pro"),
-      pro: t("pricing.features.fileSize.pro"),
-      enterprise: t("pricing.features.fileSize.pro"),
-    },
-    {
-      name: t("pricing.features.ocr"),
-      free: true,
-      basic: true,
-      pro: true,
-      enterprise: true,
-    },
-    {
-      name: t("pricing.features.bulkProcessing"),
-      free: true,
-      basic: true,
-      pro: true,
-      enterprise: true,
-    },
-    {
-      name: t("pricing.features.supports"),
-      free: t("pricing.features.support.free"),
-      basic: t("pricing.features.support.free"),
-      pro: t("pricing.features.support.priority"),
-      enterprise: t("pricing.features.support.dedicated"),
-    },
-  ];
-
-  // Handle subscription upgrade
-  const handleUpgrade = async (tier: string) => {
-    try {
-      setUpgradeTarget(tier);
-      setError(null);
-
-      const response = await fetch("/api/subscription", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tier }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          "Subscription creation failed:",
-          response.status,
-          errorText
-        );
-        throw new Error("Failed to create subscription");
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType?.includes("application/json")) {
-        const text = await response.text();
-        console.error("Non-JSON response:", text);
-        throw new Error("Invalid response format");
-      }
-
-      const data = await response.json();
-
-      // Redirect to PayPal approval URL
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        throw new Error("No approval URL returned");
-      }
-    } catch (error) {
-      console.error("Error creating subscription:", error);
-      setError(error instanceof Error ? error.message : "Unknown error");
-      toast.error("Failed to upgrade subscription");
-      setUpgradeTarget(null);
-    }
+  // Update deposit based on operations
+  const handleOperationsChange = (value: number[]) => {
+    const operations = value[0];
+    setOperationsEstimate(operations);
+    setDepositAmount(calculateDeposit(operations));
   };
 
-  const handleSubscribe = async (plan: string) => {
-    if (plan === "free") {
-      if (!session) {
-        setShowLoginDialog(true);
-        return;
-      }
-      router.push("/en/dashboard");
-      return;
-    }
-
-    setSelectedPlan(plan);
-
+  // Handle get started action
+  const handleGetStarted = () => {
     if (!session) {
       setShowLoginDialog(true);
       return;
     }
 
-    try {
-      const response = await fetch("/api/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: plan, interval: "monthly" }),
-      });
-
-      if (!response.ok)
-        throw new Error(t("pricing.error") || "Failed to create subscription");
-
-      const data = await response.json();
-
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        toast.success(
-          t("pricing.success") || "Subscription updated successfully"
-        );
-        router.push("/en/dashboard");
-      }
-    } catch (error) {
-      toast.error(
-        t("pricing.error") ||
-          "Failed to process subscription. Please try again."
-      );
-    }
+    router.push("/en/dashboard");
   };
 
-  const getPlanFeatures = (plan: "free" | "basic" | "pro" | "enterprise") => {
-    return planFeatures
-      .map((feature) => ({
-        name: feature.name,
-        value: feature[plan],
-      }))
-      .filter((f) => f.value !== false);
-  };
+  // Pricing features
+  const features = [
+    "500 free operations every month",
+    "Pay-as-you-go pricing at $0.005 per operation",
+    "No subscription, no recurring fees",
+    "Unused balance never expires",
+    "Only pay for what you use",
+    "Top up your balance anytime",
+    "All PDF tools included",
+    "Full API access",
+  ];
 
   return (
     <div className="py-10 px-4 bg-background">
@@ -202,141 +80,106 @@ export function PricingContent() {
           {t("pricing.title") || "Simple, transparent pricing"}
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">
-          {t("pricing.subtitle") || "Choose the plan that's right for you."}
+          Pay only for what you use, with no monthly subscriptions.
         </p>
       </div>
 
-      <div className="mx-auto max-w-7xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mx-auto max-w-3xl">
         <Card className="shadow-md hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-xl">
-              {t("subscription.free") || "Free"}
-            </CardTitle>
-            <div className="text-3xl font-bold">$0</div>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              {getPlanFeatures("free").map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                  <span>
-                    {feature.name}: {feature.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button
-              variant={session ? "outline" : "default"}
-              className="w-full"
-              onClick={() => handleSubscribe("free")}
-            >
-              {session
-                ? t("pricing.currentPlan") || "Current Plan"
-                : t("pricing.getStarted") || "Get Started"}
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="border-2 border-primary relative shadow-md hover:shadow-lg transition-shadow">
-          <Badge className="absolute top-0 right-4 -translate-y-1/2 px-3 py-1">
-            Popular
-          </Badge>
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {t("subscription.basic") || "Basic"}
-            </CardTitle>
-            <div className="text-3xl font-bold">
-              ${pricing.basic}
-              <span className="text-sm text-muted-foreground">
-                /{t("pricing.monthly") || "month"}
-              </span>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">Pay-As-You-Go</CardTitle>
+              <Badge className="px-3 py-1">Most Flexible</Badge>
             </div>
+            <div className="text-3xl font-bold">$0.005</div>
+            <div className="text-sm text-muted-foreground">per operation</div>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm">
-              {getPlanFeatures("basic").map((feature, index) => (
+            <ul className="space-y-2 text-sm mb-6">
+              {features.map((feature, index) => (
                 <li key={index} className="flex items-center">
                   <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                  <span>
-                    {feature.name}: {feature.value}
-                  </span>
+                  <span>{feature}</span>
                 </li>
               ))}
             </ul>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" onClick={() => handleSubscribe("basic")}>
-              {t("pricing.subscribe") || "Subscribe"}
-            </Button>
-          </CardFooter>
-        </Card>
 
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {t("subscription.pro") || "Pro"}
-            </CardTitle>
-            <div className="text-3xl font-bold">
-              ${pricing.pro}
-              <span className="text-sm text-muted-foreground">
-                /{t("pricing.monthly") || "month"}
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              {getPlanFeatures("pro").map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                  <span>
-                    {feature.name}: {feature.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" onClick={() => handleSubscribe("pro")}>
-              {t("pricing.subscribe") || "Subscribe"}
-            </Button>
-          </CardFooter>
-        </Card>
+            <div className="bg-muted p-4 rounded-lg mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium flex items-center">
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Estimate Your Costs
+                </h3>
+                <div className="text-sm font-bold">
+                  {operationsEstimate.toLocaleString()} operations
+                </div>
+              </div>
 
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {t("subscription.enterprise") || "Enterprise"}
-            </CardTitle>
-            <div className="text-3xl font-bold">
-              ${pricing.enterprise}
-              <span className="text-sm text-muted-foreground">
-                /{t("pricing.monthly") || "month"}
-              </span>
+              <Slider
+                defaultValue={[2000]}
+                min={500}
+                max={10000}
+                step={100}
+                onValueChange={handleOperationsChange}
+                className="mb-4"
+              />
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="text-muted-foreground">Monthly Free:</div>
+                  <div className="font-medium">500 operations</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Additional:</div>
+                  <div className="font-medium">
+                    {Math.max(0, operationsEstimate - 500).toLocaleString()}{" "}
+                    operations
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Cost:</div>
+                  <div className="font-medium">
+                    $
+                    {Math.max(
+                      0,
+                      (operationsEstimate - 500) * OPERATION_COST
+                    ).toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">
+                    Recommended Deposit:
+                  </div>
+                  <div className="font-medium">${depositAmount.toFixed(2)}</div>
+                </div>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              {getPlanFeatures("enterprise").map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                  <span>
-                    {feature.name}: {feature.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
           </CardContent>
           <CardFooter>
-            <Button
-              className="w-full"
-              onClick={() => handleSubscribe("enterprise")}
-            >
-              {t("pricing.subscribe") || "Subscribe"}
+            <Button className="w-full" onClick={handleGetStarted}>
+              {session ? "Add Funds to Account" : "Get Started"}
             </Button>
           </CardFooter>
         </Card>
+      </div>
+
+      <div className="mx-auto max-w-3xl text-center mt-10">
+        <h2 className="text-2xl font-bold">
+          {t("pricing.cta.title") || "Ready to get started?"}
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Create an account and get 500 free operations every month.
+        </p>
+        <div className="mt-6 flex justify-center gap-4">
+          <Button size="lg" onClick={handleGetStarted}>
+            {session ? "Go to Dashboard" : "Create Account"}
+          </Button>
+          <LanguageLink href="/pdf-tools">
+            <Button variant="outline" size="lg">
+              {t("pricing.cta.explorePdfTools") || "Explore PDF Tools"}
+            </Button>
+          </LanguageLink>
+        </div>
       </div>
 
       {showLoginDialog && (
@@ -347,8 +190,8 @@ export function PricingContent() {
                 {t("pricing.loginRequired") || "Sign in required"}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                {t("pricing.loginRequiredDesc") ||
-                  "You need to sign in to your account before subscribing. Would you like to sign in now?"}
+                Create an account to get 500 free operations every month and add
+                funds as needed.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -364,25 +207,6 @@ export function PricingContent() {
           </AlertDialogContent>
         </AlertDialog>
       )}
-
-      <div className="mx-auto max-w-3xl text-center mt-10">
-        <h2 className="text-2xl font-bold">
-          {t("pricing.cta.title") || "Ready to get started?"}
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          {t("pricing.cta.subtitle") || "Choose the plan that's right for you."}
-        </p>
-        <div className="mt-6 flex justify-center gap-4">
-          <Button size="lg" onClick={() => handleUpgrade("basic")}>
-            {t("pricing.cta.startBasic") || "Start with Basic"}
-          </Button>
-          <LanguageLink href="/pdf-tools">
-            <Button variant="outline" size="lg">
-              {t("pricing.cta.explorePdfTools") || "Explore PDF Tools"}
-            </Button>
-          </LanguageLink>
-        </div>
-      </div>
     </div>
   );
 }

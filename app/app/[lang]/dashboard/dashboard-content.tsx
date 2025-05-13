@@ -12,7 +12,7 @@ import {
   EmailVerificationAlert,
   EmailVerifiedAlert,
 } from "@/components/email-verification-alert";
-import SubscriptionInfo from "@/components/dashboard/subscription-info";
+import { BalancePanel } from "@/components/balance-panel";
 
 interface DashboardContentProps {
   user: any;
@@ -68,7 +68,7 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger value="subscription">Balance</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
         </TabsList>
 
@@ -81,7 +81,7 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
         </TabsContent>
 
         <TabsContent value="subscription" className="space-y-6">
-          <SubscriptionInfo />
+          <BalancePanel />
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">

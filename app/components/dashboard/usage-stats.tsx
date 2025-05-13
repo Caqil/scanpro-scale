@@ -30,18 +30,29 @@ interface UsageStatsProps {
 }
 
 export function UsageStats({ user, usageStats }: UsageStatsProps) {
- const { t } = useLanguageStore();
+  const { t } = useLanguageStore();
   const [chartData, setChartData] = useState<any[]>([]);
 
-  // Determine limits based on subscription tier
-  const usageLimit =
-    user?.subscription?.tier === "enterprise"
-      ? 500000
-      : user?.subscription?.tier === "pro"
-      ? 5000
-      : user?.subscription?.tier === "basic"
-      ? 5000
-      : 500;
+  // Constants for usage tracking
+  const FREE_OPERATIONS_MONTHLY = 500;
+  const OPERATION_COST = 0.005;
+
+  // Calculate free operations remaining
+  const freeOperationsRemaining = Math.max(
+    0,
+    FREE_OPERATIONS_MONTHLY - (user.freeOperationsUsed || 0)
+  );
+
+  // Calculate usage percentage
+  const freeOpsPercentage = Math.min(
+    Math.round(
+      ((user.freeOperationsUsed || 0) / FREE_OPERATIONS_MONTHLY) * 100
+    ),
+    100
+  );
+
+  // Calculate operations coverage with current balance
+  const operationsCoverage = Math.floor((user.balance || 0) / OPERATION_COST);
 
   // Format operation name for display
   const formatOperation = (op: string): string => {
@@ -52,6 +63,12 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
   const formatPercentage = (value: number, total: number): string => {
     if (total === 0) return "0%";
     return `${Math.round((value / total) * 100)}%`;
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string | Date | null | undefined): string => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
   };
 
   // Get total operations safely
@@ -94,7 +111,8 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
 
     try {
       const entries = Object.entries(usageStats.operationCounts);
-      if (entries.length === 0) return { operation: t("dashboard.none"), count: 0 };
+      if (entries.length === 0)
+        return { operation: t("dashboard.none"), count: 0 };
 
       const [operation, count] = entries.sort((a, b) => b[1] - a[1])[0];
       return { operation, count: count as number };
@@ -112,35 +130,13 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("dashboard.totalUsage")}
+              {t("dashboard.totalUsage") || "Total Usage"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOperations}</div>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.of")} {usageLimit} {t("dashboard.operationsThisMonth")}
-            </p>
-            <Progress
-              value={(totalOperations / usageLimit) * 100}
-              className="mt-2"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("dashboard.subscription")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize">
-              {user?.subscription?.tier || t("dashboard.status.inactive")}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {user?.subscription?.status === "active"
-                ? t("dashboard.status.active")
-                : t("dashboard.status.inactive")}
+              {t("dashboard.operationsThisMonth") || "Operations this month"}
             </p>
           </CardContent>
         </Card>
@@ -148,23 +144,34 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("dashboard.apiKeys")}
+              {t("dashboard.freeOperations") || "Free Operations"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {user?.apiKeys?.length || 0}
+              {freeOperationsRemaining} / {FREE_OPERATIONS_MONTHLY}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.of")}{" "}
-              {user?.subscription?.tier === "enterprise"
-                ? 50
-                : user?.subscription?.tier === "pro"
-                ? 10
-                : user?.subscription?.tier === "basic"
-                ? 3
-                : 1}{" "}
-              {t("dashboard.keysAllowed")}
+              {t("dashboard.resetsOn") || "Resets on"}{" "}
+              {formatDate(user.freeOperationsReset)}
+            </p>
+            <Progress value={freeOpsPercentage} className="mt-2" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("dashboard.balance") || "Balance"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${(user.balance || 0).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("dashboard.coveredOperations") || "Covers"}{" "}
+              {operationsCoverage} {t("dashboard.operations") || "operations"}
             </p>
           </CardContent>
         </Card>
@@ -172,7 +179,7 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("dashboard.mostUsed")}
+              {t("dashboard.mostUsed") || "Most Used"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -181,7 +188,7 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
             </div>
             <p className="text-xs text-muted-foreground">
               {formatPercentage(mostUsed.count, totalOperations)}{" "}
-              {t("dashboard.percentageOfTotal")}
+              {t("dashboard.percentageOfTotal") || "of total"}
             </p>
           </CardContent>
         </Card>
@@ -189,8 +196,12 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("dashboard.usageByOperation")}</CardTitle>
-          <CardDescription>{t("dashboard.apiUsageBreakdown")}</CardDescription>
+          <CardTitle>
+            {t("dashboard.usageByOperation") || "Usage By Operation"}
+          </CardTitle>
+          <CardDescription>
+            {t("dashboard.apiUsageBreakdown") || "API usage breakdown"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-80">
@@ -206,7 +217,9 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">{t("dashboard.noData")}</p>
+                <p className="text-muted-foreground">
+                  {t("dashboard.noData") || "No data available"}
+                </p>
               </div>
             )}
           </div>

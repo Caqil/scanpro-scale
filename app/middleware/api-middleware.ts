@@ -15,35 +15,19 @@ try {
     console.warn('Redis configuration error. Using fallback rate limiting.', error);
 }
 
-// Define rate limits based on subscription tier
-const rateLimits = {
-    free: {
-        limit: 100,
-        window: 3600, // 100 requests per hour (3600 seconds)
-    },
-    basic: {
-        limit: 1000,
-        window: 3600, // 1000 requests per hour
-    },
-    pro: {
-        limit: 2000,
-        window: 3600, // 2000 requests per hour
-    },
-    enterprise: {
-        limit: 5000,
-        window: 3600, // 5000 requests per hour
-    },
+// Cost per operation in USD
+const OPERATION_COST = 0.005;
+
+// Monthly free operations allowance
+const FREE_OPERATIONS_MONTHLY = 500;
+
+// API rate limits (separate from operation charging)
+const API_RATE_LIMITS = {
+    limit: 300, // 5 requests per minute
+    window: 60, // 1 minute window
 };
 
-// Define usage limits by tier (operations per month)
-const usageLimits = {
-    free: 500,
-    basic: 5000,
-    pro: 50000,
-    enterprise: 500000,
-};
-
-// Web UI bypass check - this function identifies browser-based requests
+// Web UI bypass check
 function isWebUIRequest(request: NextRequest): boolean {
     const userAgent = request.headers.get('user-agent') || '';
     const referer = request.headers.get('referer') || '';
@@ -82,7 +66,7 @@ export async function apiMiddleware(request: NextRequest) {
     }
 
     // Get API key from header or query param
-    const apiKey = request.headers.get('x-api-key');
+    const apiKey = request.headers.get('x-api-key') || request.nextUrl.searchParams.get('api_key');
 
     if (!apiKey) {
         return NextResponse.json(
@@ -96,7 +80,12 @@ export async function apiMiddleware(request: NextRequest) {
         where: { key: apiKey },
         include: {
             user: {
-                include: { subscription: true }
+                select: {
+                    id: true,
+                    balance: true,
+                    freeOperationsUsed: true,
+                    freeOperationsReset: true
+                }
             }
         }
     });
@@ -128,15 +117,12 @@ export async function apiMiddleware(request: NextRequest) {
         );
     }
 
-    // Get subscription tier
-    const tier = keyRecord.user.subscription?.tier || 'free';
-
-    // Apply rate limiting based on subscription tier
+    // Apply rate limiting
     if (redis) {
-        const { limit, window } = rateLimits[tier as keyof typeof rateLimits];
+        const { limit, window } = API_RATE_LIMITS;
         const ratelimit = new Ratelimit({
             redis,
-            limiter: Ratelimit.slidingWindow(limit, `${window}s`), // Explicitly add 's' for seconds
+            limiter: Ratelimit.slidingWindow(limit, `${window}s`),
             analytics: true,
             prefix: 'MegaPDF:ratelimit',
         });
@@ -170,43 +156,120 @@ export async function apiMiddleware(request: NextRequest) {
         data: { lastUsed: new Date() }
     });
 
-    // Check monthly usage limit BEFORE incrementing
-    const firstDayOfMonth = new Date();
-    firstDayOfMonth.setDate(1);
-    firstDayOfMonth.setHours(0, 0, 0, 0);
+    // --- Handle charging for operations ---
+    
+    // Get the user from the API key
+    const user = keyRecord.user;
 
-    const monthlyUsage = await prisma.usageStats.aggregate({
-        where: {
-            userId: keyRecord.user.id,
-            date: { gte: firstDayOfMonth }
-        },
-        _sum: {
-            count: true
-        }
-    });
-
-    const totalUsage = monthlyUsage._sum.count || 0;
-    const usageLimit = usageLimits[tier as keyof typeof usageLimits];
-
-    if (totalUsage >= usageLimit) {
+    if (!user) {
         return NextResponse.json(
-            {
-                error: `Monthly usage limit of ${usageLimit} operations reached for your ${tier} plan`,
-                usage: totalUsage,
-                limit: usageLimit
-            },
-            { status: 403 }
+            { error: 'User not found' },
+            { status: 500 }
         );
     }
 
-    // Now we can safely track usage statistics (AFTER checking the limit)
+    // Check if free operations should be reset
+    const now = new Date();
+    let freeOpsUsed = user.freeOperationsUsed || 0;
+    
+    if (user.freeOperationsReset && user.freeOperationsReset < now) {
+        // Reset free operations counter
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                freeOperationsUsed: 0,
+                freeOperationsReset: new Date(now.getFullYear(), now.getMonth() + 1, 1) // First day of next month
+            }
+        });
+        
+        // Update local variable
+        freeOpsUsed = 0;
+    }
+
+    // Check if free operations are available
+    if (freeOpsUsed < FREE_OPERATIONS_MONTHLY) {
+        // Use a free operation
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                freeOperationsUsed: { increment: 1 }
+            }
+        });
+        
+        // Track the operation in usage stats
+        await recordOperationUsage(user.id, operation);
+        
+        // Continue with the request
+        const response = NextResponse.next();
+        
+        // Add operation information headers
+        response.headers.set('X-Operation-Cost', '0'); // Free operation
+        response.headers.set('X-Free-Operations-Used', (freeOpsUsed + 1).toString());
+        response.headers.set('X-Free-Operations-Remaining', (FREE_OPERATIONS_MONTHLY - freeOpsUsed - 1).toString());
+        
+        return response;
+    }
+    
+    // If no free operations left, check if user has enough balance
+    const userBalance = user.balance || 0;
+    
+    if (userBalance < OPERATION_COST) {
+        return NextResponse.json(
+            {
+                error: 'Insufficient balance',
+                currentBalance: userBalance,
+                requiredBalance: OPERATION_COST,
+                message: `Please add funds to your account. Each operation costs $${OPERATION_COST.toFixed(3)}.`
+            },
+            { status: 402 } // 402 Payment Required
+        );
+    }
+    
+    // Deduct from balance
+    const newBalance = userBalance - OPERATION_COST;
+    
+    // Update user's balance
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            balance: newBalance
+        }
+    });
+    
+    // Record transaction
+    await prisma.transaction.create({
+        data: {
+            userId: user.id,
+            amount: -OPERATION_COST,
+            balanceAfter: newBalance,
+            description: `Operation: ${operation}`
+        }
+    });
+    
+    // Track the operation in usage stats
+    await recordOperationUsage(user.id, operation);
+    
+    // Continue with the request
+    const response = NextResponse.next();
+    
+    // Add balance headers
+    response.headers.set('X-Operation-Cost', OPERATION_COST.toString());
+    response.headers.set('X-Current-Balance', newBalance.toString());
+    response.headers.set('X-Free-Operations-Used', freeOpsUsed.toString());
+    response.headers.set('X-Free-Operations-Remaining', '0');
+    
+    return response;
+}
+
+// Helper function to record operation usage
+async function recordOperationUsage(userId: string, operation: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    
     await prisma.usageStats.upsert({
         where: {
             userId_operation_date: {
-                userId: keyRecord.user.id,
+                userId,
                 operation,
                 date: today
             }
@@ -215,32 +278,16 @@ export async function apiMiddleware(request: NextRequest) {
             count: { increment: 1 }
         },
         create: {
-            userId: keyRecord.user.id,
+            userId,
             operation,
             count: 1,
             date: today
         }
     });
-
-    // Continue with the request
-    const response = NextResponse.next();
-
-    // Add rate limit headers
-    if (redis) {
-        const { limit, window } = rateLimits[tier as keyof typeof rateLimits];
-        const ratelimit = new Ratelimit({
-            redis,
-            limiter: Ratelimit.slidingWindow(limit, `${window}s`),
-            analytics: true,
-            prefix: 'MegaPDF:ratelimit',
-        });
-
-        const { remaining, reset } = await ratelimit.limit(apiKey);
-
-        response.headers.set('X-RateLimit-Limit', limit.toString());
-        response.headers.set('X-RateLimit-Remaining', remaining.toString());
-        response.headers.set('X-RateLimit-Reset', new Date(reset).toISOString());
-    }
-
-    return response;
 }
+
+export const config = {
+  matcher: [
+    "/api/:path*",
+  ],
+};

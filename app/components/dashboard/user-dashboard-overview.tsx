@@ -22,13 +22,15 @@ import {
 import {
   FileText,
   DownloadCloud,
-  UploadCloud,
+  Upload,
   Zap,
   ArrowUp,
   Bell,
   Key,
   Clock,
   Layers,
+  CreditCard,
+  DollarSign,
 } from "lucide-react";
 
 interface UsageStatsProps {
@@ -45,15 +47,28 @@ export function UserDashboardOverview({
   user,
   usageStats,
 }: UserDashboardOverviewProps) {
-  // Determine usage limits based on subscription tier
-  const usageLimit =
-    user?.subscription?.tier === "enterprise"
-      ? 500000 // Updated from 100000
-      : user?.subscription?.tier === "pro"
-      ? 5000 // Updated from 10000
-      : user?.subscription?.tier === "basic"
-      ? 5000 // Updated from 1000
-      : 500; // Updated from 100 (free tier)
+  // Monthly free operations allowance
+  const FREE_OPERATIONS_MONTHLY = 500;
+
+  // Operation cost in USD
+  const OPERATION_COST = 0.005;
+
+  // Calculate remaining free operations
+  const freeOperationsRemaining = Math.max(
+    0,
+    FREE_OPERATIONS_MONTHLY - user.freeOperationsUsed || 0
+  );
+
+  // Calculate usage percentage
+  const usagePercentage = Math.min(
+    Math.round(
+      ((user.freeOperationsUsed || 0) / FREE_OPERATIONS_MONTHLY) * 100
+    ),
+    100
+  );
+
+  // Calculate how many operations the current balance can cover
+  const operationsCoverage = Math.floor((user.balance || 0) / OPERATION_COST);
 
   // Format operation name for display
   const formatOperation = (op: string): string => {
@@ -137,57 +152,73 @@ export function UserDashboardOverview({
 
         <Card className="hover:shadow-md transition-all">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">View Docs</CardTitle>
+            <CardTitle className="text-lg">Add Funds</CardTitle>
           </CardHeader>
           <CardContent>
-            <LanguageLink href="/docs">
+            <LanguageLink href="/dashboard/balance">
               <Button className="w-full">
-                <Layers className="mr-2 h-4 w-4" />
-                Open Docs
+                <DollarSign className="mr-2 h-4 w-4" />
+                Add Funds
               </Button>
             </LanguageLink>
           </CardContent>
         </Card>
       </div>
 
-      {/* Usage statistics */}
+      {/* Balance and usage statistics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
-            <UploadCloud className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Current Balance
+            </CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {usageStats.totalOperations}
+              ${(user.balance || 0).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              of {usageLimit} operations this month
+              Operations cost ${OPERATION_COST.toFixed(3)} each
             </p>
-            <Progress
-              value={(usageStats.totalOperations / usageLimit) * 100}
-              className="mt-2"
-            />
+            <LanguageLink href="/dashboard/balance">
+              <Button variant="outline" size="sm" className="mt-2 w-full">
+                Add Funds
+              </Button>
+            </LanguageLink>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subscription</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Free Operations
+            </CardTitle>
+            <DownloadCloud className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {freeOperationsRemaining} / {FREE_OPERATIONS_MONTHLY}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Resets on {formatDate(user.freeOperationsReset?.toString())}
+            </p>
+            <Progress value={usagePercentage} className="mt-2" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Operations Coverage
+            </CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">
-              {user?.subscription?.tier || "Free"}
-            </div>
+            <div className="text-2xl font-bold">{operationsCoverage}</div>
             <p className="text-xs text-muted-foreground">
-              {user?.subscription?.status === "active" ? "Active" : "Inactive"}
+              Operations available with current balance
             </p>
-            {user?.subscription?.currentPeriodEnd && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Renews: {formatDate(user.subscription.currentPeriodEnd)}
-              </p>
-            )}
           </CardContent>
         </Card>
 
@@ -208,21 +239,6 @@ export function UserDashboardOverview({
                 (mostUsed.count / usageStats.totalOperations) * 100
               ) || 0}
               % of total)
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Account Status
-            </CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground">
-              Member since {formatDate(user.createdAt)}
             </p>
           </CardContent>
         </Card>
