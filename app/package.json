@@ -13,7 +13,6 @@
     "prod:restart": "pm2 restart scanpro",
     "download-tessdata": "node scripts/download-tessdata.js",
     "postinstall": "npm run download-tessdata",
-    "postbuild": "next-sitemap",
     "cron": "node scripts/cron.js"
   },
   "dependencies": {
