@@ -14,7 +14,7 @@ export function SiteLogo({ size = 20, className }: SiteLogoProps) {
       style={{ width: size, height: size }}
     >
       <img
-        src="/logo.png" // make sure the PNG file is placed in the `public/` directory
+        src="/public/logo.png" // make sure the PNG file is placed in the `public/` directory
         alt="Site Logo"
         style={{ width: "100%", height: "100%", objectFit: "contain" }}
       />

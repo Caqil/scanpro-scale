@@ -313,62 +313,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
 
   return (
     <>
-      {/* App Download Banner */}
-      {showAppBanner && (
-        <div className="bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground">
-          <div className="container max-w-6xl mx-auto py-2 px-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <MobileIcon className="h-4 w-4 mr-2 hidden sm:inline-block" />
-              <p className="text-sm font-medium">
-                {isClient
-                  ? t("nav.getApp") ||
-                    "Get our mobile app for on-the-go PDF tools"
-                  : "Get our mobile app for on-the-go PDF tools"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="https://apps.apple.com/us/app/MegaPDF-pdf-scanner-app/id6743518395"
-                target="_blank"
-                className="text-xs font-medium bg-black text-white px-2 py-1 rounded-md flex items-center"
-              >
-                <Apple className="h-3 w-3 mr-1" /> iOS
-              </a>
-              <a
-                href="https://play.google.com/store/apps/details?id=com.MegaPDF.documentconverter"
-                target="_blank"
-                className="text-xs font-medium bg-primary-foreground text-primary px-2 py-1 rounded-md flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
-                >
-                  <polygon points="3 3 21 12 3 21 3 3"></polygon>
-                </svg>
-                Android
-              </a>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-primary-foreground hover:bg-primary/20"
-                onClick={() => setShowAppBanner(false)}
-              >
-                <Cross1Icon className="h-3 w-3" />
-                <span className="sr-only">Close banner</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Header */}
       <header
         className={`sticky top-0 z-50 bg-gradient-to-r from-background/95 to-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${
