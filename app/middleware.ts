@@ -133,7 +133,9 @@ export async function middleware(request: NextRequest) {
       console.error('Error checking user role:', error);
     }
   }
-
+  if (pathname === '/robots.txt' || pathname === '/sitemap.xml') {
+    return NextResponse.next();
+  }
   // Check if route should be excluded from API key validation
   for (const excludedRoute of EXCLUDED_ROUTES) {
     if (pathname.startsWith(excludedRoute)) {
@@ -235,7 +237,5 @@ export const config = {
     "/api/:path*",
     "/admin/:path*",
     "/:lang/admin/:path*",
-    '/robots.txt',
-    '/sitemap.xml'
   ],
 };

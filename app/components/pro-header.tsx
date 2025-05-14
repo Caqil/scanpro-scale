@@ -219,12 +219,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           icon: <Download className="h-5 w-5 text-purple-500" />,
           description: t("popular.compressPdfDesc"),
         },
-        {
-          name: t("universalCompressor.title"),
-          href: "/compress-files",
-          icon: <FileBoxIcon className="h-5 w-5 text-purple-500" />,
-          description: t("universalCompressor.description"),
-        },
       ],
     },
     {
