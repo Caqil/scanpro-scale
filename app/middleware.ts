@@ -47,6 +47,9 @@ const EXCLUDED_ROUTES = [
   '/api/pdf/chat',
   '/api/file',
   '/api/health', 
+  '/sitemap.xml',
+  '/robots.txt',
+  '/sitemap-0.xml',
 ];
 
 const ADMIN_ROUTES = [
@@ -132,7 +135,9 @@ export async function middleware(request: NextRequest) {
       console.error('Error checking user role:', error);
     }
   }
-
+  if (pathname === '/sitemap.xml' || pathname === '/robots.txt' || pathname.startsWith('/sitemap-')) {
+    return NextResponse.next();
+  }
   // Check if route should be excluded from API key validation
   for (const excludedRoute of EXCLUDED_ROUTES) {
     if (pathname.startsWith(excludedRoute)) {
