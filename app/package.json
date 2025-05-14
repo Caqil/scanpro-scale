@@ -13,7 +13,9 @@
     "prod:restart": "pm2 restart scanpro",
     "download-tessdata": "node scripts/download-tessdata.js",
     "postinstall": "npm run download-tessdata",
-    "cron": "node scripts/cron.js"
+    "postbuild": "next-sitemap",
+    "cron": "node scripts/cron.js",
+    "generate-conversion-sitemap": "node scripts/generate-conversion-sitemap.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.8.0",
