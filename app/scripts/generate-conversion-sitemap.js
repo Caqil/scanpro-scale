@@ -8,23 +8,18 @@ const LANGUAGES = ['en', 'id', 'es', 'fr', 'zh', 'ar', 'hi', 'ru', 'pt', 'de', '
 
 // Define all file format conversions
 const CONVERSION_TYPES = [
-  // PDF to other formats
   { from: 'pdf', to: 'docx', slug: 'pdf-to-docx' },
   { from: 'pdf', to: 'xlsx', slug: 'pdf-to-xlsx' },
   { from: 'pdf', to: 'pptx', slug: 'pdf-to-pptx' },
   { from: 'pdf', to: 'jpg', slug: 'pdf-to-jpg' },
   { from: 'pdf', to: 'png', slug: 'pdf-to-png' },
   { from: 'pdf', to: 'html', slug: 'pdf-to-html' },
-  
-  // Other formats to PDF
   { from: 'docx', to: 'pdf', slug: 'docx-to-pdf' },
   { from: 'xlsx', to: 'pdf', slug: 'xlsx-to-pdf' },
   { from: 'pptx', to: 'pdf', slug: 'pptx-to-pdf' },
   { from: 'jpg', to: 'pdf', slug: 'jpg-to-pdf' },
   { from: 'png', to: 'pdf', slug: 'png-to-pdf' },
   { from: 'html', to: 'pdf', slug: 'html-to-pdf' },
-  
-  // Legacy or alternative slugs
   { from: 'pdf', to: 'word', slug: 'pdf-to-word' },
   { from: 'pdf', to: 'excel', slug: 'pdf-to-excel' },
   { from: 'pdf', to: 'powerpoint', slug: 'pdf-to-powerpoint' },
@@ -40,25 +35,21 @@ async function generateConversionSitemap() {
   // Generate URLs for all language and conversion combinations
   LANGUAGES.forEach(lang => {
     CONVERSION_TYPES.forEach(conversion => {
+      const url = `/${lang}/convert/${conversion.slug}`; // Correct URL structure
       links.push({
-        url: `/${lang}/convert/${conversion.slug}`,
-        changefreq: 'daily',
-        priority: 0.8,
-        lastmod: new Date().toISOString(),
-        // Add language alternates for each URL
-        links: LANGUAGES.map(altLang => ({
-          lang: altLang,
-          url: `/${altLang}/convert/${conversion.slug}`
-        }))
+        url: url,
+        changefreq: 'weekly', // Match the image's changefreq
+        priority: 0.8, // Match the image's priority
+        lastmod: new Date().toISOString(), // Full ISO timestamp to match image
       });
     });
   });
 
   // Create a sitemap from our data
   const stream = new SitemapStream({ hostname: siteUrl });
-  
+
   // Return a promise that resolves with the XML string
-  return streamToPromise(Readable.from(links).pipe(stream)).then(data => 
+  return streamToPromise(Readable.from(links).pipe(stream)).then(data =>
     data.toString()
   );
 }

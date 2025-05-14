@@ -49,11 +49,6 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Explicitly copy the sitemap files and robots.txt
-COPY --from=builder /app/public/sitemap.xml ./public/
-COPY --from=builder /app/public/sitemap-0.xml ./public/
-COPY --from=builder /app/public/robots.txt ./public/
-
 # Create required folders inside /app/public
 RUN mkdir -p /app/public/{conversions,compressions,merges,splits,rotations,watermarked,watermarks,protected,unlocked,signatures,ocr,edited,processed,unwatermarked,redacted,repaired,pagenumbers,status} && \
     mkdir -p /app/uploads && \
@@ -62,11 +57,11 @@ RUN mkdir -p /app/public/{conversions,compressions,merges,splits,rotations,water
     chmod -R 777 /app/public && \
     chmod -R 777 /app/uploads && \
     chmod -R 777 /app/temp
-
 # Expose port and set environment variables
 EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
+
 
 # Start the Next.js app
 CMD ["node", "server.js"]
