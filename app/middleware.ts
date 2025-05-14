@@ -46,7 +46,7 @@ const EXCLUDED_ROUTES = [
   '/reset-password',
   '/api/pdf/chat',
   '/api/file',
-  '/api/health', 
+  '/api/health',
 ];
 
 const ADMIN_ROUTES = [
@@ -119,12 +119,12 @@ export async function middleware(request: NextRequest) {
   if (pathname.match(/^\/[^\/]+\/dashboard$/)) {
     try {
       const token = await getToken({ req: request });
-      
+
       if (token?.user && (token.user as any).role === 'admin') {
         // Extract language from pathname
         const pathParts = pathname.split('/');
         const lang = pathParts[1] || 'en';
-        
+
         // Redirect to admin dashboard
         return NextResponse.redirect(new URL(`/${lang}/admin/dashboard`, request.url));
       }
@@ -145,7 +145,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith(adminRoute)) {
       try {
         const token = await getToken({ req: request });
-        
+
         if (!token?.user) {
           // No user session, redirect to login
           const lang = pathname.split('/')[1] || 'en';
@@ -161,7 +161,7 @@ export async function middleware(request: NextRequest) {
       } catch (error) {
         console.error('Error checking admin access:', error);
       }
-      
+
       return NextResponse.next();
     }
   }
@@ -232,7 +232,9 @@ export const config = {
     "/dashboard/:path*",
     "/:lang/dashboard/:path*",
     "/api/:path*",
-    "/admin/:path*",  
+    "/admin/:path*",
     "/:lang/admin/:path*",
+    '/robots.txt',
+    '/sitemap.xml'
   ],
 };

@@ -1,5 +1,6 @@
-// app/sitemap.xml/route.ts
-import { NextRequest } from 'next/server';
+// app/api/dynamic-sitemap.tsx
+import { NextRequest, NextResponse } from 'next/server';
+import { SitemapStream, streamToPromise } from 'sitemap';
 
 // Define supported languages
 const SUPPORTED_LANGUAGES = ['en', 'id', 'es', 'fr', 'zh', 'ar', 'hi', 'ru', 'pt', 'de', 'ja', 'ko', 'it', 'tr'];
@@ -7,9 +8,14 @@ const SUPPORTED_LANGUAGES = ['en', 'id', 'es', 'fr', 'zh', 'ar', 'hi', 'ru', 'pt
 export async function GET(req: NextRequest) {
   try {
     // Extract hostname from request or use the default
-    const host = req.headers.get('host') || '';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
+    const hostname = req.headers.get('host') || 'mega-pdf.com';
+    const protocol = hostname.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${hostname}`;
+
+    // Create sitemap stream
+    const smStream = new SitemapStream({
+      hostname: baseUrl
+    });
 
     // Define the core routes that should be present for all languages
     const coreRoutes = [
@@ -34,88 +40,102 @@ export async function GET(req: NextRequest) {
       { url: '/merge-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/split-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/compress-pdf', changefreq: 'monthly', priority: 0.8 },
+      { url: '/compress-file', changefreq: 'monthly', priority: 0.8 },
       { url: '/rotate-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/watermark-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/repair-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/ocr', changefreq: 'monthly', priority: 0.8 },
       { url: '/ocr-pdf', changefreq: 'monthly', priority: 0.8 },
+      
       // Security tools
       { url: '/protect-pdf', changefreq: 'monthly', priority: 0.7 },
       { url: '/unlock-pdf', changefreq: 'monthly', priority: 0.7 },
+      { url: '/remove-pdf-page', changefreq: 'monthly', priority: 0.7 },
+
+      // Enhancement tools
       { url: '/page-numbers-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/sign-pdf', changefreq: 'monthly', priority: 0.8 },
       { url: '/ask-pdf', changefreq: 'monthly', priority: 0.8 },
+      
+      // User pages
+      { url: '/dashboard', changefreq: 'weekly', priority: 0.6 },
+      { url: '/login', changefreq: 'monthly', priority: 0.5 },
+      { url: '/register', changefreq: 'monthly', priority: 0.5 },
+      { url: '/verify-email', changefreq: 'monthly', priority: 0.4 },
+      { url: '/pricing', changefreq: 'monthly', priority: 0.7 },
+      
+      // API/Developer pages
+      { url: '/developer/api', changefreq: 'monthly', priority: 0.6 },
+      { url: '/developer/api/conversion', changefreq: 'monthly', priority: 0.5 },
+      { url: '/developer/api/manipulation', changefreq: 'monthly', priority: 0.5 },
+      
       // Info pages
       { url: '/about', changefreq: 'monthly', priority: 0.6 },
       { url: '/features', changefreq: 'monthly', priority: 0.7 },
       { url: '/contact', changefreq: 'monthly', priority: 0.6 },
       { url: '/terms', changefreq: 'yearly', priority: 0.4 },
       { url: '/privacy', changefreq: 'yearly', priority: 0.4 },
+      { url: '/cookies', changefreq: 'yearly', priority: 0.4 },
+      { url: '/security', changefreq: 'yearly', priority: 0.5 },
       { url: '/sitemap', changefreq: 'monthly', priority: 0.3 },
+      { url: '/faq', changefreq: 'monthly', priority: 0.6 },
     ];
 
-    // Manually construct XML string (more reliable than using libraries)
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';
+    // Generate URLs for each language
+    const allUrls = [];
     
     // Add root URL
-    xml += '  <url>\n';
-    xml += `    <loc>${baseUrl}/</loc>\n`;
-    xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
-    xml += '    <changefreq>weekly</changefreq>\n';
-    xml += '    <priority>1.0</priority>\n';
+    allUrls.push({
+      url: '/',
+      changefreq: 'weekly',
+      priority: 1.0,
+      links: SUPPORTED_LANGUAGES.map(lang => ({
+        lang,
+        url: `${baseUrl}/${lang}`
+      }))
+    });
     
-    // Add language alternates for root
+    // Add language-specific URLs
     for (const lang of SUPPORTED_LANGUAGES) {
-      xml += `    <xhtml:link rel="alternate" hreflang="${lang}" href="${baseUrl}/${lang}" />\n`;
-    }
-    xml += '  </url>\n';
-    
-    // Add language-specific routes
-    for (const lang of SUPPORTED_LANGUAGES) {
-      // Add language root
-      xml += '  <url>\n';
-      xml += `    <loc>${baseUrl}/${lang}</loc>\n`;
-      xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
-      xml += '    <changefreq>weekly</changefreq>\n';
-      xml += '    <priority>1.0</priority>\n';
-      
-      // Add language alternates
-      for (const altLang of SUPPORTED_LANGUAGES) {
-        xml += `    <xhtml:link rel="alternate" hreflang="${altLang}" href="${baseUrl}/${altLang}" />\n`;
-      }
-      xml += '  </url>\n';
-      
-      // Add all routes for this language
       for (const route of coreRoutes) {
-        if (route.url === '/') continue; // Skip root
-        
-        xml += '  <url>\n';
-        xml += `    <loc>${baseUrl}/${lang}${route.url}</loc>\n`;
-        xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
-        xml += `    <changefreq>${route.changefreq}</changefreq>\n`;
-        xml += `    <priority>${route.priority}</priority>\n`;
-        
-        // Add language alternates
-        for (const altLang of SUPPORTED_LANGUAGES) {
-          xml += `    <xhtml:link rel="alternate" hreflang="${altLang}" href="${baseUrl}/${altLang}${route.url}" />\n`;
-        }
-        xml += '  </url>\n';
+        allUrls.push({
+          ...route,
+          url: `/${lang}${route.url === '/' ? '' : route.url}`,
+          links: SUPPORTED_LANGUAGES.map(altLang => ({
+            lang: altLang,
+            url: `${baseUrl}/${altLang}${route.url === '/' ? '' : route.url}`
+          }))
+        });
       }
     }
-    
-    xml += '</urlset>';
+
+    // Add each URL to the sitemap stream
+    allUrls.forEach(item => {
+      smStream.write({
+        url: item.url,
+        changefreq: item.changefreq,
+        priority: item.priority,
+        lastmod: new Date().toISOString(),
+        links: item.links
+      });
+    });
+
+    // Close stream
+    smStream.end();
+
+    // Generate sitemap XML
+    const sitemapOutput = await streamToPromise(smStream);
 
     // Return with proper content type
-    return new Response(xml, {
+    return new Response(sitemapOutput.toString(), {
       headers: {
         'Content-Type': 'application/xml',
         'Cache-Control': 'public, max-age=3600, s-maxage=86400'
       }
     });
   } catch (error) {
-    console.error('Error generating sitemap:', error);
-    return Response.json(
+    console.error('Error generating dynamic sitemap:', error);
+    return NextResponse.json(
       { error: 'Failed to generate sitemap' },
       { status: 500 }
     );
