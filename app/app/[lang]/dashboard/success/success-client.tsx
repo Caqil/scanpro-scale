@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SiteLogo } from "@/components/site-logo";
 import { LanguageLink } from "@/components/language-link";
 import {
   Card,
@@ -101,7 +100,6 @@ export function SuccessClient({ initialToken, payerId }: SuccessClientProps) {
     <div className="min-h-screen flex flex-col justify-center items-center sm:flex-row">
       {/* Branding for mobile view */}
       <div className="md:hidden flex items-center gap-2 mb-10">
-        <SiteLogo size={30} />
         <span className="font-bold text-2xl">MegaPDF</span>
       </div>
 

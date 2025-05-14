@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { LanguageLink } from "@/components/language-link";
-import { SiteLogo } from "@/components/site-logo";
 import { useLanguageStore } from "@/src/store/store";
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Github, Youtube, X } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Github, Youtube, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -34,13 +33,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <SiteLogo className="h-8 w-8" />
               <span className="font-bold text-xl">MegaPDF</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               {t('footer.description') || "Advanced PDF tools for professionals. Convert, edit, protect and optimize your documents with our powerful web-based platform and API."}
             </p>
-            <div className="flex space-x-4 pt-2">
+            {/* <div className="flex space-x-4 pt-2">
               <a href="https://www.facebook.com/share/1CWuFzyYFR/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialFacebook') || "Facebook"}>
                 <Facebook className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
@@ -50,7 +48,7 @@ export function Footer() {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialInstagram') || "Instagram"}>
                 <Instagram className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
-              <a href="https://www.linkedin.com/company/MegaPDF-cc/" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialLinkedin') || "LinkedIn"}>
+              <a href="https://www.linkedin.com/company/mega-pdf" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialLinkedin') || "LinkedIn"}>
                 <Linkedin className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
               <a href="https://github.com/MegaPDF-cc" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialGithub') || "GitHub"}>
@@ -59,7 +57,7 @@ export function Footer() {
               <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label={t('footer.socialYoutube') || "YouTube"}>
                 <Youtube className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
               </a>
-            </div>
+            </div> */}
           </div>
           
           <div className="space-y-4">
@@ -71,12 +69,12 @@ export function Footer() {
               </li>
               <li className="flex items-start">
                 <Phone className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">+1 (555) 123-4567</span>
+                <span className="text-sm text-muted-foreground">+6281369978737</span>
               </li>
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  {t('footer.address') || "123 Document Street, PDF City, 94103, United States"}
+                  { "Pangkalpinang, 33124"}
                 </span>
               </li>
             </ul>

@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import { RegisterForm } from "@/components/auth/register-form";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { SiteLogo } from "@/components/site-logo";
 import { authOptions } from "@/lib/auth";
 import { LanguageLink } from "@/components/language-link";
 
@@ -23,7 +22,6 @@ export default async function RegisterPage() {
       {/* Left side - Branding and info (for medium and larger screens) */}
       <div className="flex flex-col w-full md:w-1/2 p-6 sm:p-10 justify-center items-center">
         <div className="md:hidden flex items-center gap-2 mb-10">
-          <SiteLogo size={30} />
           <span className="font-bold text-2xl">MegaPDF</span>
         </div>
 

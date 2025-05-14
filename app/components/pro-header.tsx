@@ -39,7 +39,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageLink } from "./language-link";
 import { LanguageSwitcher } from "./language-switcher";
-import { SiteLogo } from "./site-logo";
 import { useSession } from "next-auth/react";
 import { LogoutButton } from "./auth/logout-button";
 type ToolDefinition = {
@@ -324,7 +323,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           <div className="flex items-center gap-2">
             <LanguageLink href="/" className="flex items-center gap-2">
               <span className="font-bold text-xl flex items-center gap-1">
-                <SiteLogo className="h-8 w-8" />
                 <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                   MegaPDF
                 </span>
