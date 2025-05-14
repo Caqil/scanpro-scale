@@ -4,7 +4,7 @@ Allow: /
 Disallow: /api/
 
 # Host
-Host: http://localhost:3000
+Host: https://8a82-2001-448a-10b0-5eb1-e97a-3fa9-e7cb-6c02.ngrok-free.app
 
 # Sitemaps
-Sitemap: http://localhost:3000/sitemap.xml
+Sitemap: https://8a82-2001-448a-10b0-5eb1-e97a-3fa9-e7cb-6c02.ngrok-free.app/sitemap.xml
