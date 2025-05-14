@@ -64,6 +64,7 @@ const BROWSER_USER_AGENT_PATTERNS = [
   'Opera/'
 ];
 
+
 // Function to check if request is from a browser (web UI)
 function isWebUIRequest(request: NextRequest): boolean {
   const userAgent = request.headers.get('user-agent') || '';
