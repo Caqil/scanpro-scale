@@ -1,8 +1,6 @@
 // lib/paypal.ts
 import { prisma } from '@/lib/prisma';
 
-// API base URL based on environment
-export const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
 
 /**
  * Get PayPal access token for API requests
@@ -19,7 +17,7 @@ export async function getPayPalAccessToken(): Promise<string> {
     console.log('Requesting PayPal access token');
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
-    const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+    const response = await fetch(`${process.env.PAYPAL_API_BASE}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -66,7 +64,7 @@ export async function createPayPalOrder(
     // Format amount to 2 decimal places
     const formattedAmount = amount.toFixed(2);
 
-    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+    const response = await fetch(`${process.env.PAYPAL_API_BASE}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,7 +136,7 @@ export async function verifyPayPalOrder(orderId: string): Promise<{
     const accessToken = await getPayPalAccessToken();
 
     // First, get order details to verify it exists and is approved
-    const detailsResponse = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}`, {
+    const detailsResponse = await fetch(`${process.env.PAYPAL_API_BASE}/v2/checkout/orders/${orderId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -162,7 +160,7 @@ export async function verifyPayPalOrder(orderId: string): Promise<{
     }
 
     // Capture the payment to complete it
-    const captureResponse = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
+    const captureResponse = await fetch(`${process.env.PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
