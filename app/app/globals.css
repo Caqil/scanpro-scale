@@ -53,11 +53,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  /* Primary color changed to yellow to match logo */
-  --primary: oklch(0.86 0.118 93.35);
-  /* FFEAA0 in oklch format */
-  --primary-foreground: oklch(0.145 0 0);
-  /* Dark text on yellow */
+  /* Primary color changed to red */
+  --primary: oklch(0.6 0.25 27); /* Rich red */
+  --primary-foreground: oklch(1 0 0); /* White text on red */
 
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -70,25 +68,18 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 
-  /* Chart colors updated to harmonize with yellow */
-  --chart-1: oklch(0.86 0.118 93.35);
-  /* Primary yellow */
-  --chart-2: oklch(0.80 0.15 75.0);
-  /* Orange-tinted yellow */
-  --chart-3: oklch(0.75 0.17 65.0);
-  /* Darker orange */
-  --chart-4: oklch(0.90 0.08 105.0);
-  /* Yellow-green */
-  --chart-5: oklch(0.70 0.15 85.0);
-  /* Brown-yellow */
+  /* Chart colors updated to harmonize with red */
+  --chart-1: oklch(0.6 0.25 27); /* Primary red */
+  --chart-2: oklch(0.55 0.23 27); /* Slightly darker red */
+  --chart-3: oklch(0.5 0.22 27); /* Deep red */
+  --chart-4: oklch(0.65 0.2 27); /* Light red */
+  --chart-5: oklch(0.45 0.18 27); /* Muted red */
 
   /* Sidebar colors */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.86 0.118 93.35);
-  /* Match primary */
-  --sidebar-primary-foreground: oklch(0.145 0 0);
-  /* Dark text on yellow */
+  --sidebar-primary: oklch(0.6 0.25 27);
+  --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -103,11 +94,9 @@
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  /* Adjusted primary for dark mode - slightly darker yellow */
-  --primary: oklch(0.82 0.118 93.35);
-  /* Slightly darker yellow */
-  --primary-foreground: oklch(0.145 0 0);
-  /* Black text on yellow */
+  /* Adjusted primary for dark mode - red tone */
+  --primary: oklch(0.7 0.23 27);
+  --primary-foreground: oklch(0.985 0 0);
 
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -121,23 +110,17 @@
   --ring: oklch(0.556 0 0);
 
   /* Chart colors for dark mode */
-  --chart-1: oklch(0.82 0.118 93.35);
-  /* Primary yellow */
-  --chart-2: oklch(0.75 0.15 75.0);
-  /* Orange-tinted yellow */
-  --chart-3: oklch(0.70 0.17 65.0);
-  /* Darker orange */
-  --chart-4: oklch(0.85 0.08 105.0);
-  /* Yellow-green */
-  --chart-5: oklch(0.65 0.15 85.0);
-  /* Brown-yellow */
+  --chart-1: oklch(0.7 0.23 27);
+  --chart-2: oklch(0.65 0.22 27);
+  --chart-3: oklch(0.6 0.21 27);
+  --chart-4: oklch(0.75 0.2 27);
+  --chart-5: oklch(0.55 0.18 27);
 
   /* Sidebar colors for dark mode */
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.82 0.118 93.35);
-  /* Match primary */
-  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.7 0.23 27);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -198,9 +181,7 @@
 }
 
 @keyframes blink {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0;
   }
 

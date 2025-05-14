@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
+import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 
 // Promisify exec for async/await
 const execAsync = promisify(exec);
@@ -73,48 +73,32 @@ async function getTotalPages(inputPath: string): Promise<number> {
 }
 
 export async function POST(request: NextRequest) {
+  let inputPath: string | null = null;
+  
   try {
     console.log("Starting PDF rotation process using pdfcpu...");
-
-    // Get API key either from header or query parameter
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for rotation operation");
-      const operationType = "rotate";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'rotate');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
         return NextResponse.json(
-          { error: validation.error || "Invalid API key" },
-          { status: 401 }
-        );
-      }
-
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
 
@@ -169,129 +153,177 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique file names
-    const uniqueId = uuidv4();
-    const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
-    const outputPath = join(ROTATIONS_DIR, `${uniqueId}-rotated.pdf`);
-
-    // Save the uploaded PDF
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(inputPath, buffer);
-    console.log(`PDF saved to ${inputPath}`);
-
-    // Get total pages
-    const pageCount = await getTotalPages(inputPath);
-
-    // Validate page numbers
-    for (const rotation of effectiveRotations) {
-      const { pageNumber } = rotation;
-      if (pageNumber < 1 || pageNumber > pageCount) {
-        console.warn(`Skipping invalid page number: ${pageNumber}`);
-        return NextResponse.json(
-          { error: `Invalid page number: ${pageNumber}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Create a JSON configuration file for pdfcpu
-    // pdfcpu uses a different approach for rotations where we need to specify the page selection
-    // and the rotation angle separately
-
-    // Group rotations by angle for more efficient processing
-    const rotationsByAngle: { [angle: number]: number[] } = {};
-
-    for (const rotation of effectiveRotations) {
-      // Normalize angle to 0, 90, 180, 270
-      const normalizedAngle = ((rotation.angle % 360) + 360) % 360;
-
-      // Ensure we only use supported rotation angles
-      if (![0, 90, 180, 270].includes(normalizedAngle)) {
-        console.warn(
-          `Unsupported rotation angle ${normalizedAngle} for page ${rotation.pageNumber}`
-        );
-        continue;
-      }
-
-      if (!rotationsByAngle[normalizedAngle]) {
-        rotationsByAngle[normalizedAngle] = [];
-      }
-
-      rotationsByAngle[normalizedAngle].push(rotation.pageNumber);
-    }
-
-    // Use the initial inputPath for the first rotation and outputPath for all rotations
-    // This way we don't modify the original file
-
-    // Get the keys to determine first and subsequent rotations
-    const angleKeys = Object.keys(rotationsByAngle);
-    let isFirstRotation = true;
-
-    // Apply rotations for each angle group
-    for (const [angle, pages] of Object.entries(rotationsByAngle)) {
-      // Convert pages array to pdfcpu page selection format
-      const pageSelection = pages.join(",");
-
-      // For the first rotation, read from inputPath; for subsequent rotations, read from outputPath
-      const sourcePath = isFirstRotation ? inputPath : outputPath;
-
-      // Execute pdfcpu rotation command based on official documentation
-      // Format: pdfcpu rotate [-pages selectedPages] inFile rotation [outFile]
-      const command = `pdfcpu rotate -pages ${pageSelection} "${sourcePath}" ${angle} "${outputPath}"`;
-      console.log(`Executing: ${command}`);
-
-      try {
-        const { stdout, stderr } = await execAsync(command);
-        if (stdout.trim()) {
-          console.log("pdfcpu stdout:", stdout);
-        }
-        if (stderr) {
-          console.warn("pdfcpu stderr:", stderr);
-        }
-        isFirstRotation = false;
-      } catch (rotateError) {
-        console.error("Rotation error:", rotateError);
-        throw new Error(
-          `pdfcpu rotation failed: ${
-            rotateError instanceof Error
-              ? rotateError.message
-              : String(rotateError)
-          }`
-        );
-      }
-    }
-
-    console.log(`Rotated PDF saved to ${outputPath}`);
-
-    // Clean up input file
     try {
-      await unlink(inputPath);
-      console.log(`Deleted input file: ${inputPath}`);
-    } catch (error) {
-      console.warn(`Failed to delete input file ${inputPath}:`, error);
-    }
+      // Generate unique file names
+      const uniqueId = uuidv4();
+      inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+      const outputPath = join(ROTATIONS_DIR, `${uniqueId}-rotated.pdf`);
 
-    // Return success response with the file URL
-    return NextResponse.json({
-      success: true,
-      message: "PDF rotated successfully",
-      fileUrl: `/api/file?folder=rotations&filename=${uniqueId}-rotated.pdf`,
-      fileName: `${uniqueId}-rotated.pdf`,
-      originalName: file.name,
-      pagesRotated: effectiveRotations.length,
-    });
+      // Save the uploaded PDF
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(inputPath, buffer);
+      console.log(`PDF saved to ${inputPath}`);
+
+      // Get total pages
+      const pageCount = await getTotalPages(inputPath);
+
+      // Validate page numbers
+      for (const rotation of effectiveRotations) {
+        const { pageNumber } = rotation;
+        if (pageNumber < 1 || pageNumber > pageCount) {
+          console.warn(`Skipping invalid page number: ${pageNumber}`);
+          return NextResponse.json(
+            { error: `Invalid page number: ${pageNumber}` },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Create a JSON configuration file for pdfcpu
+      // pdfcpu uses a different approach for rotations where we need to specify the page selection
+      // and the rotation angle separately
+
+      // Group rotations by angle for more efficient processing
+      const rotationsByAngle: { [angle: number]: number[] } = {};
+
+      for (const rotation of effectiveRotations) {
+        // Normalize angle to 0, 90, 180, 270
+        const normalizedAngle = ((rotation.angle % 360) + 360) % 360;
+
+        // Ensure we only use supported rotation angles
+        if (![0, 90, 180, 270].includes(normalizedAngle)) {
+          console.warn(
+            `Unsupported rotation angle ${normalizedAngle} for page ${rotation.pageNumber}`
+          );
+          continue;
+        }
+
+        if (!rotationsByAngle[normalizedAngle]) {
+          rotationsByAngle[normalizedAngle] = [];
+        }
+
+        rotationsByAngle[normalizedAngle].push(rotation.pageNumber);
+      }
+
+      // Use the initial inputPath for the first rotation and outputPath for all rotations
+      // This way we don't modify the original file
+
+      // Get the keys to determine first and subsequent rotations
+      const angleKeys = Object.keys(rotationsByAngle);
+      let isFirstRotation = true;
+
+      // Apply rotations for each angle group
+      for (const [angle, pages] of Object.entries(rotationsByAngle)) {
+        // Convert pages array to pdfcpu page selection format
+        const pageSelection = pages.join(",");
+
+        // For the first rotation, read from inputPath; for subsequent rotations, read from outputPath
+        const sourcePath = isFirstRotation ? inputPath : outputPath;
+
+        // Execute pdfcpu rotation command based on official documentation
+        // Format: pdfcpu rotate [-pages selectedPages] inFile rotation [outFile]
+        const command = `pdfcpu rotate -pages ${pageSelection} "${sourcePath}" ${angle} "${outputPath}"`;
+        console.log(`Executing: ${command}`);
+
+        try {
+          const { stdout, stderr } = await execAsync(command);
+          if (stdout.trim()) {
+            console.log("pdfcpu stdout:", stdout);
+          }
+          if (stderr) {
+            console.warn("pdfcpu stderr:", stderr);
+          }
+          isFirstRotation = false;
+        } catch (rotateError) {
+          console.error("Rotation error:", rotateError);
+          throw new Error(
+            `pdfcpu rotation failed: ${
+              rotateError instanceof Error
+                ? rotateError.message
+                : String(rotateError)
+            }`
+          );
+        }
+      }
+
+      console.log(`Rotated PDF saved to ${outputPath}`);
+
+      // Rotation was successful, now charge for the operation
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
+      }
+
+      // Return success response with the file URL
+      return NextResponse.json({
+        success: true,
+        message: "PDF rotated successfully",
+        fileUrl: `/api/file?folder=rotations&filename=${uniqueId}-rotated.pdf`,
+        fileName: `${uniqueId}-rotated.pdf`,
+        originalName: file.name,
+        pagesRotated: effectiveRotations.length,
+        ...billingInfo // Include billing info if available
+      });
+    } catch (processingError) {
+      console.error("PDF processing error:", processingError);
+      
+      return NextResponse.json(
+        {
+          error: processingError instanceof Error
+            ? processingError.message
+            : "An unknown error occurred during PDF rotation",
+          success: false,
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error("PDF rotation error:", error);
+    console.error("PDF rotation request error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during PDF rotation",
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
         success: false,
       },
       { status: 500 }
     );
+  } finally {
+    // Clean up input file
+    if (inputPath) {
+      try {
+        await unlink(inputPath);
+        console.log(`Deleted input file: ${inputPath}`);
+      } catch (cleanupError) {
+        console.warn(`Failed to delete input file ${inputPath}:`, cleanupError);
+      }
+    }
   }
 }

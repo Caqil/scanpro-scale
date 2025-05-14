@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { trackApiUsage, validateApiKey } from '@/lib/validate-key';
-import { processOperationCharge } from '@/lib/operation-handler';
+import { canPerformOperation, getOperationType, getUserId, processOperation } from '@/lib/operation-tracker';
 
 // Promisify exec for async/await
 const execAsync = promisify(exec);
@@ -400,145 +400,191 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-
 export async function POST(request: NextRequest) {
     try {
-        console.log('Starting PDF splitting process with pdfcpu...');
-        const headers = request.headers;
-        const url = new URL(request.url);
-        const apiKey = headers.get('x-api-key') || url.searchParams.get('api_key');
-
-        if (apiKey) {
-            console.log('Validating API key for split operation');
-            const operationType = "split";
-            const validation = await validateApiKey(apiKey, 'split');
-
-            if (!validation.valid) {
-                console.error('API key validation failed:', validation.error);
-                return new Response(
-                    JSON.stringify({ error: validation.error || 'Invalid API key' }),
-                    { status: 401, headers: { 'Content-Type': 'application/json' } }
-                );
-            }
-
-            if (validation.userId) {
-                    trackApiUsage(validation.userId, operationType);
-                    const chargeResult = await processOperationCharge(
-                      validation.userId,
-                      operationType
-                    );
-                    if (!chargeResult.success) {
-                      return NextResponse.json(
-                        {
-                          error:
-                            chargeResult.error || "Insufficient balance or free operations",
-                          details: {
-                            balance: chargeResult.currentBalance,
-                            freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                            operationCost: 0.005,
-                          },
-                        },
-                        { status: 402 } // Payment Required status code
-                      );
-                    }
-                  }
+      console.log("Starting PDF splitting process...");
+      
+      // Get user ID from either API key (via headers) or session
+      const userId = await getUserId(request);
+      const operationType = getOperationType(request, 'split');
+      
+      // IMPORTANT: Check if the user can perform this operation BEFORE processing
+      // This prevents starting expensive operations for users who can't pay
+      if (userId) {
+        const canPerform = await canPerformOperation(userId, operationType);
+        
+        if (!canPerform.canPerform) {
+          return NextResponse.json(
+            {
+              error: canPerform.error || "Insufficient balance or free operations",
+              details: {
+                balance: canPerform.currentBalance,
+                freeOperationsRemaining: canPerform.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
         }
-
-        await ensureDirectories();
-
-        const formData = await request.formData();
-        const file = formData.get('file') as File;
-        const splitMethodRaw = (formData.get('splitMethod') as string) || 'range';
-        const splitMethod = ['range', 'extract', 'every'].includes(splitMethodRaw) ? splitMethodRaw : 'range';
-        const pageRanges = (formData.get('pageRanges') as string) || '';
-        const everyNPages = parseInt((formData.get('everyNPages') as string) || '1');
-
-        if (!file) {
-            return new Response(
-                JSON.stringify({ error: 'No PDF file provided' }),
-                { status: 400, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-
-        if (!file.name.toLowerCase().endsWith('.pdf')) {
-            return new Response(
-                JSON.stringify({ error: 'Only PDF files can be split' }),
-                { status: 400, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-
-        const sessionId = uuidv4();
-        const inputPath = join(UPLOAD_DIR, `${sessionId}-input.pdf`);
-        const buffer = Buffer.from(await file.arrayBuffer());
-        await writeFile(inputPath, buffer);
-
-        const totalPages = await getTotalPages(inputPath);
-        console.log(`Loaded PDF with ${totalPages} pages`);
-
-        // Estimate job size based on split method
-        let estimatedSplits = 0;
-        if (splitMethod === 'range' && pageRanges) {
-            const pageSets = parsePageRanges(pageRanges, totalPages);
-            estimatedSplits = pageSets.length;
-        } else if (splitMethod === 'extract') {
-            estimatedSplits = totalPages;
-        } else if (splitMethod === 'every') {
-            estimatedSplits = Math.ceil(totalPages / Math.max(1, everyNPages));
-        }
-
-        const isLargeJob = estimatedSplits > 15 || totalPages > 100;
-
-        if (isLargeJob) {
-            console.log(`Large job detected: ~${estimatedSplits} splits from ${totalPages} pages. Using two-phase approach.`);
-            processSplitsInBackground(sessionId, inputPath, splitMethod, pageRanges, everyNPages, totalPages);
-
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    message: 'PDF splitting started',
-                    jobId: sessionId,
-                    statusUrl: `/api/pdf/split/status?id=${sessionId}`,
-                    originalName: file.name,
-                    totalPages,
-                    estimatedSplits,
-                    isLargeJob: true,
-                }),
-                { status: 202, headers: { 'Content-Type': 'application/json' } }
-            );
-        } else {
-            console.log(`Small job: ~${estimatedSplits} splits. Processing immediately.`);
-            const splitResults = await processSplitsByMethod(
-                inputPath,
-                sessionId,
-                splitMethod,
-                pageRanges,
-                everyNPages,
-                totalPages
-            );
-
-            // Clean up small job files immediately
-            await cleanupJob(sessionId);
-
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    message: `PDF split into ${splitResults.length} files`,
-                    originalName: file.name,
-                    totalPages,
-                    splitParts: splitResults,
-                    isLargeJob: false,
-                }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-    } catch (error) {
-        console.error('PDF splitting error:', error);
-        return new Response(
-            JSON.stringify({
-                error: error instanceof Error ? error.message : 'An unknown error occurred during PDF splitting',
-                success: false,
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+      }
+  
+      await ensureDirectories();
+  
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+      const splitMethodRaw = (formData.get('splitMethod') as string) || 'range';
+      const splitMethod = ['range', 'extract', 'every'].includes(splitMethodRaw) ? splitMethodRaw : 'range';
+      const pageRanges = (formData.get('pageRanges') as string) || '';
+      const everyNPages = parseInt((formData.get('everyNPages') as string) || '1');
+  
+      if (!file) {
+        return NextResponse.json(
+          { error: 'No PDF file provided' },
+          { status: 400 }
         );
+      }
+  
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        return NextResponse.json(
+          { error: 'Only PDF files can be split' },
+          { status: 400 }
+        );
+      }
+  
+      const sessionId = uuidv4();
+      const inputPath = join(UPLOAD_DIR, `${sessionId}-input.pdf`);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(inputPath, buffer);
+  
+      const totalPages = await getTotalPages(inputPath);
+      console.log(`Loaded PDF with ${totalPages} pages`);
+  
+      // Estimate job size based on split method
+      let estimatedSplits = 0;
+      if (splitMethod === 'range' && pageRanges) {
+        const pageSets = parsePageRanges(pageRanges, totalPages);
+        estimatedSplits = pageSets.length;
+      } else if (splitMethod === 'extract') {
+        estimatedSplits = totalPages;
+      } else if (splitMethod === 'every') {
+        estimatedSplits = Math.ceil(totalPages / Math.max(1, everyNPages));
+      }
+  
+      const isLargeJob = estimatedSplits > 15 || totalPages > 100;
+  
+      // If it's a large job, process in background and return status URL
+      if (isLargeJob) {
+        console.log(`Large job detected: ~${estimatedSplits} splits from ${totalPages} pages. Using two-phase approach.`);
+        
+        // Charge for the operation before starting background processing
+        let billingInfo = {};
+        
+        if (userId) {
+          const operationResult = await processOperation(userId, operationType);
+          
+          if (!operationResult.success) {
+            return NextResponse.json(
+              {
+                error: operationResult.error || "Failed to process operation charge",
+                details: {
+                  balance: operationResult.currentBalance,
+                  freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                  operationCost: 0.005,
+                },
+              },
+              { status: 402 } // Payment Required status code
+            );
+          }
+          
+          // Add billing info to the response
+          billingInfo = {
+            billing: {
+              usedFreeOperation: operationResult.usedFreeOperation,
+              freeOperationsRemaining: operationResult.freeOperationsRemaining,
+              currentBalance: operationResult.currentBalance,
+              operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+            }
+          };
+        }
+        
+        // Start background processing after successful payment
+        processSplitsInBackground(sessionId, inputPath, splitMethod, pageRanges, everyNPages, totalPages);
+  
+        return NextResponse.json({
+          success: true,
+          message: 'PDF splitting started',
+          jobId: sessionId,
+          statusUrl: `/api/pdf/split/status?id=${sessionId}`,
+          originalName: file.name,
+          totalPages,
+          estimatedSplits,
+          isLargeJob: true,
+          ...billingInfo // Include billing info if available
+        }, { status: 202 });
+      } else {
+        // For small jobs, process immediately
+        console.log(`Small job: ~${estimatedSplits} splits. Processing immediately.`);
+        const splitResults = await processSplitsByMethod(
+          inputPath,
+          sessionId,
+          splitMethod,
+          pageRanges,
+          everyNPages,
+          totalPages
+        );
+  
+        // Clean up small job files immediately
+        await cleanupJob(sessionId);
+        
+        // Charge for the operation after successful processing
+        let billingInfo = {};
+        
+        if (userId) {
+          const operationResult = await processOperation(userId, operationType);
+          
+          if (!operationResult.success) {
+            return NextResponse.json(
+              {
+                error: operationResult.error || "Failed to process operation charge",
+                details: {
+                  balance: operationResult.currentBalance,
+                  freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                  operationCost: 0.005,
+                },
+              },
+              { status: 402 } // Payment Required status code
+            );
+          }
+          
+          // Add billing info to the response
+          billingInfo = {
+            billing: {
+              usedFreeOperation: operationResult.usedFreeOperation,
+              freeOperationsRemaining: operationResult.freeOperationsRemaining,
+              currentBalance: operationResult.currentBalance,
+              operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+            }
+          };
+        }
+  
+        return NextResponse.json({
+          success: true,
+          message: `PDF split into ${splitResults.length} files`,
+          originalName: file.name,
+          totalPages,
+          splitParts: splitResults,
+          isLargeJob: false,
+          ...billingInfo // Include billing info if available
+        });
+      }
+    } catch (error) {
+      console.error('PDF splitting error:', error);
+      return NextResponse.json(
+        {
+          error: error instanceof Error ? error.message : 'An unknown error occurred during PDF splitting',
+          success: false,
+        },
+        { status: 500 }
+      );
     }
-}
+  }

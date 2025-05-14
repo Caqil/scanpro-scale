@@ -1,4 +1,4 @@
-// app/api/pdf/repair/route.ts
+// app/api/pdf/repair/route.ts - Updated with pre-check
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir, readFile } from "fs/promises";
 import { existsSync } from "fs";
@@ -7,8 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { PDFDocument } from "pdf-lib";
-import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
+import { getUserId, getOperationType, canPerformOperation, processOperation } from '@/lib/operation-tracker';
 
 const execPromise = promisify(exec);
 
@@ -181,6 +180,7 @@ async function repairWithGhostscript(
     );
   }
 }
+
 async function optimizeWithPdfLib(
   inputPath: string,
   outputPath: string,
@@ -317,46 +317,28 @@ async function repairPasswordProtectedPdf(
 export async function POST(request: NextRequest) {
   try {
     console.log("Starting PDF repair process...");
-
-    // Get API key either from header or query parameter
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for repair operation");
-      const operationType = "remove";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'repair');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
         return NextResponse.json(
-          { error: validation.error || "Invalid API key" },
-          { status: 401 }
-        );
-      }
-
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
 
@@ -389,124 +371,171 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create unique IDs for files
-    const uniqueId = uuidv4();
-    const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
-    const outputPath = join(REPAIRED_DIR, `${uniqueId}-repaired.pdf`);
+    try {
+      // Create unique IDs for files
+      const uniqueId = uuidv4();
+      const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+      const outputPath = join(REPAIRED_DIR, `${uniqueId}-repaired.pdf`);
 
-    // Write file to disk
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(inputPath, buffer);
+      // Write file to disk
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(inputPath, buffer);
 
-    // Get original file size
-    const originalSize = buffer.length;
+      // Get original file size
+      const originalSize = buffer.length;
 
-    let repairResult: { success: boolean; details?: any };
+      let repairResult: { success: boolean; details?: any };
 
-    // Check if we have the necessary tools
-    const hasQpdf = await isQpdfInstalled();
-    const hasGhostscript = await isGhostscriptInstalled();
+      // Check if we have the necessary tools
+      const hasQpdf = await isQpdfInstalled();
+      const hasGhostscript = await isGhostscriptInstalled();
 
-    // Handle repair based on mode and available tools
-    if (password) {
-      // Handle password-protected PDF
-      if (hasQpdf) {
-        repairResult = await repairPasswordProtectedPdf(
-          inputPath,
-          outputPath,
-          password
-        );
+      // Handle repair based on mode and available tools
+      if (password) {
+        // Handle password-protected PDF
+        if (hasQpdf) {
+          repairResult = await repairPasswordProtectedPdf(
+            inputPath,
+            outputPath,
+            password
+          );
+        } else {
+          return NextResponse.json(
+            {
+              error:
+                "Required tool (qpdf) not available for password-protected repair",
+            },
+            { status: 500 }
+          );
+        }
+      } else if (repairMode === "standard") {
+        // Standard repair mode
+        if (hasQpdf) {
+          repairResult = await repairWithQpdf(inputPath, outputPath, "standard");
+        } else if (hasGhostscript) {
+          repairResult = await repairWithGhostscript(
+            inputPath,
+            outputPath,
+            false
+          );
+        } else {
+          // Fallback to pdf-lib
+          repairResult = await optimizeWithPdfLib(inputPath, outputPath, {
+            preserveFormFields,
+            preserveAnnotations,
+            preserveBookmarks,
+          });
+        }
+      } else if (repairMode === "advanced") {
+        // Advanced repair mode
+        if (hasQpdf) {
+          repairResult = await repairWithQpdf(inputPath, outputPath, "advanced");
+        } else if (hasGhostscript) {
+          repairResult = await repairWithGhostscript(inputPath, outputPath, true);
+        } else {
+          return NextResponse.json(
+            {
+              error:
+                "Required tools (qpdf or gs) not available for advanced repair",
+            },
+            { status: 500 }
+          );
+        }
+      } else if (repairMode === "optimization") {
+        // Optimization mode
+        if (hasGhostscript && optimizeImages) {
+          repairResult = await repairWithGhostscript(inputPath, outputPath, true);
+        } else {
+          repairResult = await optimizeWithPdfLib(inputPath, outputPath, {
+            preserveFormFields,
+            preserveAnnotations,
+            preserveBookmarks,
+          });
+        }
       } else {
         return NextResponse.json(
-          {
-            error:
-              "Required tool (qpdf) not available for password-protected repair",
-          },
-          { status: 500 }
+          { error: "Invalid repair mode specified" },
+          { status: 400 }
         );
       }
-    } else if (repairMode === "standard") {
-      // Standard repair mode
-      if (hasQpdf) {
-        repairResult = await repairWithQpdf(inputPath, outputPath, "standard");
-      } else if (hasGhostscript) {
-        repairResult = await repairWithGhostscript(
-          inputPath,
-          outputPath,
-          false
-        );
-      } else {
-        // Fallback to pdf-lib
-        repairResult = await optimizeWithPdfLib(inputPath, outputPath, {
-          preserveFormFields,
-          preserveAnnotations,
-          preserveBookmarks,
-        });
+
+      // Get repaired file size
+      const newSize = (await readFile(outputPath)).length;
+
+      // Add size information to details
+      if (repairResult.details) {
+        repairResult.details.originalSize = originalSize;
+        repairResult.details.newSize = newSize;
       }
-    } else if (repairMode === "advanced") {
-      // Advanced repair mode
-      if (hasQpdf) {
-        repairResult = await repairWithQpdf(inputPath, outputPath, "advanced");
-      } else if (hasGhostscript) {
-        repairResult = await repairWithGhostscript(inputPath, outputPath, true);
-      } else {
-        return NextResponse.json(
-          {
-            error:
-              "Required tools (qpdf or gs) not available for advanced repair",
-          },
-          { status: 500 }
-        );
+
+      // Repair was successful, now charge for the operation
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
       }
-    } else if (repairMode === "optimization") {
-      // Optimization mode
-      if (hasGhostscript && optimizeImages) {
-        repairResult = await repairWithGhostscript(inputPath, outputPath, true);
-      } else {
-        repairResult = await optimizeWithPdfLib(inputPath, outputPath, {
-          preserveFormFields,
-          preserveAnnotations,
-          preserveBookmarks,
-        });
-      }
-    } else {
+
+      // Create file URL
+      const fileUrl = `/api/file?folder=repaired&filename=${uniqueId}-repaired.pdf`;
+      
+      // Return result
+      return NextResponse.json({
+        success: repairResult.success,
+        message: repairResult.success
+          ? "PDF repaired successfully"
+          : "PDF repair completed with issues",
+        fileUrl,
+        filename: `${uniqueId}-repaired.pdf`,
+        originalName: file.name,
+        details: repairResult.details,
+        ...billingInfo // Include billing info if available
+      });
+    } catch (processingError) {
+      console.error("PDF processing error:", processingError);
+      
       return NextResponse.json(
-        { error: "Invalid repair mode specified" },
-        { status: 400 }
+        {
+          error: processingError instanceof Error
+            ? processingError.message
+            : "An unknown error occurred during PDF repair",
+          success: false,
+        },
+        { status: 500 }
       );
     }
-
-    // Get repaired file size
-    const newSize = (await readFile(outputPath)).length;
-
-    // Add size information to details
-    if (repairResult.details) {
-      repairResult.details.originalSize = originalSize;
-      repairResult.details.newSize = newSize;
-    }
-
-    // Create file URL
-    const fileUrl = `/api/file?folder=repaired&filename=${uniqueId}-repaired.pdf`;
-    // Return result
-    return NextResponse.json({
-      success: repairResult.success,
-      message: repairResult.success
-        ? "PDF repaired successfully"
-        : "PDF repair completed with issues",
-      fileUrl,
-      filename: `${uniqueId}-repaired.pdf`,
-      originalName: file.name,
-      details: repairResult.details,
-    });
   } catch (error) {
-    console.error("PDF repair error:", error);
+    console.error("PDF repair request error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during PDF repair",
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
         success: false,
       },
       { status: 500 }

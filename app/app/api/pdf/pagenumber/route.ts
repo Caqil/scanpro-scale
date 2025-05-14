@@ -6,7 +6,7 @@ import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
+import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 
 // Define directories
 const UPLOAD_DIR = join(process.cwd(), "uploads");
@@ -191,47 +191,28 @@ function calculatePosition(
 export async function POST(request: NextRequest) {
   try {
     console.log("Starting PDF page numbering process...");
-
-    // Get API key either from header or query parameter
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for page numbering operation");
-      const operationType = "pagenumbers";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'pagenumbers');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
         return NextResponse.json(
-          { error: validation.error || "Invalid API key" },
-          { status: 401 }
-        );
-      }
-
-      // Track usage (non-blocking)
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
 
@@ -272,121 +253,167 @@ export async function POST(request: NextRequest) {
     const selectedPages = (formData.get("selectedPages") as string) || "";
     const skipFirstPage = formData.get("skipFirstPage") === "true";
 
-    // Generate unique file names
-    const uniqueId = uuidv4();
-    const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
-    const outputPath = join(NUMBERED_DIR, `${uniqueId}-numbered.pdf`);
+    try {
+      // Generate unique file names
+      const uniqueId = uuidv4();
+      const inputPath = join(UPLOAD_DIR, `${uniqueId}-input.pdf`);
+      const outputPath = join(NUMBERED_DIR, `${uniqueId}-numbered.pdf`);
 
-    // Save the uploaded PDF
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(inputPath, buffer);
-    console.log(`PDF saved to ${inputPath}`);
+      // Save the uploaded PDF
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(inputPath, buffer);
+      console.log(`PDF saved to ${inputPath}`);
 
-    // Load the PDF document
-    const pdfBytes = await readFile(inputPath);
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const totalPages = pdfDoc.getPageCount();
+      // Load the PDF document
+      const pdfBytes = await readFile(inputPath);
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const totalPages = pdfDoc.getPageCount();
 
-    // Determine which pages to number
-    let pagesToNumber = parsePageRanges(selectedPages, totalPages);
+      // Determine which pages to number
+      let pagesToNumber = parsePageRanges(selectedPages, totalPages);
 
-    // Skip the first page if option is enabled
-    if (skipFirstPage) {
-      pagesToNumber = pagesToNumber.filter((pageNum) => pageNum !== 1);
-    }
-
-    console.log(
-      `Numbering ${pagesToNumber.length} pages out of ${totalPages} total pages`
-    );
-
-    // Map font family to pdf-lib's StandardFonts
-    let fontType: (typeof StandardFonts)[keyof typeof StandardFonts];
-    switch (fontFamily) {
-      case "Times New Roman":
-        fontType = StandardFonts.TimesRoman;
-        break;
-      case "Courier":
-        fontType = StandardFonts.Courier;
-        break;
-      case "Helvetica":
-      default:
-        fontType = StandardFonts.Helvetica;
-        break;
-    }
-
-    // Load font
-    const font = await pdfDoc.embedFont(fontType);
-
-    // Convert color from hex to rgb
-    const hexColor = color.replace("#", "");
-    const r = parseInt(hexColor.substring(0, 2), 16) / 255;
-    const g = parseInt(hexColor.substring(2, 4), 16) / 255;
-    const b = parseInt(hexColor.substring(4, 6), 16) / 255;
-
-    // Add page numbers to selected pages
-    for (let i = 0; i < totalPages; i++) {
-      const pageNum = i + 1;
-
-      if (!pagesToNumber.includes(pageNum)) {
-        continue;
+      // Skip the first page if option is enabled
+      if (skipFirstPage) {
+        pagesToNumber = pagesToNumber.filter((pageNum) => pageNum !== 1);
       }
 
-      const page = pdfDoc.getPage(i);
-      const { width, height } = page.getSize();
-
-      // Format the page number
-      const formattedNumber = formatPageNumber(pageNum, format, startNumber);
-      const textContent = `${prefix}${formattedNumber}${suffix}`;
-
-      // Calculate text dimensions for positioning
-      const textWidth = font.widthOfTextAtSize(textContent, fontSize);
-      const textHeight = font.heightAtSize(fontSize);
-
-      // Calculate position based on alignment
-      const { x, y } = calculatePosition(
-        width,
-        height,
-        textWidth,
-        textHeight,
-        position,
-        marginX,
-        marginY
+      console.log(
+        `Numbering ${pagesToNumber.length} pages out of ${totalPages} total pages`
       );
 
-      // Draw the page number
-      page.drawText(textContent, {
-        x,
-        y,
-        size: fontSize,
-        font,
-        color: rgb(r, g, b),
+      // Map font family to pdf-lib's StandardFonts
+      let fontType: (typeof StandardFonts)[keyof typeof StandardFonts];
+      switch (fontFamily) {
+        case "Times New Roman":
+          fontType = StandardFonts.TimesRoman;
+          break;
+        case "Courier":
+          fontType = StandardFonts.Courier;
+          break;
+        case "Helvetica":
+        default:
+          fontType = StandardFonts.Helvetica;
+          break;
+      }
+
+      // Load font
+      const font = await pdfDoc.embedFont(fontType);
+
+      // Convert color from hex to rgb
+      const hexColor = color.replace("#", "");
+      const r = parseInt(hexColor.substring(0, 2), 16) / 255;
+      const g = parseInt(hexColor.substring(2, 4), 16) / 255;
+      const b = parseInt(hexColor.substring(4, 6), 16) / 255;
+
+      // Add page numbers to selected pages
+      for (let i = 0; i < totalPages; i++) {
+        const pageNum = i + 1;
+
+        if (!pagesToNumber.includes(pageNum)) {
+          continue;
+        }
+
+        const page = pdfDoc.getPage(i);
+        const { width, height } = page.getSize();
+
+        // Format the page number
+        const formattedNumber = formatPageNumber(pageNum, format, startNumber);
+        const textContent = `${prefix}${formattedNumber}${suffix}`;
+
+        // Calculate text dimensions for positioning
+        const textWidth = font.widthOfTextAtSize(textContent, fontSize);
+        const textHeight = font.heightAtSize(fontSize);
+
+        // Calculate position based on alignment
+        const { x, y } = calculatePosition(
+          width,
+          height,
+          textWidth,
+          textHeight,
+          position,
+          marginX,
+          marginY
+        );
+
+        // Draw the page number
+        page.drawText(textContent, {
+          x,
+          y,
+          size: fontSize,
+          font,
+          color: rgb(r, g, b),
+        });
+      }
+
+      // Save the modified PDF
+      const numberedPdfBytes = await pdfDoc.save();
+      await writeFile(outputPath, numberedPdfBytes);
+      console.log(`Numbered PDF saved to ${outputPath}`);
+
+      // Operation was successful, now charge for it
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
+      }
+
+      // Return success response with the file URL
+      return NextResponse.json({
+        success: true,
+        message: "PDF page numbers added successfully",
+        fileUrl: `/api/file?folder=pagenumbers&filename=${uniqueId}-numbered.pdf`,
+        fileName: `${uniqueId}-numbered.pdf`,
+        originalName: file.name,
+        totalPages,
+        numberedPages: pagesToNumber.length,
+        ...billingInfo // Include billing info if available
       });
+    } catch (processingError) {
+      console.error("PDF processing error:", processingError);
+      
+      return NextResponse.json(
+        {
+          error: processingError instanceof Error
+            ? processingError.message
+            : "An unknown error occurred during PDF page numbering",
+          success: false,
+        },
+        { status: 500 }
+      );
     }
-
-    // Save the modified PDF
-    const numberedPdfBytes = await pdfDoc.save();
-    await writeFile(outputPath, numberedPdfBytes);
-    console.log(`Numbered PDF saved to ${outputPath}`);
-
-    // Return success response with the file URL
-    return NextResponse.json({
-      success: true,
-      message: "PDF page numbers added successfully",
-      fileUrl: `/api/file?folder=pagenumbers&filename=${uniqueId}-numbered.pdf`,
-      fileName: `${uniqueId}-numbered.pdf`,
-      originalName: file.name,
-      totalPages,
-      numberedPages: pagesToNumber.length,
-    });
   } catch (error) {
-    console.error("PDF page numbering error:", error);
+    console.error("PDF page numbering request error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during PDF page numbering",
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
         success: false,
       },
       { status: 500 }

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { validateApiKey, trackApiUsage } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
+import { getUserId, getOperationType, processOperation, canPerformOperation } from '@/lib/operation-tracker';
 const execPromise = promisify(exec);
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
@@ -91,51 +91,32 @@ export async function POST(request: NextRequest) {
 
   try {
     console.log("Starting PDF compression process...");
-
-    // Get API key either from header or query parameter
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for compression operation");
-      const operationType = "compress";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'compress');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
         return NextResponse.json(
-          { error: validation.error || "Invalid API key" },
-          { status: 401 }
-        );
-      }
-
-      // Track usage (non-blocking)
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
-
-    // Now proceed with the actual compression operation
+    
+    // Ensure all required directories exist
     await ensureDirectories();
 
     // Process form data
@@ -178,51 +159,97 @@ export async function POST(request: NextRequest) {
 
     console.log(`Compressing PDF: ${file.name}, size: ${file.size} bytes`);
 
-    // Compress the PDF using pdfcpu
-    await processPdfCompression(inputPath, outputPath);
+    try {
+      // Compress the PDF using pdfcpu
+      await processPdfCompression(inputPath, outputPath);
 
-    // Verify the output file exists
-    if (!existsSync(outputPath)) {
-      throw new Error(`Compressed file was not created at ${outputPath}`);
+      // Verify the output file exists
+      if (!existsSync(outputPath)) {
+        throw new Error(`Compressed file was not created at ${outputPath}`);
+      }
+
+      // Get file size information
+      const originalSize = file.size;
+      const compressedBuffer = await readFile(outputPath);
+      const compressedSize = compressedBuffer.length;
+
+      // Calculate compression ratio
+      const compressionRatio =
+        originalSize > compressedSize
+          ? (((originalSize - compressedSize) / originalSize) * 100).toFixed(2)
+          : "0";
+
+      // Compression was successful, now charge for the operation
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
+      }
+
+      // Create relative URL for the compressed file
+      const fileUrl = `/api/file?folder=compressions&filename=${uniqueId}-compressed.pdf`;
+
+      return NextResponse.json({
+        success: true,
+        message: `PDF optimization ${
+          compressionRatio !== "0"
+            ? `successful with ${compressionRatio}% reduction`
+            : "completed (no size reduction)"
+        }`,
+        fileUrl,
+        filename: `${uniqueId}-compressed.pdf`,
+        originalName: file.name,
+        originalSize,
+        compressedSize,
+        compressionRatio: `${compressionRatio}%`,
+        ...billingInfo // Include billing info if available
+      });
+    } catch (compressionError) {
+      console.error("Compression error:", compressionError);
+      
+      return NextResponse.json(
+        {
+          error: compressionError instanceof Error
+            ? compressionError.message
+            : "An unknown error occurred during compression",
+          success: false,
+        },
+        { status: 500 }
+      );
     }
-
-    // Get file size information
-    const originalSize = file.size;
-    const compressedBuffer = await readFile(outputPath);
-    const compressedSize = compressedBuffer.length;
-
-    // Calculate compression ratio
-    const compressionRatio =
-      originalSize > compressedSize
-        ? (((originalSize - compressedSize) / originalSize) * 100).toFixed(2)
-        : "0";
-
-    // Create relative URL for the compressed file
-    const fileUrl = `/api/file?folder=compressions&filename=${uniqueId}-compressed.pdf`;
-
-    return NextResponse.json({
-      success: true,
-      message: `PDF optimization ${
-        compressionRatio !== "0"
-          ? `successful with ${compressionRatio}% reduction`
-          : "completed (no size reduction)"
-      }`,
-      fileUrl,
-      filename: `${uniqueId}-compressed.pdf`,
-      originalName: file.name,
-      originalSize,
-      compressedSize,
-      compressionRatio: `${compressionRatio}%`,
-    });
   } catch (error) {
-    console.error("Compression error:", error);
+    console.error("Compression request error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during compression",
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
         success: false,
       },
       { status: 500 }

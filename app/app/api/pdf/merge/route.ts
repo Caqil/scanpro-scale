@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from "uuid";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-
+import { readdir, unlink, rmdir } from "fs/promises";
+import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 const execFileAsync = promisify(execFile);
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const MERGE_DIR = join(process.cwd(), "public", "merges");
@@ -115,53 +116,34 @@ async function mergePdfsWithPdfcpu(
   }
 }
 
-// Import file system functions needed for cleanup
-import { readdir, unlink, rmdir } from "fs/promises";
-import { processOperationCharge } from "@/lib/operation-handler";
 
 export async function POST(request: NextRequest) {
+  const inputPaths: string[] = [];
+  
   try {
     console.log("Starting PDF merge process...");
-    // Get API key either from header or query parameter
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for merge operation");
-      const operationType = "merge";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
-        return new Response(
-          JSON.stringify({ error: validation.error || "Invalid API key" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
-        );
-      }
-
-      // Track usage (non-blocking)
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'merge');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
+        return NextResponse.json(
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
 
@@ -176,18 +158,16 @@ export async function POST(request: NextRequest) {
     console.log(`Received ${files.length} files for merging`);
 
     if (!files || files.length === 0) {
-      return new Response(JSON.stringify({ error: "No PDF files provided" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json(
+        { error: "No PDF files provided" },
+        { status: 400 }
+      );
     }
 
     if (files.length < 2) {
-      return new Response(
-        JSON.stringify({
-          error: "At least two PDF files are required for merging",
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+      return NextResponse.json(
+        { error: "At least two PDF files are required for merging" },
+        { status: 400 }
       );
     }
 
@@ -221,7 +201,6 @@ export async function POST(request: NextRequest) {
 
     // Create unique ID for this merge operation
     const uniqueId = uuidv4();
-    const inputPaths: string[] = [];
 
     // Write each file to disk sequentially to reduce memory pressure
     for (let i = 0; i < files.length; i++) {
@@ -234,9 +213,9 @@ export async function POST(request: NextRequest) {
 
       // Verify it's a PDF
       if (!file.name.toLowerCase().endsWith(".pdf")) {
-        return new Response(
-          JSON.stringify({ error: `File "${file.name}" is not a PDF` }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+        return NextResponse.json(
+          { error: `File "${file.name}" is not a PDF` },
+          { status: 400 }
         );
       }
 
@@ -250,63 +229,85 @@ export async function POST(request: NextRequest) {
     }
 
     if (inputPaths.length < 2) {
-      return new Response(
-        JSON.stringify({ error: "Failed to process all input files" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+      return NextResponse.json(
+        { error: "Failed to process all input files" },
+        { status: 500 }
       );
     }
 
-    // Create output path
-    const outputFileName = `${uniqueId}-merged.pdf`;
-    const outputPath = join(MERGE_DIR, outputFileName);
-
-    // Order the input paths according to fileOrder
-    const orderedInputPaths = fileOrder.map((i) => inputPaths[i]);
-
-    console.log(`Merging ${files.length} PDF files in specified order`);
-
-    // Merge with Pdfcpu with improved handling
-    let mergeSuccess = false;
     try {
-      mergeSuccess = await mergePdfsWithPdfcpu(orderedInputPaths, outputPath);
-    } catch (error) {
-      console.error("Pdfcpu merge failed:", error);
-      throw new Error("PDF merging failed");
-    }
+      // Create output path
+      const outputFileName = `${uniqueId}-merged.pdf`;
+      const outputPath = join(MERGE_DIR, outputFileName);
 
-    // Verify the output file exists
-    if (!mergeSuccess || !existsSync(outputPath)) {
-      throw new Error(`Merged file was not created at ${outputPath}`);
-    }
+      // Order the input paths according to fileOrder
+      const orderedInputPaths = fileOrder.map((i) => inputPaths[i]);
 
-    // Get merged file size
-    const mergedBuffer = await readFile(outputPath);
-    const mergedSize = mergedBuffer.length;
+      console.log(`Merging ${files.length} PDF files in specified order`);
 
-    // Calculate total size of input files
-    let totalInputSize = 0;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i] as File;
-      if (file && file.size) {
-        totalInputSize += file.size;
-      }
-    }
-
-    // Create relative URL for the merged file using the file API
-    const fileUrl = `/api/file?folder=merges&filename=${outputFileName}`;
-
-    // Clean up input files
-    for (const inputPath of inputPaths) {
+      // Merge with Pdfcpu
+      let mergeSuccess = false;
       try {
-        await unlink(inputPath);
+        mergeSuccess = await mergePdfsWithPdfcpu(orderedInputPaths, outputPath);
       } catch (error) {
-        console.warn(`Failed to clean up input file ${inputPath}:`, error);
+        console.error("Pdfcpu merge failed:", error);
+        throw new Error("PDF merging failed");
       }
-    }
 
-    // Return a proper JSON response using the Response API
-    return new Response(
-      JSON.stringify({
+      // Verify the output file exists
+      if (!mergeSuccess || !existsSync(outputPath)) {
+        throw new Error(`Merged file was not created at ${outputPath}`);
+      }
+
+      // Get merged file size
+      const mergedBuffer = await readFile(outputPath);
+      const mergedSize = mergedBuffer.length;
+
+      // Calculate total size of input files
+      let totalInputSize = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i] as File;
+        if (file && file.size) {
+          totalInputSize += file.size;
+        }
+      }
+
+      // Merge was successful, now charge for the operation
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
+      }
+      
+      // Create relative URL for the merged file using the file API
+      const fileUrl = `/api/file?folder=merges&filename=${outputFileName}`;
+
+      return NextResponse.json({
         success: true,
         message: "PDF merge successful",
         fileUrl,
@@ -314,27 +315,44 @@ export async function POST(request: NextRequest) {
         mergedSize,
         totalInputSize,
         fileCount: files.length,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("Merge error:", error);
-
-    return new Response(
-      JSON.stringify({
-        error:
-          error instanceof Error
-            ? error.message
+        ...billingInfo // Include billing info if available
+      });
+    } catch (mergeError) {
+      console.error("Merge processing error:", mergeError);
+      
+      return NextResponse.json(
+        {
+          error: mergeError instanceof Error
+            ? mergeError.message
             : "An unknown error occurred during merging",
-        success: false,
-      }),
+          success: false,
+        },
+        { status: 500 }
+      );
+    }
+    
+  } catch (error) {
+    console.error("Merge request error:", error);
+
+    return NextResponse.json(
       {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
+        success: false,
+      },
+      { status: 500 }
     );
+  } finally {
+    // Clean up input files
+    for (const inputPath of inputPaths) {
+      try {
+        if (existsSync(inputPath)) {
+          await unlink(inputPath);
+        }
+      } catch (cleanupError) {
+        console.warn(`Failed to clean up input file ${inputPath}:`, cleanupError);
+      }
+    }
   }
 }

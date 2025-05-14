@@ -11,8 +11,7 @@ import { createWorker } from "tesseract.js";
 import { copyFile, rmdir, unlink, readdir } from "fs/promises";
 import path from "path";
 import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
-
+import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 // Convert callback-based functions to Promise-based
 const execPromise = promisify(exec);
 const libreConvert = promisify(libre.convert);
@@ -1225,49 +1224,34 @@ async function convertWithLibreOffice(
 export async function POST(request: NextRequest) {
   try {
     console.log("Starting conversion process...");
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    // If this is a programmatic API call (not from web UI), validate the API key
-    if (apiKey) {
-      console.log("Validating API key for merge operation");
-      const operationType = "convert";
-      const validation = await validateApiKey(apiKey, operationType);
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
-        return new Response(
-          JSON.stringify({ error: validation.error || "Invalid API key" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
-        );
-      }
-
-      // Track usage (non-blocking)
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'convert');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
+        return NextResponse.json(
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
+    
+    // Process the form data to get file and conversion parameters
     await ensureDirectories();
-
+    
     const {
       file,
       inputFormat,
@@ -1294,53 +1278,101 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform the conversion based on input and output formats
-    if (["jpg", "jpeg", "png"].includes(outputFormat)) {
-      // Convert to image
-      await convertToImage(workingInputPath, outputPath, outputFormat, quality);
-    } else if (outputFormat === "txt" && inputFormat === "pdf") {
-      // Special case for PDF to TXT
-      try {
-        await extractTextFromPdf(workingInputPath, outputPath);
-      } catch (error) {
-        console.error("Direct text extraction failed:", error);
-        if (ocr) {
-          console.log("Falling back to OCR for text extraction");
-          await extractTextWithOCR(workingInputPath, outputPath);
-        } else {
-          throw new Error("Text extraction failed and OCR was not requested");
+    try {
+      if (["jpg", "jpeg", "png"].includes(outputFormat)) {
+        // Convert to image
+        await convertToImage(workingInputPath, outputPath, outputFormat, quality);
+      } else if (outputFormat === "txt" && inputFormat === "pdf") {
+        // Special case for PDF to TXT
+        try {
+          await extractTextFromPdf(workingInputPath, outputPath);
+        } catch (error) {
+          console.error("Direct text extraction failed:", error);
+          if (ocr) {
+            console.log("Falling back to OCR for text extraction");
+            await extractTextWithOCR(workingInputPath, outputPath);
+          } else {
+            throw new Error("Text extraction failed and OCR was not requested");
+          }
         }
+      } else {
+        // For all other conversions, use LibreOffice
+        await convertWithLibreOffice(workingInputPath, outputPath, outputFormat);
       }
-    } else {
-      // For all other conversions, use LibreOffice
-      await convertWithLibreOffice(workingInputPath, outputPath, outputFormat);
+
+      // Verify the output file exists
+      if (!existsSync(outputPath)) {
+        throw new Error(`Output file was not created at ${outputPath}`);
+      }
+
+      // Conversion was successful, now charge for the operation
+      // Only charge if we have a user ID (either from API key or session)
+      let billingInfo = {};
+      
+      if (userId) {
+        const operationResult = await processOperation(userId, operationType);
+        
+        if (!operationResult.success) {
+          return NextResponse.json(
+            {
+              error: operationResult.error || "Failed to process operation charge",
+              details: {
+                balance: operationResult.currentBalance,
+                freeOperationsRemaining: operationResult.freeOperationsRemaining,
+                operationCost: 0.005,
+              },
+            },
+            { status: 402 } // Payment Required status code
+          );
+        }
+        
+        // Add billing info to the response
+        billingInfo = {
+          billing: {
+            usedFreeOperation: operationResult.usedFreeOperation,
+            freeOperationsRemaining: operationResult.freeOperationsRemaining,
+            currentBalance: operationResult.currentBalance,
+            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+          }
+        };
+      }
+
+      // Create relative URL for the converted file
+      const fileUrl = `/api/file?folder=conversions&filename=${uniqueId}-output.${outputFormat}`;
+
+      return NextResponse.json({
+        success: true,
+        message: "Conversion successful",
+        fileUrl,
+        filename: `${uniqueId}-output.${outputFormat}`,
+        originalName: file.name,
+        inputFormat,
+        outputFormat,
+        ...billingInfo // Include billing info if available
+      });
+      
+    } catch (conversionError) {
+      console.error("Conversion error:", conversionError);
+      
+      return NextResponse.json(
+        {
+          error: conversionError instanceof Error
+            ? conversionError.message
+            : "An unknown error occurred during conversion",
+          success: false,
+        },
+        { status: 500 }
+      );
     }
-
-    // Verify the output file exists
-    if (!existsSync(outputPath)) {
-      throw new Error(`Output file was not created at ${outputPath}`);
-    }
-
-    // Create relative URL for the converted file
-    const fileUrl = `/api/file?folder=conversions&filename=${uniqueId}-output.${outputFormat}`;
-
-    return NextResponse.json({
-      success: true,
-      message: "Conversion successful",
-      fileUrl,
-      filename: `${uniqueId}-output.${outputFormat}`,
-      originalName: file.name,
-      inputFormat,
-      outputFormat,
-    });
+    
   } catch (error) {
-    console.error("Conversion error:", error);
+    console.error("Conversion request error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during conversion",
+        error: error instanceof Error
+          ? error.message
+          : "An unknown error occurred processing the request",
         success: false,
       },
       { status: 500 }

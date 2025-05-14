@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { processOperationCharge } from "@/lib/operation-handler";
+import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 
 const execPromise = promisify(exec);
 
@@ -307,51 +307,34 @@ async function processPDFWithWatermark(
     throw error;
   }
 }
-
 export async function POST(request: NextRequest) {
   let inputPath = "";
   let imagePath = "";
 
   try {
-    console.log("Starting PDF watermarking process with pdfcpu...");
-
-    const headers = request.headers;
-    const url = new URL(request.url);
-    const apiKey = headers.get("x-api-key") || url.searchParams.get("api_key");
-
-    if (apiKey) {
-      console.log("Validating API key for watermarking operation");
-      const operationType = "watermark";
-      const validation = await validateApiKey(apiKey, "watermark");
-
-      if (!validation.valid) {
-        console.error("API key validation failed:", validation.error);
+    console.log("Starting PDF watermarking process...");
+    
+    // Get user ID from either API key (via headers) or session
+    const userId = await getUserId(request);
+    const operationType = getOperationType(request, 'watermark');
+    
+    // IMPORTANT: Check if the user can perform this operation BEFORE processing
+    // This prevents starting expensive operations for users who can't pay
+    if (userId) {
+      const canPerform = await canPerformOperation(userId, operationType);
+      
+      if (!canPerform.canPerform) {
         return NextResponse.json(
-          { error: validation.error || "Invalid API key" },
-          { status: 401 }
-        );
-      }
-
-      if (validation.userId) {
-        trackApiUsage(validation.userId, operationType);
-        const chargeResult = await processOperationCharge(
-          validation.userId,
-          operationType
-        );
-        if (!chargeResult.success) {
-          return NextResponse.json(
-            {
-              error:
-                chargeResult.error || "Insufficient balance or free operations",
-              details: {
-                balance: chargeResult.currentBalance,
-                freeOperationsRemaining: chargeResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
+          {
+            error: canPerform.error || "Insufficient balance or free operations",
+            details: {
+              balance: canPerform.currentBalance,
+              freeOperationsRemaining: canPerform.freeOperationsRemaining,
+              operationCost: 0.005,
             },
-            { status: 402 } // Payment Required status code
-          );
-        }
+          },
+          { status: 402 } // Payment Required status code
+        );
       }
     }
 
@@ -517,6 +500,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Charge for the operation after successful processing
+    let billingInfo = {};
+    
+    if (userId) {
+      const operationResult = await processOperation(userId, operationType);
+      
+      if (!operationResult.success) {
+        return NextResponse.json(
+          {
+            error: operationResult.error || "Failed to process operation charge",
+            details: {
+              balance: operationResult.currentBalance,
+              freeOperationsRemaining: operationResult.freeOperationsRemaining,
+              operationCost: 0.005,
+            },
+          },
+          { status: 402 } // Payment Required status code
+        );
+      }
+      
+      // Add billing info to the response
+      billingInfo = {
+        billing: {
+          usedFreeOperation: operationResult.usedFreeOperation,
+          freeOperationsRemaining: operationResult.freeOperationsRemaining,
+          currentBalance: operationResult.currentBalance,
+          operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+        }
+      };
+    }
+
     const fileUrl = `/api/file?folder=watermarks&filename=${uniqueId}-watermarked.pdf`;
 
     return NextResponse.json({
@@ -526,6 +540,7 @@ export async function POST(request: NextRequest) {
       filename: `${uniqueId}-watermarked.pdf`,
       originalName: file.name,
       pagesWatermarked: pagesWatermarkedCount,
+      ...billingInfo // Include billing info if available
     });
   } catch (error) {
     console.error("PDF watermarking error:", error);

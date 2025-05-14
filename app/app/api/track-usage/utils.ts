@@ -1,10 +1,12 @@
 // app/api/track-usage/utils.ts
+import { FREE_OPERATIONS_MONTHLY, OPERATION_COST } from '@/lib/operation-tracker';
 import { prisma } from '@/lib/prisma';
-import { OPERATION_COST, FREE_OPERATIONS_MONTHLY } from '@/lib/balance-service';
 
 /**
  * Process and charge for an operation based on user's balance and free operations.
  * This is the central utility to use when charging for operations in your API routes.
+ * 
+ * IMPORTANT: This should only be called AFTER an operation is successfully completed.
  */
 export async function processOperationCharge(
   userId: string,
@@ -76,7 +78,7 @@ export async function processOperationCharge(
         });
 
         // Track the operation in usage stats
-        await trackOperationUsage(tx, userId, operation);
+        await trackOperationInTransaction(tx, userId, operation);
 
         return {
           success: true,
@@ -86,21 +88,20 @@ export async function processOperationCharge(
         };
       }
 
-      // No free operations left, check if user has enough balance
+      // No free operations left, use balance
       if (user.balance < OPERATION_COST) {
         return {
           success: false,
           usedFreeOperation: false,
           freeOperationsRemaining: 0,
           balance: user.balance,
-          error: `Insufficient balance. Required: $${OPERATION_COST.toFixed(3)}, Available: $${user.balance.toFixed(2)}`
+          error: 'Insufficient balance'
         };
       }
 
-      // User has enough balance, deduct payment
+      // Deduct from balance
       const newBalance = user.balance - OPERATION_COST;
       
-      // Update user's balance
       await tx.user.update({
         where: { id: userId },
         data: {
@@ -108,7 +109,7 @@ export async function processOperationCharge(
         }
       });
 
-      // Create transaction record
+      // Record transaction
       await tx.transaction.create({
         data: {
           userId,
@@ -120,7 +121,7 @@ export async function processOperationCharge(
       });
 
       // Track the operation in usage stats
-      await trackOperationUsage(tx, userId, operation);
+      await trackOperationInTransaction(tx, userId, operation);
 
       return {
         success: true,
@@ -130,13 +131,13 @@ export async function processOperationCharge(
       };
     });
   } catch (error) {
-    console.error('Error processing operation charge:', error);
+    console.error('Error recording operation:', error);
     return {
       success: false,
       usedFreeOperation: false,
       freeOperationsRemaining: 0,
       balance: 0,
-      error: 'Failed to process operation'
+      error: 'Failed to record operation'
     };
   }
 }
@@ -144,36 +145,29 @@ export async function processOperationCharge(
 /**
  * Helper function to track operation usage within a transaction
  */
-async function trackOperationUsage(tx: any, userId: string, operation: string) {
-  try {
+async function trackOperationInTransaction(tx: any, userId: string, operation: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     await tx.usageStats.upsert({
-      where: {
-        userId_operation_date: {
-          userId,
-          operation,
-          date: today
+        where: {
+            userId_operation_date: {
+                userId,
+                operation,
+                date: today
+            }
+        },
+        update: {
+            count: { increment: 1 }
+        },
+        create: {
+            userId,
+            operation,
+            count: 1,
+            date: today,
+            updatedAt: new Date()
         }
-      },
-      update: {
-        count: { increment: 1 },
-        updatedAt: new Date()
-      },
-      create: {
-        userId,
-        operation,
-        count: 1,
-        date: today,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
     });
-  } catch (error) {
-    console.error('Error tracking operation usage:', error);
-    // Continue execution even if tracking fails
-  }
 }
 
 /**
