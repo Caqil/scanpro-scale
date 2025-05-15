@@ -1,6 +1,6 @@
 "use client";
-import React, { memo } from "react";
-import { useState, useRef, useEffect } from "react";
+import React, { memo, useCallback } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useLanguageStore } from "@/src/store/store";
-import { 
+import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetClose
+  SheetClose,
 } from "@/components/ui/sheet";
-import { PanelBottomIcon } from "lucide-react";
+
 import {
   PenIcon,
   TypeIcon,
@@ -36,6 +36,7 @@ import {
   TextIcon,
   InfoIcon,
   PlusIcon,
+  PanelBottomIcon,
 } from "lucide-react";
 import { SignatureCanvas } from "./sign/signature-canvas";
 
@@ -48,6 +49,7 @@ export type ElementType =
   | "initials"
   | "name"
   | "date";
+
 export type Position = { x: number; y: number };
 export type Size = { width: number; height: number };
 
@@ -122,80 +124,49 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
   const stampInputRef = useRef<HTMLInputElement>(null);
   const [scale, setScale] = useState<number>(1);
   const touchStartRef = useRef<{ distance: number | null }>({ distance: null });
+
+  // Check screen size for responsive layout
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobileView(window.innerWidth < 768);
     };
-    
+
     // Initial check
     checkScreenSize();
-    
+
     // Add event listener for window resize
-    window.addEventListener('resize', checkScreenSize);
+    window.addEventListener("resize", checkScreenSize);
     fileReader.current = new FileReader();
+
     return () => {
       fileReader.current = null;
-      window.removeEventListener('resize', checkScreenSize);
+      window.removeEventListener("resize", checkScreenSize);
     };
   }, []);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  // Handle file upload
+  const handleFileUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-    const uploadedFile = files[0];
-    if (uploadedFile.type !== "application/pdf") {
-      toast.error(t("ui.error"));
-      return;
-    }
+      const uploadedFile = files[0];
+      if (uploadedFile.type !== "application/pdf") {
+        toast.error(t("ui.error"));
+        return;
+      }
 
-    setFile(uploadedFile);
-    setElements([]);
-    setSignedPdfUrl("");
-    setCurrentPage(0);
+      setFile(uploadedFile);
+      setElements([]);
+      setSignedPdfUrl("");
+      setCurrentPage(0);
 
-    processPdf(uploadedFile);
-  };
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2) {
-      // Two fingers - potential pinch gesture
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      touchStartRef.current.distance = dist;
-    }
-  };
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && touchStartRef.current.distance !== null) {
-      // Pinch gesture in progress
-      const currentDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      
-      const initialDistance = touchStartRef.current.distance;
-      const scaleDiff = (currentDistance - initialDistance) / 200;
-      
-      // Update scale with constraints
-      setScale(prevScale => 
-        Math.min(Math.max(prevScale + scaleDiff, 0.5), 3)
-      );
-      
-      // Update for next move event
-      touchStartRef.current.distance = currentDistance;
-    }
-  };
-  
-  const handleTouchEnd = () => {
-    touchStartRef.current.distance = null;
-  };
-  const handleAddFieldAndCloseSheet = (type: ElementType) => {
-    handleAddField(type);
-    if (isMobileView) {
-      setIsSheetOpen(false);
-    }
-  };
+      processPdf(uploadedFile);
+    },
+    [t]
+  );
+
+  // Process PDF after upload
   const processPdf = async (pdfFile: File) => {
     setProcessing(true);
     setProgress(0);
@@ -232,7 +203,53 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     }
   };
 
-  const handleSignatureDraw = () => {
+  // Touch gesture handlers for mobile pinch zoom
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      // Two fingers - potential pinch gesture
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchStartRef.current.distance = dist;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && touchStartRef.current.distance !== null) {
+      // Pinch gesture in progress
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+
+      const initialDistance = touchStartRef.current.distance;
+      const scaleDiff = (currentDistance - initialDistance) / 200;
+
+      // Update scale with constraints
+      setScale((prevScale) =>
+        Math.min(Math.max(prevScale + scaleDiff, 0.5), 3)
+      );
+
+      // Update for next move event
+      touchStartRef.current.distance = currentDistance;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartRef.current.distance = null;
+  };
+
+  // Helper function to add field and close mobile sheet
+  const handleAddFieldAndCloseSheet = (type: ElementType) => {
+    handleAddField(type);
+    if (isMobileView) {
+      setIsSheetOpen(false);
+    }
+  };
+
+  // Create signature from canvas
+  const handleSignatureDraw = useCallback(() => {
     if (!signatureCanvasRef.current) return;
 
     const signatureData = signatureCanvasRef.current.toDataURL("image/png");
@@ -254,11 +271,12 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         page: currentPage,
       };
 
-      setElements([...elements, newElement]);
+      setElements((prev) => [...prev, newElement]);
       setSelectedElement(newElement.id);
     }
-  };
+  }, [signatureSize, pages.length, currentPage]);
 
+  // Handle stamp image upload
   const handleStampUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -278,13 +296,12 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     reader.readAsDataURL(uploadedFile);
   };
 
-  
-  // 2. Update the generateStampSvg function to create a more compatible SVG
+  // Generate SVG for predefined stamps with proper size and styling
   const generateStampSvg = (type: string): string => {
     let text = "";
     let fillColor = "";
     let borderColor = "";
-  
+
     switch (type) {
       case "approved":
         text = "APPROVED";
@@ -316,68 +333,86 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         fillColor = "#4caf50";
         borderColor = "#388e3c";
     }
-  
-    // Create a more compatible SVG with inline styles
-    return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="50" viewBox="0 0 150 50">
-    <rect x="2" y="2" width="146" height="46" rx="4" ry="4" fill="white" stroke="${borderColor}" stroke-width="2" />
-    <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="${fillColor}" text-anchor="middle" alignment-baseline="middle">${text}</text>
-  </svg>`;
-  };
-  
-  
-  const handleAddField = (type: ElementType) => {
-    if (!canvasRef.current || pages.length === 0 || currentPage >= pages.length)
-      return;
 
-    const canvasBounds = canvasRef.current.getBoundingClientRect();
-    const centerX = (canvasBounds.width - 200) / 2;
-    const centerY = (canvasBounds.height - 50) / 2;
-
-    let data = "";
-    let size: Size = { width: 200, height: 50 };
-
-    switch (type) {
-      case "signature":
-        data = signatureDataUrl || "Signature Placeholder";
-        break;
-      case "initials":
-        data = "Initials Placeholder";
-        size = { width: 100, height: 50 };
-        break;
-      case "name":
-        data = nameValue || "Name Placeholder";
-        break;
-      case "date":
-        data = new Date().toLocaleDateString();
-        break;
-      case "text":
-        data = textValue || "Text Placeholder";
-        break;
-      case "stamp":
-        data = customStamp || generateStampSvg(stampType);
-        size = { width: 150, height: 50 };
-        break;
-    }
-
-    const newElement: SignatureElement = {
-      id: `${type}-${Date.now()}`,
-      type,
-      position: { x: centerX, y: centerY },
-      size,
-      data,
-      rotation: 0,
-      scale: 1,
-      fontSize: fontSize,
-      fontFamily: fontFamily,
-      page: currentPage,
-    };
-
-    setElements([...elements, newElement]);
-    setSelectedElement(newElement.id);
-    setTextValue("");
+    // Create a more consistent SVG with explicit dimensions and styling
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50" viewBox="0 0 150 50">
+      <rect x="2" y="2" width="146" height="46" rx="4" ry="4" fill="white" stroke="${borderColor}" stroke-width="2" />
+      <text x="75" y="30" font-family="Arial,sans-serif" font-size="16" font-weight="bold" fill="${fillColor}" text-anchor="middle" dominant-baseline="middle">${text}</text>
+    </svg>`;
   };
 
+  // Add signature field to document
+  const handleAddField = useCallback(
+    (type: ElementType) => {
+      if (
+        !canvasRef.current ||
+        pages.length === 0 ||
+        currentPage >= pages.length
+      )
+        return;
+
+      const canvasBounds = canvasRef.current.getBoundingClientRect();
+      const centerX = (canvasBounds.width - 200) / 2;
+      const centerY = (canvasBounds.height - 50) / 2;
+
+      let data = "";
+      let size: Size = { width: 200, height: 50 };
+
+      switch (type) {
+        case "signature":
+          data = signatureDataUrl || "Signature Placeholder";
+          break;
+        case "initials":
+          data = "Initials Placeholder";
+          size = { width: 100, height: 50 };
+          break;
+        case "name":
+          data = nameValue || "Name Placeholder";
+          break;
+        case "date":
+          data = new Date().toLocaleDateString();
+          break;
+        case "text":
+          data = textValue || "Text Placeholder";
+          break;
+        case "stamp":
+          data = customStamp || generateStampSvg(stampType);
+          size = { width: 150, height: 50 };
+          break;
+      }
+
+      const newElement: SignatureElement = {
+        id: `${type}-${Date.now()}`,
+        type,
+        position: { x: centerX, y: centerY },
+        size,
+        data,
+        rotation: 0,
+        scale: 1,
+        fontSize: fontSize,
+        fontFamily: fontFamily,
+        page: currentPage,
+      };
+
+      setElements((prev) => [...prev, newElement]);
+      setSelectedElement(newElement.id);
+      setTextValue("");
+    },
+    [
+      canvasRef,
+      pages.length,
+      currentPage,
+      signatureDataUrl,
+      nameValue,
+      textValue,
+      customStamp,
+      stampType,
+      fontSize,
+      fontFamily,
+    ]
+  );
+
+  // Element selection, dragging, and resizing handlers
   const handleElementClick = (
     event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
     element: SignatureElement
@@ -386,6 +421,7 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     event.stopPropagation();
     setSelectedElement(selectedElement === element.id ? null : element.id);
   };
+
   const handleElementMoveStart = (
     event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
     element: SignatureElement
@@ -415,7 +451,7 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
       }
     }
   };
-  
+
   const handleCanvasMouseMove = (
     event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
   ) => {
@@ -423,8 +459,6 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
 
     event.preventDefault();
     const canvasBounds = canvasRef.current.getBoundingClientRect();
-    const scrollLeft = canvasRef.current.scrollLeft;
-    const scrollTop = canvasRef.current.scrollTop;
 
     // Get the PDF scale from data attribute
     const pdfScale = parseFloat(canvasRef.current.dataset.pdfScale || "1");
@@ -533,6 +567,7 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     setCurrentPage(page);
   };
 
+  // Save PDF with signatures
   const handleSavePdf = async () => {
     if (!file || pages.length === 0) return;
 
@@ -585,6 +620,8 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
       setProcessing(false);
     }
   };
+
+  // Signature element component - memoized to prevent unnecessary re-renders
   const SignatureElementComponent = memo(
     ({
       element,
@@ -618,9 +655,12 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
       setElements: React.Dispatch<React.SetStateAction<SignatureElement[]>>;
       setSelectedElement: React.Dispatch<React.SetStateAction<string | null>>;
     }) => {
+      // Get PDF scale to ensure proper positioning and sizing
       const pdfScale = canvasRef.current?.dataset.pdfScale
         ? parseFloat(canvasRef.current.dataset.pdfScale)
         : 1;
+
+      // Style for the signature element
       const elementStyles: React.CSSProperties = {
         position: "absolute",
         left: `${element.position.x * pdfScale}px`,
@@ -647,7 +687,8 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         padding: "4px",
         transition: "border 0.2s ease, background-color 0.2s ease",
       };
-  
+
+      // Style for the resize handle
       const resizeHandleStyles: React.CSSProperties = {
         position: "absolute",
         bottom: "-6px",
@@ -661,7 +702,8 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         border: "2px solid white",
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
       };
-  
+
+      // Render different element types appropriately
       return (
         <div
           key={element.id}
@@ -697,12 +739,15 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
               }}
             />
           ) : element.type === "stamp" && element.data.includes("<svg") ? (
-            // Fix: Create an img element with a data URL for SVG content
-            <img 
-              src={`data:image/svg+xml;base64,${btoa(element.data)}`}
+            // Fix for SVG stamps - convert to data URL for proper rendering
+            <img
+              src={`data:image/svg+xml;base64,${btoa(
+                unescape(encodeURIComponent(element.data))
+              )}`}
               style={{
                 width: "100%",
                 height: "100%",
+                objectFit: "contain",
                 pointerEvents: "none",
               }}
               alt="Stamp"
@@ -712,6 +757,8 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
               {element.data}
             </span>
           )}
+
+          {/* Controls for selected elements */}
           {selectedElement === element.id && (
             <>
               <button
@@ -739,719 +786,732 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
       );
     }
   );
-  
-  const mobileToolTrigger = (
-    <div className="md:hidden fixed bottom-20 right-5 z-20">
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetTrigger asChild>
-          <Button 
-            className="h-14 w-14 rounded-full shadow-lg bg-primary text-white hover:bg-primary/90"
-            size="icon"
-          >
-            <PanelBottomIcon className="h-6 w-6" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="bottom" className="h-[70vh] pt-6">
-          <div className="max-h-full overflow-y-auto">
-            {/* Tool Selection Header */}
-            <div className="p-5 border-b">
-              <h3 className="font-semibold text-base mb-3">Tools</h3>
-              <div className="grid grid-cols-5 gap-1.5">
-                {[
-                  {
-                    id: "signature",
-                    icon: <PenIcon className="h-4 w-4" />,
-                    label: "Sign",
-                  },
-                  {
-                    id: "text",
-                    icon: <TextIcon className="h-4 w-4" />,
-                    label: "Text",
-                  },
-                  {
-                    id: "name",
-                    icon: <UserIcon className="h-4 w-4" />,
-                    label: "Name",
-                  },
-                  {
-                    id: "date",
-                    icon: <CalendarIcon className="h-4 w-4" />,
-                    label: "Date",
-                  },
-                  {
-                    id: "stamp",
-                    icon: <StampIcon className="h-4 w-4" />,
-                    label: "Stamp",
-                  },
-                ].map((tool) => (
-                  <Button
-                    key={tool.id}
-                    variant={activeTool === tool.id ? "default" : "outline"}
-                    size="sm"
-                    className={`flex flex-col h-16 gap-1 py-1.5 px-1 ${
-                      activeTool === tool.id
-                        ? "bg-primary/10 text-primary border-primary hover:bg-primary/20"
-                        : "hover:bg-muted/80"
-                    }`}
-                    onClick={() => setActiveTool(tool.id as ElementType)}
-                  >
-                    <div
-                      className={`p-1 rounded-full ${
-                        activeTool === tool.id ? "bg-primary/10" : ""
+
+  // Mobile tools trigger component
+  const mobileToolTrigger = useMemo(
+    () => (
+      <div className="md:hidden fixed bottom-20 right-5 z-20">
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <Button
+              className="h-14 w-14 rounded-full shadow-lg bg-primary text-white hover:bg-primary/90"
+              size="icon"
+            >
+              <PanelBottomIcon className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[70vh] pt-6">
+            <div className="max-h-full overflow-y-auto">
+              {/* Tool Selection Header */}
+              <div className="p-5 border-b">
+                <h3 className="font-semibold text-base mb-3">Tools</h3>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    {
+                      id: "signature",
+                      icon: <PenIcon className="h-4 w-4" />,
+                      label: "Sign",
+                    },
+                    {
+                      id: "text",
+                      icon: <TextIcon className="h-4 w-4" />,
+                      label: "Text",
+                    },
+                    {
+                      id: "name",
+                      icon: <UserIcon className="h-4 w-4" />,
+                      label: "Name",
+                    },
+                    {
+                      id: "date",
+                      icon: <CalendarIcon className="h-4 w-4" />,
+                      label: "Date",
+                    },
+                    {
+                      id: "stamp",
+                      icon: <StampIcon className="h-4 w-4" />,
+                      label: "Stamp",
+                    },
+                  ].map((tool) => (
+                    <Button
+                      key={tool.id}
+                      variant={activeTool === tool.id ? "default" : "outline"}
+                      size="sm"
+                      className={`flex flex-col h-16 gap-1 py-1.5 px-1 ${
+                        activeTool === tool.id
+                          ? "bg-primary/10 text-primary border-primary hover:bg-primary/20"
+                          : "hover:bg-muted/80"
                       }`}
+                      onClick={() => setActiveTool(tool.id as ElementType)}
                     >
-                      {tool.icon}
-                    </div>
-                    <span className="text-xs font-medium">{tool.label}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-  
-            {/* Tool Content Area */}
-            <div className="p-5 relative z-10">
-              {/* Signature Tool Content */}
-              {activeTool === "signature" && (
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">
-                      Create Signature
-                    </h3>
-                    {signatureDataUrl && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSignatureDataUrl("")}
-                        className="h-8 text-xs text-muted-foreground"
+                      <div
+                        className={`p-1 rounded-full ${
+                          activeTool === tool.id ? "bg-primary/10" : ""
+                        }`}
                       >
-                        <RotateCcwIcon className="h-3.5 w-3.5 mr-1" /> Reset
-                      </Button>
-                    )}
-                  </div>
-  
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="mt-2"
-                  >
-                    <TabsList className="w-full grid grid-cols-3 bg-muted/30 p-1 h-9">
-                      <TabsTrigger
-                        value="draw"
-                        className="text-xs font-medium"
-                      >
-                        Draw
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="type"
-                        className="text-xs font-medium"
-                      >
-                        Type
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="upload"
-                        className="text-xs font-medium"
-                      >
-                        Upload
-                      </TabsTrigger>
-                    </TabsList>
-  
-                    <TabsContent value="draw" className="mt-4 space-y-4">
-                      <div className="bg-background rounded-md shadow-sm border overflow-hidden">
-                        <SignatureCanvas
-                          ref={signatureCanvasRef}
-                          penColor={penColor}
-                          backgroundColor={backgroundColor}
-                        />
+                        {tool.icon}
                       </div>
-                      <div className="mt-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label
-                            htmlFor="penColor"
-                            className="text-xs font-medium"
-                          >
-                            Pen Color
-                          </Label>
-                          <div
-                            className="w-5 h-5 rounded-full border shadow-sm"
-                            style={{ background: penColor }}
+                      <span className="text-xs font-medium">{tool.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tool Content Area */}
+              <div className="p-5 relative z-10">
+                {/* Signature Tool Content */}
+                {activeTool === "signature" && (
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-sm">
+                        Create Signature
+                      </h3>
+                      {signatureDataUrl && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSignatureDataUrl("")}
+                          className="h-8 text-xs text-muted-foreground"
+                        >
+                          <RotateCcwIcon className="h-3.5 w-3.5 mr-1" /> Reset
+                        </Button>
+                      )}
+                    </div>
+
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={setActiveTab}
+                      className="mt-2"
+                    >
+                      <TabsList className="w-full grid grid-cols-3 bg-muted/30 p-1 h-9">
+                        <TabsTrigger
+                          value="draw"
+                          className="text-xs font-medium"
+                        >
+                          Draw
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="type"
+                          className="text-xs font-medium"
+                        >
+                          Type
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="upload"
+                          className="text-xs font-medium"
+                        >
+                          Upload
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="draw" className="mt-4 space-y-4">
+                        <div className="bg-background rounded-md shadow-sm border overflow-hidden">
+                          <SignatureCanvas
+                            ref={signatureCanvasRef}
+                            penColor={penColor}
+                            backgroundColor={backgroundColor}
                           />
                         </div>
-                        <Input
-                          id="penColor"
-                          type="color"
-                          value={penColor}
-                          onChange={(e) => setPenColor(e.target.value)}
-                          className="h-8 w-full"
-                        />
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 h-9"
-                          onClick={() => {
-                            if (signatureCanvasRef.current) {
-                              signatureCanvasRef.current.clear();
-                            }
-                          }}
-                        >
-                          Clear
-                        </Button>
-                        <SheetClose asChild>
+                        <div className="mt-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="penColor"
+                              className="text-xs font-medium"
+                            >
+                              Pen Color
+                            </Label>
+                            <div
+                              className="w-5 h-5 rounded-full border shadow-sm"
+                              style={{ background: penColor }}
+                            />
+                          </div>
+                          <Input
+                            id="penColor"
+                            type="color"
+                            value={penColor}
+                            onChange={(e) => setPenColor(e.target.value)}
+                            className="h-8 w-full"
+                          />
+                        </div>
+                        <div className="mt-4 flex gap-2">
                           <Button
+                            variant="outline"
                             size="sm"
                             className="flex-1 h-9"
                             onClick={() => {
-                              handleSignatureDraw();
+                              if (signatureCanvasRef.current) {
+                                signatureCanvasRef.current.clear();
+                              }
                             }}
+                          >
+                            Clear
+                          </Button>
+                          <SheetClose asChild>
+                            <Button
+                              size="sm"
+                              className="flex-1 h-9"
+                              onClick={() => {
+                                handleSignatureDraw();
+                              }}
+                            >
+                              <CheckIcon className="h-3.5 w-3.5 mr-1.5" />
+                              Add Signature
+                            </Button>
+                          </SheetClose>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="type" className="mt-4 space-y-4">
+                        <div className="space-y-3">
+                          <div className="space-y-1.5">
+                            <Label
+                              htmlFor="typedName"
+                              className="text-xs font-medium"
+                            >
+                              Type Your Name
+                            </Label>
+                            <Input
+                              id="typedName"
+                              value={nameValue}
+                              onChange={(e) => setNameValue(e.target.value)}
+                              placeholder="John Doe"
+                              className="h-9"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label
+                                htmlFor="fontFamily"
+                                className="text-xs font-medium"
+                              >
+                                Font Style
+                              </Label>
+                              <select
+                                id="fontFamily"
+                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                value={fontFamily}
+                                onChange={(e) => setFontFamily(e.target.value)}
+                              >
+                                <option value="Arial">Arial</option>
+                                <option value="Times New Roman">
+                                  Times New Roman
+                                </option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Verdana">Verdana</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label
+                                htmlFor="fontSize"
+                                className="text-xs font-medium"
+                              >
+                                Size
+                              </Label>
+                              <Input
+                                id="fontSize"
+                                type="number"
+                                min="8"
+                                max="72"
+                                value={fontSize}
+                                onChange={(e) =>
+                                  setFontSize(parseInt(e.target.value))
+                                }
+                                className="h-9"
+                              />
+                            </div>
+                          </div>
+
+                          {nameValue && (
+                            <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
+                              <p className="text-xs text-muted-foreground mb-2">
+                                Preview:
+                              </p>
+                              <span
+                                style={{
+                                  fontFamily,
+                                  fontSize: `${fontSize}px`,
+                                }}
+                              >
+                                {nameValue}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <SheetClose asChild>
+                          <Button
+                            className="w-full h-9"
+                            onClick={() => handleAddFieldAndCloseSheet("name")}
+                            disabled={!nameValue}
                           >
                             <CheckIcon className="h-3.5 w-3.5 mr-1.5" />
                             Add Signature
                           </Button>
                         </SheetClose>
+                      </TabsContent>
+
+                      <TabsContent value="upload" className="mt-4 space-y-4">
+                        <div className="border-2 border-dashed rounded-md p-5 text-center bg-muted/10 transition-colors hover:bg-muted/20">
+                          <input
+                            type="file"
+                            id="signatureUpload"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (!files || files.length === 0) return;
+
+                              const file = files[0];
+                              const reader = new FileReader();
+
+                              reader.onload = (e) => {
+                                if (e.target && e.target.result) {
+                                  setSignatureDataUrl(
+                                    e.target.result as string
+                                  );
+                                }
+                              };
+
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                          <label
+                            htmlFor="signatureUpload"
+                            className="cursor-pointer"
+                          >
+                            <UploadIcon className="h-7 w-7 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-xs text-muted-foreground mb-3">
+                              Upload signature image (PNG or JPG)
+                            </p>
+                            <Button variant="outline" size="sm" type="button">
+                              <UploadIcon className="h-3.5 w-3.5 mr-1.5" />
+                              Browse Files
+                            </Button>
+                          </label>
+                        </div>
+
+                        {signatureDataUrl &&
+                          signatureDataUrl.startsWith("data:image") && (
+                            <>
+                              <div className="bg-background rounded-md border p-3 flex items-center justify-center">
+                                <img
+                                  src={signatureDataUrl}
+                                  alt="Your signature"
+                                  className="max-h-20 max-w-full object-contain"
+                                />
+                              </div>
+                              <SheetClose asChild>
+                                <Button
+                                  className="w-full h-9"
+                                  onClick={() =>
+                                    handleAddFieldAndCloseSheet("signature")
+                                  }
+                                >
+                                  <CheckIcon className="h-3.5 w-3.5 mr-1.5" />
+                                  Add Signature
+                                </Button>
+                              </SheetClose>
+                            </>
+                          )}
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                )}
+
+                {/* Text Tool Content */}
+                {activeTool === "text" && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm">
+                      Add Text Annotation
+                    </h3>
+
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="textContent"
+                          className="text-xs font-medium"
+                        >
+                          Text Content
+                        </Label>
+                        <Input
+                          id="textContent"
+                          value={textValue}
+                          onChange={(e) => setTextValue(e.target.value)}
+                          placeholder="Enter text to add to document"
+                          className="h-9"
+                        />
                       </div>
-                    </TabsContent>
-  
-                    <TabsContent value="type" className="mt-4 space-y-4">
-                      <div className="space-y-3">
+
+                      <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <Label
-                            htmlFor="typedName"
+                            htmlFor="textFontFamily"
                             className="text-xs font-medium"
                           >
-                            Type Your Name
+                            Font Style
+                          </Label>
+                          <select
+                            id="textFontFamily"
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            value={fontFamily}
+                            onChange={(e) => setFontFamily(e.target.value)}
+                          >
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">
+                              Times New Roman
+                            </option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="textFontSize"
+                            className="text-xs font-medium"
+                          >
+                            Size
                           </Label>
                           <Input
-                            id="typedName"
-                            value={nameValue}
-                            onChange={(e) => setNameValue(e.target.value)}
-                            placeholder="John Doe"
+                            id="textFontSize"
+                            type="number"
+                            min="8"
+                            max="72"
+                            value={fontSize}
+                            onChange={(e) =>
+                              setFontSize(parseInt(e.target.value))
+                            }
                             className="h-9"
                           />
                         </div>
-  
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1.5">
-                            <Label
-                              htmlFor="fontFamily"
-                              className="text-xs font-medium"
-                            >
-                              Font Style
-                            </Label>
-                            <select
-                              id="fontFamily"
-                              className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                              value={fontFamily}
-                              onChange={(e) =>
-                                setFontFamily(e.target.value)
-                              }
-                            >
-                              <option value="Arial">Arial</option>
-                              <option value="Times New Roman">
-                                Times New Roman
-                              </option>
-                              <option value="Courier New">
-                                Courier New
-                              </option>
-                              <option value="Georgia">Georgia</option>
-                              <option value="Verdana">Verdana</option>
-                            </select>
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label
-                              htmlFor="fontSize"
-                              className="text-xs font-medium"
-                            >
-                              Size
-                            </Label>
-                            <Input
-                              id="fontSize"
-                              type="number"
-                              min="8"
-                              max="72"
-                              value={fontSize}
-                              onChange={(e) =>
-                                setFontSize(parseInt(e.target.value))
-                              }
-                              className="h-9"
-                            />
-                          </div>
-                        </div>
-  
-                        {nameValue && (
-                          <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Preview:
-                            </p>
-                            <span
-                              style={{
-                                fontFamily,
-                                fontSize: `${fontSize}px`,
-                              }}
-                            >
-                              {nameValue}
-                            </span>
-                          </div>
-                        )}
                       </div>
-                      <SheetClose asChild>
-                        <Button
-                          className="w-full h-9"
-                          onClick={() => handleAddFieldAndCloseSheet("name")}
-                          disabled={!nameValue}
-                        >
-                          <CheckIcon className="h-3.5 w-3.5 mr-1.5" />
-                          Add Signature
-                        </Button>
-                      </SheetClose>
-                    </TabsContent>
-  
-                    <TabsContent value="upload" className="mt-4 space-y-4">
-                      <div className="border-2 border-dashed rounded-md p-5 text-center bg-muted/10 transition-colors hover:bg-muted/20">
-                        <input
-                          type="file"
-                          id="signatureUpload"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const files = e.target.files;
-                            if (!files || files.length === 0) return;
-  
-                            const file = files[0];
-                            const reader = new FileReader();
-  
-                            reader.onload = (e) => {
-                              if (e.target && e.target.result) {
-                                setSignatureDataUrl(
-                                  e.target.result as string
-                                );
-                              }
-                            };
-  
-                            reader.readAsDataURL(file);
+
+                      {textValue && (
+                        <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Preview:
+                          </p>
+                          <span
+                            style={{ fontFamily, fontSize: `${fontSize}px` }}
+                          >
+                            {textValue}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <SheetClose asChild>
+                      <Button
+                        className="w-full h-9"
+                        onClick={() => handleAddFieldAndCloseSheet("text")}
+                        disabled={!textValue}
+                      >
+                        <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Add Text Annotation
+                      </Button>
+                    </SheetClose>
+                  </div>
+                )}
+
+                {/* Stamp Tool Content */}
+                {activeTool === "stamp" && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm">
+                      Add Document Stamp
+                    </h3>
+
+                    <div className="space-y-3">
+                      <Label className="text-xs font-medium">
+                        Select Stamp Type
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: "approved", color: "#4caf50" },
+                          { id: "rejected", color: "#f44336" },
+                          { id: "draft", color: "#2196f3" },
+                          { id: "final", color: "#ff9800" },
+                          { id: "confidential", color: "#9c27b0" },
+                        ].map((type) => (
+                          <Button
+                            key={type.id}
+                            variant={
+                              stampType === type.id ? "default" : "outline"
+                            }
+                            size="sm"
+                            className={`justify-start capitalize h-9 ${
+                              stampType === type.id
+                                ? "bg-muted border-2"
+                                : "border-muted hover:bg-muted/20"
+                            }`}
+                            style={{
+                              borderColor:
+                                stampType === type.id ? type.color : undefined,
+                              color: type.color,
+                            }}
+                            onClick={() => setStampType(type.id)}
+                          >
+                            <StampIcon
+                              className="h-3.5 w-3.5 mr-1.5"
+                              style={{ color: type.color }}
+                            />
+                            {type.id}
+                          </Button>
+                        ))}
+                      </div>
+
+                      <div className="bg-background rounded-md border p-3 flex items-center justify-center h-16 mt-2">
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: generateStampSvg(stampType),
                           }}
                         />
-                        <label
-                          htmlFor="signatureUpload"
-                          className="cursor-pointer"
-                        >
-                          <UploadIcon className="h-7 w-7 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-xs text-muted-foreground mb-3">
-                            Upload signature image (PNG or JPG)
-                          </p>
-                          <Button variant="outline" size="sm" type="button">
+                      </div>
+                    </div>
+
+                    <Separator className="my-4" />
+
+                    <div className="space-y-3">
+                      <Label className="text-xs font-medium">
+                        Upload Custom Stamp
+                      </Label>
+                      <div className="border-2 border-dashed rounded-md p-3 text-center bg-muted/10 transition-colors hover:bg-muted/20">
+                        <input
+                          type="file"
+                          id="stampUpload"
+                          ref={stampInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleStampUpload}
+                        />
+                        <label htmlFor="stampUpload" className="cursor-pointer">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            className="h-8"
+                            onClick={() => stampInputRef.current?.click()}
+                          >
                             <UploadIcon className="h-3.5 w-3.5 mr-1.5" />
-                            Browse Files
+                            Upload Image
                           </Button>
                         </label>
                       </div>
-  
-                      {signatureDataUrl &&
-                        signatureDataUrl.startsWith("data:image") && (
-                          <>
-                            <div className="bg-background rounded-md border p-3 flex items-center justify-center">
-                              <img
-                                src={signatureDataUrl}
-                                alt="Your signature"
-                                className="max-h-20 max-w-full object-contain"
-                              />
-                            </div>
-                            <SheetClose asChild>
-                              <Button
-                                className="w-full h-9"
-                                onClick={() => handleAddFieldAndCloseSheet("signature")}
-                              >
-                                <CheckIcon className="h-3.5 w-3.5 mr-1.5" />
-                                Add Signature
-                              </Button>
-                            </SheetClose>
-                          </>
-                        )}
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              )}
-  
-              {/* Text Tool Content */}
-              {activeTool === "text" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-sm">
-                    Add Text Annotation
-                  </h3>
-  
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label
-                        htmlFor="textContent"
-                        className="text-xs font-medium"
-                      >
-                        Text Content
-                      </Label>
-                      <Input
-                        id="textContent"
-                        value={textValue}
-                        onChange={(e) => setTextValue(e.target.value)}
-                        placeholder="Enter text to add to document"
-                        className="h-9"
-                      />
-                    </div>
-  
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="textFontFamily"
-                          className="text-xs font-medium"
-                        >
-                          Font Style
-                        </Label>
-                        <select
-                          id="textFontFamily"
-                          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          value={fontFamily}
-                          onChange={(e) => setFontFamily(e.target.value)}
-                        >
-                          <option value="Arial">Arial</option>
-                          <option value="Times New Roman">
-                            Times New Roman
-                          </option>
-                          <option value="Courier New">Courier New</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Verdana">Verdana</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="textFontSize"
-                          className="text-xs font-medium"
-                        >
-                          Size
-                        </Label>
-                        <Input
-                          id="textFontSize"
-                          type="number"
-                          min="8"
-                          max="72"
-                          value={fontSize}
-                          onChange={(e) =>
-                            setFontSize(parseInt(e.target.value))
-                          }
-                          className="h-9"
-                        />
-                      </div>
-                    </div>
-  
-                    {textValue && (
-                      <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Preview:
-                        </p>
-                        <span
-                          style={{ fontFamily, fontSize: `${fontSize}px` }}
-                        >
-                          {textValue}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-  
-                  <SheetClose asChild>
-                    <Button
-                      className="w-full h-9"
-                      onClick={() => handleAddFieldAndCloseSheet("text")}
-                      disabled={!textValue}
-                    >
-                      <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
-                      Add Text Annotation
-                    </Button>
-                  </SheetClose>
-                </div>
-              )}
-  
-              {/* Stamp Tool Content */}
-              {activeTool === "stamp" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-sm">
-                    Add Document Stamp
-                  </h3>
-  
-                  <div className="space-y-3">
-                    <Label className="text-xs font-medium">
-                      Select Stamp Type
-                    </Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "approved", color: "#4caf50" },
-                        { id: "rejected", color: "#f44336" },
-                        { id: "draft", color: "#2196f3" },
-                        { id: "final", color: "#ff9800" },
-                        { id: "confidential", color: "#9c27b0" },
-                      ].map((type) => (
-                        <Button
-                          key={type.id}
-                          variant={
-                            stampType === type.id ? "default" : "outline"
-                          }
-                          size="sm"
-                          className={`justify-start capitalize h-9 ${
-                            stampType === type.id
-                              ? "bg-muted border-2"
-                              : "border-muted hover:bg-muted/20"
-                          }`}
-                          style={{
-                            borderColor:
-                              stampType === type.id
-                                ? type.color
-                                : undefined,
-                            color: type.color,
-                          }}
-                          onClick={() => setStampType(type.id)}
-                        >
-                          <StampIcon
-                            className="h-3.5 w-3.5 mr-1.5"
-                            style={{ color: type.color }}
+
+                      {customStamp && (
+                        <div className="bg-background rounded-md border p-3 flex items-center justify-center h-16">
+                          <img
+                            src={customStamp}
+                            alt="Custom stamp"
+                            className="max-h-full max-w-full object-contain"
                           />
-                          {type.id}
-                        </Button>
-                      ))}
+                        </div>
+                      )}
                     </div>
-  
-                    <div className="bg-background rounded-md border p-3 flex items-center justify-center h-16 mt-2">
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: generateStampSvg(stampType),
-                        }}
-                      />
-                    </div>
-                  </div>
-  
-                  <Separator className="my-4" />
-  
-                  <div className="space-y-3">
-                    <Label className="text-xs font-medium">
-                      Upload Custom Stamp
-                    </Label>
-                    <div className="border-2 border-dashed rounded-md p-3 text-center bg-muted/10 transition-colors hover:bg-muted/20">
-                      <input
-                        type="file"
-                        id="stampUpload"
-                        ref={stampInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleStampUpload}
-                      />
-                      <label
-                        htmlFor="stampUpload"
-                        className="cursor-pointer"
+
+                    <SheetClose asChild>
+                      <Button
+                        className="w-full h-9"
+                        onClick={() => handleAddFieldAndCloseSheet("stamp")}
                       >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          type="button"
-                          className="h-8"
-                          onClick={() => stampInputRef.current?.click()}
-                        >
-                          <UploadIcon className="h-3.5 w-3.5 mr-1.5" />
-                          Upload Image
-                        </Button>
-                      </label>
-                    </div>
-  
-                    {customStamp && (
-                      <div className="bg-background rounded-md border p-3 flex items-center justify-center h-16">
-                        <img
-                          src={customStamp}
-                          alt="Custom stamp"
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                    )}
+                        <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Add Stamp
+                      </Button>
+                    </SheetClose>
                   </div>
-  
-                  <SheetClose asChild>
-                    <Button
-                      className="w-full h-9"
-                      onClick={() => handleAddFieldAndCloseSheet("stamp")}
-                    >
-                      <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
-                      Add Stamp
-                    </Button>
-                  </SheetClose>
-                </div>
-              )}
-  
-              {/* Date Tool Content */}
-              {activeTool === "date" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-sm">Add Date Field</h3>
-  
-                  <div className="border rounded-md p-4 bg-muted/10 space-y-3">
-                    <p className="text-xs text-muted-foreground">
-                      This will add today's date to the document. It will
-                      appear as shown below:
-                    </p>
-  
-                    <div className="bg-white dark:bg-slate-800 border rounded-md p-3 text-center shadow-sm">
-                      <div className="text-base font-medium">
-                        {new Date().toLocaleDateString()}
+                )}
+
+                {/* Date Tool Content */}
+                {activeTool === "date" && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm">Add Date Field</h3>
+
+                    <div className="border rounded-md p-4 bg-muted/10 space-y-3">
+                      <p className="text-xs text-muted-foreground">
+                        This will add today's date to the document. It will
+                        appear as shown below:
+                      </p>
+
+                      <div className="bg-white dark:bg-slate-800 border rounded-md p-3 text-center shadow-sm">
+                        <div className="text-base font-medium">
+                          {new Date().toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="dateFontFamily"
+                            className="text-xs font-medium"
+                          >
+                            Font Style
+                          </Label>
+                          <select
+                            id="dateFontFamily"
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            value={fontFamily}
+                            onChange={(e) => setFontFamily(e.target.value)}
+                          >
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">
+                              Times New Roman
+                            </option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="dateFontSize"
+                            className="text-xs font-medium"
+                          >
+                            Size
+                          </Label>
+                          <Input
+                            id="dateFontSize"
+                            type="number"
+                            min="8"
+                            max="72"
+                            value={fontSize}
+                            onChange={(e) =>
+                              setFontSize(parseInt(e.target.value))
+                            }
+                            className="h-9"
+                          />
+                        </div>
                       </div>
                     </div>
-  
-                    <div className="grid grid-cols-2 gap-3 mt-4">
+
+                    <SheetClose asChild>
+                      <Button
+                        className="w-full h-9"
+                        onClick={() => handleAddFieldAndCloseSheet("date")}
+                      >
+                        <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Add Date Field
+                      </Button>
+                    </SheetClose>
+                  </div>
+                )}
+
+                {/* Name Tool Content */}
+                {activeTool === "name" && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm">Add Name Field</h3>
+
+                    <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label
-                          htmlFor="dateFontFamily"
+                          htmlFor="nameField"
                           className="text-xs font-medium"
                         >
-                          Font Style
-                        </Label>
-                        <select
-                          id="dateFontFamily"
-                          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          value={fontFamily}
-                          onChange={(e) => setFontFamily(e.target.value)}
-                        >
-                          <option value="Arial">Arial</option>
-                          <option value="Times New Roman">
-                            Times New Roman
-                          </option>
-                          <option value="Courier New">Courier New</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Verdana">Verdana</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="dateFontSize"
-                          className="text-xs font-medium"
-                        >
-                          Size
+                          Your Name
                         </Label>
                         <Input
-                          id="dateFontSize"
-                          type="number"
-                          min="8"
-                          max="72"
-                          value={fontSize}
-                          onChange={(e) =>
-                            setFontSize(parseInt(e.target.value))
-                          }
+                          id="nameField"
+                          value={nameValue}
+                          onChange={(e) => setNameValue(e.target.value)}
+                          placeholder="John Doe"
                           className="h-9"
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="nameFontFamily"
+                            className="text-xs font-medium"
+                          >
+                            Font Style
+                          </Label>
+                          <select
+                            id="nameFontFamily"
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            value={fontFamily}
+                            onChange={(e) => setFontFamily(e.target.value)}
+                          >
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">
+                              Times New Roman
+                            </option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="nameFontSize"
+                            className="text-xs font-medium"
+                          >
+                            Size
+                          </Label>
+                          <Input
+                            id="nameFontSize"
+                            type="number"
+                            min="8"
+                            max="72"
+                            value={fontSize}
+                            onChange={(e) =>
+                              setFontSize(parseInt(e.target.value))
+                            }
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+
+                      {nameValue && (
+                        <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Preview:
+                          </p>
+                          <span
+                            style={{ fontFamily, fontSize: `${fontSize}px` }}
+                          >
+                            {nameValue}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-  
-                  <SheetClose asChild>
-                    <Button
-                      className="w-full h-9"
-                      onClick={() => handleAddFieldAndCloseSheet("date")}
-                    >
-                      <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
-                      Add Date Field
-                    </Button>
-                  </SheetClose>
-                </div>
-              )}
-  
-              {/* Name Tool Content */}
-              {activeTool === "name" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-sm">Add Name Field</h3>
-  
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label
-                        htmlFor="nameField"
-                        className="text-xs font-medium"
+
+                    <SheetClose asChild>
+                      <Button
+                        className="w-full h-9"
+                        onClick={() => handleAddFieldAndCloseSheet("name")}
+                        disabled={!nameValue}
                       >
-                        Your Name
-                      </Label>
-                      <Input
-                        id="nameField"
-                        value={nameValue}
-                        onChange={(e) => setNameValue(e.target.value)}
-                        placeholder="John Doe"
-                        className="h-9"
-                      />
-                    </div>
-  
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="nameFontFamily"
-                          className="text-xs font-medium"
-                        >
-                          Font Style
-                        </Label>
-                        <select
-                          id="nameFontFamily"
-                          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                          value={fontFamily}
-                          onChange={(e) => setFontFamily(e.target.value)}
-                        >
-                          <option value="Arial">Arial</option>
-                          <option value="Times New Roman">
-                            Times New Roman
-                          </option>
-                          <option value="Courier New">Courier New</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Verdana">Verdana</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="nameFontSize"
-                          className="text-xs font-medium"
-                        >
-                          Size
-                        </Label>
-                        <Input
-                          id="nameFontSize"
-                          type="number"
-                          min="8"
-                          max="72"
-                          value={fontSize}
-                          onChange={(e) =>
-                            setFontSize(parseInt(e.target.value))
-                          }
-                          className="h-9"
-                        />
-                      </div>
-                    </div>
-  
-                    {nameValue && (
-                      <div className="bg-muted/20 rounded-md p-3 mt-2 text-center border">
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Preview:
-                        </p>
-                        <span
-                          style={{ fontFamily, fontSize: `${fontSize}px` }}
-                        >
-                          {nameValue}
-                        </span>
-                      </div>
-                    )}
+                        <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Add Name Field
+                      </Button>
+                    </SheetClose>
                   </div>
-  
-                  <SheetClose asChild>
-                    <Button
-                      className="w-full h-9"
-                      onClick={() => handleAddFieldAndCloseSheet("name")}
-                      disabled={!nameValue}
-                    >
-                      <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
-                      Add Name Field
-                    </Button>
-                  </SheetClose>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    ),
+    [
+      activeTool,
+      isSheetOpen,
+      nameValue,
+      penColor,
+      signatureDataUrl,
+      stampType,
+      textValue,
+      customStamp,
+      fontSize,
+      fontFamily,
+      handleAddFieldAndCloseSheet,
+      handleSignatureDraw,
+      t,
+    ]
   );
-  const renderElements = () => {
+
+  // Render elements on the current page
+  const renderElements = useCallback(() => {
     return elements
       .filter((element) => element.page === currentPage)
       .map((element) => (
@@ -1466,9 +1526,17 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
           setSelectedElement={setSelectedElement}
         />
       ));
-  };
+  }, [
+    elements,
+    currentPage,
+    selectedElement,
+    handleElementClick,
+    handleElementMoveStart,
+    handleResizeStart,
+  ]);
 
-  const renderPageThumbnails = () => {
+  // Render page thumbnails for navigation
+  const renderPageThumbnails = useMemo(() => {
     return (
       <div className="space-y-3 p-2">
         {pages.map((_, index) => (
@@ -1496,7 +1564,7 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         ))}
       </div>
     );
-  };
+  }, [pages, currentPage, file]);
 
   return (
     <div className="bg-muted/30 rounded-lg p-1 md:p-4 w-full">
@@ -1538,63 +1606,63 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
         {!file && (
           <div className="flex-1 flex items-center justify-center p-6">
             <div
-                  className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                    isDragOver
-                      ? "border-primary bg-primary/5"
-                      : "border-muted-foreground/20"
-                  }`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsDragOver(true);
-                  }}
-                  onDragLeave={() => setIsDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsDragOver(false);
-                    const files = e.dataTransfer.files;
-                    if (files && files.length > 0) {
-                      const uploadedFile = files[0];
-                      if (uploadedFile.type !== "application/pdf") {
-                        toast.error(t("ui.error"));
-                        return;
-                      }
-                      setFile(uploadedFile);
-                      setElements([]);
-                      setSignedPdfUrl("");
-                      setCurrentPage(0);
-                      processPdf(uploadedFile);
-                    }
-                  }}
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                  />
-                  <div className="mb-6 p-4 rounded-full bg-primary/10 mx-auto w-20 h-20 flex items-center justify-center">
-                    <UploadIcon className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-3">
-                    {t("signPdf.uploadTitle")}
-                  </h3>
-                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                    {t("signPdf.uploadDesc")}
-                  </p>
-                  <Button
-                    size="lg"
-                    className="px-8"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {t("ui.browse")}
-                  </Button>
-                  <p className="mt-6 text-sm text-muted-foreground">
-                    {t("ui.filesSecurity")}
-                  </p>
-                </div>
+              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+                isDragOver
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/20"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOver(false);
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                  const uploadedFile = files[0];
+                  if (uploadedFile.type !== "application/pdf") {
+                    toast.error(t("ui.error"));
+                    return;
+                  }
+                  setFile(uploadedFile);
+                  setElements([]);
+                  setSignedPdfUrl("");
+                  setCurrentPage(0);
+                  processPdf(uploadedFile);
+                }
+              }}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".pdf"
+                onChange={handleFileUpload}
+              />
+              <div className="mb-6 p-4 rounded-full bg-primary/10 mx-auto w-20 h-20 flex items-center justify-center">
+                <UploadIcon className="h-10 w-10 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-3">
+                {t("signPdf.uploadTitle")}
+              </h3>
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                {t("signPdf.uploadDesc")}
+              </p>
+              <Button
+                size="lg"
+                className="px-8"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {t("ui.browse")}
+              </Button>
+              <p className="mt-6 text-sm text-muted-foreground">
+                {t("ui.filesSecurity")}
+              </p>
+            </div>
           </div>
         )}
 
@@ -1619,76 +1687,82 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
           <div className="flex-1 flex overflow-hidden">
             {/* Left Sidebar: Page Thumbnails */}
             <div className="w-24 bg-muted/10 border-r overflow-y-auto hidden md:block">
-              {renderPageThumbnails()}
+              {renderPageThumbnails}
             </div>
 
             {/* Main PDF Viewer */}
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 relative">
-              <div
-  ref={canvasRef}
-  className="absolute inset-0 bg-muted/5 overflow-auto"
-  onMouseMove={handleCanvasMouseMove}
-  onMouseUp={handleCanvasMouseUp}
-  onMouseLeave={handleCanvasMouseUp}
-  onTouchMove={(e) => {
-    handleCanvasMouseMove(e);
-    handleTouchMove(e);
-  }}
-  onTouchStart={handleTouchStart}
-  onTouchEnd={() => {
-    handleCanvasMouseUp();
-    handleTouchEnd();
-  }}
-  onTouchCancel={() => {
-    handleCanvasMouseUp();
-    handleTouchEnd();
-  }}
->
-  <div className="min-h-full flex items-center justify-center p-4">
-    <div className="relative shadow-lg">
-      <Document file={file}>
-      <Page
-  pageNumber={currentPage + 1}
-  renderTextLayer={false}
-  renderAnnotationLayer={false}
-  width={
-    pages[currentPage]
-      ? Math.min(
-          Math.max(pages[currentPage].width, 400),
-          canvasRef.current
-            ? Math.min(canvasRef.current.clientWidth - 40, isMobileView ? 600 : 800)
-            : 800
-        ) * scale
-      : undefined
-  }
-  height={
-    pages[currentPage]
-      ? Math.min(
-          pages[currentPage].height *
-            (Math.min(
-              Math.max(pages[currentPage].width, 400),
-              canvasRef.current
-                ? Math.min(canvasRef.current.clientWidth - 40, isMobileView ? 600 : 800)
-                : 800
-            ) /
-              pages[currentPage].width),
-          canvasRef.current
-            ? canvasRef.current.clientHeight - 60
-            : 1000
-        ) * scale
-      : undefined
-  }
-/>
-        <div className="absolute inset-0">
-          {renderElements()}
-        </div>
-      </Document>
-    </div>
-  </div>
-  {/* Add the mobile tool trigger here */}
-  {mobileToolTrigger}
-</div>
+                <div
+                  ref={canvasRef}
+                  className="absolute inset-0 bg-muted/5 overflow-auto"
+                  onMouseMove={handleCanvasMouseMove}
+                  onMouseUp={handleCanvasMouseUp}
+                  onMouseLeave={handleCanvasMouseUp}
+                  onTouchMove={(e) => {
+                    handleCanvasMouseMove(e);
+                    handleTouchMove(e);
+                  }}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={() => {
+                    handleCanvasMouseUp();
+                    handleTouchEnd();
+                  }}
+                  onTouchCancel={() => {
+                    handleCanvasMouseUp();
+                    handleTouchEnd();
+                  }}
+                >
+                  <div className="min-h-full flex items-center justify-center p-4">
+                    <div className="relative shadow-lg">
+                      <Document file={file}>
+                        <Page
+                          pageNumber={currentPage + 1}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                          width={
+                            pages[currentPage]
+                              ? Math.min(
+                                  Math.max(pages[currentPage].width, 400),
+                                  canvasRef.current
+                                    ? Math.min(
+                                        canvasRef.current.clientWidth - 40,
+                                        isMobileView ? 600 : 800
+                                      )
+                                    : 800
+                                ) * scale
+                              : undefined
+                          }
+                          height={
+                            pages[currentPage]
+                              ? Math.min(
+                                  pages[currentPage].height *
+                                    (Math.min(
+                                      Math.max(pages[currentPage].width, 400),
+                                      canvasRef.current
+                                        ? Math.min(
+                                            canvasRef.current.clientWidth - 40,
+                                            isMobileView ? 600 : 800
+                                          )
+                                        : 800
+                                    ) /
+                                      pages[currentPage].width),
+                                  canvasRef.current
+                                    ? canvasRef.current.clientHeight - 60
+                                    : 1000
+                                ) * scale
+                              : undefined
+                          }
+                        />
+                        <div className="absolute inset-0">
+                          {renderElements()}
+                        </div>
+                      </Document>
+                    </div>
+                  </div>
+                  {/* Add the mobile tool trigger here */}
+                  {mobileToolTrigger}
+                </div>
               </div>
 
               {/* Mobile Pagination Controls */}

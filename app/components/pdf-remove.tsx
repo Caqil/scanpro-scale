@@ -238,7 +238,6 @@ export function PdfRemove() {
           <div className="flex-1 flex items-center justify-center p-6">
             <FileDropzone
               multiple={false}
-              maxSize={100 * 1024 * 1024} // 100MB
               maxFiles={1}
               acceptedFileTypes={{ "application/pdf": [".pdf"] }}
               disabled={processing}

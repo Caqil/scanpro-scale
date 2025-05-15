@@ -4,28 +4,21 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileIcon,
   Cross2Icon,
   CheckCircledIcon,
   DownloadIcon,
   TrashIcon,
   MoveIcon,
 } from "@radix-ui/react-icons";
-import { AlertCircle, ArrowDown, ArrowUp } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, FileIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import useFileUpload from "@/hooks/useFileUpload";
-import { FileDropzone } from "./dropzone";
+import { FileDropzone } from "@/components/dropzone";
 
 // Interface for file with order
 interface FileWithOrder {
@@ -142,7 +135,10 @@ export function PdfMerger() {
   // Process merging PDFs
   const handleMerge = async () => {
     if (files.length < 2) {
-      setError(t("mergePdf.error.minFiles") || "Please upload at least two PDF files to merge");
+      setError(
+        t("mergePdf.error.minFiles") ||
+          "Please upload at least two PDF files to merge"
+      );
       return;
     }
 
@@ -184,7 +180,7 @@ export function PdfMerger() {
         setTimeout(() => {
           clearInterval(processingInterval);
           setProgress(100);
-          setMergedFileUrl(data.filename);
+          setMergedFileUrl(data.fileUrl);
           setIsProcessing(false);
 
           toast.success(t("mergePdf.ui.successMessage") || "Merge Successful");
@@ -192,46 +188,65 @@ export function PdfMerger() {
       },
       onError: (err) => {
         setProgress(0);
-        setError(err.message || t("mergePdf.error.unknown") || "An unknown error occurred");
+        setError(
+          err.message ||
+            t("mergePdf.error.unknown") ||
+            "An unknown error occurred"
+        );
         setIsProcessing(false);
         toast.error(t("mergePdf.error.failed") || "Merge Failed");
       },
     });
   };
 
+  // Handle files being accepted by the FileDropzone
+  const handleFilesAccepted = (acceptedFiles: File[]) => {
+    setError(null);
+    resetUpload();
+    setFiles((prev) => {
+      const existingFileNames = new Set(prev.map((f) => f.file.name));
+      const newFiles = acceptedFiles
+        .filter((file) => !existingFileNames.has(file.name))
+        .map((file) => ({
+          file,
+          id: generateId(),
+          preview: URL.createObjectURL(file),
+          isUploading: false,
+          uploadProgress: 0,
+          error: null,
+        }));
+      return [...prev, ...newFiles];
+    });
+  };
+
   return (
     <Card className="border shadow-sm">
-      <CardContent className="space-y-6">
+      <CardContent className="p-6 space-y-6">
         {/* File Drop Zone */}
-        <FileDropzone
-          multiple={true}
-          maxSize={100 * 1024 * 1024} // 100MB
-          disabled={isProcessing || isUploading}
-          maxFiles={100}
-          onFileAccepted={(acceptedFiles) => {
-            setError(null);
-            resetUpload();
-            setFiles((prev) => {
-              const existingFileNames = new Set(prev.map((f) => f.file.name));
-              const newFiles = acceptedFiles
-                .filter((file) => !existingFileNames.has(file.name))
-                .map((file) => ({
-                  file,
-                  id: generateId(),
-                  preview: URL.createObjectURL(file),
-                  isUploading: false,
-                  uploadProgress: 0,
-                  error: null,
-                }));
-              return [...prev, ...newFiles];
-            });
-          }}
-          title={t("fileUploader.dragAndDrop") || "Drag & drop your PDF files"}
-          description={`${t("fileUploader.dropHereDesc") || "Drop your PDF files here or click to browse."} ${t("fileUploader.maxSize") || "Maximum size is 100MB per file."}`}
-          browseButtonText={t("fileUploader.browse") || "Browse Files"}
-          browseButtonVariant="default"
-          securityText={t("fileUploader.filesSecurity") || "Your files are processed securely."}
-        />
+        {!mergedFileUrl && (
+          <FileDropzone
+            multiple={true}
+            acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+            disabled={isProcessing || isUploading}
+            maxFiles={100}
+            onFileAccepted={handleFilesAccepted}
+            title={
+              t("fileUploader.dragAndDrop") || "Drag & drop your PDF files"
+            }
+            description={`${
+              t("fileUploader.dropHereDesc") ||
+              "Drop your PDF files here or click to browse."
+            } ${
+              t("fileUploader.maxSize") || "Maximum size is 100MB per file."
+            }`}
+            browseButtonText={t("fileUploader.browse") || "Browse Files"}
+            browseButtonVariant="default"
+            securityText={
+              t("fileUploader.filesSecurity") ||
+              "Your files are processed securely."
+            }
+          />
+        )}
 
         {/* File List */}
         {files.length > 0 && (
@@ -383,12 +398,7 @@ export function PdfMerger() {
                     "Your merged PDF file is now ready for download."}
                 </p>
                 <Button className="w-full sm:w-auto" asChild variant="default">
-                  <a
-                    href={`/api/file?folder=merges&filename=${encodeURIComponent(
-                      mergedFileUrl
-                    )}`}
-                    download
-                  >
+                  <a href={mergedFileUrl} download>
                     <DownloadIcon className="h-4 w-4 mr-2" />
                     {t("mergePdf.ui.downloadMerged") || "Download Merged PDF"}
                   </a>
@@ -398,36 +408,51 @@ export function PdfMerger() {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between flex-col sm:flex-row gap-2">
+      <CardFooter className="flex justify-between flex-col sm:flex-row gap-2 p-6">
         {files.length > 0 &&
           !isProcessing &&
           !isUploading &&
           !mergedFileUrl && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                cleanUpPreviews();
-                setFiles([]);
-              }}
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              {t("ui.clear") || "Clear All"}
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  cleanUpPreviews();
+                  setFiles([]);
+                }}
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                {t("ui.clear") || "Clear All"}
+              </Button>
+
+              <Button
+                className="sm:ml-auto"
+                onClick={handleMerge}
+                disabled={files.length < 2 || isProcessing || isUploading}
+              >
+                {isProcessing || isUploading
+                  ? t("ui.processing") || "Merging..."
+                  : t("mergePdf.ui.mergePdfs") || "Merge PDFs"}
+              </Button>
+            </>
           )}
 
-        <Button
-          className={cn(
-            "sm:ml-auto",
-            files.length === 0 && !mergedFileUrl && "w-full"
-          )}
-          onClick={handleMerge}
-          disabled={files.length < 2 || isProcessing || isUploading}
-        >
-          {isProcessing || isUploading
-            ? t("ui.processing") || "Merging..."
-            : t("mergePdf.ui.mergePdfs") || "Merge PDFs"}
-        </Button>
+        {mergedFileUrl && (
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              cleanUpPreviews();
+              setFiles([]);
+              setMergedFileUrl(null);
+              setError(null);
+              setProgress(0);
+            }}
+          >
+            {t("ui.startOver") || "Start Over"}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

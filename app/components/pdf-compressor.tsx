@@ -321,7 +321,6 @@ export function MultiPdfCompressor() {
             />
             <FileDropzone
               multiple={true}
-              maxFiles={100}
               disabled={isProcessing}
               onFileAccepted={(acceptedFiles) => {
                 setFiles((prev) => {

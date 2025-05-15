@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,14 +22,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  FileIcon,
-  Cross2Icon,
-  CheckCircledIcon,
-  UploadIcon,
-  DownloadIcon,
-} from "@radix-ui/react-icons";
-import { AlertCircle, FileTextIcon, Loader2 } from "lucide-react";
+import { CheckCircledIcon, DownloadIcon } from "@radix-ui/react-icons";
+import { AlertCircle, FileTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,7 +31,8 @@ import { z } from "zod";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import useFileUpload from "@/hooks/useFileUpload";
-//import { useAnonymousUsage } from "@/hooks/use-anonymous-usage";
+import { FileDropzone } from "@/components/dropzone";
+
 // Form schema
 const formSchema = z.object({
   splitMethod: z.enum(["range", "extract", "every"]).default("range"),
@@ -87,7 +81,7 @@ export function PdfSplitter() {
   const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState<number>(0);
-  // const { UsageWarningComponent, isLimitReached } = useAnonymousUsage();
+
   // For large job status polling
   const [jobId, setJobId] = useState<string | null>(null);
   const [statusUrl, setStatusUrl] = useState<string | null>(null);
@@ -114,44 +108,6 @@ export function PdfSplitter() {
   // Watch fields for conditional rendering
   const splitMethod = form.watch("splitMethod");
 
-  // Setup dropzone
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      "application/pdf": [".pdf"],
-    },
-    maxSize: 100 * 1024 * 1024, // 100MB
-    maxFiles: 1,
-    onDrop: (acceptedFiles, rejectedFiles) => {
-      if (rejectedFiles.length > 0) {
-        const rejection = rejectedFiles[0];
-        if (rejection.file.size > 100 * 1024 * 1024) {
-          setError(t("fileUploader.maxSize"));
-        } else {
-          setError(t("fileUploader.inputFormat"));
-        }
-        return;
-      }
-
-      if (acceptedFiles.length > 0) {
-        const newFile = acceptedFiles[0];
-        setFile(newFile);
-        setSplitResult(null);
-        setError(null);
-        setJobId(null);
-        setStatusUrl(null);
-        setIsPolling(false);
-        resetUpload();
-        // Estimate number of pages based on file size for better UX
-        const fileSizeInMB = newFile.size / (1024 * 1024);
-        const estimatedPages = Math.max(1, Math.round(fileSizeInMB * 10));
-        setTotalPages(estimatedPages);
-
-        // Examine file to get actual page count
-        examineFile(newFile);
-      }
-    },
-  });
-
   // Function to examine PDF and get page count
   const examineFile = async (file: File) => {
     const formData = new FormData();
@@ -174,14 +130,25 @@ export function PdfSplitter() {
     }
   };
 
-  // Format file size for display
-  const formatFileSize = (sizeInBytes: number): string => {
-    if (sizeInBytes < 1024) {
-      return `${sizeInBytes} B`;
-    } else if (sizeInBytes < 1024 * 1024) {
-      return `${(sizeInBytes / 1024).toFixed(2)} KB`;
-    } else {
-      return `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
+  // Handle file acceptance from FileDropzone
+  const handleFileAccepted = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const newFile = acceptedFiles[0];
+      setFile(newFile);
+      setSplitResult(null);
+      setError(null);
+      setJobId(null);
+      setStatusUrl(null);
+      setIsPolling(false);
+      resetUpload();
+
+      // Estimate number of pages based on file size for better UX
+      const fileSizeInMB = newFile.size / (1024 * 1024);
+      const estimatedPages = Math.max(1, Math.round(fileSizeInMB * 10));
+      setTotalPages(estimatedPages);
+
+      // Examine file to get actual page count
+      examineFile(newFile);
     }
   };
 
@@ -319,19 +286,7 @@ export function PdfSplitter() {
           toast.info(t("splitPdf.largeSplitStarted"), {
             description: t("splitPdf.largeSplitDesc"),
           });
-        }
-        // else if (isLimitReached) {
-        //   toast.error("Usage limit reached", {
-        //     description: "Please sign in to continue using our PDF tools",
-        //   });
-
-        //   // Redirect to login
-        //   window.location.href =
-        //     "/login?limitReached=true&returnUrl=" +
-        //     encodeURIComponent(window.location.pathname);
-        //   return;
-        // }
-        else {
+        } else {
           // Small job: immediate result
           setProgress(100);
           setSplitResult(data);
@@ -389,74 +344,46 @@ export function PdfSplitter() {
             <CardDescription>{t("splitPdf.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* File Drop Zone */}
-            <div
-              {...getRootProps()}
-              className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
-                isDragActive
-                  ? "border-primary bg-primary/10"
-                  : file
-                  ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-                  : "border-muted-foreground/25 hover:border-muted-foreground/50",
-                (isUploading || isProcessing) &&
-                  "pointer-events-none opacity-80"
-              )}
-            >
-              <input
-                {...getInputProps()}
-                disabled={isUploading || isProcessing}
+            {/* File Drop Zone with FileDropzone component */}
+            {!splitResult && (
+              <FileDropzone
+                multiple={false}
+                acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+                disabled={isUploading || isProcessing || isPolling}
+                maxFiles={1}
+                onFileAccepted={handleFileAccepted}
+                value={file}
+                onRemove={handleRemoveFile}
+                title={
+                  t("fileUploader.dragAndDrop") || "Drag & drop your PDF file"
+                }
+                description={`${
+                  t("fileUploader.dropHereDesc") ||
+                  "Drop your PDF file here or click to browse."
+                } ${t("fileUploader.maxSize") || "Maximum size is 100MB."}`}
+                browseButtonText={t("fileUploader.browse") || "Browse Files"}
+                browseButtonVariant="default"
+                securityText={
+                  t("fileUploader.filesSecurity") ||
+                  "Your files are processed securely."
+                }
+                renderFilePreview={(file) => (
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+                      <FileTextIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {totalPages > 0
+                          ? `${totalPages} ${t("removePdf.page")}`
+                          : ""}
+                      </p>
+                    </div>
+                  </div>
+                )}
               />
-
-              {file ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                    <FileIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(file.size)} • {totalPages}{" "}
-                      {t("splitPdf.pages")}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={isUploading || isProcessing}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFile();
-                    }}
-                  >
-                    <Cross2Icon className="h-4 w-4 mr-1" /> {t("ui.remove")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                    <UploadIcon className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <div className="text-lg font-medium">
-                    {isDragActive
-                      ? t("fileUploader.dropHere")
-                      : t("fileUploader.dragAndDrop")}
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-sm">
-                    {t("fileUploader.dropHereDesc")} {t("fileUploader.maxSize")}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="mt-2"
-                  >
-                    {t("fileUploader.browse")}
-                  </Button>
-                </div>
-              )}
-            </div>
+            )}
 
             {/* Split Options */}
             {file && !splitResult && (
@@ -578,7 +505,6 @@ export function PdfSplitter() {
                 <AlertDescription>uploadError</AlertDescription>
               </Alert>
             )}
-
             {/* Progress Indicator */}
             {(isUploading || isProcessing || isPolling) && (
               <UploadProgress
@@ -664,7 +590,7 @@ export function PdfSplitter() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-end gap-2">
             {file &&
               !splitResult &&
               !isUploading &&

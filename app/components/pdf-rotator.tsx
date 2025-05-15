@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   ArrowRight,
-  Upload,
   Download,
   RotateCw,
   RotateCcw,
@@ -37,6 +36,7 @@ import {
 } from "lucide-react";
 import useFileUpload from "@/hooks/useFileUpload";
 import { UploadProgress } from "./ui/upload-progress";
+import { FileDropzone } from "@/components/dropzone";
 
 // Initialize pdf.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
@@ -62,9 +62,8 @@ export function PdfRotator() {
   const [isPagesLoading, setIsPagesLoading] = useState<boolean>(false);
   const [pageFormat, setPageFormat] = useState<string>("all");
   const [customRange, setCustomRange] = useState<string>("");
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [showPageSelector, setShowPageSelector] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const {
     isUploading,
     progress: uploadProgress,
@@ -73,6 +72,7 @@ export function PdfRotator() {
     resetUpload,
     uploadStats,
   } = useFileUpload();
+
   useEffect(() => {
     return () => {
       // Clean up the object URL when component unmounts
@@ -81,39 +81,6 @@ export function PdfRotator() {
       }
     };
   }, [fileUrl]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const selectedFile = files[0];
-    if (selectedFile.type !== "application/pdf") {
-      toast.error(
-        t("rotatePdf.errors.invalidType") || "Please select a valid PDF file"
-      );
-      return;
-    }
-
-    processSelectedFile(selectedFile);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragOver(false);
-
-    const files = event.dataTransfer.files;
-    if (!files || files.length === 0) return;
-
-    const droppedFile = files[0];
-    if (droppedFile.type !== "application/pdf") {
-      toast.error(
-        t("rotatePdf.errors.invalidType") || "Please select a valid PDF file"
-      );
-      return;
-    }
-
-    processSelectedFile(droppedFile);
-  };
 
   const processSelectedFile = (selectedFile: File) => {
     setFile(selectedFile);
@@ -286,10 +253,6 @@ export function PdfRotator() {
     setCurrentPage(1);
     setProcessedFileUrl("");
     setProgress(0);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handlePageFormatChange = (format: string) => {
@@ -355,6 +318,14 @@ export function PdfRotator() {
     }
 
     setSelectedPages(newSelectedPages.sort((a, b) => a - b));
+  };
+
+  // Handle file accepted from FileDropzone
+  const handleFileAccepted = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const selectedFile = acceptedFiles[0];
+      processSelectedFile(selectedFile);
+    }
   };
 
   const renderPageSelector = () => (
@@ -454,53 +425,6 @@ export function PdfRotator() {
           ))
         )}
       </div>
-    </div>
-  );
-
-  const renderUploadSection = () => (
-    <div
-      className={cn(
-        "border-2 border-dashed rounded-lg p-12 text-center transition-colors",
-        isDragOver
-          ? "border-primary bg-primary/5"
-          : "border-muted-foreground/20"
-      )}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={handleDrop}
-    >
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept=".pdf"
-        onChange={handleFileChange}
-      />
-      <div className="mb-6 p-4 rounded-full bg-primary/10 mx-auto w-20 h-20 flex items-center justify-center">
-        <Upload className="h-10 w-10 text-primary" />
-      </div>
-      <h3 className="text-2xl font-semibold mb-3">
-        {t("rotatePdf.form.uploadTitle") || "Upload PDF to Rotate"}
-      </h3>
-      <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-        {t("rotatePdf.form.uploadDesc") ||
-          "Upload your PDF file to rotate pages. You can rotate individual pages or apply rotation to multiple pages at once."}
-      </p>
-      <Button
-        size="lg"
-        className="px-8"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {t("ui.browse") || "Browse Files"}
-      </Button>
-      <p className="mt-6 text-sm text-muted-foreground">
-        {t("ui.filesSecurity") ||
-          "Your files are processed securely. All uploads are automatically deleted after processing."}
-      </p>
     </div>
   );
 
@@ -678,7 +602,7 @@ export function PdfRotator() {
                           htmlFor={`select-page-${currentPage}`}
                           className="text-xs"
                         >
-                          {t("rotatePdf.form.selectThisPage") || "Select"}
+                          {t("rotatePdf.form.selectPages") || "Select"}
                         </Label>
                       </div>
                     </div>
@@ -726,7 +650,9 @@ export function PdfRotator() {
           processingProgress={progress}
           error={uploadError}
           label={
-            isUploading ? t("watermarkPdf.uploading") : t("splitPdf.splitting")
+            isUploading
+              ? t("watermarkPdf.uploading") || "Uploading..."
+              : t("rotatePdf.processing") || "Processing PDF..."
           }
           uploadStats={uploadStats}
         />
@@ -761,7 +687,26 @@ export function PdfRotator() {
       </CardHeader>
 
       <CardContent>
-        {!file && renderUploadSection()}
+        {!file && (
+          <FileDropzone
+            multiple={false}
+            acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+            disabled={isProcessing || isUploading}
+            maxFiles={1}
+            onFileAccepted={handleFileAccepted}
+            title={t("rotatePdf.form.uploadTitle") || "Upload PDF to Rotate"}
+            description={
+              t("rotatePdf.form.uploadDesc") ||
+              "Upload your PDF file to rotate pages. You can rotate individual pages or apply rotation to multiple pages at once."
+            }
+            browseButtonText={t("ui.browse") || "Browse Files"}
+            browseButtonVariant="default"
+            securityText={
+              t("ui.filesSecurity") ||
+              "Your files are processed securely. All uploads are automatically deleted after processing."
+            }
+          />
+        )}
         {file && isProcessing && renderProcessingSection()}
         {file && !isProcessing && processedFileUrl && renderSuccessSection()}
         {file && !isProcessing && !processedFileUrl && renderEditorSection()}

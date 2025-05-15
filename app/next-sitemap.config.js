@@ -144,8 +144,7 @@ module.exports = {
             path.includes('/sign-pdf') ||
             path.includes('/repair-pdf') ||
             path.includes('/page-numbers-pdf') ||
-            path.includes('/remove-pdf-page') ||
-            path.includes('/ask-pdf')
+            path.includes('/remove-pdf-page') 
         ) {
             defaultConfig.priority = 0.8;
         }

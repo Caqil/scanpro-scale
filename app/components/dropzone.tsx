@@ -12,6 +12,11 @@ import {
   AlertCircle,
   X as XIcon,
 } from "lucide-react";
+import {
+  MAX_FILE_SIZE,
+  formatFileSize,
+  getFileTooLargeMessage,
+} from "@/lib/file-size-config";
 
 export interface FileDropzoneProps {
   className?: string;
@@ -34,7 +39,7 @@ export interface FileDropzoneProps {
 export function FileDropzone({
   className,
   multiple = false,
-  maxSize = 100 * 1024 * 1024, // Default 100MB
+  maxSize = MAX_FILE_SIZE, // Now using global 50MB limit by default
   acceptedFileTypes = { "application/pdf": [".pdf"] },
   disabled = false,
   maxFiles = 1,
@@ -52,17 +57,6 @@ export function FileDropzone({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Format file size for display
-  const formatFileSize = (sizeInBytes: number): string => {
-    if (sizeInBytes < 1024) {
-      return `${sizeInBytes} B`;
-    } else if (sizeInBytes < 1024 * 1024) {
-      return `${(sizeInBytes / 1024).toFixed(2)} KB`;
-    } else {
-      return `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
-    }
-  };
-
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
       setError(null);
@@ -70,13 +64,14 @@ export function FileDropzone({
       if (rejectedFiles.length > 0) {
         const rejection = rejectedFiles[0];
         if (rejection.file.size > maxSize) {
-          setError(
-            `File is too large. Maximum size is ${formatFileSize(maxSize)}.`
-          );
-          toast.error(`File is too large. Maximum size is ${formatFileSize(maxSize)}.`);
+          const errorMsg = getFileTooLargeMessage();
+          setError(errorMsg);
+          toast.error(errorMsg);
         } else if (rejection.errors[0]?.code === "file-invalid-type") {
           setError("Invalid file type. Please upload a supported file type.");
-          toast.error("Invalid file type. Please upload a supported file type.");
+          toast.error(
+            "Invalid file type. Please upload a supported file type."
+          );
         } else {
           setError("File could not be processed. Please try again.");
           toast.error("File could not be processed. Please try again.");
@@ -145,7 +140,9 @@ export function FileDropzone({
             <h3 className="text-xl font-semibold">
               {isDragActive ? "Drop files here" : title}
             </h3>
-            <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              {description}
+            </p>
 
             <Button
               type="button"
@@ -160,7 +157,7 @@ export function FileDropzone({
             >
               {browseButtonText}
             </Button>
-            
+
             {securityText && (
               <p className="mt-4 text-xs text-muted-foreground">
                 {securityText}
@@ -174,11 +171,15 @@ export function FileDropzone({
             {Array.isArray(value) ? (
               <div className="space-y-2">
                 <div className="text-sm font-medium">
-                  {value.length} {value.length === 1 ? "file" : "files"} selected
+                  {value.length} {value.length === 1 ? "file" : "files"}{" "}
+                  selected
                 </div>
                 <div className="space-y-2">
                   {value.map((file, index) => (
-                    <div key={`${file.name}-${index}`} className="flex items-center justify-between">
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between"
+                    >
                       {renderFile(file)}
                     </div>
                   ))}

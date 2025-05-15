@@ -110,7 +110,7 @@ export function PdfTools() {
         },
         {
           id: "pdf-to-html",
-          name: t("popular.pdfToPng"),
+          name: t("popular.pdfToHtml"),
           description: t("toolDescriptions.pdfToHtml"),
           icon: <LayoutIcon className="h-6 w-6 text-amber-500" />,
           iconBg: "bg-amber-100 dark:bg-amber-900/30",

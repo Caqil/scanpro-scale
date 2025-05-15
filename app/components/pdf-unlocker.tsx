@@ -149,7 +149,6 @@ export function PdfUnlocker() {
             {/* File Drop Zone */}
             <FileDropzone
               multiple={false}
-              maxSize={100 * 1024 * 1024} // 100MB
               maxFiles={1}
               acceptedFileTypes={{ "application/pdf": [".pdf"] }}
               disabled={isProcessing}
@@ -247,7 +246,7 @@ export function PdfUnlocker() {
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder={t("unlockPdf.enterPassword")}
+                          placeholder={t("auth.passwordRequired")}
                           {...field}
                           disabled={isProcessing}
                         />
@@ -328,7 +327,7 @@ export function PdfUnlocker() {
               <Button type="submit" disabled={isProcessing}>
                 {isProcessing
                   ? t("ui.processing") || "Processing..."
-                  : t("unlockPdf.title") || "Unlock PDF"}
+                  : t("popular.unlockPdf") || "Unlock PDF"}
               </Button>
             )}
           </CardFooter>

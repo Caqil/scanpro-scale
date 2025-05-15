@@ -253,24 +253,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           icon: <FileCheck2 className="h-5 w-5 text-blue-500" />,
           description: t("popular.ocrDesc"),
         },
-        {
-          name: t("ocrPdf.title"),
-          href: "/ask-pdf",
-          icon: <ScanEyeIcon className="h-5 w-5 text-blue-500" />,
-          description: t("pdfChat.description"),
-        },
-      ],
-    },
-    {
-      category: "AI PDF",
-      description: "AI PDF",
-      tools: [
-        {
-          name: t("pdfChat.title"),
-          href: "/ask-pdf",
-          icon: <ChatBubbleIcon className="h-5 w-5 text-blue-500" />,
-          description: t("pdfChat.description"),
-        },
       ],
     },
   ];
@@ -300,12 +282,7 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           (isClient ? t("pdfTools.categories.pdfSecurity") : "PDF Security")
       ),
     },
-    {
-      label: "AI PDF",
-      dropdown: PDF_TOOLS.filter(
-        (cat) => cat.category === (isClient ? "AI PDF" : "AI PDF")
-      ),
-    },
+   
   ];
 
   return (

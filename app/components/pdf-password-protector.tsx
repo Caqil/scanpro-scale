@@ -181,7 +181,6 @@ export function PdfPasswordProtector() {
             {/* File Drop Zone */}
             <FileDropzone
               multiple={false}
-              maxSize={100 * 1024 * 1024} // 100MB
               maxFiles={1}
               acceptedFileTypes={{ "application/pdf": [".pdf"] }}
               disabled={isProcessing}
