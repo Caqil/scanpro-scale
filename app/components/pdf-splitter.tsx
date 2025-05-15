@@ -38,7 +38,7 @@ import { z } from "zod";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import useFileUpload from "@/hooks/useFileUpload";
-
+//import { useAnonymousUsage } from "@/hooks/use-anonymous-usage";
 // Form schema
 const formSchema = z.object({
   splitMethod: z.enum(["range", "extract", "every"]).default("range"),
@@ -87,7 +87,7 @@ export function PdfSplitter() {
   const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState<number>(0);
-
+  // const { UsageWarningComponent, isLimitReached } = useAnonymousUsage();
   // For large job status polling
   const [jobId, setJobId] = useState<string | null>(null);
   const [statusUrl, setStatusUrl] = useState<string | null>(null);
@@ -319,14 +319,29 @@ export function PdfSplitter() {
           toast.info(t("splitPdf.largeSplitStarted"), {
             description: t("splitPdf.largeSplitDesc"),
           });
-        } else {
+        }
+        // else if (isLimitReached) {
+        //   toast.error("Usage limit reached", {
+        //     description: "Please sign in to continue using our PDF tools",
+        //   });
+
+        //   // Redirect to login
+        //   window.location.href =
+        //     "/login?limitReached=true&returnUrl=" +
+        //     encodeURIComponent(window.location.pathname);
+        //   return;
+        // }
+        else {
           // Small job: immediate result
           setProgress(100);
           setSplitResult(data);
           setIsProcessing(false);
 
-          toast.success(t("splitPdf.success"), {
-            description: t("splitPdf.successDesc"),
+          toast.success(t("splitPdf.splitSuccess"), {
+            description: t("splitPdf.splitSuccessDesc").replace(
+              "{count}",
+              getPartsCount(data).toString()
+            ),
           });
         }
       },
@@ -572,7 +587,7 @@ export function PdfSplitter() {
                 isProcessing={isProcessing || isPolling}
                 label={
                   isUploading
-                    ? t("splitPdf.uploading")
+                    ? t("ocr.uploading")
                     : isPolling
                     ? t("splitPdf.splittingLarge")
                     : t("splitPdf.splitting")

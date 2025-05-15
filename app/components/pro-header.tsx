@@ -41,6 +41,8 @@ import { LanguageLink } from "./language-link";
 import { LanguageSwitcher } from "./language-switcher";
 import { useSession } from "next-auth/react";
 import { LogoutButton } from "./auth/logout-button";
+import { LineShadowText } from "@/src/components/magicui/line-shadow-text";
+import { useTheme } from "next-themes";
 type ToolDefinition = {
   name: string;
   href: string;
@@ -66,12 +68,14 @@ interface ProHeaderProps {
 }
 
 export function ProHeader({ urlLanguage }: ProHeaderProps) {
+  const theme = useTheme();
   const { language, setLanguage, t } = useLanguageStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showAppBanner, setShowAppBanner] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const { data: session } = useSession();
+  const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   useEffect(() => {
     setIsClient(true);
     if (urlLanguage && urlLanguage !== language) {
@@ -317,8 +321,10 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           <div className="flex items-center gap-2">
             <LanguageLink href="/" className="flex items-center gap-2">
               <span className="font-bold text-xl flex items-center gap-1">
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  MegaPDF
+                <span className="text-balance text-3xl font-semibold leading-none tracking-tighter sm:text-4xl md:text-4xl lg:text-2xl">
+                  <LineShadowText className="italic" shadowColor={shadowColor}>
+                    MegaPDF
+                  </LineShadowText>
                 </span>
               </span>
             </LanguageLink>
