@@ -115,7 +115,7 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
-    <LanguageLink href="/login" legacyBehavior passHref>
+    <LanguageLink href="/login" passHref>
       <Button variant="default" size="sm">
         Sign in
       </Button>
@@ -282,7 +282,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           (isClient ? t("pdfTools.categories.pdfSecurity") : "PDF Security")
       ),
     },
-   
   ];
 
   return (

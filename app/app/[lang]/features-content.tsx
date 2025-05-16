@@ -604,7 +604,7 @@ export default function FeaturesPageContent() {
             <div className="absolute -top-6 -left-6 bottom-6 right-6 rounded-xl bg-primary/5 transform rotate-3"></div>
             <div className="relative p-2 bg-background border rounded-xl shadow-lg">
               <Image
-                src="/images/ic_icon.png"
+                src="/ic_icon.png"
                 alt="MegaPDF Mobile App"
                 width={500}
                 height={600}

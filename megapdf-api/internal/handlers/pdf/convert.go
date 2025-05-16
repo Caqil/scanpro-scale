@@ -1,256 +1,216 @@
+// internal/handlers/pdf/convert.go
 package pdf
 
 import (
-	"errors"
+	"fmt"
 	"io"
+	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"megapdf-api/internal/middleware"
+	"megapdf-api/internal/services/payment"
+	"megapdf-api/internal/services/pdf"
+
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-// ConvertWithLibreOffice converts a file using LibreOffice
-func (c *Commander) ConvertWithLibreOffice(inputPath, outputPath, format string) error {
-	// Create a temporary directory for the conversion
-	tempDir := filepath.Join(filepath.Dir(inputPath), uuid.New().String())
-	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		return err
+// ConvertHandler handles PDF conversion operations
+type ConvertHandler struct {
+	pdfService     *pdf.ConvertService
+	billingService *payment.BillingService
+	uploadDir      string
+	outputDir      string
+}
+
+// NewConvertHandler creates a new conversion handler
+func NewConvertHandler(pdfService *pdf.ConvertService, billingService *payment.BillingService, uploadDir, outputDir string) *ConvertHandler {
+	return &ConvertHandler{
+		pdfService:     pdfService,
+		billingService: billingService,
+		uploadDir:      uploadDir,
+		outputDir:      outputDir,
 	}
-	defer os.RemoveAll(tempDir)
+}
 
-	// Copy the input file to the temp directory
-	tempInputPath := filepath.Join(tempDir, filepath.Base(inputPath))
-	if err := copyFile(inputPath, tempInputPath); err != nil {
-		return err
-	}
+// Register registers the routes for this handler
+func (h *ConvertHandler) Register(router *gin.RouterGroup) {
+	convertGroup := router.Group("/convert")
+	convertGroup.Use(middleware.APIKey())
+	convertGroup.Use(middleware.CheckOperationEligibility(h.billingService))
 
-	// Handle specific conversions
-	if filepath.Ext(inputPath) == ".pdf" && format == "xlsx" {
-		// PDF to Excel is challenging - try a multi-stage approach
-		return c.convertPdfToExcel(tempInputPath, outputPath, tempDir)
-	}
+	convertGroup.POST("", h.ConvertPDF)
+}
 
-	// Standard LibreOffice conversion
-	result := c.ExecuteLibreOffice(
-		"--headless",
-		"--convert-to", format,
-		"--outdir", tempDir,
-		tempInputPath,
-	)
+// ConvertPDF handles the conversion of a PDF to other formats
+func (h *ConvertHandler) ConvertPDF(c *gin.Context) {
+	// Get the operation ID from the context
+	operation := "convert"
 
-	if !result.Success {
-		// Try alternative approaches based on specific formats
-		if filepath.Ext(inputPath) == ".pdf" {
-			// PDF conversions often need special handling
-			switch format {
-			case "docx":
-				return c.convertPdfToDocx(tempInputPath, outputPath, tempDir)
-			case "pptx":
-				return c.convertPdfToPptx(tempInputPath, outputPath, tempDir)
-			}
-		}
-
-		return errors.New("libreoffice conversion failed: " + result.Stderr)
+	// Parse multipart form
+	if err := c.Request.ParseMultipartForm(32 << 20); err != nil { // 32 MB max
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Failed to parse form",
+			"success": false,
+		})
+		return
 	}
 
-	// Find the generated file
-	files, err := filepath.Glob(filepath.Join(tempDir, "*."+format))
+	// Get uploaded file
+	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		return err
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "No file provided",
+			"success": false,
+		})
+		return
+	}
+	defer file.Close()
+
+	// Get target format from form
+	format := c.PostForm("format")
+	if format == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Target format is required",
+			"success": false,
+		})
+		return
 	}
 
-	if len(files) == 0 {
-		return errors.New("conversion did not produce the expected output file")
-	}
-
-	// Copy the converted file to the output path
-	if err := copyFile(files[0], outputPath); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// convertPdfToExcel handles PDF to Excel conversion with multiple strategies
-func (c *Commander) convertPdfToExcel(inputPath, outputPath, tempDir string) error {
-	// Strategy 1: Try to extract tables to CSV first
-	if c.IsToolAvailable("pdftotext") {
-		csvPath := filepath.Join(tempDir, "extracted.csv")
-		cmd := exec.Command("pdftotext", "-table", "-csv", inputPath, csvPath)
-
-		if err := cmd.Run(); err == nil && fileExists(csvPath) {
-			// Convert CSV to XLSX
-			result := c.ExecuteLibreOffice(
-				"--headless",
-				"--convert-to", "xlsx:Calc MS Excel 2007 XML",
-				"--outdir", tempDir,
-				csvPath,
-			)
-
-			if result.Success {
-				xlsxPath := filepath.Join(tempDir, "extracted.xlsx")
-				if fileExists(xlsxPath) {
-					return copyFile(xlsxPath, outputPath)
-				}
-			}
-		}
-	}
-
-	// Strategy 2: Two-step conversion via HTML
-	htmlPath := filepath.Join(tempDir, "intermediate.html")
-	result := c.ExecuteLibreOffice(
-		"--headless",
-		"--convert-to", "html",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		// Find the generated HTML file
-		htmlFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.html"))
-		if len(htmlFiles) > 0 {
-			// Convert HTML to XLSX
-			result := c.ExecuteLibreOffice(
-				"--headless",
-				"--convert-to", "xlsx:Calc MS Excel 2007 XML",
-				"--outdir", tempDir,
-				htmlFiles[0],
-			)
-
-			if result.Success {
-				xlsxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.xlsx"))
-				if len(xlsxFiles) > 0 {
-					return copyFile(xlsxFiles[0], outputPath)
-				}
-			}
-		}
-	}
-
-	// Strategy 3: Direct conversion (often fails but worth trying)
-	result = c.ExecuteLibreOffice(
-		"--headless",
-		"--convert-to", "xlsx",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		xlsxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.xlsx"))
-		if len(xlsxFiles) > 0 {
-			return copyFile(xlsxFiles[0], outputPath)
-		}
-	}
-
-	// If all strategies failed, create a minimal XLSX
-	return createMinimalXLSX(outputPath)
-}
-
-// convertPdfToDocx handles PDF to Word conversion with special filters
-func (c *Commander) convertPdfToDocx(inputPath, outputPath, tempDir string) error {
-	// Try with specific PDF import filter
-	result := c.ExecuteLibreOffice(
-		"--headless",
-		"--infilter=writer_pdf_import",
-		"--convert-to", "docx:MS Word 2007 XML",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		docxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.docx"))
-		if len(docxFiles) > 0 {
-			return copyFile(docxFiles[0], outputPath)
-		}
-	}
-
-	// Fallback to generic conversion
-	result = c.ExecuteLibreOffice(
-		"--headless",
-		"--convert-to", "docx",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		docxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.docx"))
-		if len(docxFiles) > 0 {
-			return copyFile(docxFiles[0], outputPath)
-		}
-	}
-
-	return errors.New("failed to convert PDF to DOCX")
-}
-
-// convertPdfToPptx handles PDF to PowerPoint conversion with special filters
-func (c *Commander) convertPdfToPptx(inputPath, outputPath, tempDir string) error {
-	// Try with specific PDF import filter
-	result := c.ExecuteLibreOffice(
-		"--headless",
-		"--infilter=impress_pdf_import",
-		"--convert-to", "pptx:Impress MS PowerPoint 2007 XML",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		pptxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.pptx"))
-		if len(pptxFiles) > 0 {
-			return copyFile(pptxFiles[0], outputPath)
-		}
-	}
-
-	// Fallback to generic conversion
-	result = c.ExecuteLibreOffice(
-		"--headless",
-		"--convert-to", "pptx",
-		"--outdir", tempDir,
-		inputPath,
-	)
-
-	if result.Success {
-		pptxFiles, _ := filepath.Glob(filepath.Join(tempDir, "*.pptx"))
-		if len(pptxFiles) > 0 {
-			return copyFile(pptxFiles[0], outputPath)
-		}
-	}
-
-	return errors.New("failed to convert PDF to PPTX")
-}
-
-// Helper function to create a minimal XLSX
-func createMinimalXLSX(outputPath string) error {
-	// This is just a placeholder - would need a library like excelize in a real implementation
-	return errors.New("creating minimal XLSX not implemented")
-}
-
-// Helper function to copy a file
-func copyFile(src, dst string) error {
-	source, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destination.Close()
-
-	_, err = io.Copy(destination, source)
-	return err
-}
-
-// Helper function to check if a file exists
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
-}
-
-// Helper function to check if a format is an image format
-func isImageFormat(format string) bool {
+	// Normalize and validate format
 	format = strings.ToLower(format)
-	return format == "jpg" || format == "jpeg" || format == "png" || format == "gif" || format == "tiff"
+	supportedFormats := map[string]bool{
+		"jpg": true, "jpeg": true, "png": true, "tiff": true,
+		"docx": true, "xlsx": true, "pptx": true, "txt": true,
+		"html": true, "md": true, "epub": true, "odt": true,
+	}
+
+	if !supportedFormats[format] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Unsupported target format",
+			"success": false,
+		})
+		return
+	}
+
+	// Verify file is a PDF if converting from PDF
+	fileExt := strings.ToLower(filepath.Ext(header.Filename))
+	isPDF := fileExt == ".pdf"
+
+	if !isPDF {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Only PDF files can be converted",
+			"success": false,
+		})
+		return
+	}
+
+	// Create session ID and file paths
+	sessionID := uuid.New().String()
+	inputPath := filepath.Join(h.uploadDir, fmt.Sprintf("%s-input%s", sessionID, fileExt))
+
+	// Determine output extension based on format
+	var outputExt string
+	switch format {
+	case "jpg", "jpeg":
+		outputExt = ".jpg"
+	case "md":
+		outputExt = ".md"
+	default:
+		outputExt = "." + format
+	}
+
+	outputPath := filepath.Join(h.outputDir, fmt.Sprintf("%s-converted%s", sessionID, outputExt))
+
+	// Save the uploaded file
+	inputFile, err := os.Create(inputPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to save uploaded file",
+			"success": false,
+		})
+		return
+	}
+	defer inputFile.Close()
+
+	// Copy the uploaded file content
+	if _, err := io.Copy(inputFile, file); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to save uploaded file",
+			"success": false,
+		})
+		return
+	}
+
+	// Close input file to ensure it's flushed to disk
+	inputFile.Close()
+
+	// Get additional options
+	dpi := c.DefaultPostForm("dpi", "300")
+	quality := c.DefaultPostForm("quality", "high")
+
+	// Configure conversion options
+	conversionOptions := pdf.ConversionOptions{
+		Format:  format,
+		DPI:     dpi,
+		Quality: quality,
+	}
+
+	// Perform conversion
+	result, err := h.pdfService.ConvertPDF(c, inputPath, outputPath, conversionOptions)
+
+	// Clean up input file
+	os.Remove(inputPath)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   fmt.Sprintf("Conversion failed: %v", err),
+			"success": false,
+		})
+		return
+	}
+
+	// Charge for the operation
+	userID, exists := c.Get("userID")
+	if exists && userID != nil {
+		opResult, err := h.billingService.ProcessOperation(c, userID.(string), operation)
+		if err != nil {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error":   "Failed to process operation charge",
+				"success": false,
+			})
+			return
+		}
+
+		// Create response with billing details
+		c.JSON(http.StatusOK, gin.H{
+			"success":      true,
+			"message":      fmt.Sprintf("Conversion to %s successful", strings.ToUpper(format)),
+			"fileUrl":      result.FileURL,
+			"filename":     filepath.Base(result.FilePath),
+			"originalName": header.Filename,
+			"format":       format,
+			"pages":        result.Pages,
+			"billing": gin.H{
+				"usedFreeOperation":       opResult.UsedFreeOperation,
+				"freeOperationsRemaining": opResult.FreeOperationsRemaining,
+				"currentBalance":          opResult.CurrentBalance,
+				"operationCost":           payment.OperationCost,
+			},
+		})
+		return
+	}
+
+	// Response without billing info if no user ID
+	c.JSON(http.StatusOK, gin.H{
+		"success":      true,
+		"message":      fmt.Sprintf("Conversion to %s successful", strings.ToUpper(format)),
+		"fileUrl":      result.FileURL,
+		"filename":     filepath.Base(result.FilePath),
+		"originalName": header.Filename,
+		"format":       format,
+		"pages":        result.Pages,
+	})
 }

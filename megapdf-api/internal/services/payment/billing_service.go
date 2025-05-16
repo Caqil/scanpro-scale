@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"megapdf-api/internal/config"
-	"megapdf-api/internal/database"
 	"megapdf-api/internal/models"
 
 	"github.com/google/uuid"
