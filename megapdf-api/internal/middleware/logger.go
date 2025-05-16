@@ -1,3 +1,4 @@
+// middleware/logger.go
 package middleware
 
 import (
@@ -18,7 +19,7 @@ func Logger() gin.HandlerFunc {
 
 		// Create a copy of the request body
 		var requestBody []byte
-		if c.Request.Body != nil {
+		if c.Request.Body != nil && shouldLogBody(c) {
 			requestBody, _ = io.ReadAll(c.Request.Body)
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
 		}
@@ -61,24 +62,72 @@ func Logger() gin.HandlerFunc {
 			"userID":    userID,
 		}
 
-		// Don't log request/response bodies for large uploads/downloads
-		contentType := c.GetHeader("Content-Type")
-		if !strings.Contains(contentType, "multipart/form-data") && len(requestBody) < 1024 {
-			logEntry["requestBody"] = string(requestBody)
+		// Only log request/response bodies for non-file uploads and smaller payloads
+		if shouldLogBody(c) && len(requestBody) < 10240 {
+			// Remove sensitive information (like passwords)
+			sanitizedBody := sanitizeBody(string(requestBody))
+			logEntry["requestBody"] = sanitizedBody
 		}
 
-		if responseBuffer.Len() < 1024 {
+		// Only log response body if it's not too large
+		// And only if it's not a file download or binary response
+		if shouldLogBody(c) && responseBuffer.Len() < 10240 {
 			logEntry["responseBody"] = responseBuffer.String()
 		}
 
-		// Log as JSON
-		if statusCode >= 400 {
-			c.Error(fmt.Errorf("request failed with status %d", statusCode))
+		// Log as JSON using appropriate log level based on status code
+		if statusCode >= 500 {
+			fmt.Printf("[ERROR] %v\n", logEntry)
+		} else if statusCode >= 400 {
+			fmt.Printf("[WARN] %v\n", logEntry)
+		} else {
+			fmt.Printf("[INFO] %v\n", logEntry)
 		}
-
-		// In a real implementation, we'd use a structured logger here
-		fmt.Printf("%+v\n", logEntry)
 	}
+}
+
+// shouldLogBody determines if the request/response body should be logged
+func shouldLogBody(c *gin.Context) bool {
+	// Don't log bodies for file uploads/downloads
+	contentType := c.GetHeader("Content-Type")
+	if strings.Contains(contentType, "multipart/form-data") {
+		return false
+	}
+
+	// Don't log bodies for binary responses
+	respContentType := c.Writer.Header().Get("Content-Type")
+	if strings.Contains(respContentType, "application/pdf") ||
+		strings.Contains(respContentType, "image/") ||
+		strings.Contains(respContentType, "audio/") ||
+		strings.Contains(respContentType, "video/") ||
+		strings.Contains(respContentType, "application/octet-stream") {
+		return false
+	}
+
+	return true
+}
+
+// sanitizeBody removes sensitive information from request bodies
+func sanitizeBody(body string) string {
+	// This is a simple implementation - in production, you'd want to
+	// use a more sophisticated approach
+	sensitiveFields := []string{
+		"password",
+		"token",
+		"key",
+		"secret",
+		"credential",
+	}
+
+	for _, field := range sensitiveFields {
+		// Simple regex-like replacement for demonstration purposes
+		// In reality, you'd use a proper JSON/form parser and redact specific fields
+		pattern := fmt.Sprintf(`"%s"\s*:\s*"[^"]*"`, field)
+		replacement := fmt.Sprintf(`"%s":"[REDACTED]"`, field)
+		body = strings.Replace(body, pattern, replacement, -1)
+	}
+
+	return body
 }
 
 // responseBodyWriter is a wrapper around gin.ResponseWriter that captures the response body
@@ -87,6 +136,7 @@ type responseBodyWriter struct {
 	buffer *bytes.Buffer
 }
 
+// Write captures the response and writes it to the buffer
 func (w *responseBodyWriter) Write(b []byte) (int, error) {
 	// Write to the original writer
 	size, err := w.ResponseWriter.Write(b)

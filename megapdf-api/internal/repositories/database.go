@@ -1,9 +1,11 @@
+// internal/repositories/database.go
 package repositories
 
 import (
 	"fmt"
-	"megapdf-api/internal/config"
 	"sync"
+
+	"megapdf-api/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,8 +27,18 @@ func InitDatabase(cfg config.DatabaseConfig) (*gorm.DB, error) {
 			cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode,
 		)
 
+		// Configure the logger based on environment
+		logLevel := logger.Silent
+		if cfg.LogLevel == "info" {
+			logLevel = logger.Info
+		} else if cfg.LogLevel == "warn" {
+			logLevel = logger.Warn
+		} else if cfg.LogLevel == "error" {
+			logLevel = logger.Error
+		}
+
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
+			Logger: logger.Default.LogMode(logLevel),
 		})
 	})
 

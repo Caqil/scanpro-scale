@@ -6,8 +6,6 @@ import (
 	"runtime"
 	"time"
 
-	"megapdf-api/internal/middleware"
-	"megapdf-api/internal/models"
 	"megapdf-api/internal/repositories"
 
 	"github.com/gin-gonic/gin"

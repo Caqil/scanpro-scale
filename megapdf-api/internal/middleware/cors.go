@@ -9,14 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CORS returns a middleware for handling CORS
-func CORS(cfg *config.Config) gin.HandlerFunc {
+// CORS returns a middleware for handling Cross-Origin Resource Sharing
+func CORS(config *config.Config) gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowOrigins:     cfg.CORS.AllowOrigins,
-		AllowMethods:     cfg.CORS.AllowMethods,
-		AllowHeaders:     cfg.CORS.AllowHeaders,
-		ExposeHeaders:    cfg.CORS.ExposeHeaders,
-		AllowCredentials: cfg.CORS.AllowCredentials,
-		MaxAge:           12 * time.Hour,
+		AllowOrigins:     config.CORS.AllowOrigins,
+		AllowMethods:     config.CORS.AllowMethods,
+		AllowHeaders:     config.CORS.AllowHeaders,
+		ExposeHeaders:    config.CORS.ExposeHeaders,
+		AllowCredentials: config.CORS.AllowCredentials,
+		MaxAge:           time.Duration(config.CORS.MaxAge) * time.Hour,
 	})
 }

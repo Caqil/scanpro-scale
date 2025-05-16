@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"megapdf-api/internal/middleware"
-	"megapdf-api/internal/models"
 	"megapdf-api/internal/services/auth"
 
 	"github.com/gin-gonic/gin"
