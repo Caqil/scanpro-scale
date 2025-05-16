@@ -32,7 +32,7 @@ Before deploying ScanPro, ensure you have:
 ```
 scanpro-k8s/
 ├── manifests/            # Kubernetes configuration files
-│   ├── namespace.yaml    # ScanPro namespace definition
+│   ├── namespace.yaml    # MegapDF namespace definition
 │   ├── storage/          # Storage configuration
 │   ├── database/         # Database deployments and services
 │   ├── backend/          # ScanPro backend configuration
