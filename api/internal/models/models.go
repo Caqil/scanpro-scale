@@ -110,3 +110,13 @@ type VerificationToken struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
+
+type PaymentWebhookEvent struct {
+	ID           string `gorm:"primaryKey;type:varchar(100)"`
+	EventId      string
+	EventType    string
+	ResourceType string
+	ResourceId   string
+	RawData      string `gorm:"type:text"`
+	CreatedAt    time.Time
+}

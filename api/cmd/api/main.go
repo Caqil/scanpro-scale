@@ -1,17 +1,15 @@
-// api/cmd/api/main.go
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
-	_ "github.com/Caqil/megapdf-api/cmd/api/docs"
 	"github.com/Caqil/megapdf-api/internal/config"
+	"github.com/Caqil/megapdf-api/internal/db" // Add this import
 	"github.com/Caqil/megapdf-api/internal/routes"
 	"github.com/gin-gonic/gin"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "github.com/swaggo/swag"
+	"github.com/joho/godotenv"
 )
 
 // @title MegaPDF API
@@ -27,37 +25,63 @@ import (
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and the JWT token
-// @tag.name auth
-// @tag.description Authentication endpoints
-// @tag.name setup
-// @tag.description Initial setup endpoints
-// @tag.name users
-// @tag.description User management endpoints
-// @tag.name ocr
-// @tag.description OCR processing endpoints
-// @tag.name balance
-// @tag.description User balance endpoints
-// @tag.name admin
-// @tag.description Admin endpoints
 func main() {
-	// Initialize database
-	db, err := config.InitDB()
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	// Load .env file if it exists
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
 	}
 
-	// Initialize Gin router
+	// Load configuration
+	cfg := config.LoadConfig()
+
+	// Set Gin mode
+	if !cfg.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	// Initialize database
+	db, err := db.InitDB() // Use db.InitDB instead of config.InitDB
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	// Create gin router
 	r := gin.Default()
 
-	// Setup routes
-	routes.SetupRoutes(r, db)
+	// Set up routes
+	routes.SetupRoutes(r, db, cfg)
 
-	// Setup Swagger
-	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	// Create necessary directories
+	createDirs(cfg)
 
 	// Start server
-	if err := r.Run(":8080"); err != nil {
+	port := fmt.Sprintf(":%d", cfg.Port)
+	fmt.Printf("Starting server on http://localhost%s\n", port)
+	if err := r.Run(port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
+	}
+}
+
+// Create necessary directories
+func createDirs(cfg *config.Config) {
+	dirs := []string{
+		cfg.TempDir,
+		cfg.UploadDir,
+		cfg.PublicDir,
+		cfg.PublicDir + "/conversions",
+		cfg.PublicDir + "/compressions",
+		cfg.PublicDir + "/merges",
+		cfg.PublicDir + "/splits",
+		cfg.PublicDir + "/rotations",
+		cfg.PublicDir + "/watermarked",
+		cfg.PublicDir + "/protected",
+		cfg.PublicDir + "/unlocked",
+		cfg.PublicDir + "/ocr",
+	}
+
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Printf("Failed to create directory %s: %v", dir, err)
+		}
 	}
 }
