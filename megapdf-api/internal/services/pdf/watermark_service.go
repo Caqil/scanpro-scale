@@ -1,1 +1,0 @@
-// Watermark Service.Go

@@ -1,1 +1,0 @@
-// Ghostscript.Go wrapper
