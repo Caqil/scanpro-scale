@@ -393,6 +393,119 @@ paths:
       summary: Update an account
       tags:
       - accounts
+  /admin/activity:
+    get:
+      consumes:
+      - application/json
+      description: Gets activity logs for admin dashboard
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Activity type (all, api, auth, transaction)
+        in: query
+        name: type
+        type: string
+      - description: Status (all, success, warning, error)
+        in: query
+        name: status
+        type: string
+      - description: Time range (1h, 24h, 7d, 30d, all)
+        in: query
+        name: timeRange
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Results per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get admin activity logs
+      tags:
+      - admin
+  /admin/activity/export:
+    get:
+      consumes:
+      - application/json
+      description: Exports activity logs to CSV
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Activity type (all, api, auth, transaction)
+        in: query
+        name: type
+        type: string
+      - description: Status (all, success, warning, error)
+        in: query
+        name: status
+        type: string
+      - description: Time range (1h, 24h, 7d, 30d, all)
+        in: query
+        name: timeRange
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV file
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Export activity logs
+      tags:
+      - admin
   /api-keys:
     post:
       consumes:
@@ -524,6 +637,128 @@ paths:
       summary: Update an API key
       tags:
       - api-keys
+  /contact:
+    post:
+      consumes:
+      - application/json
+      description: Sends a contact form submission via email
+      parameters:
+      - description: Contact form data
+        in: body
+        name: contact
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send contact form
+      tags:
+      - contact
+  /ocr:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a searchable PDF using OCR
+      parameters:
+      - description: PDF file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 'OCR language (default: eng)'
+        in: formData
+        name: language
+        type: string
+      - description: 'Enhance scanned images (default: true)'
+        in: formData
+        name: enhanceScanned
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Process PDF with OCR
+      tags:
+      - ocr
+  /ocr/extract:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Extracts text from a PDF file using OCR
+      parameters:
+      - description: PDF file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 'OCR language (default: eng)'
+        in: formData
+        name: language
+        type: string
+      - description: 'Preserve text layout (default: false)'
+        in: formData
+        name: preserveLayout
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Extract text using OCR
+      tags:
+      - ocr
   /password-reset-tokens:
     post:
       consumes:
@@ -1002,6 +1237,138 @@ paths:
       summary: Update usage stats
       tags:
       - usage-stats
+  /user/balance:
+    get:
+      consumes:
+      - application/json
+      description: Gets the current balance and usage information for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user balance
+      tags:
+      - balance
+  /user/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new deposit transaction
+      parameters:
+      - description: Deposit amount
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: number
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create deposit
+      tags:
+      - balance
+  /user/deposit/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies a completed deposit and updates the user's balance
+      parameters:
+      - description: Order ID
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verify deposit
+      tags:
+      - balance
   /users:
     post:
       consumes:
@@ -1133,6 +1500,48 @@ paths:
       summary: Update a user
       tags:
       - users
+  /validate-key:
+    post:
+      consumes:
+      - application/json
+      description: Validates an API key and checks permissions
+      parameters:
+      - description: Validation data
+        in: body
+        name: validation
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Validate API key
+      tags:
+      - api-keys
   /verification-tokens:
     post:
       consumes:

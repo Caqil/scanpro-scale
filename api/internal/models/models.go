@@ -1,118 +1,112 @@
-
+// internal/models/models.go
 package models
 
-import (
-    "time"
-    "gorm.io/gorm"
-)
+import "time"
 
 type User struct {
-    ID                  string            `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    Name                string            `gorm:"type:varchar(255)" json:"name"`
-    Email               string            `gorm:"unique;type:varchar(255)" json:"email"`
-    EmailVerified       *time.Time        `gorm:"type:datetime" json:"emailVerified"`
-    Image               string            `gorm:"type:varchar(255)" json:"image"`
-    Password            string            `gorm:"type:varchar(255)" json:"password"`
-    Role                string            `gorm:"type:varchar(50);default:'user'" json:"role"`
-    CreatedAt           time.Time         `gorm:"autoCreateTime" json:"createdAt"`
-    UpdatedAt           time.Time         `gorm:"autoUpdateTime" json:"updatedAt"`
-    VerificationToken   string            `gorm:"type:varchar(255)" json:"verificationToken"`
-    IsEmailVerified     bool              `gorm:"default:false" json:"isEmailVerified"`
-    Balance             float64           `gorm:"default:0" json:"balance"`
-    FreeOperationsReset time.Time         `gorm:"type:datetime;default:current_timestamp" json:"freeOperationsReset"`
-    FreeOperationsUsed  int               `gorm:"default:0" json:"freeOperationsUsed"`
-    Accounts            []Account         `gorm:"foreignKey:UserID" json:"accounts"`
-    ApiKeys             []ApiKey          `gorm:"foreignKey:UserID" json:"apiKeys"`
-    Sessions            []Session         `gorm:"foreignKey:UserID" json:"sessions"`
-    Transactions        []Transaction     `gorm:"foreignKey:UserID" json:"transactions"`
-    UsageStats          []UsageStats      `gorm:"foreignKey:UserID" json:"usageStats"`
+	ID                  string `gorm:"primaryKey;type:varchar(100)"`
+	Name                string `gorm:"type:varchar(255)"`
+	Email               string `gorm:"uniqueIndex;type:varchar(255)"`
+	EmailVerified       *time.Time
+	Image               string
+	Password            string
+	Role                string `gorm:"type:varchar(50);default:'user'"`
+	VerificationToken   *string
+	IsEmailVerified     bool    `gorm:"default:false"`
+	Balance             float64 `gorm:"default:0"`
+	FreeOperationsUsed  int     `gorm:"default:0"`
+	FreeOperationsReset time.Time
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+
+	Accounts     []Account     `gorm:"foreignKey:UserID"`
+	ApiKeys      []ApiKey      `gorm:"foreignKey:UserID"`
+	Sessions     []Session     `gorm:"foreignKey:UserID"`
+	Transactions []Transaction `gorm:"foreignKey:UserID"`
+	UsageStats   []UsageStats  `gorm:"foreignKey:UserID"`
 }
 
 type Transaction struct {
-    ID           string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    UserID       string    `gorm:"type:varchar(100)" json:"userId"`
-    Amount       float64   `json:"amount"`
-    BalanceAfter float64   `json:"balanceAfter"`
-    Description  string    `gorm:"type:varchar(255)" json:"description"`
-    PaymentID    string    `gorm:"type:varchar(100)" json:"paymentId"`
-    Status       string    `gorm:"type:varchar(50);default:'completed'" json:"status"`
-    CreatedAt    time.Time `gorm:"autoCreateTime" json:"createdAt"`
-    User         User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
+	ID           string `gorm:"primaryKey;type:varchar(100)"`
+	UserID       string
+	Amount       float64
+	BalanceAfter float64
+	Description  string
+	PaymentID    string
+	Status       string `gorm:"type:varchar(50);default:'completed'"`
+	CreatedAt    time.Time
+
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type Account struct {
-    ID                string `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    UserID            string `gorm:"type:varchar(100)" json:"userId"`
-    Type              string `gorm:"type:varchar(50)" json:"type"`
-    Provider          string `gorm:"type:varchar(50)" json:"provider"`
-    ProviderAccountID string `gorm:"type:varchar(100)" json:"providerAccountId"`
-    RefreshToken      string `gorm:"type:varchar(255)" json:"refreshToken"`
-    AccessToken       string `gorm:"type:varchar(255)" json:"accessToken"`
-    ExpiresAt         int    `json:"expiresAt"`
-    TokenType         string `gorm:"type:varchar(50)" json:"tokenType"`
-    Scope             string `gorm:"type:varchar(255)" json:"scope"`
-    IDToken           string `gorm:"type:varchar(255)" json:"idToken"`
-    SessionState      string `gorm:"type:varchar(255)" json:"sessionState"`
-    User              User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
-    gorm.Model
+	ID                string `gorm:"primaryKey;type:varchar(100)"`
+	UserID            string
+	Type              string
+	Provider          string
+	ProviderAccountID string
+	RefreshToken      *string
+	AccessToken       *string
+	ExpiresAt         *int
+	TokenType         *string
+	Scope             *string
+	IDToken           *string
+	SessionState      *string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type Session struct {
-    ID           string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    SessionToken string    `gorm:"unique;type:varchar(255)" json:"sessionToken"`
-    UserID       string    `gorm:"type:varchar(100)" json:"userId"`
-    Expires      time.Time `json:"expires"`
-    User         User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
-}
+	ID           string `gorm:"primaryKey;type:varchar(100)"`
+	SessionToken string `gorm:"uniqueIndex"`
+	UserID       string
+	Expires      time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 
-type UsageStats struct {
-    ID        string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    UserID    string    `gorm:"type:varchar(100)" json:"userId"`
-    Operation string    `gorm:"type:varchar(100)" json:"operation"`
-    Count     int       `gorm:"default:0" json:"count"`
-    Date      time.Time `json:"date"`
-    CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
-    UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
-    User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
-    gorm.Model
-}
-
-type VerificationToken struct {
-    Identifier string    `gorm:"type:varchar(255)" json:"identifier"`
-    Token      string    `gorm:"unique;type:varchar(255)" json:"token"`
-    Expires    time.Time `json:"expires"`
-    gorm.Model
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type ApiKey struct {
-    ID          string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    UserID      string    `gorm:"type:varchar(100)" json:"userId"`
-    Name        string    `gorm:"type:varchar(255)" json:"name"`
-    Key         string    `gorm:"unique;type:varchar(255)" json:"key"`
-    Permissions []string  `gorm:"type:text;serializer:json" json:"permissions"`
-    LastUsed    *time.Time `gorm:"type:datetime" json:"lastUsed"`
-    ExpiresAt   *time.Time `gorm:"type:datetime" json:"expiresAt"`
-    CreatedAt   time.Time  `gorm:"autoCreateTime" json:"createdAt"`
-    UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updatedAt"`
-    User        User       `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
+	ID          string `gorm:"primaryKey;type:varchar(100)"`
+	UserID      string
+	Name        string
+	Key         string   `gorm:"uniqueIndex"`
+	Permissions []string `gorm:"type:json"`
+	LastUsed    *time.Time
+	ExpiresAt   *time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+type UsageStats struct {
+	ID        string `gorm:"primaryKey;type:varchar(100)"`
+	UserID    string
+	Operation string
+	Count     int
+	Date      time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type PasswordResetToken struct {
-    ID        string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    Email     string    `gorm:"type:varchar(255)" json:"email"`
-    Token     string    `gorm:"unique;type:varchar(255)" json:"token"`
-    Expires   time.Time `json:"expires"`
-    CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	ID        string `gorm:"primaryKey;type:varchar(100)"`
+	Email     string
+	Token     string `gorm:"uniqueIndex"`
+	Expires   time.Time
+	CreatedAt time.Time
 }
 
-type PaymentWebhookEvent struct {
-    ID           string    `gorm:"primaryKey;type:varchar(100)" json:"id"`
-    EventID      string    `gorm:"unique;type:varchar(100)" json:"eventId"`
-    EventType    string    `gorm:"type:varchar(100)" json:"eventType"`
-    ResourceType string    `gorm:"type:varchar(100)" json:"resourceType"`
-    ResourceID   string    `gorm:"type:varchar(100)" json:"resourceId"`
-    Status       string    `gorm:"type:varchar(50);default:'processed'" json:"status"`
-    RawData      string    `gorm:"type:text" json:"rawData"`
-    ProcessedAt  time.Time `gorm:"type:datetime;default:current_timestamp" json:"processedAt"`
-    CreatedAt    time.Time `gorm:"autoCreateTime" json:"createdAt"`
+type VerificationToken struct {
+	Identifier string `gorm:"uniqueIndex"`
+	Token      string `gorm:"uniqueIndex"`
+	Expires    time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

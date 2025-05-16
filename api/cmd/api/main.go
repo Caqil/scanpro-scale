@@ -1,9 +1,9 @@
+// api/cmd/api/main.go
 package main
 
 import (
 	"log"
 
-	"github.com/Caqil/megapdf-api/cmd/api/docs"
 	_ "github.com/Caqil/megapdf-api/cmd/api/docs"
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/routes"
@@ -14,6 +14,31 @@ import (
 	_ "github.com/swaggo/swag"
 )
 
+// @title MegaPDF API
+// @description API for MegaPDF document processing service
+// @version 1.0
+// @host localhost:8080
+// @BasePath /api
+// @schemes http https
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name x-api-key
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the JWT token
+// @tag.name auth
+// @tag.description Authentication endpoints
+// @tag.name setup
+// @tag.description Initial setup endpoints
+// @tag.name users
+// @tag.description User management endpoints
+// @tag.name ocr
+// @tag.description OCR processing endpoints
+// @tag.name balance
+// @tag.description User balance endpoints
+// @tag.name admin
+// @tag.description Admin endpoints
 func main() {
 	// Initialize database
 	db, err := config.InitDB()
@@ -24,17 +49,12 @@ func main() {
 	// Initialize Gin router
 	r := gin.Default()
 
-	// Setup Swagger
-	docs.SwaggerInfo.Title = "REST API"
-	docs.SwaggerInfo.Description = "API documentation for the Go REST API with SQLite"
-	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
-	docs.SwaggerInfo.BasePath = "/api"
-	docs.SwaggerInfo.Schemes = []string{"http"}
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	// Setup routes
 	routes.SetupRoutes(r, db)
+
+	// Setup Swagger
+	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	// Start server
 	if err := r.Run(":8080"); err != nil {
