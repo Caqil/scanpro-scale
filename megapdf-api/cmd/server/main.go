@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"megapdf-api/internal/config"
-	"megapdf-api/internal/handlers"
 	"megapdf-api/internal/middleware"
 	"megapdf-api/internal/repositories"
 	"megapdf-api/internal/services/auth"
