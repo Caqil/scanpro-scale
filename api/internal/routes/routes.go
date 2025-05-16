@@ -29,9 +29,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Middleware
 	r.Use(middleware.LoggerMiddleware())
 	r.Use(middleware.RateLimitMiddleware())
-
 	// API routes
-	api := r.Group("/api")
+	api := r.Group("/")
 	{
 		// Public routes
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)

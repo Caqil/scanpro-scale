@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Caqil/megapdf-api/docs"
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/db" // Add this import
 	"github.com/Caqil/megapdf-api/internal/routes"
@@ -30,7 +31,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
-
+	docs.SwaggerInfo.BasePath = "/api"
 	// Load configuration
 	cfg := config.LoadConfig()
 

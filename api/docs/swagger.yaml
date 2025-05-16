@@ -1,0 +1,460 @@
+basePath: /api
+host: localhost:8080
+info:
+  contact: {}
+  description: API for MegaPDF document processing service
+  title: MegaPDF API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with name, email, and password
+      parameters:
+      - description: User registration details
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /api/pdf/compress:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Compresses a PDF file to reduce its size
+      parameters:
+      - description: PDF file to compress
+        in: formData
+        name: file
+        required: true
+        type: file
+      - default: medium
+        description: Compression quality (low, medium, high)
+        in: formData
+        name: quality
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "402":
+          description: Payment Required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Compress a PDF file
+      tags:
+      - pdf
+  /api/pdf/merge:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Combines multiple PDF files into a single PDF
+      parameters:
+      - description: PDF files to merge (multiple)
+        in: formData
+        name: files
+        required: true
+        type: file
+      - description: JSON array specifying the order of files
+        in: formData
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "402":
+          description: Payment Required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Merge multiple PDF files
+      tags:
+      - pdf
+  /api/pdf/protect:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Adds password protection to a PDF file
+      parameters:
+      - description: PDF file to protect
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Password to protect the PDF with
+        in: formData
+        name: password
+        required: true
+        type: string
+      - default: restricted
+        description: Permission level (restricted or all)
+        in: formData
+        name: permission
+        type: string
+      - default: false
+        description: Allow printing
+        in: formData
+        name: allowPrinting
+        type: boolean
+      - default: false
+        description: Allow copying
+        in: formData
+        name: allowCopying
+        type: boolean
+      - default: false
+        description: Allow editing
+        in: formData
+        name: allowEditing
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "402":
+          description: Payment Required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Password protect a PDF file
+      tags:
+      - pdf
+  /api/user/balance:
+    get:
+      consumes:
+      - application/json
+      description: Returns user's balance, free operations, and transaction history
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user balance information
+      tags:
+      - balance
+  /api/user/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Creates a pending deposit for a user's balance
+      parameters:
+      - description: Deposit amount
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: number
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a balance deposit
+      tags:
+      - balance
+  /api/user/deposit/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies and finalizes a deposit transaction after payment
+      parameters:
+      - description: Order ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verify a deposit transaction
+      tags:
+      - balance
+  /api/validate-key:
+    get:
+      consumes:
+      - application/json
+      description: Validates an API key and checks if it has permission to perform
+        the specified operation
+      parameters:
+      - description: Operation to validate permission for
+        in: query
+        name: operation
+        type: string
+      - description: API key to validate
+        in: query
+        name: api_key
+        type: string
+      - description: API key to validate
+        in: header
+        name: x-api-key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Validate API key
+      tags:
+      - keys
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: x-api-key
+    type: apiKey
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
