@@ -3,7 +3,6 @@ package routes
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/handlers"
@@ -30,7 +29,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
 
 	// API routes
-	api := r.Group("/")
+	api := r.Group("/api")
 	{
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
@@ -61,18 +60,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		}
 	}
 
-	// Health check route for testing
-	fmt.Println("Registering route: /health")
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "timestamp": time.Now().String()})
-	})
-	r.GET("/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "Root test endpoint working"})
-	})
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
-	})
-	// Add Swagger documentation
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	fmt.Println("Routes setup complete")
