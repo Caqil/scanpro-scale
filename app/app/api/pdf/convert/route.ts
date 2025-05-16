@@ -181,9 +181,9 @@ async function extractTextFromPdf(inputPath: string, outputPath: string) {
 async function extractTextWithOCR(inputPath: string, outputPath: string) {
   try {
     const worker = createWorker();
-    const { data } = await worker.recognize(inputPath);
+    const { data } = await (await worker).recognize(inputPath);
     await writeFile(outputPath, data.text);
-    await worker.terminate();
+    await (await worker).terminate();
     console.log(`Successfully extracted text with OCR to ${outputPath}`);
     return true;
   } catch (error) {
