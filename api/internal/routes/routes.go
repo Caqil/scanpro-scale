@@ -22,12 +22,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	keyValidationService := services.NewKeyValidationService(db)
 	balanceService := services.NewBalanceService(db)
 	authService := services.NewAuthService(db, cfg.JWTSecret)
+	apiKeyService := services.NewApiKeyService(db) // Add this
 
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
-
+	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
 	// API routes
 	api := r.Group("/api")
 	{
@@ -57,6 +58,16 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/user/deposit/verify")
 			user.POST("/deposit/verify", balanceHandler.VerifyDeposit)
+		}
+		keys := api.Group("/keys")
+		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		{
+			fmt.Println("Registering route: /api/keys")
+			keys.GET("", apiKeyHandler.ListKeys)
+			keys.POST("", apiKeyHandler.CreateKey)
+
+			fmt.Println("Registering route: /api/keys/:id")
+			keys.DELETE("/:id", apiKeyHandler.RevokeKey)
 		}
 	}
 

@@ -1,4 +1,3 @@
-
 // internal/middleware/auth_middleware.go
 package middleware
 
@@ -20,7 +19,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Authorization header is required",
+				"error": "Authorization header is missing",
 			})
 			c.Abort()
 			return
@@ -28,16 +27,33 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 
 		// Extract token from "Bearer <token>"
 		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		if len(tokenParts) != 2 {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid authorization format",
+				"error": "Invalid authorization format. Use 'Bearer <token>'",
+			})
+			c.Abort()
+			return
+		}
+
+		if tokenParts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid authorization format. Header must start with 'Bearer'",
+			})
+			c.Abort()
+			return
+		}
+
+		token := tokenParts[1]
+		if token == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Token is missing",
 			})
 			c.Abort()
 			return
 		}
 
 		// Validate token
-		userID, err := authService.ValidateToken(tokenParts[1])
+		userID, err := authService.ValidateToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid token: " + err.Error(),
@@ -48,7 +64,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 
 		// Store user ID in context
 		c.Set("userId", userID)
-		
+
 		c.Next()
 	}
 }
