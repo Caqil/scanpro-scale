@@ -7,13 +7,18 @@ import (
 	"time"
 
 	"megapdf-api/internal/config"
-	"megapdf-api/internal/database"
 	"megapdf-api/internal/models"
+	"megapdf-api/internal/repositories"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+)
+
+const (
+	// FREE_OPERATIONS_MONTHLY is the number of free operations per month
+	FREE_OPERATIONS_MONTHLY = 500
 )
 
 // Service provides authentication methods
@@ -24,11 +29,11 @@ type Service struct {
 }
 
 // NewService creates a new auth service
-func NewService(cfg *config.Config) *Service {
+func NewService(cfg *config.JWTConfig) *Service {
 	return &Service{
-		db:        database.GetDB(),
-		jwtSecret: cfg.JWT.Secret,
-		jwtExpiry: time.Duration(cfg.JWT.ExpiryHours) * time.Hour,
+		db:        repositories.GetDB(),
+		jwtSecret: cfg.Secret,
+		jwtExpiry: time.Duration(cfg.ExpiryHours) * time.Hour,
 	}
 }
 
@@ -81,9 +86,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (*models.To
 	// Prepare user info
 	freeOpsRemaining := 0
 	if user.FreeOperationsReset != nil && user.FreeOperationsReset.After(time.Now()) {
-		freeOpsRemaining = 500 - user.FreeOperationsUsed // FREE_OPERATIONS_MONTHLY constant
+		freeOpsRemaining = FREE_OPERATIONS_MONTHLY - user.FreeOperationsUsed
 	} else {
-		freeOpsRemaining = 500 // Reset if expired
+		freeOpsRemaining = FREE_OPERATIONS_MONTHLY // Reset if expired
 	}
 
 	// Return token response
@@ -147,7 +152,7 @@ func (s *Service) Register(ctx context.Context, name, email, password string) (*
 		return nil, err
 	}
 
-	// TODO: Send verification email
+	// In a real implementation, we would send a verification email here
 
 	return &user, nil
 }
@@ -274,6 +279,27 @@ func (s *Service) CreateAPIKey(ctx context.Context, userID, name string, permiss
 	}
 
 	return &apiKey, nil
+}
+
+// DeleteAPIKey deletes an API key
+func (s *Service) DeleteAPIKey(ctx context.Context, userID, keyID string) error {
+	result := s.db.Where("id = ? AND user_id = ?", keyID, userID).Delete(&models.APIKey{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("API key not found or not owned by user")
+	}
+	return nil
+}
+
+// GetAPIKeys gets all API keys for a user
+func (s *Service) GetAPIKeys(ctx context.Context, userID string) ([]models.APIKey, error) {
+	var keys []models.APIKey
+	if err := s.db.Where("user_id = ?", userID).Find(&keys).Error; err != nil {
+		return nil, err
+	}
+	return keys, nil
 }
 
 // Helper function to check if a slice contains a value

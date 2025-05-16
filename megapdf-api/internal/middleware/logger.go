@@ -75,6 +75,9 @@ func Logger() gin.HandlerFunc {
 		if statusCode >= 400 {
 			c.Error(fmt.Errorf("request failed with status %d", statusCode))
 		}
+
+		// In a real implementation, we'd use a structured logger here
+		fmt.Printf("%+v\n", logEntry)
 	}
 }
 

@@ -46,6 +46,7 @@ type StorageConfig struct {
 	ProcessedDir    string        `mapstructure:"STORAGE_PROCESSED_DIR"`
 	TempDir         string        `mapstructure:"STORAGE_TEMP_DIR"`
 	RetentionPeriod time.Duration `mapstructure:"STORAGE_RETENTION_HOURS"`
+	BaseURL         string        `mapstructure:"STORAGE_BASE_URL"`
 }
 
 type PDFConfig struct {
@@ -68,13 +69,16 @@ type BillingConfig struct {
 	OperationCost         float64 `mapstructure:"BILLING_OPERATION_COST"`
 	PayPalClientID        string  `mapstructure:"PAYPAL_CLIENT_ID"`
 	PayPalClientSecret    string  `mapstructure:"PAYPAL_CLIENT_SECRET"`
+	PayPalSandbox         bool    `mapstructure:"PAYPAL_SANDBOX"`
 }
 
 type CORSConfig struct {
 	AllowOrigins     []string `mapstructure:"CORS_ALLOW_ORIGINS"`
 	AllowMethods     []string `mapstructure:"CORS_ALLOW_METHODS"`
 	AllowHeaders     []string `mapstructure:"CORS_ALLOW_HEADERS"`
+	ExposeHeaders    []string `mapstructure:"CORS_EXPOSE_HEADERS"`
 	AllowCredentials bool     `mapstructure:"CORS_ALLOW_CREDENTIALS"`
+	MaxAge           int      `mapstructure:"CORS_MAX_AGE"`
 }
 
 // Load loads configuration from environment variables and/or config file
@@ -130,6 +134,7 @@ func setDefaults() {
 	viper.SetDefault("STORAGE_PROCESSED_DIR", "./data/processed")
 	viper.SetDefault("STORAGE_TEMP_DIR", "./data/temp")
 	viper.SetDefault("STORAGE_RETENTION_HOURS", 24)
+	viper.SetDefault("STORAGE_BASE_URL", "/api/file")
 
 	// Billing defaults
 	viper.SetDefault("BILLING_FREE_OPERATIONS_MONTHLY", 500)
@@ -138,6 +143,17 @@ func setDefaults() {
 	// CORS defaults
 	viper.SetDefault("CORS_ALLOW_ORIGINS", []string{"*"})
 	viper.SetDefault("CORS_ALLOW_METHODS", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
-	viper.SetDefault("CORS_ALLOW_HEADERS", []string{"Origin", "Content-Type", "Accept", "Authorization"})
+	viper.SetDefault("CORS_ALLOW_HEADERS", []string{"Origin", "Content-Type", "Accept", "Authorization", "X-API-Key"})
+	viper.SetDefault("CORS_EXPOSE_HEADERS", []string{"Content-Length", "Content-Disposition"})
 	viper.SetDefault("CORS_ALLOW_CREDENTIALS", true)
+	viper.SetDefault("CORS_MAX_AGE", 12) // hours
+
+	// PDF tool paths - empty means search in PATH
+	viper.SetDefault("PDF_PDFCPU_PATH", "")
+	viper.SetDefault("PDF_GHOSTSCRIPT_PATH", "")
+	viper.SetDefault("PDF_OCRMYPDF_PATH", "")
+	viper.SetDefault("PDF_LIBREOFFICE_PATH", "")
+
+	// Default environment
+	viper.SetDefault("ENVIRONMENT", "development")
 }
