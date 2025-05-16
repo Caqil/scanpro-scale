@@ -51,7 +51,7 @@ func main() {
 
 	// Set up routes
 	routes.SetupRoutes(r, db, cfg)
-
+	printRoutes(r)
 	// Create necessary directories
 	createDirs(cfg)
 
@@ -61,6 +61,15 @@ func main() {
 	if err := r.Run(port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+func printRoutes(r *gin.Engine) {
+	routes := r.Routes()
+	fmt.Println("\nRegistered Routes:")
+	fmt.Println("=================")
+	for _, route := range routes {
+		fmt.Printf("%s %s\n", route.Method, route.Path)
+	}
+	fmt.Println("=================\n")
 }
 
 // Create necessary directories

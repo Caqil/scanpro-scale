@@ -2,6 +2,9 @@
 package routes
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/handlers"
 	"github.com/Caqil/megapdf-api/internal/middleware"
@@ -12,64 +15,65 @@ import (
 	"gorm.io/gorm"
 )
 
-// SetupRoutes configures all the API routes
 func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
+	// Add route logging
+	fmt.Println("Setting up routes...")
+
 	// Initialize services
 	keyValidationService := services.NewKeyValidationService(db)
 	balanceService := services.NewBalanceService(db)
 	authService := services.NewAuthService(db, cfg.JWTSecret)
-	//apiKeyService := services.NewApiKeyService(db)
 
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
-	//apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
 
-	// Middleware
-	r.Use(middleware.LoggerMiddleware())
-	r.Use(middleware.RateLimitMiddleware())
 	// API routes
 	api := r.Group("/")
 	{
-		// Public routes
+		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
 
 		// Auth routes
 		auth := api.Group("/auth")
 		{
+			fmt.Println("Registering route: /api/auth/register")
 			auth.POST("/register", authHandler.Register)
+
+			fmt.Println("Registering route: /api/auth/login")
 			auth.POST("/login", authHandler.Login)
 		}
 
-		// User routes (authenticated)
+		// User routes
 		user := api.Group("/user")
 		user.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		{
+			fmt.Println("Registering route: /api/user/balance")
 			user.GET("/balance", balanceHandler.GetBalance)
+
+			fmt.Println("Registering route: /api/user/deposit")
 			user.POST("/deposit", balanceHandler.CreateDeposit)
+
+			fmt.Println("Registering route: /api/user/deposit/verify")
 			user.POST("/deposit/verify", balanceHandler.VerifyDeposit)
-		}
-
-		// API keys routes (authenticated)
-		// keys := api.Group("/keys")
-		// keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
-		// {
-		// 	keys.GET("", apiKeyHandler.GetUserKeys)
-		// 	keys.POST("", apiKeyHandler.CreateKey)
-		// 	keys.DELETE("/:id", apiKeyHandler.RevokeKey)
-		// }
-
-		// PDF operations routes with API key auth
-		pdf := api.Group("/pdf")
-		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
-		{
-			// Implement PDF operation handlers here
-			// For example: compress, merge, protect, etc.
 		}
 	}
 
+	// Health check route for testing
+	fmt.Println("Registering route: /health")
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "healthy", "timestamp": time.Now().String()})
+	})
+	r.GET("/test", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "Root test endpoint working"})
+	})
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "pong"})
+	})
 	// Add Swagger documentation
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	fmt.Println("Routes setup complete")
 }
