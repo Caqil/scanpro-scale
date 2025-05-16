@@ -10,15 +10,18 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user with email and password
+      description: Authenticates a user and returns a JWT token
       parameters:
       - description: User login credentials
         in: body
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
+          properties:
+            email:
+              type: string
+            password:
+              type: string
           type: object
       produces:
       - application/json
@@ -26,25 +29,45 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              success:
+                type: boolean
+              token:
+                type: string
+              user:
+                properties:
+                  email:
+                    type: string
+                  id:
+                    type: string
+                  isEmailVerified:
+                    type: boolean
+                  name:
+                    type: string
+                  role:
+                    type: string
+                type: object
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       summary: Login a user
       tags:
@@ -53,15 +76,20 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register a new user with name, email, and password
+      description: Creates a new user account with email verification
       parameters:
-      - description: User registration details
+      - description: User registration information
         in: body
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
+          properties:
+            email:
+              type: string
+            name:
+              type: string
+            password:
+              type: string
           type: object
       produces:
       - application/json
@@ -69,25 +97,49 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              emailSent:
+                type: boolean
+              success:
+                type: boolean
+              token:
+                type: string
+              user:
+                properties:
+                  balance:
+                    type: number
+                  email:
+                    type: string
+                  freeOperationsUsed:
+                    type: integer
+                  id:
+                    type: string
+                  isEmailVerified:
+                    type: boolean
+                  name:
+                    type: string
+                type: object
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       summary: Register a new user
       tags:
@@ -217,15 +269,20 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Compresses a PDF file to reduce its size
+      description: Reduces PDF file size with customizable compression settings
       parameters:
-      - description: PDF file to compress
+      - description: PDF file to compress (max 50MB)
         in: formData
         name: file
         required: true
         type: file
       - default: medium
-        description: Compression quality (low, medium, high)
+        description: 'Compression quality: low (smallest file), medium (balanced),
+          high (best quality)'
+        enum:
+        - low
+        - medium
+        - high
         in: formData
         name: quality
         type: string
@@ -235,31 +292,71 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              billing:
+                properties:
+                  currentBalance:
+                    type: number
+                  freeOperationsRemaining:
+                    type: integer
+                  operationCost:
+                    type: number
+                  usedFreeOperation:
+                    type: boolean
+                type: object
+              compressedSize:
+                type: integer
+              compressionRatio:
+                type: string
+              fileUrl:
+                type: string
+              filename:
+                type: string
+              message:
+                type: string
+              originalName:
+                type: string
+              originalSize:
+                type: integer
+              success:
+                type: boolean
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "402":
           description: Payment Required
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              details:
+                properties:
+                  balance:
+                    type: number
+                  freeOperationsRemaining:
+                    type: integer
+                  operationCost:
+                    type: number
+                type: object
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - ApiKeyAuth: []
@@ -322,35 +419,39 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Adds password protection to a PDF file
+      description: Adds password protection and permission restrictions to a PDF file
       parameters:
-      - description: PDF file to protect
+      - description: PDF file to protect (max 50MB)
         in: formData
         name: file
         required: true
         type: file
-      - description: Password to protect the PDF with
+      - description: Password to set for the PDF (minimum 4 characters)
         in: formData
         name: password
         required: true
         type: string
       - default: restricted
-        description: Permission level (restricted or all)
+        description: 'Permission level: restricted (apply specific permissions) or
+          all (grant all permissions)'
+        enum:
+        - restricted
+        - all
         in: formData
         name: permission
         type: string
       - default: false
-        description: Allow printing
+        description: Allow document printing
         in: formData
         name: allowPrinting
         type: boolean
       - default: false
-        description: Allow copying
+        description: Allow content copying
         in: formData
         name: allowCopying
         type: boolean
       - default: false
-        description: Allow editing
+        description: Allow content editing
         in: formData
         name: allowEditing
         type: boolean
@@ -360,31 +461,67 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              billing:
+                properties:
+                  currentBalance:
+                    type: number
+                  freeOperationsRemaining:
+                    type: integer
+                  operationCost:
+                    type: number
+                  usedFreeOperation:
+                    type: boolean
+                type: object
+              fileUrl:
+                type: string
+              filename:
+                type: string
+              message:
+                type: string
+              methodUsed:
+                type: string
+              originalName:
+                type: string
+              success:
+                type: boolean
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "402":
           description: Payment Required
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              details:
+                properties:
+                  balance:
+                    type: number
+                  freeOperationsRemaining:
+                    type: integer
+                  operationCost:
+                    type: number
+                type: object
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - ApiKeyAuth: []
@@ -402,25 +539,46 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              balance:
+                type: number
+              freeOperationsRemaining:
+                type: integer
+              freeOperationsTotal:
+                type: integer
+              freeOperationsUsed:
+                type: integer
+              nextResetDate:
+                type: string
+              operationCounts:
+                type: object
+              success:
+                type: boolean
+              totalOperations:
+                type: integer
+              transactions:
+                type: array
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -431,15 +589,16 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a pending deposit for a user's balance
+      description: Initiates a payment process to add funds to user's balance
       parameters:
-      - description: Deposit amount
+      - description: Deposit amount (minimum $5.00)
         in: body
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: number
+          properties:
+            amount:
+              type: number
           type: object
       produces:
       - application/json
@@ -447,25 +606,36 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              checkoutUrl:
+                type: string
+              message:
+                type: string
+              orderId:
+                type: string
+              success:
+                type: boolean
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -476,15 +646,16 @@ paths:
     post:
       consumes:
       - application/json
-      description: Verifies and finalizes a deposit transaction after payment
+      description: Completes the deposit process after payment confirmation
       parameters:
-      - description: Order ID
+      - description: PayPal order ID to verify
         in: body
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
+          properties:
+            orderId:
+              type: string
           type: object
       produces:
       - application/json
@@ -492,31 +663,43 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              amount:
+                type: number
+              message:
+                type: string
+              newBalance:
+                type: number
+              success:
+                type: boolean
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -527,18 +710,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: Validates an API key and checks if it has permission to perform
-        the specified operation
+      description: Validates an API key and checks permissions for operations
       parameters:
-      - description: Operation to validate permission for
+      - description: Operation to validate permission for (e.g., compress, merge,
+          protect)
         in: query
         name: operation
         type: string
-      - description: API key to validate
+      - description: API key to validate (if not provided in header)
         in: query
         name: api_key
         type: string
-      - description: API key to validate
+      - description: API key to validate (if not provided in query)
         in: header
         name: x-api-key
         type: string
@@ -548,19 +731,33 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              balance:
+                type: number
+              error:
+                type: string
+              freeOperationsRemaining:
+                type: integer
+              permissions:
+                type: array
+              userId:
+                type: string
+              valid:
+                type: boolean
             type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       summary: Validate API key
       tags:

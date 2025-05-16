@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/auth/login": {
             "post": {
-                "description": "Authenticate a user with email and password",
+                "description": "Authenticates a user and returns a JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -36,8 +36,13 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "email": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -47,15 +52,44 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "token": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "isEmailVerified": {
+                                            "type": "boolean"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "role": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -63,8 +97,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -72,8 +108,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -82,7 +120,7 @@ const docTemplate = `{
         },
         "/api/auth/register": {
             "post": {
-                "description": "Register a new user with name, email, and password",
+                "description": "Creates a new user account with email verification",
                 "consumes": [
                     "application/json"
                 ],
@@ -95,14 +133,22 @@ const docTemplate = `{
                 "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "User registration details",
+                        "description": "User registration information",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "email": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -112,15 +158,50 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "emailSent": {
+                                    "type": "boolean"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "token": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "freeOperationsUsed": {
+                                            "type": "integer"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "isEmailVerified": {
+                                            "type": "boolean"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -128,8 +209,10 @@ const docTemplate = `{
                         "description": "Conflict",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -137,8 +220,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -339,7 +424,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Compresses a PDF file to reduce its size",
+                "description": "Reduces PDF file size with customizable compression settings",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -353,15 +438,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "PDF file to compress",
+                        "description": "PDF file to compress (max 50MB)",
                         "name": "file",
                         "in": "formData",
                         "required": true
                     },
                     {
+                        "enum": [
+                            "low",
+                            "medium",
+                            "high"
+                        ],
                         "type": "string",
                         "default": "medium",
-                        "description": "Compression quality (low, medium, high)",
+                        "description": "Compression quality: low (smallest file), medium (balanced), high (best quality)",
                         "name": "quality",
                         "in": "formData"
                     }
@@ -371,15 +461,59 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "compressedSize": {
+                                    "type": "integer"
+                                },
+                                "compressionRatio": {
+                                    "type": "string"
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "originalSize": {
+                                    "type": "integer"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -387,8 +521,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -396,8 +532,24 @@ const docTemplate = `{
                         "description": "Payment Required",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -405,8 +557,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -500,7 +654,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Adds password protection to a PDF file",
+                "description": "Adds password protection and permission restrictions to a PDF file",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -514,43 +668,47 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "PDF file to protect",
+                        "description": "PDF file to protect (max 50MB)",
                         "name": "file",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Password to protect the PDF with",
+                        "description": "Password to set for the PDF (minimum 4 characters)",
                         "name": "password",
                         "in": "formData",
                         "required": true
                     },
                     {
+                        "enum": [
+                            "restricted",
+                            "all"
+                        ],
                         "type": "string",
                         "default": "restricted",
-                        "description": "Permission level (restricted or all)",
+                        "description": "Permission level: restricted (apply specific permissions) or all (grant all permissions)",
                         "name": "permission",
                         "in": "formData"
                     },
                     {
                         "type": "boolean",
                         "default": false,
-                        "description": "Allow printing",
+                        "description": "Allow document printing",
                         "name": "allowPrinting",
                         "in": "formData"
                     },
                     {
                         "type": "boolean",
                         "default": false,
-                        "description": "Allow copying",
+                        "description": "Allow content copying",
                         "name": "allowCopying",
                         "in": "formData"
                     },
                     {
                         "type": "boolean",
                         "default": false,
-                        "description": "Allow editing",
+                        "description": "Allow content editing",
                         "name": "allowEditing",
                         "in": "formData"
                     }
@@ -560,15 +718,53 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "methodUsed": {
+                                    "type": "string"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -576,8 +772,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -585,8 +783,24 @@ const docTemplate = `{
                         "description": "Payment Required",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -594,8 +808,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -625,15 +841,45 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "balance": {
+                                    "type": "number"
+                                },
+                                "freeOperationsRemaining": {
+                                    "type": "integer"
+                                },
+                                "freeOperationsTotal": {
+                                    "type": "integer"
+                                },
+                                "freeOperationsUsed": {
+                                    "type": "integer"
+                                },
+                                "nextResetDate": {
+                                    "type": "string"
+                                },
+                                "operationCounts": {
+                                    "type": "object"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "totalOperations": {
+                                    "type": "integer"
+                                },
+                                "transactions": {
+                                    "type": "array"
+                                }
+                            }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -641,8 +887,10 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -650,8 +898,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -665,7 +915,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a pending deposit for a user's balance",
+                "description": "Initiates a payment process to add funds to user's balance",
                 "consumes": [
                     "application/json"
                 ],
@@ -678,14 +928,16 @@ const docTemplate = `{
                 "summary": "Create a balance deposit",
                 "parameters": [
                     {
-                        "description": "Deposit amount",
+                        "description": "Deposit amount (minimum $5.00)",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
+                            "properties": {
+                                "amount": {
+                                    "type": "number"
+                                }
                             }
                         }
                     }
@@ -695,15 +947,30 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "checkoutUrl": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "orderId": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -711,8 +978,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -720,8 +989,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -735,7 +1006,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Verifies and finalizes a deposit transaction after payment",
+                "description": "Completes the deposit process after payment confirmation",
                 "consumes": [
                     "application/json"
                 ],
@@ -748,14 +1019,16 @@ const docTemplate = `{
                 "summary": "Verify a deposit transaction",
                 "parameters": [
                     {
-                        "description": "Order ID",
+                        "description": "PayPal order ID to verify",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "orderId": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -765,15 +1038,30 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "amount": {
+                                    "type": "number"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "newBalance": {
+                                    "type": "number"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -781,8 +1069,10 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -790,8 +1080,10 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -799,8 +1091,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -809,7 +1103,7 @@ const docTemplate = `{
         },
         "/api/validate-key": {
             "get": {
-                "description": "Validates an API key and checks if it has permission to perform the specified operation",
+                "description": "Validates an API key and checks permissions for operations",
                 "consumes": [
                     "application/json"
                 ],
@@ -823,19 +1117,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Operation to validate permission for",
+                        "description": "Operation to validate permission for (e.g., compress, merge, protect)",
                         "name": "operation",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "API key to validate",
+                        "description": "API key to validate (if not provided in header)",
                         "name": "api_key",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "API key to validate",
+                        "description": "API key to validate (if not provided in query)",
                         "name": "x-api-key",
                         "in": "header"
                     }
@@ -845,15 +1139,36 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "balance": {
+                                    "type": "number"
+                                },
+                                "error": {
+                                    "type": "string"
+                                },
+                                "freeOperationsRemaining": {
+                                    "type": "integer"
+                                },
+                                "permissions": {
+                                    "type": "array"
+                                },
+                                "userId": {
+                                    "type": "string"
+                                },
+                                "valid": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -861,8 +1176,10 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }

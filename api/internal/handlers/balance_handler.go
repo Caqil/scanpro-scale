@@ -23,10 +23,10 @@ func NewBalanceHandler(service *services.BalanceService) *BalanceHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{}
-// @Failure 401 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} object{success=boolean,balance=number,freeOperationsUsed=integer,freeOperationsRemaining=integer,freeOperationsTotal=integer,nextResetDate=string,transactions=array,totalOperations=integer,operationCounts=object}
+// @Failure 401 {object} object{error=string}
+// @Failure 404 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/user/balance [get]
 func (h *BalanceHandler) GetBalance(c *gin.Context) {
 	// Get user ID from context
@@ -53,16 +53,16 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 
 // CreateDeposit godoc
 // @Summary Create a balance deposit
-// @Description Creates a pending deposit for a user's balance
+// @Description Initiates a payment process to add funds to user's balance
 // @Tags balance
 // @Accept json
 // @Produce json
+// @Param body body object{amount=number} true "Deposit amount (minimum $5.00)"
 // @Security BearerAuth
-// @Param body body map[string]float64 true "Deposit amount"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} object{success=boolean,checkoutUrl=string,orderId=string,message=string}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/user/deposit [post]
 func (h *BalanceHandler) CreateDeposit(c *gin.Context) {
 	// Get user ID from context
@@ -114,17 +114,17 @@ func (h *BalanceHandler) CreateDeposit(c *gin.Context) {
 
 // VerifyDeposit godoc
 // @Summary Verify a deposit transaction
-// @Description Verifies and finalizes a deposit transaction after payment
+// @Description Completes the deposit process after payment confirmation
 // @Tags balance
 // @Accept json
 // @Produce json
+// @Param body body object{orderId=string} true "PayPal order ID to verify"
 // @Security BearerAuth
-// @Param body body map[string]string true "Order ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} object{success=boolean,message=string,amount=number,newBalance=number}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 404 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/user/deposit/verify [post]
 func (h *BalanceHandler) VerifyDeposit(c *gin.Context) {
 	// Get user ID from context

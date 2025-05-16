@@ -18,15 +18,15 @@ func NewAuthHandler(service *services.AuthService, jwtSecret string) *AuthHandle
 
 // Register godoc
 // @Summary Register a new user
-// @Description Register a new user with name, email, and password
+// @Description Creates a new user account with email verification
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param body body map[string]string true "User registration details"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param body body object{name=string,email=string,password=string} true "User registration information"
+// @Success 200 {object} object{success=boolean,token=string,user=object{id=string,name=string,email=string,isEmailVerified=boolean,balance=number,freeOperationsUsed=integer},emailSent=boolean}
+// @Failure 400 {object} object{error=string}
+// @Failure 409 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	// Parse request body
@@ -81,15 +81,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 // Login godoc
 // @Summary Login a user
-// @Description Authenticate a user with email and password
+// @Description Authenticates a user and returns a JWT token
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param body body map[string]string true "User login credentials"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param body body object{email=string,password=string} true "User login credentials"
+// @Success 200 {object} object{success=boolean,token=string,user=object{id=string,name=string,email=string,isEmailVerified=boolean,role=string}}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	// Parse request body

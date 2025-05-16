@@ -30,18 +30,18 @@ func NewPDFHandler(balanceService *services.BalanceService, cfg *config.Config) 
 
 // CompressPDF godoc
 // @Summary Compress a PDF file
-// @Description Compresses a PDF file to reduce its size
+// @Description Reduces PDF file size with customizable compression settings
 // @Tags pdf
 // @Accept multipart/form-data
 // @Produce json
-// @Param file formData file true "PDF file to compress"
-// @Param quality formData string false "Compression quality (low, medium, high)" default(medium)
+// @Param file formData file true "PDF file to compress (max 50MB)"
+// @Param quality formData string false "Compression quality: low (smallest file), medium (balanced), high (best quality)" Enums(low, medium, high) default(medium)
 // @Security ApiKeyAuth
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 402 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} object{success=boolean,message=string,fileUrl=string,filename=string,originalName=string,originalSize=integer,compressedSize=integer,compressionRatio=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
+// @Failure 500 {object} object{error=string}
 // @Router /api/pdf/compress [post]
 func (h *PDFHandler) CompressPDF(c *gin.Context) {
 	// Get user ID and operation type from context
@@ -61,9 +61,9 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 		c.JSON(http.StatusPaymentRequired, gin.H{
 			"error": result.Error,
 			"details": gin.H{
-				"balance":               result.CurrentBalance,
+				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":         services.OperationCost,
+				"operationCost":           services.OperationCost,
 			},
 		})
 		return
@@ -159,41 +159,41 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 
 	// Return response
 	c.JSON(http.StatusOK, gin.H{
-		"success":         true,
-		"message":         fmt.Sprintf("PDF compression successful with %.2f%% reduction", compressionRatio),
-		"fileUrl":         fileUrl,
-		"filename":        fmt.Sprintf("%s-compressed.pdf", uniqueID),
-		"originalName":    file.Filename,
-		"originalSize":    originalSize,
-		"compressedSize":  compressedSize,
+		"success":          true,
+		"message":          fmt.Sprintf("PDF compression successful with %.2f%% reduction", compressionRatio),
+		"fileUrl":          fileUrl,
+		"filename":         fmt.Sprintf("%s-compressed.pdf", uniqueID),
+		"originalName":     file.Filename,
+		"originalSize":     originalSize,
+		"compressedSize":   compressedSize,
 		"compressionRatio": fmt.Sprintf("%.2f%%", compressionRatio),
 		"billing": gin.H{
-			"usedFreeOperation":      result.UsedFreeOperation,
+			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
-			"currentBalance":         result.CurrentBalance,
-			"operationCost":          services.OperationCost,
+			"currentBalance":          result.CurrentBalance,
+			"operationCost":           services.OperationCost,
 		},
 	})
 }
 
 // ProtectPDF godoc
 // @Summary Password protect a PDF file
-// @Description Adds password protection to a PDF file
+// @Description Adds password protection and permission restrictions to a PDF file
 // @Tags pdf
 // @Accept multipart/form-data
 // @Produce json
-// @Param file formData file true "PDF file to protect"
-// @Param password formData string true "Password to protect the PDF with"
-// @Param permission formData string false "Permission level (restricted or all)" default(restricted)
-// @Param allowPrinting formData bool false "Allow printing" default(false)
-// @Param allowCopying formData bool false "Allow copying" default(false)
-// @Param allowEditing formData bool false "Allow editing" default(false)
+// @Param file formData file true "PDF file to protect (max 50MB)"
+// @Param password formData string true "Password to set for the PDF (minimum 4 characters)"
+// @Param permission formData string false "Permission level: restricted (apply specific permissions) or all (grant all permissions)" Enums(restricted, all) default(restricted)
+// @Param allowPrinting formData boolean false "Allow document printing" default(false)
+// @Param allowCopying formData boolean false "Allow content copying" default(false)
+// @Param allowEditing formData boolean false "Allow content editing" default(false)
 // @Security ApiKeyAuth
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 402 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} object{success=boolean,message=string,fileUrl=string,filename=string,originalName=string,methodUsed=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
+// @Failure 500 {object} object{error=string}
 // @Router /api/pdf/protect [post]
 func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 	// Get user ID and operation type from context
@@ -213,9 +213,9 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 		c.JSON(http.StatusPaymentRequired, gin.H{
 			"error": result.Error,
 			"details": gin.H{
-				"balance":                result.CurrentBalance,
+				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":          services.OperationCost,
+				"operationCost":           services.OperationCost,
 			},
 		})
 		return
@@ -273,13 +273,13 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 	} else {
 		permissionFlags += " --print=n"
 	}
-	
+
 	if allowCopying {
 		permissionFlags += " --extract=y"
 	} else {
 		permissionFlags += " --extract=n"
 	}
-	
+
 	if allowEditing {
 		permissionFlags += " --modify=y --annotate=y"
 	} else {
@@ -305,7 +305,7 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 			"user_pw", password,
 			"owner_pw", password,
 		)
-		
+
 		if err := cmd.Run(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to protect PDF: " + err.Error(),
@@ -329,10 +329,10 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 		"originalName": file.Filename,
 		"methodUsed":   "qpdf",
 		"billing": gin.H{
-			"usedFreeOperation":      result.UsedFreeOperation,
+			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
-			"currentBalance":         result.CurrentBalance,
-			"operationCost":          services.OperationCost,
+			"currentBalance":          result.CurrentBalance,
+			"operationCost":           services.OperationCost,
 		},
 	})
 }
@@ -370,9 +370,9 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 		c.JSON(http.StatusPaymentRequired, gin.H{
 			"error": result.Error,
 			"details": gin.H{
-				"balance":                result.CurrentBalance,
+				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":          services.OperationCost,
+				"operationCost":           services.OperationCost,
 			},
 		})
 		return
@@ -434,7 +434,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 					}
 					seen[idx] = true
 				}
-				
+
 				if valid {
 					fileOrder = order
 				}
@@ -445,7 +445,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 	// Create unique ID and output path
 	uniqueID := uuid.New().String()
 	outputPath := filepath.Join(h.config.PublicDir, "merges", uniqueID+"-merged.pdf")
-	
+
 	// Create temp directory for input files
 	tempDir, err := ioutil.TempDir(h.config.TempDir, "merge-")
 	if err != nil {
@@ -459,7 +459,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 	// Save all files to temp directory
 	inputPaths := make([]string, len(files))
 	totalInputSize := int64(0)
-	
+
 	for i, file := range files {
 		inputPath := filepath.Join(tempDir, fmt.Sprintf("input-%d.pdf", i))
 		if err := c.SaveUploadedFile(file, inputPath); err != nil {
@@ -468,9 +468,9 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 			})
 			return
 		}
-		
+
 		inputPaths[i] = inputPath
-		
+
 		// Get file size
 		fileInfo, err := os.Stat(inputPath)
 		if err == nil {
@@ -489,9 +489,9 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 		"cat",
 		"output", outputPath,
 	}, orderedInputs...)
-	
+
 	cmd := exec.Command("pdftk", args...)
-	
+
 	if err := cmd.Run(); err != nil {
 		// Try alternative approach with gs if pdftk fails
 		gsArgs := append([]string{
@@ -501,9 +501,9 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 			"-sDEVICE=pdfwrite",
 			"-sOutputFile=" + outputPath,
 		}, orderedInputs...)
-		
+
 		cmd = exec.Command("gs", gsArgs...)
-		
+
 		if err := cmd.Run(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to merge PDFs: " + err.Error(),
@@ -526,18 +526,18 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 
 	// Return response
 	c.JSON(http.StatusOK, gin.H{
-		"success":       true,
-		"message":       "PDF merge successful",
-		"fileUrl":       fileUrl,
-		"filename":      fmt.Sprintf("%s-merged.pdf", uniqueID),
-		"mergedSize":    mergedSize,
+		"success":        true,
+		"message":        "PDF merge successful",
+		"fileUrl":        fileUrl,
+		"filename":       fmt.Sprintf("%s-merged.pdf", uniqueID),
+		"mergedSize":     mergedSize,
 		"totalInputSize": totalInputSize,
-		"fileCount":     len(files),
+		"fileCount":      len(files),
 		"billing": gin.H{
-			"usedFreeOperation":      result.UsedFreeOperation,
+			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
-			"currentBalance":         result.CurrentBalance,
-			"operationCost":          services.OperationCost,
+			"currentBalance":          result.CurrentBalance,
+			"operationCost":           services.OperationCost,
 		},
 	})
 }

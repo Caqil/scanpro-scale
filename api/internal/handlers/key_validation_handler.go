@@ -18,16 +18,16 @@ func NewKeyValidationHandler(service *services.KeyValidationService) *KeyValidat
 
 // ValidateKey godoc
 // @Summary Validate API key
-// @Description Validates an API key and checks if it has permission to perform the specified operation
+// @Description Validates an API key and checks permissions for operations
 // @Tags keys
 // @Accept json
 // @Produce json
-// @Param operation query string false "Operation to validate permission for"
-// @Param api_key query string false "API key to validate"
-// @Param x-api-key header string false "API key to validate"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param operation query string false "Operation to validate permission for (e.g., compress, merge, protect)"
+// @Param api_key query string false "API key to validate (if not provided in header)"
+// @Param x-api-key header string false "API key to validate (if not provided in query)"
+// @Success 200 {object} object{valid=boolean,userId=string,permissions=array,freeOperationsRemaining=integer,balance=number,error=string}
+// @Failure 400 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
 // @Router /api/validate-key [get]
 func (h *KeyValidationHandler) ValidateKey(c *gin.Context) {
 	// Get API key from header or query parameter
