@@ -118,10 +118,9 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"key": gin.H{
-			"id":   apiKey.ID,
-			"name": apiKey.Name,
-			"key":  apiKey.Key, // Return full key only on creation
-			// Permissions field removed
+			"id":        apiKey.ID,
+			"name":      apiKey.Name,
+			"key":       apiKey.Key, // Return full key only on creation
 			"createdAt": apiKey.CreatedAt,
 		},
 	})
