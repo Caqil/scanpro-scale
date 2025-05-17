@@ -19,6 +19,8 @@ type User struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 
+	// Relations - these fields won't be stored in the database
+	// but will be used by GORM to load related records
 	Accounts     []Account     `gorm:"foreignKey:UserID"`
 	ApiKeys      []ApiKey      `gorm:"foreignKey:UserID"`
 	Sessions     []Session     `gorm:"foreignKey:UserID"`
@@ -36,6 +38,7 @@ type Transaction struct {
 	Status       string `gorm:"type:varchar(50);default:'completed'"`
 	CreatedAt    time.Time
 
+	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
@@ -55,6 +58,7 @@ type Account struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 
+	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
@@ -66,21 +70,42 @@ type Session struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 
+	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
+// ApiKey model stores API keys for users
 type ApiKey struct {
-	ID     string `gorm:"primaryKey;type:varchar(100)"`
-	UserID string
-	Name   string
-	Key    string `gorm:"uniqueIndex"`
-	//Permissions []string `gorm:"type:json"`
+	ID        string `gorm:"primaryKey;type:varchar(100)"`
+	UserID    string
+	Name      string
+	Key       string `gorm:"uniqueIndex"`
 	LastUsed  *time.Time
 	ExpiresAt *time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
+	// Store permissions as a JSON string in SQLite
+	// This will be converted to/from []string using hooks
+	PermissionsJSON string `gorm:"column:permissions;type:text"`
+
+	// This field won't be stored in the database but will be used to
+	// access the permissions as a slice
+	Permissions []string `gorm:"-"`
+
+	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+// Hooks to convert between JSON string and Go slice for Permissions
+func (a *ApiKey) BeforeSave() error {
+	a.PermissionsJSON = ConvertToJSONArray(a.Permissions)
+	return nil
+}
+
+func (a *ApiKey) AfterFind() error {
+	a.Permissions = ConvertJSONArray(a.PermissionsJSON)
+	return nil
 }
 
 type UsageStats struct {
@@ -92,6 +117,7 @@ type UsageStats struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
+	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 

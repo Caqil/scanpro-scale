@@ -1,3 +1,4 @@
+// components/auth/register-form.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,11 +15,13 @@ import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { LanguageLink } from "../language-link";
 import { Separator } from "../ui/separator";
-import { API_BASE_URL, buildApiUrl } from "@/lib/api-config";
+import { buildApiUrl } from "@/lib/api-config";
+import { useAuth } from "@/src/context/auth-context";
 
 export function RegisterForm() {
   const { t } = useLanguageStore();
   const router = useRouter();
+  const { register } = useAuth();
 
   // Form state
   const [name, setName] = useState("");
@@ -164,49 +167,11 @@ export function RegisterForm() {
     setLoading(true);
 
     try {
-      // Use the Go API endpoint directly
-      const response = await fetch(buildApiUrl("/api/auth/register"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
-      });
+      // Use the auth context to register
+      const result = await register(name, email, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || t("auth.registrationFailed") || "Registration failed"
-        );
-      }
-
-      if (!data.success) {
-        throw new Error(
-          data.error || t("auth.registrationFailed") || "Registration failed"
-        );
-      }
-
-      // Store the auth token if returned
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-
-        // Store user data if returned
-        if (data.user) {
-          localStorage.setItem(
-            "userData",
-            JSON.stringify({
-              id: data.user.id,
-              name: data.user.name,
-              email: data.user.email,
-              isEmailVerified: data.user.isEmailVerified,
-            })
-          );
-        }
+      if (!result.success) {
+        throw new Error(result.error || "Registration failed");
       }
 
       // Show success message

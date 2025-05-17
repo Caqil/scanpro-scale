@@ -3,6 +3,7 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/handlers"
@@ -37,7 +38,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			c.Next()
 		})
 	}
-	
+
 	fmt.Println("Running in", mode, "mode")
 
 	// Initialize services
@@ -45,26 +46,28 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	balanceService := services.NewBalanceService(db)
 	authService := services.NewAuthService(db, cfg.JWTSecret)
 	apiKeyService := services.NewApiKeyService(db)
-	pdfHandler := handlers.NewPDFHandler(balanceService, cfg)
 	emailService := services.NewEmailService(cfg)
-	
+	pdfHandler := handlers.NewPDFHandler(balanceService, cfg)
+
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
+	// Set email service on auth handler
+	authHandler.SetEmailService(emailService)
 	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
 	fileHandler := handlers.NewFileHandler(cfg)
-	
+
 	// API routes
 	api := r.Group("/api")
 	{
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
-		
+
 		fmt.Println("Registering route: /api/file")
 		api.GET("/file", fileHandler.ServeFile)
-		
+
 		// Auth routes
 		auth := api.Group("/auth")
 		{
@@ -73,23 +76,23 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/auth/login")
 			auth.POST("/login", authHandler.Login)
-			
+
 			// Password reset routes
 			fmt.Println("Registering route: /api/auth/reset-password")
 			auth.POST("/reset-password", authHandler.RequestPasswordReset)
-			
+
 			fmt.Println("Registering route: /api/auth/reset-password/confirm")
 			auth.POST("/reset-password/confirm", authHandler.ResetPassword)
-			
+
 			fmt.Println("Registering route: /api/auth/validate")
 			auth.GET("/validate", authHandler.ValidateResetToken)
-			
+
 			// Email verification routes
 			fmt.Println("Registering route: /api/auth/verify-email")
 			auth.GET("/verify-email", authHandler.VerifyEmail)
 			auth.POST("/verify-email", middleware.AuthMiddleware(cfg.JWTSecret), authHandler.ResendVerificationEmail)
 		}
-		
+
 		pdf := api.Group("/pdf")
 		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
 		{
@@ -108,7 +111,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/pdf/split/status")
 			pdf.GET("/split/status", pdfHandler.GetSplitStatus)
-			
+
 			fmt.Println("Registering route: /api/pdf/rotate")
 			pdf.POST("/rotate", pdfHandler.RotatePDF)
 
@@ -121,7 +124,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/pdf/unlock")
 			pdf.POST("/unlock", pdfHandler.UnlockPDF)
 		}
-		
+
 		// User routes
 		user := api.Group("/user")
 		user.Use(middleware.AuthMiddleware(cfg.JWTSecret))
@@ -134,17 +137,17 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/user/deposit/verify")
 			user.POST("/deposit/verify", balanceHandler.VerifyDeposit)
-			
+
 			// User profile routes
 			fmt.Println("Registering route: /api/user/profile")
 			user.GET("/profile", handlers.GetUserProfile)
 			user.PUT("/profile", handlers.UpdateUserProfile)
-			
+
 			// Password change route
 			fmt.Println("Registering route: /api/user/password")
 			user.PUT("/password", handlers.ChangeUserPassword)
 		}
-		
+
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		{
@@ -155,6 +158,16 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/keys/:id")
 			keys.DELETE("/:id", apiKeyHandler.RevokeKey)
 		}
+	}
+
+	// Add email preview route in development mode
+	if cfg.Debug {
+		r.GET("/email-preview", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "email_preview.html", gin.H{
+				"title": "Email Preview",
+				"body":  "This is a preview of an email that would be sent in production mode.",
+			})
+		})
 	}
 
 	// Swagger documentation

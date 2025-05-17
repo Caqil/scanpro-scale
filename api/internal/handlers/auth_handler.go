@@ -4,128 +4,95 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/Caqil/megapdf-api/internal/db"
+	"github.com/Caqil/megapdf-api/internal/models"
 	"github.com/Caqil/megapdf-api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	service *services.AuthService
+	service      *services.AuthService
+	jwtSecret    string
+	emailService *services.EmailService
 }
 
 func NewAuthHandler(service *services.AuthService, jwtSecret string) *AuthHandler {
-	return &AuthHandler{service: service}
+	return &AuthHandler{
+		service:   service,
+		jwtSecret: jwtSecret,
+	}
 }
 
-// Register godoc
-// @Summary Register a new user
-// @Description Creates a new user account with email verification
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param body body object{name=string,email=string,password=string} true "User registration information"
-// @Success 200 {object} object{success=boolean,token=string,user=object{id=string,name=string,email=string,isEmailVerified=boolean,balance=number,freeOperationsUsed=integer},emailSent=boolean}
-// @Failure 400 {object} object{error=string}
-// @Failure 409 {object} object{error=string}
-// @Failure 500 {object} object{error=string}
-// @Router /api/auth/register [post]
+// Register handles user registration
 func (h *AuthHandler) Register(c *gin.Context) {
-	// Parse request body
-	var requestBody struct {
+	// Parse request
+	var req struct {
 		Name     string `json:"name" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=8"`
 	}
 
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body: " + err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Register user
-	result, err := h.service.Register(requestBody.Name, requestBody.Email, requestBody.Password)
+	result, err := h.service.Register(req.Name, req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to register user: " + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if !result.Success {
-		status := http.StatusBadRequest
-		if result.Error == "User with this email already exists" {
-			status = http.StatusConflict
-		}
-		c.JSON(status, gin.H{
-			"error": result.Error,
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
 	}
 
-	// Return user information
+	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"token":   result.Token,
-		"user": map[string]interface{}{
-			"id":                result.User.ID,
-			"name":              result.User.Name,
-			"email":             result.User.Email,
-			"isEmailVerified":   result.User.IsEmailVerified,
-			"balance":           result.User.Balance,
-			"freeOperationsUsed": result.User.FreeOperationsUsed,
+		"user": gin.H{
+			"id":              result.User.ID,
+			"name":            result.User.Name,
+			"email":           result.User.Email,
+			"isEmailVerified": result.User.IsEmailVerified,
 		},
-		"emailSent": true, // In a real implementation, this would depend on email sending result
+		"emailSent": true, // This should be based on actual email success
 	})
 }
 
-// Login godoc
-// @Summary Login a user
-// @Description Authenticates a user and returns a JWT token
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param body body object{email=string,password=string} true "User login credentials"
-// @Success 200 {object} object{success=boolean,token=string,user=object{id=string,name=string,email=string,isEmailVerified=boolean,role=string}}
-// @Failure 400 {object} object{error=string}
-// @Failure 401 {object} object{error=string}
-// @Failure 500 {object} object{error=string}
-// @Router /api/auth/login [post]
+// Login handles user login
 func (h *AuthHandler) Login(c *gin.Context) {
-	// Parse request body
-	var requestBody struct {
+	// Parse request
+	var req struct {
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
 	}
 
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body: " + err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Login user
-	result, err := h.service.Login(requestBody.Email, requestBody.Password)
+	result, err := h.service.Login(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to login: " + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if !result.Success {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": result.Error,
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": result.Error})
 		return
 	}
 
-	// Return user information
+	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"token":   result.Token,
-		"user": map[string]interface{}{
+		"user": gin.H{
 			"id":              result.User.ID,
 			"name":            result.User.Name,
 			"email":           result.User.Email,
@@ -133,4 +100,197 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			"role":            result.User.Role,
 		},
 	})
+}
+
+// RequestPasswordReset handles password reset requests
+func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
+	// Parse request
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
+
+	// Request password reset
+	token, err := h.service.RequestPasswordReset(req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process reset request"})
+		return
+	}
+
+	// For security, don't reveal if email exists
+	if token == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "If an account with this email exists, a password reset link has been sent",
+		})
+		return
+	}
+
+	// Send password reset email
+	if h.emailService != nil {
+		emailResult, err := h.emailService.SendPasswordResetEmail(req.Email, token.Token)
+		if err != nil || !emailResult.Success {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Error sending password reset email. Please try again later.",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		// For development, return token and preview URL
+		devDetails := gin.H{}
+		if c.GetString("mode") == "development" {
+			devDetails["devToken"] = token.Token
+			devDetails["previewUrl"] = emailResult.MessageUrl
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success":    true,
+			"message":    "Password reset link has been sent",
+			"devDetails": devDetails,
+		})
+	} else {
+		// Email service not configured
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Password reset link would be sent (email service not configured)",
+			"token":   token.Token, // Only in development
+		})
+	}
+}
+
+// ValidateResetToken checks if a reset token is valid
+func (h *AuthHandler) ValidateResetToken(c *gin.Context) {
+	// Get token from query
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required", "valid": false})
+		return
+	}
+
+	// Validate token
+	valid, err := h.service.ValidateResetToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate token", "valid": false})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid": valid,
+		"message": map[bool]string{
+			true:  "Token is valid",
+			false: "Token is invalid or has expired",
+		}[valid],
+	})
+}
+
+// ResetPassword resets a user's password using a token
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	// Parse request
+	var req struct {
+		Token    string `json:"token" binding:"required"`
+		Password string `json:"password" binding:"required,min=8"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token and password are required"})
+		return
+	}
+
+	// Reset password
+	err := h.service.ResetPassword(req.Token, req.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Password has been reset successfully",
+	})
+}
+
+// VerifyEmail verifies a user's email using a token
+func (h *AuthHandler) VerifyEmail(c *gin.Context) {
+	// Get token from query
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Verification token is required"})
+		return
+	}
+
+	// Verify email
+	err := h.service.VerifyEmail(token)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Email verified successfully",
+	})
+}
+
+// ResendVerificationEmail resends a verification email to the user
+func (h *AuthHandler) ResendVerificationEmail(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// Get user from database
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Check if email is already verified
+	if user.IsEmailVerified {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is already verified"})
+		return
+	}
+
+	// Generate new verification token
+	verificationToken, err := h.service.ResendVerificationEmail(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resend verification email"})
+		return
+	}
+
+	// Send verification email
+	if user.Email != "" && h.emailService != nil {
+		emailResult, err := h.emailService.SendVerificationEmail(
+			user.Email,
+			verificationToken,
+			user.Name,
+		)
+
+		if err != nil || !emailResult.Success {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Verification email sent successfully",
+		})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User has no email address or email service not configured",
+		})
+	}
+}
+
+// SetEmailService sets the email service for this handler
+func (h *AuthHandler) SetEmailService(emailService *services.EmailService) {
+	h.emailService = emailService
 }

@@ -1,3 +1,4 @@
+// components/auth/login-form.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { LanguageLink } from "@/components/language-link";
 import { buildApiUrl } from "@/lib/api-config";
+import { useAuth } from "@/src/context/auth-context";
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -23,6 +25,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const { t } = useLanguageStore();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
 
   // Form state
   const [email, setEmail] = useState("");
@@ -122,45 +125,24 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     setLoading(true);
 
     try {
-      // Using direct fetch to Go API instead of next-auth
-      const response = await fetch(buildApiUrl("/api/auth/login"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      // Using our auth context to login
+      const result = await login(email, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Invalid email or password");
+      if (!result.success) {
+        throw new Error(result.error || "Invalid email or password");
       }
 
-      if (!data.success || !data.token) {
-        throw new Error(data.error || "Login failed");
+      // Store token in localStorage or sessionStorage based on rememberMe
+      const authToken = localStorage.getItem("authToken");
+      if (authToken) {
+        if (rememberMe) {
+          // Already in localStorage, no need to move
+        } else {
+          // Move to sessionStorage
+          sessionStorage.setItem("authToken", authToken);
+          localStorage.removeItem("authToken");
+        }
       }
-
-      // Store the token in localStorage or sessionStorage
-      if (rememberMe) {
-        localStorage.setItem("authToken", data.token);
-      } else {
-        sessionStorage.setItem("authToken", data.token);
-      }
-
-      // Store user data
-      const userData = {
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
-        isEmailVerified: data.user.isEmailVerified,
-      };
-
-      localStorage.setItem("userData", JSON.stringify(userData));
 
       toast.success(t("auth.loginSuccess") || "Signed in successfully");
 
