@@ -66,6 +66,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/pdf/split")
 			pdf.POST("/split", pdfHandler.SplitPDF)
 
+			fmt.Println("Registering route: /api/pdf/split/status")
+			pdf.GET("/split/status", pdfHandler.GetSplitStatus)
+			
 			fmt.Println("Registering route: /api/pdf/rotate")
 			pdf.POST("/rotate", pdfHandler.RotatePDF)
 

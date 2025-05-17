@@ -46,7 +46,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface SplitPart {
   fileUrl: string;
   filename: string;
-  pages: number[];
+  pages: number[] | string[];
   pageCount: number;
 }
 
@@ -60,6 +60,7 @@ interface SplitResult {
   jobId?: string;
   statusUrl?: string;
   results?: SplitPart[]; // For status API responses
+  estimatedSplits?: number;
 }
 
 // Status polling interface
@@ -87,7 +88,6 @@ export function PdfSplitter() {
   const [statusUrl, setStatusUrl] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const {
-    isUploading,
     progress: uploadProgress,
     error: uploadError,
     uploadFile,
@@ -107,6 +107,9 @@ export function PdfSplitter() {
 
   // Watch fields for conditional rendering
   const splitMethod = form.watch("splitMethod");
+
+  // Get the Go API URL from env
+  const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
   // Function to examine PDF and get page count
   const examineFile = async (file: File) => {
@@ -172,15 +175,28 @@ export function PdfSplitter() {
     if (!statusUrl || !jobId) return;
 
     try {
-      const response = await fetch(statusUrl);
+      // Format the full URL for the status endpoint
+      const fullStatusUrl = statusUrl.startsWith("/")
+        ? `${goApiUrl}${statusUrl}`
+        : statusUrl;
+
+      console.log("Polling status URL:", fullStatusUrl);
+
+      const response = await fetch(fullStatusUrl, {
+        headers: {
+          "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`Error fetching status: ${response.status}`);
       }
 
       const status: JobStatus = await response.json();
+      console.log("Status response:", status);
 
       // Update progress for splitting phase (50–100%)
-      const splittingProgress = 50 + status.progress / 2; // Map 0–100 to 50–100
+      const splittingProgress = 50 + (status.progress || 0) / 2; // Map 0–100 to 50–100
       setProgress(splittingProgress);
 
       if (status.status === "completed") {
@@ -228,7 +244,7 @@ export function PdfSplitter() {
         toast.error(t("splitPdf.error.failed"));
       }
     }
-  }, [statusUrl, jobId, file, totalPages, t, retryCount]);
+  }, [statusUrl, jobId, file, totalPages, t, retryCount, goApiUrl]);
 
   // Start polling when status URL is available
   useEffect(() => {
@@ -267,50 +283,101 @@ export function PdfSplitter() {
       formData.append("everyNPages", values.everyNPages.toString());
     }
 
-    uploadFile(file, formData, {
-      url: "/api/pdf/split",
-      onProgress: (progress) => {
-        // Update progress for upload phase (0–50%)
-        setProgress(progress / 2);
-      },
-      onSuccess: async (data) => {
-        // Upload complete, start processing phase
-        setIsProcessing(true);
+    // Use the Go API URL instead of Next.js API
+    const apiUrl = `${goApiUrl}/api/pdf/split`;
+    console.log("Submitting to Go API URL:", apiUrl);
 
-        if (data.isLargeJob && data.jobId && data.statusUrl) {
-          // Large job: start polling
-          setJobId(data.jobId);
-          setStatusUrl(data.statusUrl);
-          setIsPolling(true);
+    try {
+      setIsUploading(true);
 
-          toast.info(t("splitPdf.largeSplitStarted"), {
-            description: t("splitPdf.largeSplitDesc"),
-          });
-        } else {
-          // Small job: immediate result
-          setProgress(100);
-          setSplitResult(data);
-          setIsProcessing(false);
+      // Track upload progress
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+      xhr.setRequestHeader(
+        "x-api-key",
+        "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+      );
 
-          toast.success(t("splitPdf.splitSuccess"), {
-            description: t("splitPdf.splitSuccessDesc").replace(
-              "{count}",
-              getPartsCount(data).toString()
-            ),
-          });
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          // Update progress for upload phase (0–50%)
+          setProgress(percentComplete / 2);
         }
-      },
-      onError: (err) => {
-        setError(err.message || t("splitPdf.error.unknown"));
-        setProgress(0);
-        setIsProcessing(false);
+      };
 
-        toast.error(t("splitPdf.error.failed"), {
-          description: err.message || t("splitPdf.error.unknown"),
-        });
-      },
-    });
+      xhr.onload = function () {
+        setIsUploading(false);
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Success
+          const data = JSON.parse(xhr.responseText);
+          console.log("API response:", data);
+
+          if (data.isLargeJob && data.jobId && data.statusUrl) {
+            // Large job: start polling
+            setJobId(data.jobId);
+            setStatusUrl(data.statusUrl);
+            setIsPolling(true);
+            setIsProcessing(true);
+
+            toast.info(t("splitPdf.largeSplitStarted"), {
+              description: t("splitPdf.largeSplitDesc"),
+            });
+          } else {
+            // Small job: immediate result
+            setProgress(100);
+            setSplitResult(data);
+            setIsProcessing(false);
+
+            toast.success(t("splitPdf.splitSuccess"), {
+              description: t("splitPdf.splitSuccessDesc").replace(
+                "{count}",
+                getPartsCount(data).toString()
+              ),
+            });
+          }
+        } else {
+          // Error
+          setIsProcessing(false);
+          setProgress(0);
+
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.error || t("splitPdf.error.unknown"));
+            toast.error(t("splitPdf.error.failed"), {
+              description: errorData.error || t("splitPdf.error.unknown"),
+            });
+          } catch (e) {
+            setError(t("splitPdf.error.failed"));
+            toast.error(t("splitPdf.error.failed"));
+          }
+        }
+      };
+
+      xhr.onerror = function () {
+        setIsUploading(false);
+        setIsProcessing(false);
+        setProgress(0);
+
+        setError(t("splitPdf.error.networkError"));
+        toast.error(t("splitPdf.error.networkError"));
+      };
+
+      xhr.send(formData);
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      setIsUploading(false);
+      setIsProcessing(false);
+      setProgress(0);
+
+      setError(t("splitPdf.error.unknown"));
+      toast.error(t("splitPdf.error.failed"));
+    }
   };
+
+  // Helper state for tracking upload
+  const [isUploading, setIsUploading] = useState(false);
 
   // Helper function to get split parts safely
   const getSplitParts = useCallback(
@@ -333,6 +400,15 @@ export function PdfSplitter() {
       return getSplitParts(result).length;
     },
     [getSplitParts]
+  );
+
+  // Format file URLs to include Go API base URL if needed
+  const formatFileUrl = useCallback(
+    (url: string): string => {
+      if (!url) return "";
+      return url.startsWith("/") ? `${goApiUrl}${url}` : url;
+    },
+    [goApiUrl]
   );
 
   return (
@@ -360,7 +436,7 @@ export function PdfSplitter() {
                 description={`${
                   t("fileUploader.dropHereDesc") ||
                   "Drop your PDF file here or click to browse."
-                } ${t("fileUploader.maxSize") || "Maximum size is 100MB."}`}
+                } ${t("fileUploader.maxSize") || "Maximum size is 50MB."}`}
                 browseButtonText={t("fileUploader.browse") || "Browse Files"}
                 browseButtonVariant="default"
                 securityText={
@@ -499,12 +575,13 @@ export function PdfSplitter() {
             )}
 
             {/* Error Message */}
-            {(error || uploadError) && (
+            {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>uploadError</AlertDescription>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
             {/* Progress Indicator */}
             {(isUploading || isProcessing || isPolling) && (
               <UploadProgress
@@ -518,8 +595,6 @@ export function PdfSplitter() {
                     ? t("splitPdf.splittingLarge")
                     : t("splitPdf.splitting")
                 }
-                error={uploadError}
-                uploadStats={isUploading ? uploadStats : undefined} // Only show stats during upload
               />
             )}
 
@@ -563,7 +638,10 @@ export function PdfSplitter() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {t("splitPdf.results.pages")}:{" "}
-                              {part.pages.join(", ")} ({part.pageCount}{" "}
+                              {Array.isArray(part.pages)
+                                ? part.pages.join(", ")
+                                : part.pages}{" "}
+                              ({part.pageCount}{" "}
                               {t("splitPdf.results.pagesCount")})
                             </p>
                           </div>
@@ -574,7 +652,11 @@ export function PdfSplitter() {
                           size="sm"
                           asChild
                         >
-                          <a href={part.fileUrl} download target="_blank">
+                          <a
+                            href={formatFileUrl(part.fileUrl)}
+                            download
+                            target="_blank"
+                          >
                             <DownloadIcon className="h-4 w-4 mr-1" />{" "}
                             {t("ui.download")}
                           </a>

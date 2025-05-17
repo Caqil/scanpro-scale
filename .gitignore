@@ -1,4 +1,6 @@
 # Dependencies
+/api/public
+/api/uploads
 /app/node_modules
 /.pnp
 .pnp.js
@@ -13,7 +15,6 @@
 
 # Testing
 /app/coverage
-/api/public
 # Next.js
 /app/.next/
 /out/

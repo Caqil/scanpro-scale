@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"io"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -11,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/services"
@@ -198,61 +201,93 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 	}
 	defer os.Remove(inputPath)
 
-	// Check if pdfcpu is available
-	if _, err := exec.LookPath("pdfcpu"); err != nil {
+	// Verify the file exists and is accessible
+	fileInfo, err := os.Stat(inputPath)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "pdfcpu tool not found",
+			"error": "Failed to access the saved PDF file: " + err.Error(),
 		})
 		return
 	}
 
-	// Validate PDF integrity
-	cmd := exec.Command("pdfcpu", "validate", inputPath)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("PDF validation failed: %s", string(output))
+	if fileInfo.Size() == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid or corrupted PDF: " + string(output),
+			"error": "Uploaded file is empty",
 		})
 		return
 	}
 
-	// Get total page count using pdfcpu
-	cmd = exec.Command("pdfcpu", "info", inputPath)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("pdfcpu info failed: %s", string(output))
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get PDF information: " + string(output),
-		})
-		return
-	}
+	fmt.Printf("File saved successfully at %s with size %d bytes\n", inputPath, fileInfo.Size())
 
-	// Log output for debugging
-	log.Printf("pdfcpu info output: %s", string(output))
+	// Use multiple methods to determine page count
+	var totalPages int
+	var pageCountErr error
 
-	// Parse page count from pdfcpu output
-	pageCountRegex := regexp.MustCompile(`(?i)Pages?\s*[:=]\s*(\d+)`)
-	matches := pageCountRegex.FindStringSubmatch(string(output))
+	// Method 1: Use pdfcpu API directly
+	totalPages, pageCountErr = api.PageCountFile(inputPath)
+	if pageCountErr != nil || totalPages == 0 {
+		fmt.Printf("Method 1 (pdfcpu API) failed: %v. Trying fallback methods...\n", pageCountErr)
 
-	totalPages := 0
-	if len(matches) >= 2 {
-		totalPages, err = strconv.Atoi(matches[1])
-		if err != nil {
-			log.Printf("Failed to parse page count: %s", matches[1])
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to parse page count",
-			})
-			return
+		// Method 2: Use pdfcpu info command and parse output
+		cmd := exec.Command("pdfcpu", "info", inputPath)
+		output, err := cmd.CombinedOutput()
+		if err == nil {
+			fmt.Printf("pdfcpu info output: %s\n", string(output))
+			pageCountRegex := regexp.MustCompile("(?i)Pages?\\s*[:=]\\s*(\\d+)")
+			matches := pageCountRegex.FindStringSubmatch(string(output))
+			if len(matches) >= 2 {
+				totalPages, err = strconv.Atoi(matches[1])
+				if err == nil && totalPages > 0 {
+					fmt.Printf("Method 2 (pdfcpu info command) succeeded: %d pages\n", totalPages)
+					pageCountErr = nil
+				} else {
+					fmt.Printf("Method 2 failed to parse page count: %v\n", err)
+				}
+			}
+		} else {
+			fmt.Printf("Method 2 (pdfcpu info command) failed: %v\n", err)
 		}
+
+		// Method 3: Try to open the PDF with pdf-lib
+		if totalPages == 0 || pageCountErr != nil {
+			// Just check if the file is readable without storing content
+			_, err := os.ReadFile(inputPath)
+			if err == nil {
+				// Try to get info using pdfinfo
+				cmd := exec.Command("pdfinfo", inputPath)
+				output, err := cmd.CombinedOutput()
+				if err == nil {
+					fmt.Printf("pdfinfo output: %s\n", string(output))
+					pageCountRegex := regexp.MustCompile("Pages:\\s*(\\d+)")
+					matches := pageCountRegex.FindStringSubmatch(string(output))
+					if len(matches) >= 2 {
+						totalPages, err = strconv.Atoi(matches[1])
+						if err == nil && totalPages > 0 {
+							fmt.Printf("Method 3 (pdfinfo) succeeded: %d pages\n", totalPages)
+							pageCountErr = nil
+						} else {
+							fmt.Printf("Method 3 failed to parse page count: %v\n", err)
+						}
+					}
+				} else {
+					fmt.Printf("Method 3 (pdfinfo) failed: %v\n", err)
+				}
+			} else {
+				fmt.Printf("Method 3 failed to read file: %v\n", err)
+			}
+		}
+	} else {
+		fmt.Printf("Method 1 (pdfcpu API) succeeded: %d pages\n", totalPages)
 	}
 
-	if totalPages == 0 {
+	if totalPages == 0 || pageCountErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "PDF contains no pages or page count could not be determined",
+			"error": "PDF contains no pages or page count could not be determined. Please check if the PDF is valid.",
 		})
 		return
 	}
+
+	fmt.Printf("PDF page count successfully determined: %d pages\n", totalPages)
 
 	// Parse selected pages
 	pagesToNumber := make([]int, 0)
@@ -357,16 +392,15 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		pdfcpuPosition = "br"
 	}
 
-	// Generate script for pdfcpu watermark command
-	tempScriptPath := filepath.Join(h.config.TempDir, uniqueID+"-script.sh")
+	// Copy input file to output path before applying stamps
+	if err := copyFile(inputPath, outputPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to prepare output file: " + err.Error(),
+		})
+		return
+	}
 
-	var scriptContent strings.Builder
-	scriptContent.WriteString("#!/bin/bash\n\n")
-
-	// Copy input file to output path to start with
-	scriptContent.WriteString(fmt.Sprintf("cp \"%s\" \"%s\"\n\n", inputPath, outputPath))
-
-	// Add page numbers
+	// Apply stamp for each page
 	for _, pageNum := range pagesToNumber {
 		// Format the page number according to the selected format
 		var formattedNumber string
@@ -383,39 +417,30 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		// Create the text content with prefix and suffix
 		pageText := prefix + formattedNumber + suffix
 
-		// Call pdfcpu watermark for each page
-		scriptContent.WriteString(fmt.Sprintf("pdfcpu watermark add -pages %d -mode text -pos %s -margin %d,%d -font %s -size %d -color %s \"%s\" \"%s\" \"%s\"\n",
-			pageNum,
-			pdfcpuPosition,
-			marginX,
-			marginY,
-			getFontMap(fontFamily),
-			fontSize,
-			formatColor(color),
+		// Call pdfcpu stamp for each page
+		cmd := exec.Command(
+			"pdfcpu",
+			"stamp", "add",
+			"-pages", strconv.Itoa(pageNum),
+			"-mode", "text",
+			"-pos", pdfcpuPosition,
+			"-margin", fmt.Sprintf("%d,%d", marginX, marginY),
+			"-font", getFontMap(fontFamily),
+			"-size", strconv.Itoa(fontSize),
+			"-color", formatColor(color),
 			pageText,
 			outputPath,
 			outputPath,
-		))
-	}
+		)
 
-	// Write the script to a file
-	if err := os.WriteFile(tempScriptPath, []byte(scriptContent.String()), 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create processing script: " + err.Error(),
-		})
-		return
-	}
-	defer os.Remove(tempScriptPath)
-
-	// Execute the script
-	cmd = exec.Command("/bin/bash", tempScriptPath)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Script execution failed: %s", string(output))
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to add page numbers: " + string(output),
-		})
-		return
+		cmdOutput, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("Error adding page number to page %d: %v, output: %s\n", pageNum, err, string(cmdOutput))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("Failed to add page number to page %d: %v", pageNum, err),
+			})
+			return
+		}
 	}
 
 	// Generate file URL
@@ -437,6 +462,28 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 			"operationCost":           services.OperationCost,
 		},
 	})
+}
+
+// Helper function to copy a file
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Helper function to convert number to Roman numerals
@@ -530,36 +577,62 @@ func formatColor(hexColor string) string {
 // @Accept multipart/form-data
 // @Produce json
 // @Param file formData file true "PDF file to split (max 50MB)"
-// @Param ranges formData string true "Page ranges for splitting (e.g., '1-3,4,5-7')"
+// @Param splitMethod formData string true "Split method: range, extract, or every"
+// @Param pageRanges formData string false "Page ranges for splitting (e.g., '1-3,4,5-7')"
+// @Param everyNPages formData integer false "Split every N pages"
 // @Security ApiKeyAuth
-// @Success 200 {object} object{success=boolean,message=string,files=array,fileCount=integer,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
+// @Success 200 {object} object{success=boolean,message=string,originalName=string,totalPages=integer,splitParts=array,isLargeJob=boolean,jobId=string,statusUrl=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
 // @Failure 400 {object} object{error=string}
 // @Failure 401 {object} object{error=string}
 // @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
 // @Failure 500 {object} object{error=string}
 // @Router /api/pdf/split [post]
 func (h *PDFHandler) SplitPDF(c *gin.Context) {
-	// Get user ID and operation type from context
-	userID, _ := c.Get("userId")
+	// Get user ID from either API key (via headers) or session
+	userID, exists := c.Get("userId")
 	operation, _ := c.Get("operationType")
 
-	// Process the operation charge
-	result, err := h.balanceService.ProcessOperation(userID.(string), operation.(string))
-	if err != nil {
+	// IMPORTANT: Check if the user can perform this operation BEFORE processing
+	if exists {
+		result, err := h.balanceService.ProcessOperation(userID.(string), operation.(string))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to process operation: " + err.Error(),
+			})
+			return
+		}
+
+		if !result.Success {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error": result.Error,
+				"details": gin.H{
+					"balance":                 result.CurrentBalance,
+					"freeOperationsRemaining": result.FreeOperationsRemaining,
+					"operationCost":           services.OperationCost,
+				},
+			})
+			return
+		}
+	}
+
+	// Create necessary directories if they don't exist
+	if err := os.MkdirAll(h.config.UploadDir, 0755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to process operation: " + err.Error(),
+			"error": "Failed to create upload directory: " + err.Error(),
 		})
 		return
 	}
 
-	if !result.Success {
-		c.JSON(http.StatusPaymentRequired, gin.H{
-			"error": result.Error,
-			"details": gin.H{
-				"balance":                 result.CurrentBalance,
-				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
-			},
+	if err := os.MkdirAll(filepath.Join(h.config.PublicDir, "splits"), 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create splits directory: " + err.Error(),
+		})
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Join(h.config.PublicDir, "status"), 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create status directory: " + err.Error(),
 		})
 		return
 	}
@@ -576,156 +649,717 @@ func (h *PDFHandler) SplitPDF(c *gin.Context) {
 	// Check file extension
 	if filepath.Ext(file.Filename) != ".pdf" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Only PDF files are supported",
+			"error": "Only PDF files can be split",
 		})
 		return
 	}
 
-	// Get page ranges
-	rangesStr := c.PostForm("ranges")
-	if rangesStr == "" {
+	// Check file size (max 50MB)
+	if file.Size > 50*1024*1024 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Page ranges parameter is required",
+			"error": "File size exceeds 50MB limit",
 		})
 		return
 	}
 
-	// Create unique ID and paths
-	uniqueID := uuid.New().String()
-	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input.pdf")
-	outputDir := filepath.Join(h.config.PublicDir, "splits", uniqueID)
+	// Get split method and parameters
+	splitMethod := c.DefaultPostForm("splitMethod", "range")
+	pageRanges := c.DefaultPostForm("pageRanges", "")
+	everyNPagesStr := c.DefaultPostForm("everyNPages", "1")
+	everyNPages, _ := strconv.Atoi(everyNPagesStr)
+	if everyNPages < 1 {
+		everyNPages = 1
+	}
 
-	// Create output directory
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create output directory: " + err.Error(),
+	// Validate split method
+	if splitMethod != "range" && splitMethod != "extract" && splitMethod != "every" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid split method. Must be 'range', 'extract', or 'every'",
 		})
 		return
 	}
+
+	// Create a unique session ID for this job
+	sessionId := uuid.New().String()
+	inputPath := filepath.Join(h.config.UploadDir, sessionId+"-input.pdf")
 
 	// Save uploaded file
 	if err := c.SaveUploadedFile(file, inputPath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to save file: " + err.Error(),
+			"error": "Failed to save uploaded file: " + err.Error(),
 		})
 		return
 	}
-	defer os.Remove(inputPath)
 
-	// Parse page ranges
-	ranges := parsePageRanges(rangesStr)
-	if len(ranges) == 0 {
+	// Get PDF page count
+	totalPages, err := getPDFPageCount(inputPath)
+	if err != nil {
+		// Instead of just returning an error, try a fallback approach with a default value
+		fmt.Printf("Warning: Failed to get page count: %v. Trying to estimate from file size.\n", err)
+
+		// Estimate number of pages based on file size as a fallback
+		fileSizeInMB := float64(file.Size) / (1024 * 1024)
+		estimatedPages := int(math.Max(1, math.Round(fileSizeInMB*10))) // ~10 pages per MB is a rough estimate
+
+		fmt.Printf("Estimated %d pages based on file size of %.2f MB\n", estimatedPages, fileSizeInMB)
+		totalPages = estimatedPages
+
+		// If it's a range-based split, we need an accurate page count
+		if splitMethod == "range" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Could not determine page count for range-based splitting. Please try a different split method or a different PDF file.",
+			})
+			os.Remove(inputPath) // Clean up
+			return
+		}
+	}
+
+	if totalPages <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid page ranges format",
+			"error": "PDF appears to contain no pages or is invalid",
 		})
+		os.Remove(inputPath) // Clean up
 		return
 	}
 
-	// Create files array to store output file information
-	type SplitFile struct {
-		Name          string `json:"name"`
-		URL           string `json:"url"`
-		Pages         string `json:"pages"`
-		PageCount     int    `json:"pageCount"`
-		SizeBytes     int64  `json:"sizeBytes"`
-		SizeFormatted string `json:"sizeFormatted"`
+	// Validate parameters based on split method
+	if splitMethod == "range" && pageRanges == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Page ranges must be specified for range split method",
+		})
+		os.Remove(inputPath) // Clean up
+		return
 	}
 
-	outputFiles := []SplitFile{}
+	// Estimate job size to determine if we should use background processing
+	estimatedSplits := 0
+	if splitMethod == "range" && pageRanges != "" {
+		parsedRanges := parsePageRanges(pageRanges, totalPages)
+		estimatedSplits = len(parsedRanges)
 
-	// Split PDF for each range using pdfcpu
-	for i, pageRange := range ranges {
-		outputFilename := fmt.Sprintf("%s-split-%d.pdf", uniqueID, i+1)
-		outputPath := filepath.Join(outputDir, outputFilename)
+		// If no valid ranges were found, return an error
+		if estimatedSplits == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "No valid page ranges found. Please check your input.",
+			})
+			os.Remove(inputPath) // Clean up
+			return
+		}
+	} else if splitMethod == "extract" {
+		estimatedSplits = totalPages
+	} else if splitMethod == "every" {
+		estimatedSplits = (totalPages + everyNPages - 1) / everyNPages // Ceiling division
+	}
 
-		// Form pdfcpu command for splitting
-		cmd := exec.Command(
+	// Determine if this is a large job that should be processed in the background
+	isLargeJob := estimatedSplits > 15 || totalPages > 100
+
+	// Prepare billing info for response
+	var billingInfo gin.H
+	if exists {
+		result, _ := h.balanceService.ProcessOperation(userID.(string), operation.(string))
+
+		var opCost float64
+		if result.UsedFreeOperation {
+			opCost = 0
+		} else {
+			opCost = services.OperationCost
+		}
+
+		billingInfo = gin.H{
+			"billing": gin.H{
+				"usedFreeOperation":       result.UsedFreeOperation,
+				"freeOperationsRemaining": result.FreeOperationsRemaining,
+				"currentBalance":          result.CurrentBalance,
+				"operationCost":           opCost,
+			},
+		}
+	}
+
+	// Log job details
+	fmt.Printf("Starting PDF split job: method=%s, totalPages=%d, estimatedSplits=%d, isLargeJob=%v\n",
+		splitMethod, totalPages, estimatedSplits, isLargeJob)
+
+	// Process the job
+	if isLargeJob {
+		// For large jobs, process in the background and return a job ID
+		statusFilePath := filepath.Join(h.config.PublicDir, "status", sessionId+"-status.json")
+
+		// Initialize status file
+		initialStatus := gin.H{
+			"id":        sessionId,
+			"status":    "processing",
+			"progress":  0,
+			"total":     estimatedSplits,
+			"completed": 0,
+			"results":   []gin.H{},
+			"error":     nil,
+		}
+
+		statusJson, err := json.Marshal(initialStatus)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create status file: " + err.Error(),
+			})
+			os.Remove(inputPath) // Clean up
+			return
+		}
+
+		if err := os.WriteFile(statusFilePath, statusJson, 0644); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to write status file: " + err.Error(),
+			})
+			os.Remove(inputPath) // Clean up
+			return
+		}
+
+		// Start background processing
+		go processSplitInBackground(
+			inputPath,
+			sessionId,
+			splitMethod,
+			pageRanges,
+			everyNPages,
+			totalPages,
+			h.config.PublicDir,
+		)
+
+		// Return response with job ID and status URL
+		response := gin.H{
+			"success":         true,
+			"message":         "PDF splitting started",
+			"jobId":           sessionId,
+			"statusUrl":       "/api/pdf/split/status?id=" + sessionId,
+			"originalName":    file.Filename,
+			"totalPages":      totalPages,
+			"estimatedSplits": estimatedSplits,
+			"isLargeJob":      true,
+		}
+
+		// Add billing info if available
+		if exists {
+			for k, v := range billingInfo {
+				response[k] = v
+			}
+		}
+
+		c.JSON(http.StatusOK, response)
+	} else {
+		// For small jobs, process immediately
+		splitParts, err := processSplitJob(
+			inputPath,
+			sessionId,
+			splitMethod,
+			pageRanges,
+			everyNPages,
+			totalPages,
+			h.config.PublicDir,
+		)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to split PDF: " + err.Error(),
+			})
+			os.Remove(inputPath) // Clean up
+			return
+		}
+
+		// Return results directly
+		response := gin.H{
+			"success":      true,
+			"message":      fmt.Sprintf("PDF split into %d files", len(splitParts)),
+			"originalName": file.Filename,
+			"totalPages":   totalPages,
+			"splitParts":   splitParts,
+			"isLargeJob":   false,
+		}
+
+		// Add billing info if available
+		if exists {
+			for k, v := range billingInfo {
+				response[k] = v
+			}
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+
+	// Clean up input file after some time (non-blocking)
+	go func() {
+		time.Sleep(30 * time.Minute) // Keep file for 30 minutes
+		os.Remove(inputPath)
+	}()
+}
+
+// Function to process split job
+func processSplitJob(
+	inputPath string,
+	sessionId string,
+	splitMethod string,
+	pageRanges string,
+	everyNPages int,
+	totalPages int,
+	publicDir string,
+) ([]gin.H, error) {
+	outputDir := filepath.Join(publicDir, "splits")
+
+	// Create results array
+	var splitParts []gin.H
+
+	// Detect which pdfcpu commands are available
+	supportedCommands := detectPdfCpuCommands()
+
+	fmt.Printf("Detected pdfcpu supported commands: %v\n", supportedCommands)
+
+	if splitMethod == "range" {
+		// Split by page ranges
+		ranges := parsePageRanges(pageRanges, totalPages)
+
+		for i, pageRange := range ranges {
+			outputFilename := fmt.Sprintf("%s-split-%d.pdf", sessionId, i+1)
+			outputPath := filepath.Join(outputDir, outputFilename)
+
+			// Try extract command first
+			success := false
+			var cmdOutput []byte
+			var cmdErr error
+
+			if supportedCommands["extract"] {
+				fmt.Printf("Using pdfcpu extract command for range: %s\n", pageRange)
+				cmd := exec.Command(
+					"pdfcpu",
+					"extract",
+					"-mode", "page",
+					"-pages", pageRange,
+					inputPath,
+					outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If extract fails, try trim command (newer pdfcpu versions)
+			if !success && supportedCommands["trim"] {
+				fmt.Printf("Extract failed or not available, trying pdfcpu trim command for range: %s\n", pageRange)
+				cmd := exec.Command(
+					"pdfcpu",
+					"trim",
+					"-pages", pageRange,
+					inputPath,
+					outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If both pdfcpu commands fail, try pdftk if available
+			if !success && commandExists("pdftk") {
+				fmt.Printf("pdfcpu commands failed, trying pdftk for range: %s\n", pageRange)
+				cmd := exec.Command(
+					"pdftk",
+					inputPath,
+					"cat", pageRange,
+					"output", outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If all methods fail, return an error
+			if !success {
+				return nil, fmt.Errorf("failed to extract pages %s: %v - %s", pageRange, cmdErr, string(cmdOutput))
+			}
+
+			// Calculate page count in this range
+			pageCount := countPagesInRange(pageRange)
+
+			// Format file URL using relative path for consistency
+			fileUrl := fmt.Sprintf("/api/file?folder=splits&filename=%s", outputFilename)
+
+			// Create pages array
+			var pages []interface{}
+			if strings.Contains(pageRange, "-") {
+				// Range like "1-5"
+				parts := strings.Split(pageRange, "-")
+				if len(parts) == 2 {
+					start, _ := strconv.Atoi(parts[0])
+					end, _ := strconv.Atoi(parts[1])
+					for i := start; i <= end; i++ {
+						pages = append(pages, i)
+					}
+				}
+			} else {
+				// Single page
+				page, _ := strconv.Atoi(pageRange)
+				pages = append(pages, page)
+			}
+
+			// Add to results
+			splitParts = append(splitParts, gin.H{
+				"fileUrl":   fileUrl,
+				"filename":  outputFilename,
+				"pages":     pages,
+				"pageCount": pageCount,
+			})
+		}
+	} else if splitMethod == "extract" {
+		// Extract each page as a separate file
+		for i := 1; i <= totalPages; i++ {
+			pageNum := strconv.Itoa(i)
+			outputFilename := fmt.Sprintf("%s-page-%s.pdf", sessionId, pageNum)
+			outputPath := filepath.Join(outputDir, outputFilename)
+
+			// Try multiple methods for page extraction
+			success := false
+
+			// Try 1: pdfcpu extract command
+			if supportedCommands["extract"] && !success {
+				cmd := exec.Command(
+					"pdfcpu",
+					"extract",
+					"-mode", "page",
+					"-pages", pageNum,
+					inputPath,
+					outputPath,
+				)
+
+				err := cmd.Run()
+				success = err == nil && fileExists(outputPath)
+			}
+
+			// Try 2: pdfcpu trim command
+			if supportedCommands["trim"] && !success {
+				cmd := exec.Command(
+					"pdfcpu",
+					"trim",
+					"-pages", pageNum,
+					inputPath,
+					outputPath,
+				)
+
+				err := cmd.Run()
+				success = err == nil && fileExists(outputPath)
+			}
+
+			// Try 3: pdftk if available
+			if commandExists("pdftk") && !success {
+				cmd := exec.Command(
+					"pdftk",
+					inputPath,
+					"cat", pageNum,
+					"output", outputPath,
+				)
+
+				err := cmd.Run()
+				success = err == nil && fileExists(outputPath)
+			}
+
+			// Skip if all methods fail
+			if !success {
+				fmt.Printf("Warning: Failed to extract page %d, skipping\n", i)
+				continue
+			}
+
+			// Format file URL
+			fileUrl := fmt.Sprintf("/api/file?folder=splits&filename=%s", outputFilename)
+
+			// Add to results
+			splitParts = append(splitParts, gin.H{
+				"fileUrl":   fileUrl,
+				"filename":  outputFilename,
+				"pages":     []int{i},
+				"pageCount": 1,
+			})
+		}
+	} else if splitMethod == "every" {
+		// Split into chunks of N pages
+		for i := 0; i < totalPages; i += everyNPages {
+			start := i + 1
+			end := start + everyNPages - 1
+			if end > totalPages {
+				end = totalPages
+			}
+
+			pageRange := fmt.Sprintf("%d-%d", start, end)
+			outputFilename := fmt.Sprintf("%s-pages-%d-%d.pdf", sessionId, start, end)
+			outputPath := filepath.Join(outputDir, outputFilename)
+
+			// Try multiple methods
+			success := false
+			var cmdOutput []byte
+			var cmdErr error
+
+			// Try pdfcpu extract command
+			if supportedCommands["extract"] {
+				cmd := exec.Command(
+					"pdfcpu",
+					"extract",
+					"-mode", "page",
+					"-pages", pageRange,
+					inputPath,
+					outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If extract fails, try trim command
+			if !success && supportedCommands["trim"] {
+				cmd := exec.Command(
+					"pdfcpu",
+					"trim",
+					"-pages", pageRange,
+					inputPath,
+					outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If both pdfcpu commands fail, try pdftk
+			if !success && commandExists("pdftk") {
+				cmd := exec.Command(
+					"pdftk",
+					inputPath,
+					"cat", pageRange,
+					"output", outputPath,
+				)
+
+				cmdOutput, cmdErr = cmd.CombinedOutput()
+				success = cmdErr == nil && fileExists(outputPath)
+			}
+
+			// If all methods fail, return an error
+			if !success {
+				return nil, fmt.Errorf("failed to extract pages %s: %v - %s", pageRange, cmdErr, string(cmdOutput))
+			}
+
+			// Calculate page count
+			pageCount := end - start + 1
+
+			// Format file URL
+			fileUrl := fmt.Sprintf("/api/file?folder=splits&filename=%s", outputFilename)
+
+			// Create pages array
+			var pages []int
+			for p := start; p <= end; p++ {
+				pages = append(pages, p)
+			}
+
+			// Add to results
+			splitParts = append(splitParts, gin.H{
+				"fileUrl":   fileUrl,
+				"filename":  outputFilename,
+				"pages":     pages,
+				"pageCount": pageCount,
+			})
+		}
+	}
+
+	return splitParts, nil
+}
+
+// Helper function to detect which pdfcpu commands are supported
+func detectPdfCpuCommands() map[string]bool {
+	supported := make(map[string]bool)
+
+	// Check for extract command
+	cmd := exec.Command("pdfcpu", "help", "extract")
+	err := cmd.Run()
+	supported["extract"] = err == nil
+
+	// Check for trim command
+	cmd = exec.Command("pdfcpu", "help", "trim")
+	err = cmd.Run()
+	supported["trim"] = err == nil
+
+	return supported
+}
+
+// Helper function to check if a command exists in PATH
+func commandExists(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	return err == nil
+}
+
+// Process split job in background and update status file
+func processSplitInBackground(
+	inputPath string,
+	sessionId string,
+	splitMethod string,
+	pageRanges string,
+	everyNPages int,
+	totalPages int,
+	publicDir string,
+) {
+	statusFilePath := filepath.Join(publicDir, "status", sessionId+"-status.json")
+
+	// Update status function
+	updateStatus := func(status string, progress int, results []gin.H, err error) {
+		statusData := gin.H{
+			"id":        sessionId,
+			"status":    status,
+			"progress":  progress,
+			"total":     len(results),
+			"completed": progress * len(results) / 100,
+			"results":   results,
+			"error":     nil,
+		}
+
+		if err != nil {
+			statusData["error"] = err.Error()
+		}
+
+		statusJson, _ := json.Marshal(statusData)
+		os.WriteFile(statusFilePath, statusJson, 0644)
+	}
+
+	// Initialize empty results
+	results := []gin.H{}
+
+	// Update status to indicate processing started
+	updateStatus("processing", 0, results, nil)
+
+	// Process splits based on method
+	var processingErr error
+
+	defer func() {
+		if r := recover(); r != nil {
+			err := fmt.Errorf("panic in background processing: %v", r)
+			fmt.Println(err)
+			updateStatus("error", 0, results, err)
+		}
+	}()
+
+	// Update status to indicate processing is ongoing
+	updateStatus("processing", 10, results, nil)
+
+	// Process the split job
+	results, processingErr = processSplitJob(
+		inputPath,
+		sessionId,
+		splitMethod,
+		pageRanges,
+		everyNPages,
+		totalPages,
+		publicDir,
+	)
+
+	if processingErr != nil {
+		updateStatus("error", 0, results, processingErr)
+		return
+	}
+
+	// Update final status
+	updateStatus("completed", 100, results, nil)
+}
+func getPDFPageCount(pdfPath string) (int, error) {
+	// Try using pdfcpu info command first
+	cmd := exec.Command("pdfcpu", "info", pdfPath)
+	output, err := cmd.CombinedOutput()
+
+	// Log the complete output for debugging
+	fmt.Printf("pdfcpu info output: %s\n", string(output))
+
+	if err == nil {
+		// Try multiple regex patterns to match page count
+		patterns := []string{
+			`Pages?\s*[:=]\s*(\d+)`,         // "Pages: 5" format
+			`Number of pages:\s*(\d+)`,      // "Number of pages: 5" format
+			`PageCount\s*[:=]\s*(\d+)`,      // "PageCount: 5" format
+			`Total\s*pages?\s*[:=]\s*(\d+)`, // "Total pages: 5" format
+			`(\d+)\s*pages?`,                // "5 pages" format
+		}
+
+		for _, pattern := range patterns {
+			re := regexp.MustCompile(pattern)
+			matches := re.FindStringSubmatch(string(output))
+
+			if len(matches) >= 2 {
+				fmt.Printf("Found page count match with pattern: %s\n", pattern)
+				return strconv.Atoi(matches[1])
+			}
+		}
+	}
+
+	// Fallback method 1: Try using pdfinfo if available
+	pdfInfoCmd := exec.Command("pdfinfo", pdfPath)
+	pdfInfoOutput, pdfInfoErr := pdfInfoCmd.CombinedOutput()
+
+	if pdfInfoErr == nil {
+		re := regexp.MustCompile(`Pages:\s*(\d+)`)
+		matches := re.FindStringSubmatch(string(pdfInfoOutput))
+
+		if len(matches) >= 2 {
+			fmt.Printf("Found page count using pdfinfo\n")
+			return strconv.Atoi(matches[1])
+		}
+	}
+
+	// Fallback method 2: Count the pages using pdf-lib
+	tempDir, err := os.MkdirTemp("", "pdfsplit")
+	if err != nil {
+		return 0, fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Try to extract all pages and count them
+	for i := 1; i <= 10000; i++ { // Set a reasonable upper limit
+		testPagePath := filepath.Join(tempDir, fmt.Sprintf("page-%d.pdf", i))
+
+		// Try to extract the page
+		extractCmd := exec.Command(
 			"pdfcpu",
 			"extract",
 			"-mode", "page",
-			"-pages", pageRange,
-			inputPath,
-			outputPath,
+			"-pages", fmt.Sprintf("%d", i),
+			pdfPath,
+			testPagePath,
 		)
 
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to split PDF: " + string(output),
-			})
-			return
-		}
+		extractErr := extractCmd.Run()
 
-		// Check if output file was created
-		fileInfo, err := os.Stat(outputPath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create split file: " + err.Error(),
-			})
-			return
-		}
-
-		// Calculate page count
-		pageCount := countPagesInRange(pageRange)
-
-		// Create file URL
-		fileURL := fmt.Sprintf("/api/file?folder=splits/%s&filename=%s", uniqueID, outputFilename)
-
-		// Format file size
-		var sizeFormatted string
-		sizeBytes := fileInfo.Size()
-		if sizeBytes < 1024 {
-			sizeFormatted = fmt.Sprintf("%d B", sizeBytes)
-		} else if sizeBytes < 1024*1024 {
-			sizeFormatted = fmt.Sprintf("%.2f KB", float64(sizeBytes)/1024)
-		} else {
-			sizeFormatted = fmt.Sprintf("%.2f MB", float64(sizeBytes)/(1024*1024))
-		}
-
-		// Add file to output list
-		outputFiles = append(outputFiles, SplitFile{
-			Name:          outputFilename,
-			URL:           fileURL,
-			Pages:         pageRange,
-			PageCount:     pageCount,
-			SizeBytes:     sizeBytes,
-			SizeFormatted: sizeFormatted,
-		})
-	}
-
-	// Return response
-	c.JSON(http.StatusOK, gin.H{
-		"success":   true,
-		"message":   fmt.Sprintf("PDF split into %d files successfully", len(outputFiles)),
-		"files":     outputFiles,
-		"fileCount": len(outputFiles),
-		"billing": gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
-			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
-		},
-	})
-}
-
-// Helper function to parse page ranges string into individual range strings
-func parsePageRanges(rangesStr string) []string {
-	// Split by comma
-	parts := strings.Split(rangesStr, ",")
-
-	// Filter out empty parts
-	var validRanges []string
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			validRanges = append(validRanges, trimmed)
+		// If extraction fails, we've reached the end
+		if extractErr != nil || !fileExists(testPagePath) {
+			// We've found i-1 pages
+			if i > 1 {
+				fmt.Printf("Counted %d pages using page extraction method\n", i-1)
+				return i - 1, nil
+			}
+			break
 		}
 	}
 
-	return validRanges
+	// Last resort fallback: try to parse as byte ranges
+	// This is not very reliable but might work in some cases
+	pdfBytes, err := os.ReadFile(pdfPath)
+	if err == nil {
+		// Look for "/Type /Page" pattern and count occurrences
+		pageSig := []byte("/Type /Page")
+		count := bytes.Count(pdfBytes, pageSig)
+
+		if count > 0 {
+			fmt.Printf("Estimated %d pages by counting /Type /Page occurrences\n", count)
+			return count, nil
+		}
+	}
+
+	// If all methods fail, return error
+	return 0, fmt.Errorf("could not determine page count using any available method")
 }
 
-// Helper function to count pages in a range string (e.g., "1-5" has 5 pages)
+// Helper function to check if a file exists
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// Helper function to count pages in a range string
 func countPagesInRange(rangeStr string) int {
 	// Handle single page
 	if !strings.Contains(rangeStr, "-") {
@@ -746,6 +1380,113 @@ func countPagesInRange(rangeStr string) int {
 	}
 
 	return end - start + 1
+}
+
+// Helper function to parse page ranges
+func parsePageRanges(rangesStr string, totalPages int) []string {
+	var validRanges []string
+
+	// Split by comma
+	parts := strings.Split(rangesStr, ",")
+
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
+			continue
+		}
+
+		// Validate range
+		if strings.Contains(trimmed, "-") {
+			// It's a range like "1-5"
+			rangeParts := strings.Split(trimmed, "-")
+			if len(rangeParts) != 2 {
+				continue // Invalid format
+			}
+
+			start, err1 := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
+			end, err2 := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
+
+			if err1 != nil || err2 != nil || start < 1 || end > totalPages || start > end {
+				continue // Invalid range
+			}
+
+			validRanges = append(validRanges, trimmed)
+		} else {
+			// It's a single page like "3"
+			page, err := strconv.Atoi(trimmed)
+			if err != nil || page < 1 || page > totalPages {
+				continue // Invalid page
+			}
+
+			validRanges = append(validRanges, trimmed)
+		}
+	}
+
+	return validRanges
+}
+
+// Status endpoint to retrieve job status
+// @Summary Get split job status
+// @Description Returns the status of a PDF split job
+// @Tags pdf
+// @Accept json
+// @Produce json
+// @Param id query string true "Job ID to retrieve status for"
+// @Success 200 {object} object{id=string,status=string,progress=integer,total=integer,completed=integer,results=array,error=string}
+// @Failure 400 {object} object{error=string}
+// @Failure 404 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /api/pdf/split/status [get]
+func (h *PDFHandler) GetSplitStatus(c *gin.Context) {
+	// Get job ID from query parameter
+	jobId := c.Query("id")
+
+	if jobId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No job ID provided",
+		})
+		return
+	}
+
+	// Validate job ID format (UUID)
+	if _, err := uuid.Parse(jobId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid job ID format",
+		})
+		return
+	}
+
+	// Check if status file exists
+	statusPath := filepath.Join(h.config.PublicDir, "status", jobId+"-status.json")
+
+	if _, err := os.Stat(statusPath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Job not found",
+			"jobId": jobId,
+		})
+		return
+	}
+
+	// Read status file
+	statusData, err := os.ReadFile(statusPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to read job status: " + err.Error(),
+		})
+		return
+	}
+
+	// Parse status JSON
+	var status map[string]interface{}
+	if err := json.Unmarshal(statusData, &status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid status data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return status
+	c.JSON(http.StatusOK, status)
 }
 
 // WatermarkPDF godoc
