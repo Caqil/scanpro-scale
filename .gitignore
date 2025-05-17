@@ -13,7 +13,7 @@
 
 # Testing
 /app/coverage
-/app/chatsessions
+/api/public
 # Next.js
 /app/.next/
 /out/

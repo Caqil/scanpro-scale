@@ -146,10 +146,17 @@ export function MultiPdfCompressor() {
       formData.append("quality", quality);
 
       // Call the backend API
-      const response = await fetch("/api/pdf/compress", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/compress`,
+        {
+          method: "POST",
+          headers: {
+            "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

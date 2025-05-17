@@ -16,6 +16,7 @@ import (
 	"github.com/Caqil/megapdf-api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 type PDFHandler struct {
@@ -1131,7 +1132,20 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 		return
 	}
 	defer os.Remove(inputPath)
+	pageCount, err := api.PageCountFile(inputPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get PDF page count: " + err.Error(),
+		})
+		return
+	}
 
+	if pageCount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "PDF contains no pages",
+		})
+		return
+	}
 	// Compress the PDF using pdfcpu optimize (maximum compression)
 	cmd := exec.Command(
 		"pdfcpu",
