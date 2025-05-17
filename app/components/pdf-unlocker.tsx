@@ -52,8 +52,8 @@ export function PdfUnlocker() {
   const [isPasswordProtected, setIsPasswordProtected] = useState<
     boolean | null
   >(null);
+  const [isUploading, setIsUploading] = useState(false);
   const {
-    isUploading,
     progress: uploadProgress,
     error: uploadError,
     uploadFile,
@@ -89,8 +89,7 @@ export function PdfUnlocker() {
     form.reset();
     resetUpload();
   };
-
-  // Handle form submission
+  // Submit handler
   const onSubmit = async (values: FormValues) => {
     if (!file) {
       setError(t("unlockPdf.noFileSelected"));
@@ -101,6 +100,7 @@ export function PdfUnlocker() {
     setProgress(0);
     setError(null);
     setUnlockedFileUrl(null);
+    setIsUploading(true);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -108,33 +108,78 @@ export function PdfUnlocker() {
       formData.append("password", values.password);
     }
 
+    // Use the Go API URL instead of Next.js API
+    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/unlock`;
+    console.log("Submitting to Go API URL:", apiUrl);
+
     try {
-      await uploadFile(file, formData, {
-        url: "/api/pdf/unlock",
-        onProgress: (progress) => {
-          setProgress(progress);
-        },
-        onSuccess: (data) => {
+      // Track upload progress
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+      xhr.setRequestHeader(
+        "x-api-key",
+        "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+      );
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          // Update progress for upload phase (0–50%)
+          setProgress(percentComplete / 2);
+        }
+      };
+
+      xhr.onload = function () {
+        setIsUploading(false);
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Success
+          const data = JSON.parse(xhr.responseText);
+          console.log("API response:", data);
+
           setProgress(100);
           setUnlockedFileUrl(data.filename);
+          setIsProcessing(false);
+
           toast.success(t("unlockPdf.unlockSuccess"), {
             description: data.message || t("unlockPdf.unlockSuccessDesc"),
           });
-        },
-        onError: (err) => {
-          setError(err.message || t("unlockPdf.unknownError"));
-          toast.error(t("unlockPdf.unlockFailed"), {
-            description: err.message || t("unlockPdf.unknownError"),
-          });
-        },
-      });
+        } else {
+          // Error
+          setIsProcessing(false);
+          setProgress(0);
+
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.error || t("unlockPdf.unknownError"));
+            toast.error(t("unlockPdf.unlockFailed"), {
+              description: errorData.error || t("unlockPdf.unknownError"),
+            });
+          } catch (e) {
+            setError(t("unlockPdf.unknownError"));
+            toast.error(t("unlockPdf.unlockFailed"));
+          }
+        }
+      };
+
+      xhr.onerror = function () {
+        setIsUploading(false);
+        setIsProcessing(false);
+        setProgress(0);
+
+        setError(t("unlockPdf.error.networkError"));
+        toast.error(t("unlockPdf.error.networkError"));
+      };
+
+      xhr.send(formData);
     } catch (err) {
-      setError(t("unlockPdf.unknownError"));
-      toast.error(t("unlockPdf.unlockFailed"), {
-        description: t("unlockPdf.unknownError"),
-      });
-    } finally {
+      console.error("Error submitting form:", err);
+      setIsUploading(false);
       setIsProcessing(false);
+      setProgress(0);
+
+      setError(t("unlockPdf.unknownError"));
+      toast.error(t("unlockPdf.unlockFailed"));
     }
   };
 
@@ -308,7 +353,9 @@ export function PdfUnlocker() {
                       variant="default"
                     >
                       <a
-                        href={`/api/file?folder=unlocked&filename=${encodeURIComponent(
+                        href={`${
+                          process.env.NEXT_PUBLIC_GO_API_URL
+                        }/api/file?folder=unlocked&filename=${encodeURIComponent(
                           unlockedFileUrl
                         )}`}
                         download

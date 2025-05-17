@@ -49,7 +49,7 @@ export function PdfPasswordProtector() {
   const [progress, setProgress] = useState(0);
   const [protectedFileUrl, setProtectedFileUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const [isUploading, setIsUploading] = useState(false);
   // Define form schema with localized error messages
   const formSchema = z
     .object({
@@ -102,8 +102,7 @@ export function PdfPasswordProtector() {
     setProtectedFileUrl(null);
     setError(null);
   };
-
-  // Handle form submission
+  // Submit handler
   const onSubmit = async (values: FormValues) => {
     if (!file) {
       setError(t("compressPdf.error.noFiles"));
@@ -114,6 +113,7 @@ export function PdfPasswordProtector() {
     setProgress(0);
     setError(null);
     setProtectedFileUrl(null);
+    setIsUploading(true);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -127,46 +127,78 @@ export function PdfPasswordProtector() {
       formData.append("allowEditing", values.allowEditing.toString());
     }
 
+    // Use the Go API URL instead of Next.js API
+    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/protect`;
+    console.log("Submitting to Go API URL:", apiUrl);
+
     try {
-      // Set up progress tracking
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return 95;
+      // Track upload progress
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+      xhr.setRequestHeader(
+        "x-api-key",
+        "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+      );
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          // Update progress for upload phase (0–50%)
+          setProgress(percentComplete / 2);
+        }
+      };
+
+      xhr.onload = function () {
+        setIsUploading(false);
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Success
+          const data = JSON.parse(xhr.responseText);
+          console.log("API response:", data);
+
+          setProgress(100);
+          setProtectedFileUrl(data.filename);
+          setIsProcessing(false);
+
+          toast.success(t("protectPdf.protected"), {
+            description: t("protectPdf.protectedDesc"),
+          });
+        } else {
+          // Error
+          setIsProcessing(false);
+          setProgress(0);
+
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.error || t("protectPdf.error.failed"));
+            toast.error(t("protectPdf.error.failed"), {
+              description: errorData.error || t("protectPdf.error.unknown"),
+            });
+          } catch (e) {
+            setError(t("protectPdf.error.failed"));
+            toast.error(t("protectPdf.error.failed"));
           }
-          return prev + 5;
-        });
-      }, 300);
+        }
+      };
 
-      // Make API request
-      const response = await fetch("/api/pdf/protect", {
-        method: "POST",
-        body: formData,
-      });
+      xhr.onerror = function () {
+        setIsUploading(false);
+        setIsProcessing(false);
+        setProgress(0);
 
-      clearInterval(progressInterval);
+        setError(t("protectPdf.error.networkError"));
+        toast.error(t("protectPdf.error.networkError"));
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t("protectPdf.error.failed"));
-      }
-
-      const data = await response.json();
-      setProgress(100);
-      setProtectedFileUrl(data.filename);
-
-      toast.success(t("protectPdf.protected"), {
-        description: t("protectPdf.protectedDesc"),
-      });
+      xhr.send(formData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("ui.error"));
-      toast.error(t("compressPdf.error.failed"), {
-        description:
-          err instanceof Error ? err.message : t("compressPdf.error.unknown"),
-      });
-    } finally {
+      console.error("Error submitting form:", err);
+      setIsUploading(false);
       setIsProcessing(false);
+      setProgress(0);
+
+      setError(t("protectPdf.error.unknown"));
+      toast.error(t("protectPdf.error.failed"));
     }
   };
 
@@ -191,11 +223,19 @@ export function PdfPasswordProtector() {
                   setError(null);
                 }
               }}
-              title={t("fileUploader.dragAndDrop") || "Drag & drop your PDF file"}
-              description={`${t("fileUploader.dropHereDesc") || "Drop your PDF file here or click to browse."} ${t("fileUploader.maxSize") || "Maximum size is 100MB."}`}
+              title={
+                t("fileUploader.dragAndDrop") || "Drag & drop your PDF file"
+              }
+              description={`${
+                t("fileUploader.dropHereDesc") ||
+                "Drop your PDF file here or click to browse."
+              } ${t("fileUploader.maxSize") || "Maximum size is 100MB."}`}
               browseButtonText={t("fileUploader.browse") || "Browse Files"}
               browseButtonVariant="default"
-              securityText={t("fileUploader.filesSecurity") || "Your files are processed securely."}
+              securityText={
+                t("fileUploader.filesSecurity") ||
+                "Your files are processed securely."
+              }
             />
 
             {/* File Display */}
@@ -461,7 +501,9 @@ export function PdfPasswordProtector() {
                       variant="default"
                     >
                       <a
-                        href={`/api/file?folder=protected&filename=${encodeURIComponent(
+                        href={`${
+                          process.env.NEXT_PUBLIC_GO_API_URL
+                        }/api/file?folder=protected&filename=${encodeURIComponent(
                           protectedFileUrl
                         )}`}
                         download

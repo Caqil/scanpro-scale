@@ -137,10 +137,12 @@ export function PdfRotator() {
     setPageRotations((prevRotations) => {
       return prevRotations.map((rotation) => {
         if (rotation.pageNumber === pageNumber) {
-          // Calculate new angle
+          // Calculate new angle, allowing negative angles
           const change = direction === "clockwise" ? 90 : -90;
-          let newAngle = (rotation.angle + change) % 360;
-          if (newAngle < 0) newAngle += 360;
+          let newAngle = rotation.angle + change;
+          // Normalize angle to [-270, -180, -90, 0, 90, 180, 270]
+          if (newAngle <= -360) newAngle += 360;
+          if (newAngle >= 360) newAngle -= 360;
 
           return {
             ...rotation,
@@ -166,10 +168,12 @@ export function PdfRotator() {
     setPageRotations((prevRotations) => {
       return prevRotations.map((rotation) => {
         if (selectedPages.includes(rotation.pageNumber)) {
-          // Calculate new angle
+          // Calculate new angle, allowing negative angles
           const change = direction === "clockwise" ? 90 : -90;
-          let newAngle = (rotation.angle + change) % 360;
-          if (newAngle < 0) newAngle += 360;
+          let newAngle = rotation.angle + change;
+          // Normalize angle to [-270, -180, -90, 0, 90, 180, 270]
+          if (newAngle <= -360) newAngle += 360;
+          if (newAngle >= 360) newAngle -= 360;
 
           return {
             ...rotation,
@@ -183,7 +187,7 @@ export function PdfRotator() {
 
   const handleProcessPdf = async () => {
     if (!file) return;
-
+    const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
     if (pageRotations.every((rotation) => rotation.angle === 0)) {
       toast.error(
         t("rotatePdf.errors.noRotation") ||
@@ -194,14 +198,25 @@ export function PdfRotator() {
 
     setIsProcessing(true);
     setProgress(0);
-
+    const apiUrl = `${goApiUrl}/api/pdf/rotate`;
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("rotations", JSON.stringify(pageRotations));
+
+    // Prepare rotation data for pages with non-zero rotations
+    const rotationsToSend = pageRotations
+      .filter((rotation) => rotation.angle !== 0)
+      .map((rotation) => ({
+        pageNumber: rotation.pageNumber,
+        angle: rotation.angle,
+      }));
+    formData.append("rotations", JSON.stringify(rotationsToSend));
 
     try {
       await uploadFile(file, formData, {
-        url: "/api/pdf/rotate",
+        url: apiUrl,
+        headers: {
+          "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
+        },
         onProgress: (progress) => {
           setProgress(progress);
         },

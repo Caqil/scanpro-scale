@@ -94,7 +94,6 @@ export function PdfSplitter() {
     resetUpload,
     uploadStats,
   } = useFileUpload();
-
   // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -107,31 +106,6 @@ export function PdfSplitter() {
 
   // Watch fields for conditional rendering
   const splitMethod = form.watch("splitMethod");
-
-  // Get the Go API URL from env
-  const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
-
-  // Function to examine PDF and get page count
-  const examineFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/pdf/info", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.pageCount) {
-          setTotalPages(data.pageCount);
-        }
-      }
-    } catch (error) {
-      console.error("Error getting PDF info:", error);
-    }
-  };
 
   // Handle file acceptance from FileDropzone
   const handleFileAccepted = (acceptedFiles: File[]) => {
@@ -149,9 +123,6 @@ export function PdfSplitter() {
       const fileSizeInMB = newFile.size / (1024 * 1024);
       const estimatedPages = Math.max(1, Math.round(fileSizeInMB * 10));
       setTotalPages(estimatedPages);
-
-      // Examine file to get actual page count
-      examineFile(newFile);
     }
   };
 
@@ -170,81 +141,126 @@ export function PdfSplitter() {
   // Retry counter for status polling
   const [retryCount, setRetryCount] = useState(0);
 
-  // Poll for job status
   const pollJobStatus = useCallback(async () => {
     if (!statusUrl || !jobId) return;
+    const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    const fullStatusUrl = statusUrl.startsWith("/")
+      ? `${goApiUrl}${statusUrl}`
+      : statusUrl;
 
-    try {
-      // Format the full URL for the status endpoint
-      const fullStatusUrl = statusUrl.startsWith("/")
-        ? `${goApiUrl}${statusUrl}`
-        : statusUrl;
+    console.log("Polling status URL:", fullStatusUrl);
 
-      console.log("Polling status URL:", fullStatusUrl);
+    return new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", fullStatusUrl);
+      xhr.setRequestHeader("x-api-key", `${process.env.GO_KEY_PDF}`);
 
-      const response = await fetch(fullStatusUrl, {
-        headers: {
-          "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
-        },
-      });
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const status: JobStatus = JSON.parse(xhr.responseText);
+            console.log("Status response:", status);
 
-      if (!response.ok) {
-        throw new Error(`Error fetching status: ${response.status}`);
-      }
+            // Update progress for splitting phase (50–100%)
+            const splittingProgress = 50 + (status.progress || 0) / 2; // Map 0–100 to 50–100
+            setProgress(splittingProgress);
 
-      const status: JobStatus = await response.json();
-      console.log("Status response:", status);
+            if (status.status === "completed") {
+              // Job completed successfully
+              setIsPolling(false);
+              setIsProcessing(false);
+              setProgress(100);
 
-      // Update progress for splitting phase (50–100%)
-      const splittingProgress = 50 + (status.progress || 0) / 2; // Map 0–100 to 50–100
-      setProgress(splittingProgress);
+              // Create a split result from job status
+              const result: SplitResult = {
+                success: true,
+                message: `PDF split into ${status.results.length} files`,
+                originalName: file?.name || "document.pdf",
+                totalPages: totalPages,
+                results: status.results,
+              };
 
-      if (status.status === "completed") {
-        // Job completed successfully
-        setIsPolling(false);
-        setIsProcessing(false);
-        setProgress(100);
+              setSplitResult(result);
+              toast.success(t("splitPdf.success"), {
+                description: t("splitPdf.successDesc"),
+              });
 
-        // Create a split result from job status
-        const result: SplitResult = {
-          success: true,
-          message: `PDF split into ${status.results.length} files`,
-          originalName: file?.name || "document.pdf",
-          totalPages: totalPages,
-          results: status.results,
-        };
+              resolve();
+            } else if (status.status === "error") {
+              // Job failed
+              setIsPolling(false);
+              setIsProcessing(false);
+              setError(status.error || t("splitPdf.error.failed"));
+              setProgress(0);
+              toast.error(t("splitPdf.error.failed"), {
+                description: status.error || t("splitPdf.error.unknown"),
+              });
 
-        setSplitResult(result);
-        toast.success(t("splitPdf.success"), {
-          description: t("splitPdf.successDesc"),
-        });
-      } else if (status.status === "error") {
-        // Job failed
-        setIsPolling(false);
-        setIsProcessing(false);
-        setError(status.error || t("splitPdf.error.failed"));
-        setProgress(0);
-        toast.error(t("splitPdf.error.failed"), {
-          description: status.error || t("splitPdf.error.unknown"),
-        });
-      } else {
-        // Job still processing, continue polling
-        setTimeout(pollJobStatus, 2000);
-      }
-    } catch (err) {
-      console.error("Error polling job status:", err);
-      if (retryCount < 5) {
-        setRetryCount((prev) => prev + 1);
-        setTimeout(pollJobStatus, 3000);
-      } else {
-        setIsPolling(false);
-        setIsProcessing(false);
-        setError(t("splitPdf.error.statusFailed"));
-        setProgress(0);
-        toast.error(t("splitPdf.error.failed"));
-      }
-    }
-  }, [statusUrl, jobId, file, totalPages, t, retryCount, goApiUrl]);
+              reject(new Error(status.error || t("splitPdf.error.failed")));
+            } else {
+              // Job still processing, continue polling
+              setTimeout(pollJobStatus, 2000);
+              resolve();
+            }
+          } catch (parseError) {
+            console.error("Error parsing status response:", parseError);
+            if (retryCount < 5) {
+              setRetryCount((prev) => prev + 1);
+              setTimeout(pollJobStatus, 3000);
+              resolve();
+            } else {
+              setIsPolling(false);
+              setIsProcessing(false);
+              setError(t("splitPdf.error.statusFailed"));
+              setProgress(0);
+              toast.error(t("splitPdf.error.failed"));
+              reject(new Error(t("splitPdf.error.statusFailed")));
+            }
+          }
+        } else {
+          console.error("Error fetching status:", xhr.status);
+          if (retryCount < 5) {
+            setRetryCount((prev) => prev + 1);
+            setTimeout(pollJobStatus, 3000);
+            resolve();
+          } else {
+            setIsPolling(false);
+            setIsProcessing(false);
+            setError(t("splitPdf.error.statusFailed"));
+            setProgress(0);
+            toast.error(t("splitPdf.error.failed"));
+            reject(new Error(t("splitPdf.error.statusFailed")));
+          }
+        }
+      };
+
+      xhr.onerror = function () {
+        console.error("Network error polling job status");
+        if (retryCount < 5) {
+          setRetryCount((prev) => prev + 1);
+          setTimeout(pollJobStatus, 3000);
+          resolve();
+        } else {
+          setIsPolling(false);
+          setIsProcessing(false);
+          setError(t("splitPdf.error.statusFailed"));
+          setProgress(0);
+          toast.error(t("splitPdf.error.failed"));
+          reject(new Error(t("splitPdf.error.statusFailed")));
+        }
+      };
+
+      xhr.send();
+    });
+  }, [
+    statusUrl,
+    jobId,
+    file,
+    totalPages,
+    t,
+    retryCount,
+    `${process.env.GO_KEY_PDF}`,
+  ]);
 
   // Start polling when status URL is available
   useEffect(() => {
@@ -284,7 +300,7 @@ export function PdfSplitter() {
     }
 
     // Use the Go API URL instead of Next.js API
-    const apiUrl = `${goApiUrl}/api/pdf/split`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/split`;
     console.log("Submitting to Go API URL:", apiUrl);
 
     try {
@@ -406,9 +422,11 @@ export function PdfSplitter() {
   const formatFileUrl = useCallback(
     (url: string): string => {
       if (!url) return "";
-      return url.startsWith("/") ? `${goApiUrl}${url}` : url;
+      return url.startsWith("/")
+        ? `${process.env.NEXT_PUBLIC_GO_API_URL}${url}`
+        : url;
     },
-    [goApiUrl]
+    [`${process.env.NEXT_PUBLIC_GO_API_URL}`]
   );
 
   return (

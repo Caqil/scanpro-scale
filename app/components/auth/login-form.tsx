@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { FaGoogle, FaGithub, FaApple } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { LanguageLink } from "@/components/language-link";
+import { buildApiUrl } from "@/lib/api-config";
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -23,137 +23,187 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const { t } = useLanguageStore();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   // UI state
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  
+
   // Handle auth errors from URL
   useEffect(() => {
     const errorParam = searchParams?.get("error");
     if (errorParam) {
       switch (errorParam) {
         case "OAuthAccountNotLinked":
-          setError(t('auth.oAuthAccountNotLinked') || "This email is already associated with a different login method. Please sign in with the method you used originally.");
+          setError(
+            t("auth.oAuthAccountNotLinked") ||
+              "This email is already associated with a different login method. Please sign in with the method you used originally."
+          );
           break;
         case "CredentialsSignin":
-          setError(t('auth.invalidCredentials') || "Invalid email or password. Please try again.");
+          setError(
+            t("auth.invalidCredentials") ||
+              "Invalid email or password. Please try again."
+          );
           break;
         case "AccessDenied":
-          setError(t('auth.accessDenied') || "Access denied. You do not have permission to access this resource.");
+          setError(
+            t("auth.accessDenied") ||
+              "Access denied. You do not have permission to access this resource."
+          );
           break;
         default:
-          setError(t('auth.unknownError') || `An error occurred during sign in: ${errorParam}`);
+          setError(
+            t("auth.unknownError") ||
+              `An error occurred during sign in: ${errorParam}`
+          );
       }
     }
   }, [searchParams, t]);
-  
+
   // Validate email format
   const validateEmail = (email: string): boolean => {
     if (!email) {
-      setEmailError(t('auth.emailRequired') || "Email is required");
+      setEmailError(t("auth.emailRequired") || "Email is required");
       return false;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(email);
-    
+
     if (!isValid) {
-      setEmailError(t('auth.invalidEmail') || "Please enter a valid email address");
+      setEmailError(
+        t("auth.invalidEmail") || "Please enter a valid email address"
+      );
     } else {
       setEmailError(null);
     }
-    
+
     return isValid;
   };
-  
+
   // Validate form
   const validateForm = (): boolean => {
     let isValid = true;
-    
+
     // Validate email
     if (!validateEmail(email)) {
       isValid = false;
     }
-    
+
     // Validate password
     if (!password) {
-      setPasswordError(t('auth.passwordRequired') || "Password is required");
+      setPasswordError(t("auth.passwordRequired") || "Password is required");
       isValid = false;
     } else {
       setPasswordError(null);
     }
-    
+
     return isValid;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     // Validate form
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
+      // Using direct fetch to Go API instead of next-auth
+      const response = await fetch(buildApiUrl("/api/auth/login"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
-      
-      if (result?.error) {
-        setError(t('auth.invalidCredentials') || "Invalid email or password");
-        setLoading(false);
-        return;
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Invalid email or password");
       }
-      
-      toast.success(t('auth.loginSuccess') || "Signed in successfully");
-      window.location.href = callbackUrl;
+
+      if (!data.success || !data.token) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      // Store the token in localStorage or sessionStorage
+      if (rememberMe) {
+        localStorage.setItem("authToken", data.token);
+      } else {
+        sessionStorage.setItem("authToken", data.token);
+      }
+
+      // Store user data
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        isEmailVerified: data.user.isEmailVerified,
+      };
+
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      toast.success(t("auth.loginSuccess") || "Signed in successfully");
+
+      // Navigate to dashboard or callback URL
+      router.push(callbackUrl);
     } catch (error) {
       console.error("Login error:", error);
-      setError(t('auth.loginError') || "An error occurred. Please try again.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : t("auth.loginError") || "An error occurred. Please try again."
+      );
+    } finally {
       setLoading(false);
     }
   };
-  
-  const handleOAuthSignIn = (provider: string) => {
-    signIn(provider, { 
-      callbackUrl,
-      redirect: provider === "apple" ? true : undefined,
-    });
+
+  const handleOAuthSignIn = async (provider: string) => {
+    // Redirect to Go API OAuth endpoint
+    window.location.href = buildApiUrl(`/api/auth/${provider}`);
   };
-  
+
   return (
     <div className="space-y-6">
       {error && (
-        <Alert variant="destructive" className="mb-4 animate-in fade-in-50 slide-in-from-top-5 duration-300">
+        <Alert
+          variant="destructive"
+          className="mb-4 animate-in fade-in-50 slide-in-from-top-5 duration-300"
+        >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button 
-          variant="outline" 
-          onClick={() => handleOAuthSignIn("google")} 
+        <Button
+          variant="outline"
+          onClick={() => handleOAuthSignIn("google")}
           className="flex-1 relative overflow-hidden group h-11 transition-all"
           disabled={loading}
         >
           <FaGoogle className="w-4 h-4 mr-2" />
-          <span>{t('auth.googleSignIn') || "Google"}</span>
+          <span>{t("auth.googleSignIn") || "Google"}</span>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </Button>
       </div>
@@ -164,15 +214,15 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-2 text-xs text-muted-foreground uppercase tracking-wider">
-            {t('auth.orContinueWith') || "or continue with email"}
+            {t("auth.orContinueWith") || "or continue with email"}
           </span>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
-            {t('auth.email') || "Email"}
+            {t("auth.email") || "Email"}
             {emailError && (
               <span className="text-destructive ml-1 text-xs">
                 ({emailError})
@@ -182,39 +232,50 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
           <Input
             id="email"
             type="email"
-            placeholder={t('auth.emailPlaceholder') || "name@example.com"}
+            placeholder={t("auth.emailPlaceholder") || "name@example.com"}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={emailError ? "border-destructive focus-visible:ring-destructive" : ""}
+            className={
+              emailError
+                ? "border-destructive focus-visible:ring-destructive"
+                : ""
+            }
             disabled={loading}
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-sm font-medium">
-              {t('auth.password') || "Password"}
+              {t("auth.password") || "Password"}
               {passwordError && (
                 <span className="text-destructive ml-1 text-xs">
                   ({passwordError})
                 </span>
               )}
             </Label>
-            <LanguageLink href={`/forgot-password`} className="text-xs text-primary hover:underline">
-              {t('auth.forgotPassword') || "Forgot password?"}
+            <LanguageLink
+              href={`/forgot-password`}
+              className="text-xs text-primary hover:underline"
+            >
+              {t("auth.forgotPassword") || "Forgot password?"}
             </LanguageLink>
           </div>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder={t('auth.passwordPlaceholder') || "Your password"}
+              placeholder={t("auth.passwordPlaceholder") || "Your password"}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={passwordError ? "border-destructive focus-visible:ring-destructive pr-10" : "pr-10"}
+              className={
+                passwordError
+                  ? "border-destructive focus-visible:ring-destructive pr-10"
+                  : "pr-10"
+              }
               disabled={loading}
               required
             />
@@ -231,15 +292,17 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
                 <Eye className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="sr-only">
-                {showPassword ? t('auth.hidePassword') || "Hide password" : t('auth.showPassword') || "Show password"}
+                {showPassword
+                  ? t("auth.hidePassword") || "Hide password"
+                  : t("auth.showPassword") || "Show password"}
               </span>
             </Button>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="remember-me" 
+          <Checkbox
+            id="remember-me"
             checked={rememberMe}
             onCheckedChange={(checked) => setRememberMe(checked as boolean)}
           />
@@ -247,29 +310,28 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
             htmlFor="remember-me"
             className="text-sm text-muted-foreground cursor-pointer"
           >
-            {t('auth.rememberMe') || "Remember me"}
+            {t("auth.rememberMe") || "Remember me"}
           </label>
         </div>
-        
-        <Button 
-          type="submit" 
-          className="w-full h-11"
-          disabled={loading}
-        >
+
+        <Button type="submit" className="w-full h-11" disabled={loading}>
           {loading ? (
             <>
               <span className="h-4 w-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
-              {t('auth.signingIn') || "Signing in..."}
+              {t("auth.signingIn") || "Signing in..."}
             </>
           ) : (
-            t('auth.signIn') || "Sign In"
+            t("auth.signIn") || "Sign In"
           )}
         </Button>
-        
+
         <div className="text-center text-sm">
-          {t('auth.dontHaveAccount') || "Don't have an account?"}{" "}
-          <LanguageLink href={`/register`} className="text-primary font-medium hover:underline">
-            {t('auth.signUp') || "Sign up"}
+          {t("auth.dontHaveAccount") || "Don't have an account?"}{" "}
+          <LanguageLink
+            href={`/register`}
+            className="text-primary font-medium hover:underline"
+          >
+            {t("auth.signUp") || "Sign up"}
           </LanguageLink>
         </div>
       </form>

@@ -128,159 +128,166 @@ export function MultiPdfCompressor() {
     );
     setProgress((prev) => ({ ...prev, [file.name]: 0 }));
 
-    try {
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          const currentProgress = prev[file.name] || 0;
-          if (currentProgress >= 95) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return { ...prev, [file.name]: currentProgress + 5 };
-        });
-      }, 300 + Math.random() * 300);
-
-      // Create a FormData instance
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Map UI quality levels to the numeric values expected by the Go API
-      let compressionQuality;
-      switch (quality) {
-        case "high":
-          compressionQuality = "90";
-          break;
-        case "medium":
-          compressionQuality = "70";
-          break;
-        case "low":
-          compressionQuality = "40";
-          break;
-        default:
-          compressionQuality = "70";
-      }
-
-      formData.append("quality", compressionQuality);
-
-      // Call the Go backend API
-      console.log(
-        `Sending request to: ${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`
-      );
-      console.log("File name:", file.name, "File size:", file.size);
-      console.log("Quality setting:", compressionQuality);
-
+    return new Promise((resolve, reject) => {
       try {
-        // First try with a simple OPTIONS request to check CORS
-        const optionsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`,
-          {
-            method: "OPTIONS",
-            headers: {
-              "x-api-key":
-                "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
-              Origin: window.location.origin,
-            },
-          }
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Map UI quality levels to the numeric values expected by the Go API
+        let compressionQuality;
+        switch (quality) {
+          case "high":
+            compressionQuality = "90";
+            break;
+          case "medium":
+            compressionQuality = "70";
+            break;
+          case "low":
+            compressionQuality = "40";
+            break;
+          default:
+            compressionQuality = "70";
+        }
+        formData.append("quality", compressionQuality);
+        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`;
+        console.log("Submitting to Go API URL:", apiUrl);
+        console.log("File name:", file.name, "File size:", file.size);
+        console.log("Quality setting:", compressionQuality);
+
+        // Create a new XHR request
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
         );
 
-        console.log("OPTIONS response status:", optionsResponse.status);
-        console.log(
-          "OPTIONS response headers:",
-          Array.from(optionsResponse.headers.entries())
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("\n")
-        );
-      } catch (optionsError) {
-        console.error("OPTIONS request failed:", optionsError);
-      }
-
-      // Now try the actual POST request
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`,
-        {
-          method: "POST",
-          headers: {
-            // No need to set Content-Type for FormData - the browser will set it with the boundary
-            "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
-          },
-          body: formData,
-        }
-      );
-
-      console.log("POST response status:", response.status);
-      console.log(
-        "POST response headers:",
-        Array.from(response.headers.entries())
-          .map(([key, value]) => `${key}: ${value}`)
-          .join("\n")
-      );
-
-      if (!response.ok) {
-        let errorMessage = "Compression failed";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (jsonError) {
-          // If we can't parse JSON, try to get text
-          try {
-            const errorText = await response.text();
-            errorMessage = errorText || errorMessage;
-          } catch (textError) {
-            console.error("Failed to read error response:", textError);
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0–50%)
+            setProgress((prev) => ({
+              ...prev,
+              [file.name]: percentComplete / 2,
+            }));
           }
-        }
-        throw new Error(`${errorMessage} (Status: ${response.status})`);
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress((prev) => ({ ...prev, [file.name]: 100 }));
+
+              setCompressedFiles((prev) => ({
+                ...prev,
+                [file.name]: {
+                  originalSize: data.originalSize,
+                  compressedSize: data.compressedSize,
+                  compressionRatio: data.compressionRatio,
+                  fileUrl: data.fileUrl,
+                  filename: data.filename,
+                  originalName: file.name,
+                },
+              }));
+
+              setFiles((prev) =>
+                prev.map((f) =>
+                  f.file.name === file.name
+                    ? { ...f, status: "completed" as const }
+                    : f
+                )
+              );
+
+              toast.success(t("compressPdf.success"), {
+                description: `${file.name} ${t("compressPdf.reducedBy")} ${
+                  data.compressionRatio
+                }`,
+              });
+
+              resolve();
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage = t("compressPdf.error.unknown");
+              setFiles((prev) =>
+                prev.map((f) =>
+                  f.file.name === file.name
+                    ? { ...f, status: "error" as const, error: errorMessage }
+                    : f
+                )
+              );
+              setProgress((prev) => ({ ...prev, [file.name]: 0 }));
+              toast.error(t("compressPdf.error.failed"), {
+                description: errorMessage,
+              });
+              reject(parseError);
+            }
+          } else {
+            let errorMessage = "Compression failed";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.file.name === file.name
+                  ? { ...f, status: "error" as const, error: errorMessage }
+                  : f
+              )
+            );
+            setProgress((prev) => ({ ...prev, [file.name]: 0 }));
+            toast.error(t("compressPdf.error.failed"), {
+              description: errorMessage,
+            });
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage = t("compressPdf.error.unknown");
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.file.name === file.name
+                ? { ...f, status: "error" as const, error: errorMessage }
+                : f
+            )
+          );
+          setProgress((prev) => ({ ...prev, [file.name]: 0 }));
+          toast.error(t("compressPdf.error.failed"), {
+            description: errorMessage,
+          });
+          reject(new Error("Network error"));
+        };
+
+        // Send the request
+        xhr.send(formData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : t("compressPdf.error.unknown");
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.file.name === file.name
+              ? { ...f, status: "error" as const, error: errorMessage }
+              : f
+          )
+        );
+        setProgress((prev) => ({ ...prev, [file.name]: 0 }));
+        toast.error(t("compressPdf.error.failed"), {
+          description: errorMessage,
+        });
+        reject(err);
       }
-
-      const data = await response.json();
-      clearInterval(progressInterval);
-
-      setProgress((prev) => ({ ...prev, [file.name]: 100 }));
-      setCompressedFiles((prev) => ({
-        ...prev,
-        [file.name]: {
-          originalSize: data.originalSize,
-          compressedSize: data.compressedSize,
-          compressionRatio: data.compressionRatio,
-          fileUrl: data.fileUrl,
-          filename: data.filename,
-          originalName: file.name,
-        },
-      }));
-
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.file.name === file.name ? { ...f, status: "completed" as const } : f
-        )
-      );
-
-      toast.success(t("compressPdf.success"), {
-        description: `${file.name} ${t("compressPdf.reducedBy")} ${
-          data.compressionRatio
-        }`,
-      });
-    } catch (err) {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.file.name === file.name
-            ? {
-                ...f,
-                status: "error" as const,
-                error:
-                  err instanceof Error
-                    ? err.message
-                    : t("compressPdf.error.unknown"),
-              }
-            : f
-        )
-      );
-      setProgress((prev) => ({ ...prev, [file.name]: 0 }));
-      toast.error(t("compressPdf.error.failed"), {
-        description:
-          err instanceof Error ? err.message : t("compressPdf.error.unknown"),
-      });
-      throw err;
-    }
+    });
   };
 
   const handleRemoveFile = (fileName: string) => {

@@ -33,9 +33,11 @@ export function PdfPageNumberer() {
 
   // File state
   const [file, setFile] = useState<File | null>(null);
-  const [processing, setProcessing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [numberedPdfUrl, setNumberedPdfUrl] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   // Page numbering options
   const [options, setOptions] = useState({
@@ -53,12 +55,13 @@ export function PdfPageNumberer() {
     skipFirstPage: false,
   });
 
-  // Handle option changes
+  // Get the Go API URL from env
+  const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
   const handleOptionChange = (key: string, value: any) => {
     setOptions((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Apply page numbering
+  // Apply page numbering using Go API
   const applyPageNumbering = async () => {
     if (!file) {
       toast.error(
@@ -67,8 +70,10 @@ export function PdfPageNumberer() {
       return;
     }
 
-    setProcessing(true);
+    setIsUploading(true);
+    setIsProcessing(true);
     setProgress(0);
+    setError(null);
 
     try {
       const formData = new FormData();
@@ -79,49 +84,109 @@ export function PdfPageNumberer() {
         formData.append(key, value.toString());
       });
 
-      // Progress simulation
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = prev + Math.random() * 10;
-          return newProgress > 90 ? 90 : newProgress;
-        });
-      }, 300);
+      // Use the Go API URL instead of Next.js API
+      const apiUrl = `${goApiUrl}/api/pdf/pagenumber`;
+      console.log("Submitting to Go API URL:", apiUrl);
 
-      const response = await fetch("/api/pdf/pagenumber", {
-        method: "POST",
-        body: formData,
-      });
+      // Create a new XHR request to track upload progress
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+      xhr.setRequestHeader(
+        "x-api-key",
+        "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+      );
 
-      clearInterval(progressInterval);
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          // Update progress for upload phase (0–50%)
+          setProgress(percentComplete / 2);
+        }
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add page numbers");
-      }
+      // Handle completion
+      xhr.onload = function () {
+        setIsUploading(false);
 
-      const result = await response.json();
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Success - parse the response
+          try {
+            const response = JSON.parse(xhr.responseText);
+            console.log("API response:", response);
 
-      if (result.success) {
-        setNumberedPdfUrl(result.fileUrl);
-        setProgress(100);
-        toast.success(
-          t("pageNumber.messages.success") || "Page numbers added successfully!"
+            // Update progress to complete
+            setProgress(100);
+            setIsProcessing(false);
+
+            // Format file URL to include Go API base URL if needed
+            const fileUrl = response.fileUrl.startsWith("/")
+              ? `${goApiUrl}${response.fileUrl}`
+              : response.fileUrl;
+
+            setNumberedPdfUrl(fileUrl);
+
+            toast.success(
+              t("pageNumber.messages.success") ||
+                "Page numbers added successfully!"
+            );
+          } catch (parseError) {
+            console.error("Error parsing response:", parseError);
+            setError("Error parsing server response");
+            setIsProcessing(false);
+
+            toast.error(
+              t("pageNumber.messages.error") || "Error processing PDF"
+            );
+          }
+        } else {
+          // Error
+          setIsProcessing(false);
+          setProgress(0);
+
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.error || "Unknown error");
+
+            toast.error(
+              errorData.error ||
+                t("pageNumber.messages.error") ||
+                "Error adding page numbers"
+            );
+          } catch (e) {
+            setError("Server error");
+            toast.error(
+              t("pageNumber.messages.error") || "Error adding page numbers"
+            );
+          }
+        }
+      };
+
+      // Handle network errors
+      xhr.onerror = function () {
+        setIsUploading(false);
+        setIsProcessing(false);
+        setProgress(0);
+        setError("Network error");
+
+        toast.error(
+          t("pageNumber.messages.networkError") ||
+            "Network error. Please try again."
         );
-      } else {
-        throw new Error(result.error || "Unknown error");
-      }
+      };
+
+      // Send the request
+      xhr.send(formData);
     } catch (error) {
       console.error("Error adding page numbers:", error);
-      toast.error(
-        (error instanceof Error
-          ? error.message
-          : "Error adding page numbers") ||
-          t("pageNumber.messages.error") ||
-          "Error adding page numbers"
-      );
+      setIsUploading(false);
+      setIsProcessing(false);
       setProgress(0);
-    } finally {
-      setProcessing(false);
+      setError(error instanceof Error ? error.message : "Unknown error");
+
+      toast.error(
+        t("pageNumber.messages.error") || "Error adding page numbers"
+      );
     }
   };
 
@@ -129,10 +194,14 @@ export function PdfPageNumberer() {
   const resetForm = () => {
     setFile(null);
     setNumberedPdfUrl("");
+    setError(null);
+    setProgress(0);
+    setIsUploading(false);
+    setIsProcessing(false);
   };
 
   // Check if form is being submitted
-  const isSubmitting = processing;
+  const isSubmitting = isUploading || isProcessing;
 
   // Format preview label
   const getFormatPreview = () => {
@@ -176,6 +245,7 @@ export function PdfPageNumberer() {
                   if (files.length > 0) {
                     setFile(files[0]);
                     setNumberedPdfUrl("");
+                    setError(null);
                   }
                 }}
                 acceptedFileTypes={{ "application/pdf": [".pdf"] }}
@@ -204,10 +274,36 @@ export function PdfPageNumberer() {
                       </p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={resetForm}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={resetForm}
+                    disabled={isSubmitting}
+                  >
                     <XIcon className="h-5 w-5" />
                   </Button>
                 </div>
+
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-md border border-red-200 dark:border-red-800">
+                    <p className="text-sm">{error}</p>
+                  </div>
+                )}
+
+                {isSubmitting && (
+                  <div className="w-full bg-muted rounded-full h-2 mb-4">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      {isUploading
+                        ? t("pageNumber.ui.uploading") || "Uploading..."
+                        : t("pageNumber.ui.processing") || "Processing..."}
+                      {progress > 0 && ` (${Math.round(progress)}%)`}
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-6 mt-6">
                   <h3 className="text-lg font-semibold">
@@ -249,6 +345,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "top-left")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -268,6 +365,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "top-center")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -287,6 +385,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "top-right")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -306,6 +405,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "bottom-left")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -325,6 +425,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "bottom-center")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -344,6 +445,7 @@ export function PdfPageNumberer() {
                         onClick={() =>
                           handleOptionChange("position", "bottom-right")
                         }
+                        disabled={isSubmitting}
                       >
                         <div className="w-5 h-5 border rounded flex items-center justify-center">
                           <span className="text-[8px]">1</span>
@@ -368,6 +470,7 @@ export function PdfPageNumberer() {
                         onChange={(e) =>
                           handleOptionChange("fontFamily", e.target.value)
                         }
+                        disabled={isSubmitting}
                       >
                         <option value="Helvetica">Helvetica</option>
                         <option value="Times New Roman">Times New Roman</option>
@@ -392,6 +495,7 @@ export function PdfPageNumberer() {
                             )
                           }
                           className="w-full"
+                          disabled={isSubmitting}
                         />
                         <span className="text-sm">pt</span>
                       </div>
@@ -409,6 +513,7 @@ export function PdfPageNumberer() {
                             handleOptionChange("color", e.target.value)
                           }
                           className="w-12 h-10 p-1"
+                          disabled={isSubmitting}
                         />
                         <span className="text-sm">{options.color}</span>
                       </div>
@@ -432,6 +537,7 @@ export function PdfPageNumberer() {
                             parseInt(e.target.value)
                           )
                         }
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div className="space-y-2">
@@ -446,6 +552,7 @@ export function PdfPageNumberer() {
                           handleOptionChange("prefix", e.target.value)
                         }
                         placeholder="e.g., 'Page '"
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div className="space-y-2">
@@ -460,6 +567,7 @@ export function PdfPageNumberer() {
                           handleOptionChange("suffix", e.target.value)
                         }
                         placeholder="e.g., ' of 10'"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -477,10 +585,33 @@ export function PdfPageNumberer() {
                           min={10}
                           max={100}
                           step={1}
+                          value={[options.marginX]}
+                          onValueChange={(value) =>
+                            handleOptionChange("marginX", value[0])
+                          }
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <div className="text-center text-sm">
+                        {options.marginX}px
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="marginY">
+                        {t("pageNumber.ui.verticalMargin") ||
+                          "Vertical Margin (px)"}
+                      </Label>
+                      <div className="pt-2 px-2">
+                        <Slider
+                          id="marginY"
+                          min={10}
+                          max={100}
+                          step={1}
                           value={[options.marginY]}
                           onValueChange={(value) =>
                             handleOptionChange("marginY", value[0])
                           }
+                          disabled={isSubmitting}
                         />
                       </div>
                       <div className="text-center text-sm">
@@ -510,6 +641,7 @@ export function PdfPageNumberer() {
                         handleOptionChange("selectedPages", e.target.value)
                       }
                       placeholder="e.g., 1,3,5-10"
+                      disabled={isSubmitting}
                     />
                     <p className="text-xs text-muted-foreground">
                       {t("pageNumber.ui.pagesExample") ||
@@ -529,6 +661,7 @@ export function PdfPageNumberer() {
                       onCheckedChange={(checked) =>
                         handleOptionChange("skipFirstPage", checked)
                       }
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -558,7 +691,7 @@ export function PdfPageNumberer() {
                           }`}
                           style={{
                             fontFamily: options.fontFamily,
-                            fontSize: `${options.fontSize * 1}px`,
+                            fontSize: `${options.fontSize * 0.8}px`,
                             color: options.color,
                           }}
                         >
