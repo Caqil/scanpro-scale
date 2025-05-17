@@ -1,27 +1,22 @@
-// src/context/auth-context.tsx
-import {
+"use client";
+
+import { useRouter } from "next/navigation";
+import React, {
   createContext,
   useContext,
-  useEffect,
   useState,
+  useEffect,
   ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
 
-interface User {
-  id: string;
-  name?: string;
-  email: string;
-  role?: string;
-  isEmailVerified?: boolean;
+interface AuthState {
+  isAuthenticated: boolean;
+  user: any | null;
+  token: string | null;
+  loading: boolean;
 }
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  user: User | null;
-  isLoading: boolean;
-  authToken: string | null;
-  isWebUI: boolean;
+interface AuthContextType extends AuthState {
   login: (
     email: string,
     password: string
@@ -32,69 +27,57 @@ interface AuthContextType {
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  checkAuthStatus: () => Promise<boolean>;
+  refreshAuth: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
-  isLoading: true,
-  authToken: null,
-  isWebUI: true,
-  login: async () => ({ success: false }),
-  register: async () => ({ success: false }),
-  logout: () => {},
-  checkAuthStatus: async () => false,
-});
+  token: null,
+  loading: true,
+};
 
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<AuthState>(initialState);
   const router = useRouter();
 
-  // Check if we're in the browser and not in an API context
-  const isWebUI = typeof window !== "undefined";
-
-  // Check auth status on mount
+  // Initialize auth state from storage on mount
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async (): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-
-      // Check for token in localStorage or sessionStorage
-      const token =
-        localStorage.getItem("authToken") ||
-        sessionStorage.getItem("authToken");
-
-      if (!token) {
-        setIsAuthenticated(false);
-        setUser(null);
-        setAuthToken(null);
-        setIsLoading(false);
-        return false;
-      }
-
-      // Get user data from local storage
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setAuthToken(token);
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return true;
-      }
-
-      // If no user data in local storage but token exists, fetch user profile
+    const initializeAuth = async () => {
       try {
+        // Check if we have a token in storage
+        const token =
+          localStorage.getItem("authToken") ||
+          sessionStorage.getItem("authToken");
+
+        if (!token) {
+          setState({ ...initialState, loading: false });
+          return;
+        }
+
+        // Validate token with the API
         const response = await fetch(
+          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/validate-token`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          // Token is invalid, clear it
+          localStorage.removeItem("authToken");
+          sessionStorage.removeItem("authToken");
+          setState({ ...initialState, loading: false });
+          return;
+        }
+
+        // Token is valid, fetch user profile
+        const userResponse = await fetch(
           `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
           {
             headers: {
@@ -103,47 +86,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         );
 
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-          localStorage.setItem("userData", JSON.stringify(userData));
-          setAuthToken(token);
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return true;
-        } else {
-          // Token is invalid or expired
-          localStorage.removeItem("authToken");
-          sessionStorage.removeItem("authToken");
-          localStorage.removeItem("userData");
-          setIsAuthenticated(false);
-          setUser(null);
-          setAuthToken(null);
-          setIsLoading(false);
-          return false;
+        if (!userResponse.ok) {
+          setState({ ...initialState, loading: false });
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        setIsAuthenticated(false);
-        setUser(null);
-        setAuthToken(null);
-        setIsLoading(false);
-        return false;
-      }
-    } catch (error) {
-      console.error("Error checking auth status:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-      setAuthToken(null);
-      setIsLoading(false);
-      return false;
-    }
-  };
 
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; error?: string }> => {
+        const userData = await userResponse.json();
+
+        setState({
+          isAuthenticated: true,
+          user: userData,
+          token,
+          loading: false,
+        });
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setState({ ...initialState, loading: false });
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  const login = async (email: string, password: string) => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/login`,
@@ -159,37 +124,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        return { success: false, error: data.error || "Login failed" };
+        return {
+          success: false,
+          error: data.error || "Invalid email or password",
+        };
       }
 
-      if (!data.success || !data.token) {
-        return { success: false, error: data.error || "Login failed" };
-      }
+      // Save token to storage (localStorage for "remember me", sessionStorage otherwise)
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("authToken", data.token);
 
-      // Store the token
-      localStorage.setItem("authToken", data.token);
+      // Get user profile
+      const userResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${data.token}`,
+          },
+        }
+      );
 
-      // Store user data
-      if (data.user) {
-        localStorage.setItem("userData", JSON.stringify(data.user));
-        setUser(data.user);
-      }
+      const userData = await userResponse.json();
 
-      setAuthToken(data.token);
-      setIsAuthenticated(true);
+      setState({
+        isAuthenticated: true,
+        user: userData,
+        token: data.token,
+        loading: false,
+      });
 
       return { success: true };
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, error: "An unexpected error occurred" };
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during login",
+      };
     }
   };
 
-  const register = async (
-    name: string,
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  const register = async (name: string, email: string, password: string) => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/register`,
@@ -205,58 +183,116 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        return { success: false, error: data.error || "Registration failed" };
+        return {
+          success: false,
+          error: data.error || "Registration failed",
+        };
       }
 
-      if (!data.success) {
-        return { success: false, error: data.error || "Registration failed" };
-      }
-
-      // If token is provided, store it
+      // If registration auto-logs in with a token
       if (data.token) {
         localStorage.setItem("authToken", data.token);
-        setAuthToken(data.token);
 
-        // Store user data if provided
-        if (data.user) {
-          localStorage.setItem("userData", JSON.stringify(data.user));
-          setUser(data.user);
-          setIsAuthenticated(true);
-        }
+        setState({
+          isAuthenticated: true,
+          user: data.user,
+          token: data.token,
+          loading: false,
+        });
       }
 
       return { success: true };
     } catch (error) {
       console.error("Registration error:", error);
-      return { success: false, error: "An unexpected error occurred" };
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during registration",
+      };
     }
   };
 
   const logout = () => {
+    // Clear token from storage
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
-    setIsAuthenticated(false);
-    setUser(null);
-    setAuthToken(null);
-    router.push("/");
+
+    // Reset auth state
+    setState({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      loading: false,
+    });
+
+    // Redirect to login page
+    router.push("/en/login");
+  };
+
+  const refreshAuth = async () => {
+    // Similar to initializeAuth but can be called manually to refresh user data
+    try {
+      const token =
+        localStorage.getItem("authToken") ||
+        sessionStorage.getItem("authToken");
+
+      if (!token) {
+        setState({ ...initialState, loading: false });
+        return;
+      }
+
+      const userResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        // If profile fetch fails, token might be invalid
+        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
+        setState({ ...initialState, loading: false });
+        return;
+      }
+
+      const userData = await userResponse.json();
+
+      setState({
+        isAuthenticated: true,
+        user: userData,
+        token,
+        loading: false,
+      });
+    } catch (error) {
+      console.error("Error refreshing auth:", error);
+      setState({ ...initialState, loading: false });
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
-        user,
-        isLoading,
-        authToken,
-        isWebUI,
+        ...state,
         login,
         register,
         logout,
-        checkAuthStatus,
+        refreshAuth,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

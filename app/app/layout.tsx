@@ -1,4 +1,5 @@
 // app/layout.tsx
+import { AuthProvider } from "@/src/context/auth-context";
 import "./globals.css";
 
 export default function RootLayout({
@@ -6,5 +7,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return (
+    <html lang="en">
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
+    </html>
+  );
 }

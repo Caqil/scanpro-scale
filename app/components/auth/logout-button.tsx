@@ -1,22 +1,23 @@
+// app/components/auth/logout-button.tsx
 "use client";
 
-import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/context/auth-context";
 
-export function LogoutButton({ variant = "ghost" }: { variant?: "ghost" | "default" }) {
+export function LogoutButton({
+  variant = "ghost",
+}: {
+  variant?: "ghost" | "default";
+}) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
+  const { logout } = useAuth();
 
   const handleSignOut = async () => {
     try {
       setIsLoggingOut(true);
-      // The key here is to use the redirect: false option and handle the redirection manually
-      await signOut({ redirect: true });
-      router.push("/en");
-      router.refresh();
+      logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -25,8 +26,8 @@ export function LogoutButton({ variant = "ghost" }: { variant?: "ghost" | "defau
   };
 
   return (
-    <Button 
-      variant={variant} 
+    <Button
+      variant={variant}
       className="w-full justify-start text-muted-foreground hover:text-foreground"
       onClick={handleSignOut}
       disabled={isLoggingOut}

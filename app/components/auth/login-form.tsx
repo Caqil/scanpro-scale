@@ -1,4 +1,4 @@
-// components/auth/login-form.tsx
+// app/components/auth/login-form.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -38,37 +38,10 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // Handle auth errors from URL
+  // Store remember me preference
   useEffect(() => {
-    const errorParam = searchParams?.get("error");
-    if (errorParam) {
-      switch (errorParam) {
-        case "OAuthAccountNotLinked":
-          setError(
-            t("auth.oAuthAccountNotLinked") ||
-              "This email is already associated with a different login method. Please sign in with the method you used originally."
-          );
-          break;
-        case "CredentialsSignin":
-          setError(
-            t("auth.invalidCredentials") ||
-              "Invalid email or password. Please try again."
-          );
-          break;
-        case "AccessDenied":
-          setError(
-            t("auth.accessDenied") ||
-              "Access denied. You do not have permission to access this resource."
-          );
-          break;
-        default:
-          setError(
-            t("auth.unknownError") ||
-              `An error occurred during sign in: ${errorParam}`
-          );
-      }
-    }
-  }, [searchParams, t]);
+    localStorage.setItem("rememberMe", rememberMe.toString());
+  }, [rememberMe]);
 
   // Validate email format
   const validateEmail = (email: string): boolean => {
@@ -124,23 +97,10 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     setLoading(true);
 
     try {
-      // Using our auth context to login
       const result = await login(email, password);
 
       if (!result.success) {
         throw new Error(result.error);
-      }
-
-      // Store token in localStorage or sessionStorage based on rememberMe
-      const authToken = localStorage.getItem("authToken");
-      if (authToken) {
-        if (rememberMe) {
-          // Already in localStorage, no need to move
-        } else {
-          // Move to sessionStorage
-          sessionStorage.setItem("authToken", authToken);
-          localStorage.removeItem("authToken");
-        }
       }
 
       toast.success(t("auth.loginSuccess") || "Signed in successfully");
@@ -156,11 +116,6 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
       );
     } finally {
       setLoading(false);
-      console.log("Logging in:", email, password);
-      console.log(
-        "Calling:",
-        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/login`
-      );
     }
   };
 

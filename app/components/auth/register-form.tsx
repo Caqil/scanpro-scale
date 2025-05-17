@@ -1,7 +1,6 @@
-// components/auth/register-form.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +9,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Check, Eye, EyeOff, Info, Mail } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
 import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { LanguageLink } from "../language-link";
 import { Separator } from "../ui/separator";
 import { useAuth } from "@/src/context/auth-context";
+
+interface StrengthData {
+  text: string;
+  color: string;
+}
 
 export function RegisterForm() {
   const { t } = useLanguageStore();
@@ -23,24 +26,25 @@ export function RegisterForm() {
   const { register } = useAuth();
 
   // Form state
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
 
   // UI state
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [passwordStrength, setPasswordStrength] = useState<number>(0);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<
     string | null
   >(null);
   const [nameError, setNameError] = useState<string | null>(null);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] =
+    useState<boolean>(false);
 
   // Calculate password strength
   useEffect(() => {
@@ -68,7 +72,7 @@ export function RegisterForm() {
   }, [password]);
 
   // Get strength text and color
-  const getStrengthData = () => {
+  const getStrengthData = (): StrengthData => {
     if (passwordStrength <= 25)
       return { text: t("auth.passwordWeak") || "Weak", color: "bg-red-500" };
     if (passwordStrength <= 50)
@@ -154,7 +158,7 @@ export function RegisterForm() {
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -196,8 +200,15 @@ export function RegisterForm() {
   };
 
   const handleOAuthSignIn = (provider: string) => {
-    // Redirect to Go API OAuth endpoint
-    window.location.href = `${process.env.NEXT_PUBLIC_GO_API_URL}api/auth/${provider}`;
+    // Sanitize provider to prevent XSS
+    const sanitizedProvider = encodeURIComponent(provider);
+    const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    // Validate URL
+    if (!apiUrl.match(/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {
+      setError("Invalid OAuth configuration");
+      return;
+    }
+    window.location.href = `${apiUrl}/api/auth/${sanitizedProvider}`;
   };
 
   const strengthData = getStrengthData();
@@ -274,18 +285,7 @@ export function RegisterForm() {
         </Alert>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Button
-          variant="outline"
-          onClick={() => handleOAuthSignIn("google")}
-          className="flex-1 relative overflow-hidden group h-11 transition-all"
-          disabled={loading}
-        >
-          <FaGoogle className="w-4 h-4 mr-2" />
-          <span>Google</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-        </Button>
-      </div>
+      <div className="flex flex-col sm:flex-row gap-4"></div>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <Separator className="w-full" />
