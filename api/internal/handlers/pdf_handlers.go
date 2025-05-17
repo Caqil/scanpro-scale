@@ -36,6 +36,524 @@ func NewPDFHandler(balanceService *services.BalanceService, cfg *config.Config) 
 	}
 }
 
+// ConvertPDF godoc
+// @Summary Convert a PDF file to different format
+// @Description Converts PDF to various formats and vice versa
+// @Tags pdf
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to convert (max 50MB)"
+// @Param inputFormat formData string true "Input file format (pdf, docx, xlsx, pptx, rtf, txt, html, jpg, jpeg, png)"
+// @Param outputFormat formData string true "Output file format (pdf, docx, xlsx, pptx, rtf, txt, html, jpg, jpeg, png)"
+// @Param ocr formData boolean false "Enable OCR for text extraction" default(false)
+// @Param quality formData integer false "Image quality for image outputs (10-100)" default(90)
+// @Param password formData string false "Password for protected PDF files"
+// @Security ApiKeyAuth
+// @Success 200 {object} object{success=boolean,message=string,fileUrl=string,filename=string,originalName=string,inputFormat=string,outputFormat=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
+// @Failure 500 {object} object{error=string}
+// @Router /api/pdf/convert [post]
+func (h *PDFHandler) ConvertPDF(c *gin.Context) {
+	// Get user ID and operation type from context
+	userID, exists := c.Get("userId")
+	operation, _ := c.Get("operationType")
+
+	// Process the operation charge
+	if exists {
+		result, err := h.balanceService.ProcessOperation(userID.(string), operation.(string))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to process operation: " + err.Error(),
+			})
+			return
+		}
+
+		if !result.Success {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error": result.Error,
+				"details": gin.H{
+					"balance":                 result.CurrentBalance,
+					"freeOperationsRemaining": result.FreeOperationsRemaining,
+					"operationCost":           services.OperationCost,
+				},
+			})
+			return
+		}
+	}
+
+	// Create necessary directories
+	if err := os.MkdirAll(h.config.UploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create upload directory: " + err.Error(),
+		})
+		return
+	}
+
+	conversionDir := filepath.Join(h.config.PublicDir, "conversions")
+	if err := os.MkdirAll(conversionDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create conversions directory: " + err.Error(),
+		})
+		return
+	}
+
+	// Get file from form
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to get file: " + err.Error(),
+		})
+		return
+	}
+
+	// Check file size (max 50MB)
+	if file.Size > 50*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "File size exceeds 50MB limit",
+		})
+		return
+	}
+
+	// Get conversion parameters
+	inputFormat := c.DefaultPostForm("inputFormat", "pdf")
+	outputFormat := c.DefaultPostForm("outputFormat", "docx")
+	enableOcr := c.DefaultPostForm("ocr", "false") == "true"
+	qualityStr := c.DefaultPostForm("quality", "90")
+	password := c.PostForm("password")
+
+	// Validate formats
+	validFormats := map[string]bool{
+		"pdf":  true,
+		"docx": true,
+		"xlsx": true,
+		"pptx": true,
+		"rtf":  true,
+		"txt":  true,
+		"html": true,
+		"jpg":  true,
+		"jpeg": true,
+		"png":  true,
+	}
+
+	if !validFormats[inputFormat] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input format",
+		})
+		return
+	}
+
+	if !validFormats[outputFormat] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid output format",
+		})
+		return
+	}
+
+	// Validate quality parameter for image outputs
+	quality := 90
+	if outputFormat == "jpg" || outputFormat == "jpeg" || outputFormat == "png" {
+		var err error
+		quality, err = strconv.Atoi(qualityStr)
+		if err != nil || quality < 10 || quality > 100 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid quality value. Must be between 10 and 100",
+			})
+			return
+		}
+	}
+
+	// Create unique file paths
+	uniqueID := uuid.New().String()
+	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input."+inputFormat)
+	outputPath := filepath.Join(conversionDir, uniqueID+"-output."+outputFormat)
+
+	// Save uploaded file
+	if err := c.SaveUploadedFile(file, inputPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save file: " + err.Error(),
+		})
+		return
+	}
+	defer os.Remove(inputPath) // Clean up input file after processing
+
+	// Create temp directory for intermediate files
+	tempDir, err := os.MkdirTemp("", "conversion")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create temp directory: " + err.Error(),
+		})
+		return
+	}
+	defer os.RemoveAll(tempDir) // Clean up temp directory
+
+	// Handle password-protected PDF if needed
+	if inputFormat == "pdf" && password != "" {
+		decryptedPath := filepath.Join(tempDir, "decrypted.pdf")
+		cmd := exec.Command(
+			"pdfcpu",
+			"decrypt",
+			"-upw", password,
+			inputPath,
+			decryptedPath,
+		)
+
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to decrypt PDF. The password may be incorrect: " + string(output),
+			})
+			return
+		}
+
+		// Update input path to use the decrypted file
+		inputPath = decryptedPath
+	}
+
+	// Perform the conversion based on input and output formats
+	var conversionErr error
+	var methodUsed string
+
+	// PDF to Image conversion
+	if (outputFormat == "jpg" || outputFormat == "jpeg" || outputFormat == "png") && inputFormat == "pdf" {
+		methodUsed = "pdf_to_image"
+		conversionErr = convertPdfToImage(inputPath, outputPath, outputFormat, quality)
+	} else if inputFormat == "pdf" && outputFormat == "txt" {
+		// PDF to Text conversion
+		methodUsed = "pdf_to_text"
+		if enableOcr {
+			conversionErr = extractTextWithOCR(inputPath, outputPath)
+		} else {
+			conversionErr = extractTextFromPdf(inputPath, outputPath)
+		}
+	} else if inputFormat == "pdf" && outputFormat == "xlsx" {
+		// PDF to Excel conversion
+		methodUsed = "pdf_to_excel"
+		conversionErr = convertPdfToExcel(inputPath, outputPath, tempDir)
+	} else {
+		// General conversion using LibreOffice
+		methodUsed = "libreoffice"
+		conversionErr = convertWithLibreOffice(inputPath, outputPath, inputFormat, outputFormat)
+	}
+
+	// Check for conversion errors
+	if conversionErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Conversion failed: " + conversionErr.Error(),
+		})
+		return
+	}
+
+	// Verify the output file exists
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Output file was not created",
+		})
+		return
+	}
+
+	// Generate file URL
+	fileURL := fmt.Sprintf("/api/file?folder=conversions&filename=%s-output.%s", uniqueID, outputFormat)
+	filename := fmt.Sprintf("%s-output.%s", uniqueID, outputFormat)
+
+	// Prepare billing info for response
+	var billingInfo gin.H
+	if exists {
+		result, _ := h.balanceService.ProcessOperation(userID.(string), operation.(string))
+
+		var opCost float64
+		if result.UsedFreeOperation {
+			opCost = 0
+		} else {
+			opCost = services.OperationCost
+		}
+
+		billingInfo = gin.H{
+			"usedFreeOperation":       result.UsedFreeOperation,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"currentBalance":          result.CurrentBalance,
+			"operationCost":           opCost,
+		}
+	}
+
+	// Return successful response
+	response := gin.H{
+		"success":      true,
+		"message":      "Conversion successful",
+		"fileUrl":      fileURL,
+		"filename":     filename,
+		"originalName": file.Filename,
+		"inputFormat":  inputFormat,
+		"outputFormat": outputFormat,
+		"methodUsed":   methodUsed,
+	}
+
+	// Add billing info if available
+	if billingInfo != nil {
+		response["billing"] = billingInfo
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// Helper function to convert PDF to image
+func convertPdfToImage(inputPath, outputPath, format string, quality int) error {
+	// Try using Ghostscript for PDF to image conversion
+	var cmd *exec.Cmd
+	if format == "jpg" || format == "jpeg" {
+		cmd = exec.Command(
+			"gs",
+			"-sDEVICE=jpeg",
+			"-dNOPAUSE",
+			"-dBATCH",
+			"-dSAFER",
+			"-r300",
+			fmt.Sprintf("-dJPEGQ=%d", quality),
+			"-sOutputFile="+outputPath,
+			inputPath,
+		)
+	} else if format == "png" {
+		cmd = exec.Command(
+			"gs",
+			"-sDEVICE=png16m",
+			"-dNOPAUSE",
+			"-dBATCH",
+			"-dSAFER",
+			"-r300",
+			"-sOutputFile="+outputPath,
+			inputPath,
+		)
+	} else {
+		return fmt.Errorf("unsupported image format: %s", format)
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("GhostScript conversion failed: %v - %s", err, string(output))
+	}
+
+	return nil
+}
+
+// Helper function to extract text from PDF
+func extractTextFromPdf(inputPath, outputPath string) error {
+	// Try pdftotext if available
+	cmd := exec.Command("pdftotext", inputPath, outputPath)
+	err := cmd.Run()
+
+	if err == nil {
+		return nil
+	}
+
+	// Fallback to pdfcpu
+	cmd = exec.Command("pdfcpu", "extract", "-mode=text", inputPath, filepath.Dir(outputPath))
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("text extraction failed: %v - %s", err, string(output))
+	}
+
+	// Find extracted text file and move it to the correct location
+	extractedDir := filepath.Join(filepath.Dir(outputPath), "text")
+	if _, err := os.Stat(extractedDir); err == nil {
+		// Look for the extracted text file
+		files, err := os.ReadDir(extractedDir)
+		if err != nil {
+			return fmt.Errorf("failed to read extracted text directory: %v", err)
+		}
+
+		if len(files) > 0 {
+			// Move the first file to the output path
+			extractedFile := filepath.Join(extractedDir, files[0].Name())
+			err = os.Rename(extractedFile, outputPath)
+			if err != nil {
+				return fmt.Errorf("failed to move extracted text file: %v", err)
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no text content was extracted")
+}
+
+// Helper function to extract text with OCR
+func extractTextWithOCR(inputPath, outputPath string) error {
+	// Try using tesseract for OCR
+	cmd := exec.Command(
+		"tesseract",
+		inputPath,
+		strings.TrimSuffix(outputPath, filepath.Ext(outputPath)),
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("OCR failed: %v - %s", err, string(output))
+	}
+
+	return nil
+}
+
+// Helper function to convert PDF to Excel
+func convertPdfToExcel(inputPath, outputPath, tempDir string) error {
+	// First try using LibreOffice to convert directly
+	cmd := exec.Command(
+		"libreoffice",
+		"--headless",
+		"--convert-to", "xlsx",
+		"--outdir", tempDir,
+		inputPath,
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("LibreOffice conversion failed: %v - %s\n", err, string(output))
+		// Continue with alternative methods
+	} else {
+		// Find the converted file
+		files, err := os.ReadDir(tempDir)
+		if err == nil {
+			for _, file := range files {
+				if strings.HasSuffix(file.Name(), ".xlsx") {
+					// Move the file to the output path
+					err = os.Rename(filepath.Join(tempDir, file.Name()), outputPath)
+					if err == nil {
+						return nil
+					}
+				}
+			}
+		}
+	}
+
+	// Try a two-step approach: PDF to HTML, then HTML to XLSX
+	// Step 1: Convert PDF to HTML
+	htmlPath := filepath.Join(tempDir, "intermediate.html")
+	cmd = exec.Command(
+		"libreoffice",
+		"--headless",
+		"--convert-to", "html",
+		"--outdir", tempDir,
+		inputPath,
+	)
+
+	err = cmd.Run()
+	if err == nil {
+		// Find the HTML file
+		files, err := os.ReadDir(tempDir)
+		if err == nil {
+			for _, file := range files {
+				if strings.HasSuffix(file.Name(), ".html") {
+					htmlPath = filepath.Join(tempDir, file.Name())
+
+					// Step 2: Convert HTML to XLSX
+					cmd = exec.Command(
+						"libreoffice",
+						"--headless",
+						"--convert-to", "xlsx",
+						"--outdir", tempDir,
+						htmlPath,
+					)
+
+					err = cmd.Run()
+					if err == nil {
+						// Find the XLSX file
+						xlsxFiles, err := os.ReadDir(tempDir)
+						if err == nil {
+							for _, xlsxFile := range xlsxFiles {
+								if strings.HasSuffix(xlsxFile.Name(), ".xlsx") {
+									err = os.Rename(filepath.Join(tempDir, xlsxFile.Name()), outputPath)
+									if err == nil {
+										return nil
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If all methods fail, return error
+	return fmt.Errorf("all PDF to Excel conversion methods failed")
+}
+
+// Helper function for general file conversion using LibreOffice
+func convertWithLibreOffice(inputPath, outputPath, inputFormat, outputFormat string) error {
+	// Create temp directory for intermediate files
+	tempDir, err := os.MkdirTemp("", "libreoffice-conversion")
+	if err != nil {
+		return fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Get output extension for LibreOffice
+	var targetFormat string
+	switch outputFormat {
+	case "docx":
+		targetFormat = "docx:\"MS Word 2007 XML\""
+	case "xlsx":
+		targetFormat = "xlsx:\"Calc MS Excel 2007 XML\""
+	case "pptx":
+		targetFormat = "pptx:\"Impress MS PowerPoint 2007 XML\""
+	case "pdf":
+		targetFormat = "pdf"
+	case "txt":
+		targetFormat = "txt:Text"
+	case "html":
+		targetFormat = "html:HTML"
+	case "rtf":
+		targetFormat = "rtf:\"Rich Text Format\""
+	default:
+		targetFormat = outputFormat
+	}
+
+	// Run LibreOffice conversion
+	cmd := exec.Command(
+		"libreoffice",
+		"--headless",
+		"--convert-to", targetFormat,
+		"--outdir", tempDir,
+		inputPath,
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// Try soffice command as fallback
+		cmd = exec.Command(
+			"soffice",
+			"--headless",
+			"--convert-to", targetFormat,
+			"--outdir", tempDir,
+			inputPath,
+		)
+
+		output, err = cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("LibreOffice conversion failed: %v - %s", err, string(output))
+		}
+	}
+
+	// Find the converted file
+	files, err := os.ReadDir(tempDir)
+	if err != nil {
+		return fmt.Errorf("failed to read temp directory: %v", err)
+	}
+
+	for _, file := range files {
+		// Look for files with the target extension
+		if strings.HasSuffix(file.Name(), "."+outputFormat) {
+			// Move the file to the output path
+			err = os.Rename(filepath.Join(tempDir, file.Name()), outputPath)
+			if err != nil {
+				return fmt.Errorf("failed to move converted file: %v", err)
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no converted file found")
+}
+
 // AddPageNumbersToPDF adds page numbers to a PDF file
 // @Summary Add page numbers to a PDF file
 // @Description Adds customizable page numbers to a PDF file

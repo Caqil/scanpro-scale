@@ -219,7 +219,6 @@ export function FileUploader({
       }
     },
   });
-
   // Handle form submission
   const onSubmit = async (values: FormValues) => {
     if (!file) {
@@ -232,57 +231,146 @@ export function FileUploader({
     setError(null);
     setConvertedFileUrl(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("inputFormat", values.inputFormat);
-    formData.append("outputFormat", values.outputFormat);
-    formData.append("ocr", values.enableOcr ? "true" : "false");
-    formData.append("quality", values.quality.toString());
-
-    if (values.password) {
-      formData.append("password", values.password);
-    }
-
     try {
-      // Set up progress tracking
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 300);
+      // Create form data
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("inputFormat", values.inputFormat);
+      formData.append("outputFormat", values.outputFormat);
+      formData.append("ocr", values.enableOcr ? "true" : "false");
+      formData.append("quality", values.quality.toString());
 
-      // Make API request
-      const response = await fetch("/api/pdf/convert", {
-        method: "POST",
-        body: formData,
-      });
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error ||
-            `${t(
-              "compressPdf.error.failed"
-            )} ${values.inputFormat.toUpperCase()} to ${values.outputFormat.toUpperCase()}`
-        );
+      if (values.password) {
+        formData.append("password", values.password);
       }
 
-      const data = await response.json();
-      setProgress(100);
-      setConvertedFileUrl(data.filename);
+      // Determine API URL (use Go API if configured)
+      const apiUrl = `${
+        process.env.NEXT_PUBLIC_GO_API_URL || ""
+      }/api/pdf/convert`;
+      console.log("Submitting to API URL:", apiUrl);
+      console.log("File name:", file.name, "File size:", file.size);
+      console.log(
+        "Input format:",
+        values.inputFormat,
+        "Output format:",
+        values.outputFormat
+      );
 
-      toast.success(t("fileUploader.successful"), {
-        description: `${t(
-          "fileUploader.successDesc"
-        )} ${values.inputFormat.toUpperCase()} to ${values.outputFormat.toUpperCase()}.`,
-      });
+      return new Promise<void>((resolve, reject) => {
+        // Create a new XHR request
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+        );
+
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0-50%)
+            setProgress(Math.min(50, Math.floor(percentComplete / 2)));
+          }
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress(100);
+
+              // Handle the filename from either API response format
+              const filename =
+                data.filename ||
+                `${data.uniqueId}-output.${values.outputFormat}`;
+              setConvertedFileUrl(filename);
+
+              toast.success(t("fileUploader.successful"), {
+                description: `${t(
+                  "fileUploader.successDesc"
+                )} ${values.inputFormat.toUpperCase()} to ${values.outputFormat.toUpperCase()}.`,
+              });
+
+              resolve();
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage = t("compressPdf.error.unknown");
+              setError(errorMessage);
+              toast.error(t("compressPdf.error.failed"), {
+                description: errorMessage,
+              });
+              reject(parseError);
+            }
+          } else {
+            let errorMessage = `${t(
+              "compressPdf.error.failed"
+            )} ${values.inputFormat.toUpperCase()} to ${values.outputFormat.toUpperCase()}`;
+
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+            setError(errorMessage);
+
+            toast.error(t("compressPdf.error.failed"), {
+              description: errorMessage,
+            });
+
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage = t("compressPdf.error.unknown");
+          setError(errorMessage);
+
+          toast.error(t("compressPdf.error.failed"), {
+            description: errorMessage,
+          });
+
+          reject(new Error("Network error"));
+        };
+
+        // Simulate progress during processing phase
+        const progressInterval = setInterval(() => {
+          setProgress((prev) => {
+            if (prev >= 95) {
+              clearInterval(progressInterval);
+              return 95;
+            }
+            // Increment more slowly after upload completes
+            return prev < 50 ? 50 : prev + 2;
+          });
+        }, 300);
+
+        // Clean up interval on xhr completion or error
+        xhr.addEventListener("loadend", () => {
+          clearInterval(progressInterval);
+        });
+
+        // Send the request
+        xhr.send(formData);
+      })
+        .then(() => {
+          setIsUploading(false);
+        })
+        .catch((error) => {
+          setIsUploading(false);
+          throw error;
+        });
     } catch (err) {
+      setIsUploading(false);
       setError(
         err instanceof Error ? err.message : t("compressPdf.error.unknown")
       );
@@ -290,8 +378,6 @@ export function FileUploader({
         description:
           err instanceof Error ? err.message : t("compressPdf.error.unknown"),
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 
