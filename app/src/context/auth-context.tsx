@@ -7,7 +7,6 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { buildApiUrl } from "@/lib/api-config";
 
 interface User {
   id: string;
@@ -95,11 +94,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // If no user data in local storage but token exists, fetch user profile
       try {
-        const response = await fetch(buildApiUrl("/api/user/profile"), {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           const userData = await response.json();
@@ -143,13 +145,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(buildApiUrl("/api/auth/login"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
@@ -186,13 +191,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(buildApiUrl("/api/auth/register"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, email, password }),
+        }
+      );
 
       const data = await response.json();
 

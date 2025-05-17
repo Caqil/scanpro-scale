@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { LanguageLink } from "@/components/language-link";
-import { buildApiUrl } from "@/lib/api-config";
 import { useAuth } from "@/src/context/auth-context";
 
 interface LoginFormProps {
@@ -162,7 +161,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
 
   const handleOAuthSignIn = async (provider: string) => {
     // Redirect to Go API OAuth endpoint
-    window.location.href = buildApiUrl(`/api/auth/${provider}`);
+    window.location.href = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/${provider}`;
   };
 
   return (

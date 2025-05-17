@@ -15,7 +15,6 @@ import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { LanguageLink } from "../language-link";
 import { Separator } from "../ui/separator";
-import { buildApiUrl } from "@/lib/api-config";
 import { useAuth } from "@/src/context/auth-context";
 
 export function RegisterForm() {
@@ -198,7 +197,7 @@ export function RegisterForm() {
 
   const handleOAuthSignIn = (provider: string) => {
     // Redirect to Go API OAuth endpoint
-    window.location.href = buildApiUrl(`/api/auth/${provider}`);
+    window.location.href = `${process.env.NEXT_PUBLIC_GO_API_URL}api/auth/${provider}`;
   };
 
   const strengthData = getStrengthData();

@@ -10,7 +10,6 @@ import { AlertCircle, ArrowLeft, CheckCircle, Mail } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { LanguageLink } from "@/components/language-link";
-import { buildApiUrl } from "@/lib/api-config";
 
 interface EnhancedForgotPasswordFormProps {
   lang?: string;
@@ -64,13 +63,16 @@ export function EnhancedForgotPasswordForm() {
 
     try {
       // Call the Go API endpoint for password reset
-      const res = await fetch(buildApiUrl("/api/auth/reset-password"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json();

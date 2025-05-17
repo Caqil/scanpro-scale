@@ -18,7 +18,6 @@ import {
 import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { buildApiUrl } from "@/lib/api-config";
 
 interface EnhancedResetPasswordFormProps {
   token?: string;
@@ -101,7 +100,9 @@ export function EnhancedResetPasswordForm({
 
         // Call the Go API to validate the token
         const res = await fetch(
-          buildApiUrl(`/api/auth/validate?token=${encodeURIComponent(token)}`)
+          `${
+            process.env.NEXT_PUBLIC_GO_API_URL
+          }/api/auth/validate?token=${encodeURIComponent(token)}`
         );
 
         if (!res.ok) {
@@ -166,16 +167,19 @@ export function EnhancedResetPasswordForm({
 
     try {
       // Call the Go API endpoint to reset the password
-      const res = await fetch(buildApiUrl("/api/auth/reset-password/confirm"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-          password,
-        }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/reset-password/confirm`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token,
+            password,
+          }),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json();
