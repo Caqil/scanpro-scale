@@ -70,15 +70,15 @@ type Session struct {
 }
 
 type ApiKey struct {
-	ID          string `gorm:"primaryKey;type:varchar(100)"`
-	UserID      string
-	Name        string
-	Key         string   `gorm:"uniqueIndex"`
-	Permissions []string `gorm:"type:json"`
-	LastUsed    *time.Time
-	ExpiresAt   *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID     string `gorm:"primaryKey;type:varchar(100)"`
+	UserID string
+	Name   string
+	Key    string `gorm:"uniqueIndex"`
+	//Permissions []string `gorm:"type:json"`
+	LastUsed  *time.Time
+	ExpiresAt *time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }

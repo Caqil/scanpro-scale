@@ -1252,6 +1252,12 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "x-api-key",
             "in": "header"
+        },
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT token",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -1263,7 +1269,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{"http", "https"},
 	Title:            "MegaPDF API",
-	Description:      "Enter your JWT token",
+	Description:      "API for MegaPDF document processing service",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

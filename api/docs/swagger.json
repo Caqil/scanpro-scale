@@ -5,7 +5,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Enter your JWT token",
+        "description": "API for MegaPDF document processing service",
         "title": "MegaPDF API",
         "contact": {},
         "version": "1.0"
@@ -1249,6 +1249,12 @@
         "ApiKeyAuth": {
             "type": "apiKey",
             "name": "x-api-key",
+            "in": "header"
+        },
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT token",
+            "type": "apiKey",
+            "name": "Authorization",
             "in": "header"
         }
     }

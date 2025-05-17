@@ -39,18 +39,19 @@ type KeyValidationService struct {
 	db *gorm.DB
 }
 
+
+func NewKeyValidationService(db *gorm.DB) *KeyValidationService {
+	return &KeyValidationService{db: db}
+}
+
 type ValidationResult struct {
-	Valid                   bool
-	UserID                  string
-	Permissions             []string
+	Valid  bool
+	UserID string
+	// Permissions field can be removed or left empty
 	FreeOperationsRemaining int
 	Balance                 float64
 	FreeOperationsReset     time.Time
 	Error                   string
-}
-
-func NewKeyValidationService(db *gorm.DB) *KeyValidationService {
-	return &KeyValidationService{db: db}
 }
 
 func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*ValidationResult, error) {
@@ -82,21 +83,7 @@ func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*Va
 		}, nil
 	}
 
-	// Check permissions
-	hasPermission := false
-	for _, perm := range keyRecord.Permissions {
-		if perm == operation || perm == "*" {
-			hasPermission = true
-			break
-		}
-	}
-
-	if !hasPermission && operation != "" {
-		return &ValidationResult{
-			Valid: false,
-			Error: "This API key does not have permission to perform the requested operation",
-		}, nil
-	}
+	// No need to check permissions - all operations are allowed
 
 	// Update last used timestamp
 	now := time.Now()
@@ -125,9 +112,8 @@ func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*Va
 	}
 
 	return &ValidationResult{
-		Valid:                   true,
-		UserID:                  keyRecord.UserID,
-		Permissions:             keyRecord.Permissions,
+		Valid:  true,
+		UserID: keyRecord.UserID,
 		FreeOperationsRemaining: freeOpsRemaining,
 		Balance:                 keyRecord.User.Balance,
 		FreeOperationsReset:     freeOpsReset,

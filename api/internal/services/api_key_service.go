@@ -21,39 +21,9 @@ func NewApiKeyService(db *gorm.DB) *ApiKeyService {
 }
 
 // CreateKey generates a new API key for a user
+// CreateKey generates a new API key for a user
 func (s *ApiKeyService) CreateKey(userID, name string, permissions []string) (*models.ApiKey, error) {
-	// Validate permissions - if wildcard is included, just use that
-	validPerms := []string{}
-	hasWildcard := false
-
-	for _, perm := range permissions {
-		if perm == "*" {
-			hasWildcard = true
-			break
-		}
-
-		// Check if permission is valid
-		isValid := false
-		for _, validPerm := range APIOperations {
-			if perm == validPerm {
-				isValid = true
-				break
-			}
-		}
-
-		if isValid {
-			validPerms = append(validPerms, perm)
-		}
-	}
-
-	if hasWildcard {
-		validPerms = []string{"*"}
-	}
-
-	// If no valid permissions, add default ones
-	if len(validPerms) == 0 {
-		validPerms = []string{"convert", "compress", "merge", "split"}
-	}
+	// Skip permissions validation since we're not using it anymore
 
 	// Check if user has reached key limit
 	var keyCount int64
@@ -85,13 +55,13 @@ func (s *ApiKeyService) CreateKey(userID, name string, permissions []string) (*m
 	}
 
 	apiKey := models.ApiKey{
-		ID:          uuid.New().String(),
-		UserID:      userID,
-		Name:        name,
-		Key:         key,
-		Permissions: validPerms,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:     uuid.New().String(),
+		UserID: userID,
+		Name:   name,
+		Key:    key,
+		// Permissions field removed
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := s.db.Create(&apiKey).Error; err != nil {

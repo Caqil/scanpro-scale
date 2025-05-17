@@ -2,7 +2,7 @@ basePath: /api
 host: localhost:8080
 info:
   contact: {}
-  description: Enter your JWT token
+  description: API for MegaPDF document processing service
   title: MegaPDF API
   version: "1.0"
 paths:
@@ -803,5 +803,10 @@ securityDefinitions:
   ApiKeyAuth:
     in: header
     name: x-api-key
+    type: apiKey
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT token
+    in: header
+    name: Authorization
     type: apiKey
 swagger: "2.0"

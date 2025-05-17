@@ -22,6 +22,7 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name x-api-key
+
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization

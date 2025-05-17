@@ -23,7 +23,7 @@ func NewApiKeyHandler(service *services.ApiKeyService) *ApiKeyHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{keys=array}
+// @Success 200 {object} object{keys=array{object{id=string,name=string,key=string,lastUsed=string,expiresAt=string,createdAt=string}}}
 // @Failure 401 {object} object{error=string} "Unauthorized"
 // @Failure 500 {object} object{error=string} "Server error"
 // @Router /api/keys [get]
@@ -50,13 +50,12 @@ func (h *ApiKeyHandler) ListKeys(c *gin.Context) {
 	maskedKeys := []gin.H{}
 	for _, key := range keys {
 		maskedKeys = append(maskedKeys, gin.H{
-			"id":          key.ID,
-			"name":        key.Name,
-			"key":         maskApiKey(key.Key),
-			"permissions": key.Permissions,
-			"lastUsed":    key.LastUsed,
-			"expiresAt":   key.ExpiresAt,
-			"createdAt":   key.CreatedAt,
+			"id":        key.ID,
+			"name":      key.Name,
+			"key":       maskApiKey(key.Key),
+			"lastUsed":  key.LastUsed,
+			"expiresAt": key.ExpiresAt,
+			"createdAt": key.CreatedAt,
 		})
 	}
 
@@ -72,8 +71,8 @@ func (h *ApiKeyHandler) ListKeys(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param body body object{name=string,permissions=array} true "API key details"
-// @Success 200 {object} object{success=boolean,key=object{id=string,name=string,key=string,permissions=array,createdAt=string}}
+// @Param body body object{name=string} true "API key details"
+// @Success 200 {object} object{success=boolean,key=object{id=string,name=string,key=string,createdAt=string}}
 // @Failure 400 {object} object{error=string} "Invalid request body"
 // @Failure 401 {object} object{error=string} "Unauthorized"
 // @Failure 403 {object} object{error=string} "API key limit reached"
@@ -91,8 +90,8 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 
 	// Parse request body
 	var requestBody struct {
-		Name        string   `json:"name" binding:"required"`
-		Permissions []string `json:"permissions"`
+		Name string `json:"name" binding:"required"`
+		// Permissions removed
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -102,8 +101,8 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 		return
 	}
 
-	// Create the API key
-	apiKey, err := h.service.CreateKey(userID.(string), requestBody.Name, requestBody.Permissions)
+	// Create the API key - pass an empty slice for permissions
+	apiKey, err := h.service.CreateKey(userID.(string), requestBody.Name, []string{})
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		if err.Error() == "API key limit reached" {
@@ -119,11 +118,11 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"key": gin.H{
-			"id":          apiKey.ID,
-			"name":        apiKey.Name,
-			"key":         apiKey.Key, // Return full key only on creation
-			"permissions": apiKey.Permissions,
-			"createdAt":   apiKey.CreatedAt,
+			"id":   apiKey.ID,
+			"name": apiKey.Name,
+			"key":  apiKey.Key, // Return full key only on creation
+			// Permissions field removed
+			"createdAt": apiKey.CreatedAt,
 		},
 	})
 }
@@ -137,6 +136,7 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "API key ID"
 // @Success 200 {object} object{success=boolean,message=string}
+// @Example response {"success":true,"message":"API key revoked successfully"}
 // @Failure 401 {object} object{error=string} "Unauthorized"
 // @Failure 404 {object} object{error=string} "API key not found or does not belong to user"
 // @Failure 500 {object} object{error=string} "Server error"

@@ -10,13 +10,14 @@ import (
 )
 
 // ApiKeyMiddleware validates API key and checks permissions
+// ApiKeyMiddleware validates API key and checks permissions
 func ApiKeyMiddleware(keyService *services.KeyValidationService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get operation from path
 		path := c.Request.URL.Path
 		pathParts := strings.Split(path, "/")
 		operation := ""
-		
+
 		// Extract operation from path
 		if len(pathParts) > 2 && pathParts[1] == "api" {
 			operation = pathParts[2]
@@ -27,8 +28,7 @@ func ApiKeyMiddleware(keyService *services.KeyValidationService) gin.HandlerFunc
 		accept := c.GetHeader("Accept")
 
 		isWebUI := false
-		if strings.Contains(accept, "text/html") && (
-			strings.Contains(userAgent, "Mozilla/") ||
+		if strings.Contains(accept, "text/html") && (strings.Contains(userAgent, "Mozilla/") ||
 			strings.Contains(userAgent, "Chrome/") ||
 			strings.Contains(userAgent, "Safari/") ||
 			strings.Contains(userAgent, "Firefox/") ||
@@ -71,7 +71,7 @@ func ApiKeyMiddleware(keyService *services.KeyValidationService) gin.HandlerFunc
 		// Store user ID and operation type in context
 		c.Set("userId", result.UserID)
 		c.Set("operationType", operation)
-		c.Set("permissions", result.Permissions)
+		// No need to store permissions since all are allowed
 		c.Set("freeOperationsRemaining", result.FreeOperationsRemaining)
 		c.Set("balance", result.Balance)
 

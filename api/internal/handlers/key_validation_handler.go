@@ -25,7 +25,7 @@ func NewKeyValidationHandler(service *services.KeyValidationService) *KeyValidat
 // @Param operation query string false "Operation to validate permission for (e.g., compress, merge, protect)"
 // @Param api_key query string false "API key to validate (if not provided in header)"
 // @Param x-api-key header string false "API key to validate (if not provided in query)"
-// @Success 200 {object} object{valid=boolean,userId=string,permissions=array,freeOperationsRemaining=integer,balance=number,error=string}
+// @Success 200 {object} object{valid=boolean,userId=string,freeOperationsRemaining=integer,balance=number,error=string}
 // @Failure 400 {object} object{error=string}
 // @Failure 500 {object} object{error=string}
 // @Router /api/validate-key [get]
@@ -52,7 +52,6 @@ func (h *KeyValidationHandler) ValidateKey(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"valid":                   result.Valid,
 		"userId":                  result.UserID,
-		"permissions":             result.Permissions,
 		"freeOperationsRemaining": result.FreeOperationsRemaining,
 		"balance":                 result.Balance,
 		"error":                   result.Error,
