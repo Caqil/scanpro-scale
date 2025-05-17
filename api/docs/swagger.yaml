@@ -2,7 +2,7 @@ basePath: /api
 host: localhost:8080
 info:
   contact: {}
-  description: API for MegaPDF document processing service
+  description: Enter your JWT token
   title: MegaPDF API
   version: "1.0"
 paths:
@@ -155,19 +155,23 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              keys:
+                type: array
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Server error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -184,7 +188,11 @@ paths:
         name: body
         required: true
         schema:
-          additionalProperties: true
+          properties:
+            name:
+              type: string
+            permissions:
+              type: array
           type: object
       produces:
       - application/json
@@ -192,31 +200,50 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              key:
+                properties:
+                  createdAt:
+                    type: string
+                  id:
+                    type: string
+                  key:
+                    type: string
+                  name:
+                    type: string
+                  permissions:
+                    type: array
+                type: object
+              success:
+                type: boolean
             type: object
         "400":
-          description: Bad Request
+          description: Invalid request body
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "403":
-          description: Forbidden
+          description: API key limit reached
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Server error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -240,25 +267,32 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
             type: object
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "404":
-          description: Not Found
+          description: API key not found or does not belong to user
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Server error
           schema:
-            additionalProperties:
-              type: string
+            properties:
+              error:
+                type: string
             type: object
       security:
       - BearerAuth: []
@@ -769,10 +803,5 @@ securityDefinitions:
   ApiKeyAuth:
     in: header
     name: x-api-key
-    type: apiKey
-  BearerAuth:
-    description: Type "Bearer" followed by a space and the JWT token
-    in: header
-    name: Authorization
     type: apiKey
 swagger: "2.0"
