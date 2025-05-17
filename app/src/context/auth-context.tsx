@@ -132,11 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       }
 
-      // Save token to storage (localStorage for "remember me", sessionStorage otherwise)
-      const rememberMe = localStorage.getItem("rememberMe") === "true";
-      const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("authToken", data.token);
-
       // Get user profile
       const userResponse = await fetch(
         `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
@@ -146,7 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         }
       );
-
+      // Save token to storage (localStorage for "remember me", sessionStorage otherwise)
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("authToken", data.token);
       const userData = await userResponse.json();
 
       setState({

@@ -1,6 +1,5 @@
 "use client";
 import { Suspense, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { LanguageLink } from "@/components/language-link";
 import { LoginFormWithParams } from "@/components/auth/login-form-with-params";
@@ -8,13 +7,8 @@ import { useLanguageStore } from "@/src/store/store";
 
 export default function LoginContent() {
   const { t } = useLanguageStore();
-  const { data: session, status } = useSession();
   const router = useRouter();
-  useEffect(() => {
-    if (status === "authenticated" && session) {
-      router.push("/en/dashboard");
-    }
-  }, [status, session, router]);
+  
 
   // If loading or authenticated, show a loading state
   if (status === "loading" || status === "authenticated") {

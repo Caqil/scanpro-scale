@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+//import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ import { useLanguageStore } from "@/src/store/store";
 
 export function BalancePanel() {
   const { t } = useLanguageStore();
-  const { data: session } = useSession();
+  //const { data: session } = useSession();
   const [balance, setBalance] = useState(0);
   const [freeOpsUsed, setFreeOpsUsed] = useState(0);
   const [freeOpsTotal, setFreeOpsTotal] = useState(500);
@@ -68,11 +68,11 @@ export function BalancePanel() {
     }
   };
 
-  useEffect(() => {
-    if (session) {
-      fetchBalance();
-    }
-  }, [session]);
+  // useEffect(() => {
+  //   if (session) {
+  //     fetchBalance();
+  //   }
+  // }, [session]);
 
   // Handle deposit
   const handleDeposit = async () => {

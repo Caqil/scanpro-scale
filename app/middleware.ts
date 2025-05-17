@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -9,23 +8,47 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.includes(route));
   console.log("Middleware running for path:", pathname);
   
-  const token = request.cookies.get('authToken')?.value || '';
-  console.log("Token found:", !!token);
   if (isProtectedRoute) {
-    // Get Next-Auth session token
-    const token = await getToken({ req: request as any });
+    // Get your custom auth token from cookie
+    const token = request.cookies.get('authToken')?.value || '';
+    console.log("Token found:", !!token);
     
     if (!token) {
-      // No session, redirect to login
+      // No token, redirect to login
       const lang = pathname.split('/')[1] || 'en';
       return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }
     
-    // Check admin routes
-    const isAdminRoute = pathname.includes('/admin');
-    if (isAdminRoute && token.role !== 'admin') {
+    // Optional: Validate token with your Go API
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/validate-token`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        // Token invalid, redirect to login
+        const lang = pathname.split('/')[1] || 'en';
+        return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
+      }
+      
+      // For admin routes, check if user has admin role
+      const isAdminRoute = pathname.includes('/admin');
+      if (isAdminRoute) {
+        // Get user data from response
+        const data = await response.json();
+        if (data.role !== 'admin') {
+          const lang = pathname.split('/')[1] || 'en';
+          return NextResponse.redirect(new URL(`/${lang}/dashboard`, request.url));
+        }
+      }
+    } catch (error) {
+      // Error validating token, redirect to login
+      console.error("Token validation error:", error);
       const lang = pathname.split('/')[1] || 'en';
-      return NextResponse.redirect(new URL(`/${lang}/dashboard`, request.url));
+      return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }
   }
 

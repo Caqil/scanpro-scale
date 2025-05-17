@@ -39,7 +39,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageLink } from "./language-link";
 import { LanguageSwitcher } from "./language-switcher";
-import { useSession } from "next-auth/react";
 import { LogoutButton } from "./auth/logout-button";
 import { LineShadowText } from "@/src/components/magicui/line-shadow-text";
 import { useTheme } from "next-themes";
@@ -74,7 +73,6 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [showAppBanner, setShowAppBanner] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const { data: session } = useSession();
   const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
   useEffect(() => {
     setIsClient(true);
@@ -89,38 +87,11 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [urlLanguage, language]);
-  const userMenu = session ? (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium">
-            {session.user?.name ? session.user.name[0].toUpperCase() : "A"}
-          </div>
-          <span className="hidden sm:inline">
-            {session.user?.name || "Account"}
-          </span>
-          <ChevronDownIcon className="h-4 w-4 opacity-70" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem asChild>
-          <LanguageLink href="/dashboard">Dashboard</LanguageLink>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <div className="mt-auto border-t p-4">
-            <LogoutButton />
-          </div>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  ) : (
-    <LanguageLink href="/login" passHref>
-      <Button variant="default" size="sm">
-        Sign in
-      </Button>
-    </LanguageLink>
-  );
+  <LanguageLink href="/login" passHref>
+    <Button variant="default" size="sm">
+      Sign in
+    </Button>
+  </LanguageLink>;
   const languages: LanguageOption[] = [
     { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
     {
@@ -377,7 +348,7 @@ export function ProHeader({ urlLanguage }: ProHeaderProps) {
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <ModeToggle />
-            {userMenu}
+            {/* {userMenu} */}
             <Button
               variant="outline"
               size="icon"

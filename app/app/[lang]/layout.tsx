@@ -13,7 +13,6 @@ import { Analytics } from "@/lib/analytics";
 
 // Import language configuration
 import { SUPPORTED_LANGUAGES, getTranslation } from "@/src/lib/i18n/config";
-import { AuthProvider } from "./providers";
 import { CookieConsentBanner } from "@/components/cookie-banner-component";
 
 // Font configuration - optimize with display: swap
@@ -130,19 +129,19 @@ export default async function Layout({
           fontSans.variable
         )}
       >
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="relative flex min-h-screen flex-col">
-              <ProHeader urlLanguage={lang} />
-              <div className="flex-1 mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8">
-                {children}
-              </div>
-              <Footer />
+        {/* <AuthProvider> */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="relative flex min-h-screen flex-col">
+            <ProHeader urlLanguage={lang} />
+            <div className="flex-1 mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8">
+              {children}
             </div>
-            <Toaster />
-            <CookieConsentBanner />
-          </ThemeProvider>
-        </AuthProvider>
+            <Footer />
+          </div>
+          <Toaster />
+          <CookieConsentBanner />
+        </ThemeProvider>
+        {/* // </AuthProvider> */}
         {/* Place Analytics component at the end of body for better performance */}
         <Analytics />
       </body>

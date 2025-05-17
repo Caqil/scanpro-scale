@@ -30,6 +30,8 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
   const pathname = usePathname();
   const justVerified = searchParams?.get("verified") === "true";
   const { t } = useLanguageStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   // Effect to redirect admin users
   useEffect(() => {
     if (user.role === "admin" && pathname) {
@@ -39,7 +41,28 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
       router.push(`/admin/dashboard`);
     }
   }, [user.role, router, pathname]);
+  useEffect(() => {
+    // Check if user is authenticated on client side
+    const checkAuth = () => {
+      // Check for auth in localStorage
+      const authData = localStorage.getItem("auth");
+      const userIsAuth = localStorage.getItem("userIsAuthenticated");
 
+      // Check for auth cookie
+      const hasAuthCookie = document.cookie.includes("authToken=");
+
+      if (authData || userIsAuth === "true" || hasAuthCookie) {
+        setIsAuthenticated(true);
+      } else {
+        // Redirect to login if not authenticated
+        router.push("/en/login?callbackUrl=/en/dashboard");
+      }
+
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, [router]);
   // Show verified alert if the user just verified their email
   useEffect(() => {
     if (justVerified && user.isEmailVerified) {
@@ -95,7 +118,7 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">
-          <UserProfile user={user} />
+          <UserProfile />
         </TabsContent>
       </Tabs>
     </div>

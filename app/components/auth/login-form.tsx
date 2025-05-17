@@ -83,13 +83,11 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
 
     return isValid;
   };
-
-  // Handle form submission
+  // In LoginForm component
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -97,33 +95,21 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     setLoading(true);
 
     try {
-      console.log("Attempting login...");
       const result = await login(email, password);
-      console.log("Login result:", result);
 
       if (!result.success) {
         throw new Error(result.error);
       }
 
-      console.log("Login successful, redirecting to:", callbackUrl);
       toast.success(t("auth.loginSuccess") || "Signed in successfully");
-
-      // Try both methods
-      console.log("Attempting navigation...");
-      router.push(callbackUrl);
-
-      // As a fallback, add:
+      localStorage.setItem("userIsAuthenticated", "true");
+      // Add delay before redirection to ensure cookies are set
       setTimeout(() => {
-        console.log("Fallback navigation...");
+        // Use window.location for most reliable redirection after authentication
         window.location.href = callbackUrl;
-      }, 1000);
+      }, 500);
     } catch (error) {
-      console.error("Login error:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : t("auth.loginError") || "An error occurred. Please try again."
-      );
+      setError(error instanceof Error ? error.message : "Login failed");
     } finally {
       setLoading(false);
     }
