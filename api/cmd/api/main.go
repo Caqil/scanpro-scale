@@ -80,19 +80,27 @@ func createDirs(cfg *config.Config) {
 		cfg.PublicDir + "/conversions",
 		cfg.PublicDir + "/compressions",
 		cfg.PublicDir + "/merges",
-		cfg.PublicDir + "/splits",      // Added this
-		cfg.PublicDir + "/rotations",   // Already there
-		cfg.PublicDir + "/watermarked", // Already there
+		cfg.PublicDir + "/splits",
+		cfg.PublicDir + "/rotations",
+		cfg.PublicDir + "/watermarked",
+		cfg.PublicDir + "/watermarks", // Added
 		cfg.PublicDir + "/protected",
 		cfg.PublicDir + "/pagenumbers",
-		cfg.PublicDir + "/unlocked", // Already there
+		cfg.PublicDir + "/unlocked",
 		cfg.PublicDir + "/ocr",
-		// Add any other directories needed
+		cfg.PublicDir + "/edited",
+		cfg.PublicDir + "/processed",
+		cfg.PublicDir + "/unwatermarked", // Added
+		cfg.PublicDir + "/redacted",      // Added
+		cfg.PublicDir + "/repaired",      // Added
+		cfg.PublicDir + "/signatures",    // Added
 	}
 
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			log.Printf("Failed to create directory %s: %v", dir, err)
+		} else {
+			log.Printf("Created directory: %s", dir)
 		}
 	}
 }

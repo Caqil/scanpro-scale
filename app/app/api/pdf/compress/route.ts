@@ -6,7 +6,6 @@ import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { validateApiKey, trackApiUsage } from "@/lib/validate-key";
 import { getUserId, getOperationType, processOperation, canPerformOperation } from '@/lib/operation-tracker';
 const execPromise = promisify(exec);
 

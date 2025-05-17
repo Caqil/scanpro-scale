@@ -143,24 +143,93 @@ export function MultiPdfCompressor() {
       // Create a FormData instance
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("quality", quality);
 
-      // Call the backend API
+      // Map UI quality levels to the numeric values expected by the Go API
+      let compressionQuality;
+      switch (quality) {
+        case "high":
+          compressionQuality = "90";
+          break;
+        case "medium":
+          compressionQuality = "70";
+          break;
+        case "low":
+          compressionQuality = "40";
+          break;
+        default:
+          compressionQuality = "70";
+      }
+
+      formData.append("quality", compressionQuality);
+
+      // Call the Go backend API
+      console.log(
+        `Sending request to: ${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`
+      );
+      console.log("File name:", file.name, "File size:", file.size);
+      console.log("Quality setting:", compressionQuality);
+
+      try {
+        // First try with a simple OPTIONS request to check CORS
+        const optionsResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`,
+          {
+            method: "OPTIONS",
+            headers: {
+              "x-api-key":
+                "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
+              Origin: window.location.origin,
+            },
+          }
+        );
+
+        console.log("OPTIONS response status:", optionsResponse.status);
+        console.log(
+          "OPTIONS response headers:",
+          Array.from(optionsResponse.headers.entries())
+            .map(([key, value]) => `${key}: ${value}`)
+            .join("\n")
+        );
+      } catch (optionsError) {
+        console.error("OPTIONS request failed:", optionsError);
+      }
+
+      // Now try the actual POST request
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/compress`,
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`,
         {
           method: "POST",
           headers: {
+            // No need to set Content-Type for FormData - the browser will set it with the boundary
             "x-api-key": "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231",
-            "Content-Type": "multipart/form-data",
           },
           body: formData,
         }
       );
 
+      console.log("POST response status:", response.status);
+      console.log(
+        "POST response headers:",
+        Array.from(response.headers.entries())
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n")
+      );
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Compression failed");
+        let errorMessage = "Compression failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          // If we can't parse JSON, try to get text
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch (textError) {
+            console.error("Failed to read error response:", textError);
+          }
+        }
+        throw new Error(`${errorMessage} (Status: ${response.status})`);
       }
 
       const data = await response.json();
@@ -269,8 +338,17 @@ export function MultiPdfCompressor() {
 
     try {
       const zip = new JSZip();
+
+      const goApiUrl =
+        process.env.NEXT_PUBLIC_GO_API_URL || "http://localhost:8080";
+
       for (const file of completedFiles) {
-        const response = await fetch(file.fileUrl);
+        // Make sure to prepend the Go API URL if the fileUrl is a relative path
+        const fileUrl = file.fileUrl.startsWith("/")
+          ? `${goApiUrl}${file.fileUrl}`
+          : file.fileUrl;
+
+        const response = await fetch(fileUrl);
         const blob = await response.blob();
         zip.file(file.filename, blob);
       }
@@ -304,7 +382,7 @@ export function MultiPdfCompressor() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="border shadow-sm">
-          <CardContent className="space-y-6">
+          <CardContent className="pt-6 space-y-6">
             <FormField
               control={form.control}
               name="processAllTogether"
@@ -447,6 +525,7 @@ export function MultiPdfCompressor() {
                             >
                               <a
                                 href={
+                                  `${process.env.NEXT_PUBLIC_GO_API_URL}` +
                                   compressedFiles[fileItem.file.name].fileUrl
                                 }
                                 download={

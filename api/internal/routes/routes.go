@@ -18,6 +18,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Add route logging
 	fmt.Println("Setting up routes...")
 
+	// Apply CORS middleware globally
+	r.Use(middleware.CORSMiddleware())
+
 	// Initialize services
 	keyValidationService := services.NewKeyValidationService(db)
 	balanceService := services.NewBalanceService(db)
@@ -29,13 +32,15 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
 	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
+	fileHandler := handlers.NewFileHandler(cfg)
 	// API routes
 	api := r.Group("/api")
 	{
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
-
+		fmt.Println("Registering route: /api/file")
+		api.GET("/file", fileHandler.ServeFile)
 		// Auth routes
 		auth := api.Group("/auth")
 		{
