@@ -64,6 +64,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/pdf/rotate")
 			pdf.POST("/rotate", pdfHandler.RotatePDF)
 
+			fmt.Println("Registering route: /api/pdf/pagenumber")
+			pdf.POST("/pagenumber", pdfHandler.AddPageNumbersToPDF)
+
 			fmt.Println("Registering route: /api/pdf/watermark")
 			pdf.POST("/watermark", pdfHandler.WatermarkPDF)
 

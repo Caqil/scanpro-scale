@@ -228,253 +228,6 @@
                 }
             }
         },
-        "/api/keys": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns all API keys for the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "keys"
-                ],
-                "summary": "List user's API keys",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "keys": {
-                                    "type": "array"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new API key for the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "keys"
-                ],
-                "summary": "Create a new API key",
-                "parameters": [
-                    {
-                        "description": "API key details",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                },
-                                "permissions": {
-                                    "type": "array"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "key": {
-                                    "type": "object",
-                                    "properties": {
-                                        "createdAt": {
-                                            "type": "string"
-                                        },
-                                        "id": {
-                                            "type": "string"
-                                        },
-                                        "key": {
-                                            "type": "string"
-                                        },
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "permissions": {
-                                            "type": "array"
-                                        }
-                                    }
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "API key limit reached",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/keys/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Revokes (deletes) an API key",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "keys"
-                ],
-                "summary": "Revoke an API key",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "API key ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "API key not found or does not belong to user",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/pdf/compress": {
             "post": {
                 "security": [
@@ -482,7 +235,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Reduces PDF file size with customizable compression settings",
+                "description": "Reduces PDF file size using maximum compression",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -500,18 +253,6 @@
                         "name": "file",
                         "in": "formData",
                         "required": true
-                    },
-                    {
-                        "enum": [
-                            "low",
-                            "medium",
-                            "high"
-                        ],
-                        "type": "string",
-                        "default": "medium",
-                        "description": "Compression quality: low (smallest file), medium (balanced), high (best quality)",
-                        "name": "quality",
-                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -646,14 +387,14 @@
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "PDF files to merge (multiple)",
+                        "description": "PDF files to merge (multiple files)",
                         "name": "files",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "JSON array specifying the order of files",
+                        "description": "JSON array specifying the order of files (e.g., [2,0,1])",
                         "name": "order",
                         "in": "formData"
                     }
@@ -663,15 +404,56 @@
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileCount": {
+                                    "type": "integer"
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "mergedSize": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "totalInputSize": {
+                                    "type": "integer"
+                                }
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -679,8 +461,10 @@
                         "description": "Unauthorized",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -688,8 +472,24 @@
                         "description": "Payment Required",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
@@ -697,8 +497,228 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pdf/pagenumber": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds customizable page numbers to a PDF file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pdf"
+                ],
+                "summary": "Add page numbers to a PDF file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PDF file to add page numbers to (max 50MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "bottom-center",
+                        "description": "Position of page numbers: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right",
+                        "name": "position",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "numeric",
+                        "description": "Format of page numbers: numeric, roman, alphabetic",
+                        "name": "format",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "Helvetica",
+                        "description": "Font family: Helvetica, Times, Courier",
+                        "name": "fontFamily",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 12,
+                        "description": "Font size in points",
+                        "name": "fontSize",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "#000000",
+                        "description": "Text color in hex format",
+                        "name": "color",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "First page number",
+                        "name": "startNumber",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "",
+                        "description": "Text to add before page number",
+                        "name": "prefix",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "",
+                        "description": "Text to add after page number",
+                        "name": "suffix",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 40,
+                        "description": "Horizontal margin in points",
+                        "name": "marginX",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "Vertical margin in points",
+                        "name": "marginY",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pages to add numbers to (e.g., '1-3,5,7-9'), empty for all pages",
+                        "name": "selectedPages",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Skip numbering on the first page",
+                        "name": "skipFirstPage",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileName": {
+                                    "type": "string"
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "numberedPages": {
+                                    "type": "integer"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "totalPages": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -804,6 +824,586 @@
                                     "type": "string"
                                 },
                                 "methodUsed": {
+                                    "type": "string"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pdf/rotate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Rotates pages in a PDF file by a specified angle",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pdf"
+                ],
+                "summary": "Rotate pages in a PDF file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PDF file to rotate (max 50MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            90,
+                            180,
+                            270
+                        ],
+                        "type": "integer",
+                        "description": "Rotation angle in degrees",
+                        "name": "angle",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "all",
+                        "description": "Pages to rotate (e.g., '1-3,5,7-9'), empty for all pages",
+                        "name": "pages",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pdf/split": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Splits a PDF file into multiple PDFs based on page ranges",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pdf"
+                ],
+                "summary": "Split a PDF file into multiple PDFs",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PDF file to split (max 50MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page ranges for splitting (e.g., '1-3,4,5-7')",
+                        "name": "ranges",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileCount": {
+                                    "type": "integer"
+                                },
+                                "files": {
+                                    "type": "array"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pdf/unlock": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes password protection from a PDF file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pdf"
+                ],
+                "summary": "Remove password protection from a PDF file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PDF file to unlock (max 50MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Current PDF password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "originalName": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment Required",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "details": {
+                                    "type": "object",
+                                    "properties": {
+                                        "balance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pdf/watermark": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds text or image watermark to a PDF file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pdf"
+                ],
+                "summary": "Add watermark to a PDF file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PDF file to watermark (max 50MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Text for watermark",
+                        "name": "text",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image for watermark (only used if text is not provided)",
+                        "name": "image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "default": 0.5,
+                        "description": "Watermark opacity (0.1-1.0)",
+                        "name": "opacity",
+                        "in": "formData"
+                    },
+                    {
+                        "enum": [
+                            "center",
+                            "diagonal",
+                            "topleft",
+                            "topright",
+                            "bottomleft",
+                            "bottomright"
+                        ],
+                        "type": "string",
+                        "default": "center",
+                        "description": "Watermark position",
+                        "name": "position",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "billing": {
+                                    "type": "object",
+                                    "properties": {
+                                        "currentBalance": {
+                                            "type": "number"
+                                        },
+                                        "freeOperationsRemaining": {
+                                            "type": "integer"
+                                        },
+                                        "operationCost": {
+                                            "type": "number"
+                                        },
+                                        "usedFreeOperation": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "fileUrl": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "message": {
                                     "type": "string"
                                 },
                                 "originalName": {
@@ -1206,9 +1806,6 @@
                                 },
                                 "freeOperationsRemaining": {
                                     "type": "integer"
-                                },
-                                "permissions": {
-                                    "type": "array"
                                 },
                                 "userId": {
                                     "type": "string"

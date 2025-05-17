@@ -84,6 +84,7 @@ func createDirs(cfg *config.Config) {
 		cfg.PublicDir + "/rotations",   // Already there
 		cfg.PublicDir + "/watermarked", // Already there
 		cfg.PublicDir + "/protected",
+		cfg.PublicDir + "/pagenumbers",
 		cfg.PublicDir + "/unlocked", // Already there
 		cfg.PublicDir + "/ocr",
 		// Add any other directories needed

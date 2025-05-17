@@ -16,17 +16,6 @@ func NewApiKeyHandler(service *services.ApiKeyService) *ApiKeyHandler {
 	return &ApiKeyHandler{service: service}
 }
 
-// ListKeys godoc
-// @Summary List user's API keys
-// @Description Returns all API keys for the authenticated user
-// @Tags keys
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} object{keys=array{object{id=string,name=string,key=string,lastUsed=string,expiresAt=string,createdAt=string}}}
-// @Failure 401 {object} object{error=string} "Unauthorized"
-// @Failure 500 {object} object{error=string} "Server error"
-// @Router /api/keys [get]
 func (h *ApiKeyHandler) ListKeys(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userId")
@@ -64,20 +53,6 @@ func (h *ApiKeyHandler) ListKeys(c *gin.Context) {
 	})
 }
 
-// CreateKey godoc
-// @Summary Create a new API key
-// @Description Creates a new API key for the authenticated user
-// @Tags keys
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param body body object{name=string} true "API key details"
-// @Success 200 {object} object{success=boolean,key=object{id=string,name=string,key=string,createdAt=string}}
-// @Failure 400 {object} object{error=string} "Invalid request body"
-// @Failure 401 {object} object{error=string} "Unauthorized"
-// @Failure 403 {object} object{error=string} "API key limit reached"
-// @Failure 500 {object} object{error=string} "Server error"
-// @Router /api/keys [post]
 func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userId")
@@ -126,20 +101,6 @@ func (h *ApiKeyHandler) CreateKey(c *gin.Context) {
 	})
 }
 
-// RevokeKey godoc
-// @Summary Revoke an API key
-// @Description Revokes (deletes) an API key
-// @Tags keys
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "API key ID"
-// @Success 200 {object} object{success=boolean,message=string}
-// @Example response {"success":true,"message":"API key revoked successfully"}
-// @Failure 401 {object} object{error=string} "Unauthorized"
-// @Failure 404 {object} object{error=string} "API key not found or does not belong to user"
-// @Failure 500 {object} object{error=string} "Server error"
-// @Router /api/keys/{id} [delete]
 func (h *ApiKeyHandler) RevokeKey(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userId")
