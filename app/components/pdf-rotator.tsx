@@ -63,7 +63,8 @@ export function PdfRotator() {
   const [pageFormat, setPageFormat] = useState<string>("all");
   const [customRange, setCustomRange] = useState<string>("");
   const [showPageSelector, setShowPageSelector] = useState<boolean>(false);
-
+  const [rotationAngle, setRotationAngle] = useState<number>(90); // Default to 90 degrees
+  const [originalName, setOriginalName] = useState<string>("");
   const {
     isUploading,
     progress: uploadProgress,
@@ -130,30 +131,6 @@ export function PdfRotator() {
     }
   };
 
-  const handleRotatePage = (
-    pageNumber: number,
-    direction: "clockwise" | "counterclockwise"
-  ) => {
-    setPageRotations((prevRotations) => {
-      return prevRotations.map((rotation) => {
-        if (rotation.pageNumber === pageNumber) {
-          // Calculate new angle, allowing negative angles
-          const change = direction === "clockwise" ? 90 : -90;
-          let newAngle = rotation.angle + change;
-          // Normalize angle to [-270, -180, -90, 0, 90, 180, 270]
-          if (newAngle <= -360) newAngle += 360;
-          if (newAngle >= 360) newAngle -= 360;
-
-          return {
-            ...rotation,
-            angle: newAngle,
-          };
-        }
-        return rotation;
-      });
-    });
-  };
-
   const handleRotateSelected = (
     direction: "clockwise" | "counterclockwise"
   ) => {
@@ -165,29 +142,40 @@ export function PdfRotator() {
       return;
     }
 
-    setPageRotations((prevRotations) => {
-      return prevRotations.map((rotation) => {
-        if (selectedPages.includes(rotation.pageNumber)) {
-          // Calculate new angle, allowing negative angles
-          const change = direction === "clockwise" ? 90 : -90;
-          let newAngle = rotation.angle + change;
-          // Normalize angle to [-270, -180, -90, 0, 90, 180, 270]
-          if (newAngle <= -360) newAngle += 360;
-          if (newAngle >= 360) newAngle -= 360;
+    const angle = direction === "clockwise" ? rotationAngle : -rotationAngle;
 
-          return {
-            ...rotation,
-            angle: newAngle,
-          };
-        }
-        return rotation;
-      });
-    });
+    setPageRotations((prevRotations) =>
+      prevRotations.map((rotation) =>
+        selectedPages.includes(rotation.pageNumber)
+          ? { ...rotation, angle }
+          : rotation
+      )
+    );
+  };
+
+  const handleRotatePage = (
+    pageNumber: number,
+    direction: "clockwise" | "counterclockwise"
+  ) => {
+    const angle = direction === "clockwise" ? rotationAngle : -rotationAngle;
+
+    setPageRotations((prevRotations) =>
+      prevRotations.map((rotation) =>
+        rotation.pageNumber === pageNumber ? { ...rotation, angle } : rotation
+      )
+    );
   };
 
   const handleProcessPdf = async () => {
     if (!file) return;
     const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    if (!goApiUrl) {
+      toast.error(
+        t("rotatePdf.errors.noApiUrl") ||
+          "API URL is not configured. Please contact support."
+      );
+      return;
+    }
     if (pageRotations.every((rotation) => rotation.angle === 0)) {
       toast.error(
         t("rotatePdf.errors.noRotation") ||
@@ -196,20 +184,26 @@ export function PdfRotator() {
       return;
     }
 
+    const rotatedPage = pageRotations.find((rotation) => rotation.angle !== 0);
+    if (!rotatedPage) {
+      toast.error(
+        t("rotatePdf.errors.noRotation") || "No pages have been rotated"
+      );
+      return;
+    }
+    const angle = Math.abs(rotatedPage.angle).toString();
+
     setIsProcessing(true);
     setProgress(0);
-    const apiUrl = `${goApiUrl}/api/pdf/rotate`;
+    const apiUrl = `${goApiUrl}/api/pdf/rotate`; // Updated to use NEXT_PUBLIC_GO_API_URL
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("angle", angle);
 
-    // Prepare rotation data for pages with non-zero rotations
-    const rotationsToSend = pageRotations
-      .filter((rotation) => rotation.angle !== 0)
-      .map((rotation) => ({
-        pageNumber: rotation.pageNumber,
-        angle: rotation.angle,
-      }));
-    formData.append("rotations", JSON.stringify(rotationsToSend));
+    if (pageFormat !== "all") {
+      const pages = selectedPages.join(",");
+      formData.append("pages", pages);
+    }
 
     try {
       await uploadFile(file, formData, {
@@ -222,7 +216,11 @@ export function PdfRotator() {
         },
         onSuccess: (result) => {
           setProgress(100);
-          setProcessedFileUrl(result.fileUrl);
+          const fileUrl = result.fileUrl.startsWith("http")
+            ? result.fileUrl
+            : `${process.env.NEXT_PUBLIC_GO_API_URL}${result.fileUrl}`;
+          setProcessedFileUrl(fileUrl);
+          console.log("Processed file URL:", fileUrl);
           toast.success(
             t("rotatePdf.messages.success") || "PDF rotated successfully!"
           );
@@ -243,19 +241,6 @@ export function PdfRotator() {
       );
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const handleDownload = () => {
-    if (processedFileUrl) {
-      const link = document.createElement("a");
-      link.href = processedFileUrl;
-      link.download = file
-        ? file.name.replace(".pdf", "_rotated.pdf")
-        : "rotated.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
   };
 
@@ -477,9 +462,29 @@ export function PdfRotator() {
             <RotateCcw className="h-4 w-4 mr-2" />
             {t("ocr.processAnother") || "New File"}
           </Button>
-          <Button onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            {t("ui.download") || "Download"}
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            asChild
+            className="text-sm"
+          >
+            <a
+              href={processedFileUrl}
+              download={
+                originalName
+                  ? originalName.replace(/\.pdf$/, "_rotated.pdf")
+                  : file
+                  ? file.name.replace(/\.pdf$/, "_rotated.pdf")
+                  : "rotated.pdf"
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Download className="h-3.5 w-3.5 mr-1" />
+              {t("ui.download") || "Download"}
+            </a>
           </Button>
         </div>
       </div>

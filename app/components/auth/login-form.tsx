@@ -128,7 +128,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
       const result = await login(email, password);
 
       if (!result.success) {
-        throw new Error(result.error || "Invalid email or password");
+        throw new Error(result.error);
       }
 
       // Store token in localStorage or sessionStorage based on rememberMe
@@ -156,6 +156,11 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
       );
     } finally {
       setLoading(false);
+      console.log("Logging in:", email, password);
+      console.log(
+        "Calling:",
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/login`
+      );
     }
   };
 

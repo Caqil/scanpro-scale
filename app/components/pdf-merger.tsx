@@ -132,8 +132,7 @@ export function PdfMerger() {
     }
   };
 
-  // Process merging PDFs
-  const handleMerge = async () => {
+  const handleMerge = async (): Promise<void> => {
     if (files.length < 2) {
       setError(
         t("mergePdf.error.minFiles") ||
@@ -147,58 +146,116 @@ export function PdfMerger() {
     setError(null);
     setMergedFileUrl(null);
 
-    const formData = new FormData();
-
-    // Append files in the correct order
-    files.forEach((fileObj) => {
-      formData.append("files", fileObj.file);
-    });
-
-    // Add the order of files as a separate field
-    formData.append("order", JSON.stringify(files.map((_, index) => index)));
-
-    // Use our custom upload hook
-    uploadFile(files[0].file, formData, {
-      url: "/api/pdf/merge",
-      onProgress: (progress) => {
-        // Update UI with upload progress
-        setProgress(progress / 2); // First half is upload, second half is processing
-      },
-      onSuccess: (data) => {
-        // Start processing progress simulation
-        let processingProgress = 50; // Start at 50% (upload complete)
-        const processingInterval = setInterval(() => {
-          processingProgress += 2;
-          setProgress(Math.min(processingProgress, 95));
-
-          if (processingProgress >= 95) {
-            clearInterval(processingInterval);
-          }
-        }, 200);
-
-        // Complete the process
-        setTimeout(() => {
-          clearInterval(processingInterval);
-          setProgress(100);
-          setMergedFileUrl(data.fileUrl);
-          setIsProcessing(false);
-
-          toast.success(t("mergePdf.ui.successMessage") || "Merge Successful");
-        }, 1000); // Simulate some processing time
-      },
-      onError: (err) => {
-        setProgress(0);
-        setError(
-          err.message ||
-            t("mergePdf.error.unknown") ||
-            "An unknown error occurred"
+    return new Promise((resolve, reject) => {
+      try {
+        const formData = new FormData();
+        files.forEach((fileObj) => {
+          formData.append("files", fileObj.file);
+        });
+        formData.append(
+          "order",
+          JSON.stringify(files.map((_, index) => index))
         );
+
+        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/merge`;
+        console.log("Submitting to Go API URL:", apiUrl);
+        console.log("Number of files:", files.length);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+        );
+
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0–50%)
+            setProgress(percentComplete / 2);
+          }
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress(100);
+              setMergedFileUrl(data.fileUrl);
+              setIsProcessing(false); // Reset processing state
+
+              toast.success(
+                t("mergePdf.ui.successMessage") || "Merge Successful"
+              );
+
+              resolve();
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage =
+                t("mergePdf.error.unknown") || "An unknown error occurred";
+              setError(errorMessage);
+              setProgress(0);
+              setIsProcessing(false);
+              toast.error(t("mergePdf.error.failed") || "Merge Failed", {
+                description: errorMessage,
+              });
+              reject(parseError);
+            }
+          } else {
+            let errorMessage = "Merge failed";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+
+            setError(errorMessage);
+            setProgress(0);
+            setIsProcessing(false);
+            toast.error(t("mergePdf.error.failed") || "Merge Failed", {
+              description: errorMessage,
+            });
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage =
+            t("mergePdf.error.unknown") || "An unknown error occurred";
+          setError(errorMessage);
+          setProgress(0);
+          setIsProcessing(false);
+          toast.error(t("mergePdf.error.failed") || "Merge Failed", {
+            description: errorMessage,
+          });
+          reject(new Error("Network error"));
+        };
+
+        // Send the request
+        xhr.send(formData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : t("mergePdf.error.unknown") || "An unknown error occurred";
+        setError(errorMessage);
+        setProgress(0);
         setIsProcessing(false);
-        toast.error(t("mergePdf.error.failed") || "Merge Failed");
-      },
+        toast.error(t("mergePdf.error.failed") || "Merge Failed", {
+          description: errorMessage,
+        });
+        reject(err);
+      }
     });
   };
-
   // Handle files being accepted by the FileDropzone
   const handleFilesAccepted = (acceptedFiles: File[]) => {
     setError(null);
@@ -398,7 +455,13 @@ export function PdfMerger() {
                     "Your merged PDF file is now ready for download."}
                 </p>
                 <Button className="w-full sm:w-auto" asChild variant="default">
-                  <a href={mergedFileUrl} download>
+                  <a
+                    href={
+                      `${process.env.NEXT_PUBLIC_GO_API_URL}` +
+                      `${mergedFileUrl}`
+                    }
+                    download
+                  >
                     <DownloadIcon className="h-4 w-4 mr-2" />
                     {t("mergePdf.ui.downloadMerged") || "Download Merged PDF"}
                   </a>

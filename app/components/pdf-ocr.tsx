@@ -2,14 +2,28 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, Check, FileText, Download, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguageStore } from "@/src/store/store";
+import { toast } from "sonner";
 
 // Define supported languages for OCR
 const LANGUAGES = [
@@ -63,7 +77,7 @@ export function PdfOcr() {
     const files = event.target.files;
     if (files && files.length > 0) {
       const selectedFile = files[0];
-      
+
       // Validate file type
       if (!selectedFile.name.toLowerCase().endsWith(".pdf")) {
         setError(t("ocr.invalidFile"));
@@ -71,7 +85,7 @@ export function PdfOcr() {
         setFileName("");
         return;
       }
-      
+
       // Validate file size (max 50MB)
       if (selectedFile.size > 50 * 1024 * 1024) {
         setError(t("ocr.fileTooLarge"));
@@ -79,7 +93,7 @@ export function PdfOcr() {
         setFileName("");
         return;
       }
-      
+
       setFile(selectedFile);
       setFileName(selectedFile.name);
       setError(null);
@@ -96,11 +110,11 @@ export function PdfOcr() {
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const files = event.dataTransfer.files;
     if (files && files.length > 0) {
       const droppedFile = files[0];
-      
+
       // Validate file type
       if (!droppedFile.name.toLowerCase().endsWith(".pdf")) {
         setError(t("ocr.invalidFile"));
@@ -108,7 +122,7 @@ export function PdfOcr() {
         setFileName("");
         return;
       }
-      
+
       // Validate file size (max 50MB)
       if (droppedFile.size > 50 * 1024 * 1024) {
         setError(t("ocr.fileTooLarge"));
@@ -116,7 +130,7 @@ export function PdfOcr() {
         setFileName("");
         return;
       }
-      
+
       setFile(droppedFile);
       setFileName(droppedFile.name);
       setError(null);
@@ -125,48 +139,133 @@ export function PdfOcr() {
     }
   };
 
-  const processPdf = async (event: React.FormEvent) => {
+  const processPdf = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
-    
+
     if (!file) {
-      setError(t("ocr.noFile"));
+      setError(t("ocr.noFile") || "No file selected");
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    const progressInterval = simulateProgress();
-    
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("language", language);
-      formData.append("enhanceScanned", enhanceScanned.toString());
-      formData.append("preserveLayout", preserveLayout.toString());
-      
-      const response = await fetch("/api/ocr", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const data = await response.json();
-      
-      clearInterval(progressInterval);
-      
-      if (!response.ok) {
-        throw new Error(data.error || t("ocr.extractionFailed"));
+    setProgress(0);
+    setSuccess(false);
+    setDownloadUrl("");
+
+    return new Promise((resolve, reject) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("language", language);
+        formData.append("enhanceScanned", enhanceScanned.toString());
+        formData.append("preserveLayout", preserveLayout.toString());
+
+        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/ocr`;
+        console.log("Submitting to Go API URL:", apiUrl);
+        console.log("File name:", file.name, "File size:", file.size);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+        );
+
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0–50%)
+            setProgress(percentComplete / 2);
+          }
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress(100);
+              setSuccess(true);
+              setDownloadUrl(data.searchablePdfUrl);
+              setIsLoading(false);
+
+              toast.success(t("ocr.success") || "PDF Processed Successfully", {
+                description:
+                  t("ocr.successDesc") ||
+                  "Searchable PDF generated successfully",
+              });
+
+              resolve();
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage =
+                t("ocr.unknownError") || "An unknown error occurred";
+              setError(errorMessage);
+              setProgress(0);
+              setIsLoading(false);
+              toast.error(
+                t("ocr.extractionFailed") || "PDF Processing Failed",
+                {
+                  description: errorMessage,
+                }
+              );
+              reject(parseError);
+            }
+          } else {
+            let errorMessage =
+              t("ocr.extractionFailed") || "PDF processing failed";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+
+            setError(errorMessage);
+            setProgress(0);
+            setIsLoading(false);
+            toast.error(t("ocr.extractionFailed") || "PDF Processing Failed", {
+              description: errorMessage,
+            });
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage =
+            t("ocr.unknownError") || "An unknown error occurred";
+          setError(errorMessage);
+          setProgress(0);
+          setIsLoading(false);
+          toast.error(t("ocr.extractionFailed") || "PDF Processing Failed", {
+            description: errorMessage,
+          });
+          reject(new Error("Network error"));
+        };
+
+        // Send the request
+        xhr.send(formData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : t("ocr.unknownError") || "An unknown error occurred";
+        setError(errorMessage);
+        setProgress(0);
+        setIsLoading(false);
+        toast.error(t("ocr.extractionFailed") || "PDF Processing Failed", {
+          description: errorMessage,
+        });
+        reject(err);
       }
-      
-      setProgress(100);
-      setSuccess(true);
-      setDownloadUrl(data.searchablePdfUrl);
-      
-    } catch (error) {
-      clearInterval(progressInterval);
-      setError(error instanceof Error ? error.message : t("ocr.unknownError"));
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const resetForm = () => {
@@ -198,7 +297,9 @@ export function PdfOcr() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-4 text-lg font-medium">{t("ocr.uploadPdf")}</h3>
+                <h3 className="mt-4 text-lg font-medium">
+                  {t("ocr.uploadPdf")}
+                </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t("ocr.dragDrop")}
                 </p>
@@ -268,9 +369,14 @@ export function PdfOcr() {
                       <Checkbox
                         id="enhance-scanned"
                         checked={enhanceScanned}
-                        onCheckedChange={(checked) => setEnhanceScanned(checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          setEnhanceScanned(checked as boolean)
+                        }
                       />
-                      <Label htmlFor="enhance-scanned" className="text-sm font-normal">
+                      <Label
+                        htmlFor="enhance-scanned"
+                        className="text-sm font-normal"
+                      >
                         {t("ocr.options.enhanceScanned")}
                       </Label>
                     </div>
@@ -278,9 +384,14 @@ export function PdfOcr() {
                       <Checkbox
                         id="preserve-layout"
                         checked={preserveLayout}
-                        onCheckedChange={(checked) => setPreserveLayout(checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          setPreserveLayout(checked as boolean)
+                        }
                       />
-                      <Label htmlFor="preserve-layout" className="text-sm font-normal">
+                      <Label
+                        htmlFor="preserve-layout"
+                        className="text-sm font-normal"
+                      >
                         {t("ocr.options.preserveLayout")}
                       </Label>
                     </div>
@@ -318,7 +429,9 @@ export function PdfOcr() {
               <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
                 <Check className="h-6 w-6 text-green-600 dark:text-green-300" />
               </div>
-              <h3 className="text-xl font-semibold">{t("ocr.extractionComplete")}</h3>
+              <h3 className="text-xl font-semibold">
+                {t("ocr.extractionComplete")}
+              </h3>
               <p className="text-muted-foreground">
                 {t("ocr.extractionCompleteDesc")}
               </p>
@@ -364,9 +477,7 @@ export function PdfOcr() {
         )}
       </CardContent>
       <CardFooter className="border-t px-6 py-4">
-        <p className="text-xs text-muted-foreground">
-          {t("ui.filesSecurity")}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("ui.filesSecurity")}</p>
       </CardFooter>
     </Card>
   );

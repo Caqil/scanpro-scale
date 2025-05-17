@@ -179,11 +179,9 @@ export function PdfOcrExtractor() {
         });
     }
   };
-
-  // Handle form submission
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: FormValues): Promise<void> => {
     if (!file) {
-      setError(t("compressPdf.error.noFiles"));
+      setError(t("compressPdf.error.noFiles") || "No file selected");
       return;
     }
 
@@ -193,56 +191,129 @@ export function PdfOcrExtractor() {
     setExtractedText(null);
     setTextFile(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("language", values.language);
-    formData.append("pageRange", values.pageRange);
+    return new Promise((resolve, reject) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("language", values.language);
+        formData.append("pageRange", values.pageRange);
 
-    if (values.pageRange === "specific" && values.pages) {
-      formData.append("pages", values.pages);
-    }
+        if (values.pageRange === "specific" && values.pages) {
+          formData.append("pages", values.pages);
+        }
 
-    formData.append("enhanceScanned", values.enhanceScanned.toString());
-    formData.append("preserveLayout", values.preserveLayout.toString());
+        formData.append("enhanceScanned", values.enhanceScanned.toString());
+        formData.append("preserveLayout", values.preserveLayout.toString());
 
-    try {
-      await uploadFile(file, formData, {
-        url: "/api/ocr/extract",
-        onProgress: (progress) => {
-          setProgress(progress);
-        },
-        onSuccess: (data) => {
-          setProgress(100);
-          if (data.text) {
-            setExtractedText(data.text);
+        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/ocr/extract`;
+        console.log("Submitting to Go API URL:", apiUrl);
+        console.log("File name:", file.name, "File size:", file.size);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+        );
+
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0–50%)
+            setProgress(percentComplete / 2);
           }
-          if (data.fileUrl && data.filename) {
-            setTextFile({
-              url: data.fileUrl,
-              filename: data.filename,
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress(100);
+              if (data.text) {
+                setExtractedText(data.text);
+              }
+              if (data.fileUrl && data.filename) {
+                setTextFile({
+                  url: data.fileUrl,
+                  filename: data.filename,
+                });
+              }
+              setIsProcessing(false);
+
+              toast.success(t("ui.success") || "OCR Extraction Successful", {
+                description:
+                  t("fileUploader.successDesc") ||
+                  "Text extracted successfully",
+              });
+
+              resolve();
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage =
+                t("compressPdf.error.unknown") || "An unknown error occurred";
+              setError(errorMessage);
+              setProgress(0);
+              setIsProcessing(false);
+              toast.error(t("ui.error") || "OCR Extraction Failed", {
+                description: errorMessage,
+              });
+              reject(parseError);
+            }
+          } else {
+            let errorMessage = "OCR extraction failed";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+
+            setError(errorMessage);
+            setProgress(0);
+            setIsProcessing(false);
+            toast.error(t("ui.error") || "OCR Extraction Failed", {
+              description: errorMessage,
             });
+            reject(new Error(errorMessage));
           }
-          toast.success(t("ui.success"), {
-            description: t("fileUploader.successDesc"),
-          });
-        },
-        onError: (err) => {
-          setError(err.message || t("compressPdf.error.unknown"));
-          toast.error(t("ui.error"), {
-            description: err.message || t("compressPdf.error.failed"),
-          });
-        },
-      });
-    } catch (err) {
-      setError(t("compressPdf.error.unknown"));
-      toast.error(t("ui.error"), {
-        description: t("compressPdf.error.failed"),
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+        };
 
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage =
+            t("compressPdf.error.unknown") || "An unknown error occurred";
+          setError(errorMessage);
+          setProgress(0);
+          setIsProcessing(false);
+          toast.error(t("ui.error") || "OCR Extraction Failed", {
+            description: errorMessage,
+          });
+          reject(new Error("Network error"));
+        };
+
+        // Send the request
+        xhr.send(formData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : t("compressPdf.error.unknown") || "An unknown error occurred";
+        setError(errorMessage);
+        setProgress(0);
+        setIsProcessing(false);
+        toast.error(t("ui.error") || "OCR Extraction Failed", {
+          description: errorMessage,
+        });
+        reject(err);
+      }
+    });
+  };
   return (
     <Card className="border shadow-sm">
       <CardHeader>
