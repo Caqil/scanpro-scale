@@ -4,6 +4,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/handlers"
@@ -23,7 +24,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	r.Use(middleware.CORSMiddleware())
 	r.Use(middleware.LoggerMiddleware())
 	r.Use(middleware.RateLimitMiddleware())
-
+	r.Use(func(c *gin.Context) {
+		now := time.Now().UTC()
+		c.Set("now", map[string]interface{}{
+			"date": now.Format(time.RFC3339),
+		})
+		c.Next()
+	})
 	// Set development mode info in context
 	mode := "production"
 	if cfg.Debug {

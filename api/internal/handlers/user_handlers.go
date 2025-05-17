@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Caqil/megapdf-api/internal/db"
 	"github.com/Caqil/megapdf-api/internal/models"
@@ -32,7 +33,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	// Check if free operations should be reset
-	now := c.MustGet("now").(map[string]interface{})["date"].(string)
+	now := time.Now().UTC().Format(time.RFC3339)
 
 	// Get this month's usage
 	firstDayOfMonth := models.GetFirstDayOfMonth(now)
