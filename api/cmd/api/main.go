@@ -72,8 +72,6 @@ func printRoutes(r *gin.Engine) {
 	}
 	fmt.Println("=================\n")
 }
-
-// Create necessary directories
 func createDirs(cfg *config.Config) {
 	dirs := []string{
 		cfg.TempDir,
@@ -82,12 +80,13 @@ func createDirs(cfg *config.Config) {
 		cfg.PublicDir + "/conversions",
 		cfg.PublicDir + "/compressions",
 		cfg.PublicDir + "/merges",
-		cfg.PublicDir + "/splits",
-		cfg.PublicDir + "/rotations",
-		cfg.PublicDir + "/watermarked",
+		cfg.PublicDir + "/splits",      // Added this
+		cfg.PublicDir + "/rotations",   // Already there
+		cfg.PublicDir + "/watermarked", // Already there
 		cfg.PublicDir + "/protected",
-		cfg.PublicDir + "/unlocked",
+		cfg.PublicDir + "/unlocked", // Already there
 		cfg.PublicDir + "/ocr",
+		// Add any other directories needed
 	}
 
 	for _, dir := range dirs {

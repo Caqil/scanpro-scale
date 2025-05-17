@@ -23,7 +23,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	balanceService := services.NewBalanceService(db)
 	authService := services.NewAuthService(db, cfg.JWTSecret)
 	apiKeyService := services.NewApiKeyService(db) // Add this
-
+	pdfHandler := handlers.NewPDFHandler(balanceService, cfg)
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
@@ -45,7 +45,31 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/auth/login")
 			auth.POST("/login", authHandler.Login)
 		}
+		pdf := api.Group("/pdf")
+		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
+		{
+			fmt.Println("Registering route: /api/pdf/compress")
+			pdf.POST("/compress", pdfHandler.CompressPDF)
 
+			fmt.Println("Registering route: /api/pdf/protect")
+			pdf.POST("/protect", pdfHandler.ProtectPDF)
+
+			fmt.Println("Registering route: /api/pdf/merge")
+			pdf.POST("/merge", pdfHandler.MergePDFs)
+
+			// New routes
+			fmt.Println("Registering route: /api/pdf/split")
+			pdf.POST("/split", pdfHandler.SplitPDF)
+
+			fmt.Println("Registering route: /api/pdf/rotate")
+			pdf.POST("/rotate", pdfHandler.RotatePDF)
+
+			fmt.Println("Registering route: /api/pdf/watermark")
+			pdf.POST("/watermark", pdfHandler.WatermarkPDF)
+
+			fmt.Println("Registering route: /api/pdf/unlock")
+			pdf.POST("/unlock", pdfHandler.UnlockPDF)
+		}
 		// User routes
 		user := api.Group("/user")
 		user.Use(middleware.AuthMiddleware(cfg.JWTSecret))
