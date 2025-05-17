@@ -71,7 +71,14 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
-
+		fmt.Println("Registering route: /api/auth/validate-token")
+		api.GET("/validate-token", middleware.AuthMiddleware(cfg.JWTSecret), func(c *gin.Context) {
+			// If we reached here, token was validated by the middleware
+			c.JSON(http.StatusOK, gin.H{
+				"valid":  true,
+				"userId": c.GetString("userId"),
+			})
+		})
 		fmt.Println("Registering route: /api/file")
 		api.GET("/file", fileHandler.ServeFile)
 

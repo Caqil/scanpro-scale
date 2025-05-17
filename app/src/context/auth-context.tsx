@@ -122,7 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
 
       const data = await response.json();
-
+      console.log("Setting token:", data.token);
+      document.cookie = `authToken=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+      console.log("Cookies after login:", document.cookie);
       if (!response.ok) {
         return {
           success: false,

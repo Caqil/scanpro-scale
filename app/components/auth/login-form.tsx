@@ -97,16 +97,26 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     setLoading(true);
 
     try {
+      console.log("Attempting login...");
       const result = await login(email, password);
+      console.log("Login result:", result);
 
       if (!result.success) {
         throw new Error(result.error);
       }
 
+      console.log("Login successful, redirecting to:", callbackUrl);
       toast.success(t("auth.loginSuccess") || "Signed in successfully");
 
-      // Navigate to dashboard or callback URL
+      // Try both methods
+      console.log("Attempting navigation...");
       router.push(callbackUrl);
+
+      // As a fallback, add:
+      setTimeout(() => {
+        console.log("Fallback navigation...");
+        window.location.href = callbackUrl;
+      }, 1000);
     } catch (error) {
       console.error("Login error:", error);
       setError(
