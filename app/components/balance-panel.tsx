@@ -1,8 +1,6 @@
-// components/balance-panel.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-//import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -28,10 +26,11 @@ import {
 import { toast } from "sonner";
 import { DollarSign, CreditCard, DownloadCloud, Upload } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
+import { useAuth } from "@/src/context/auth-context";
 
 export function BalancePanel() {
   const { t } = useLanguageStore();
-  //const { data: session } = useSession();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const [balance, setBalance] = useState(0);
   const [freeOpsUsed, setFreeOpsUsed] = useState(0);
   const [freeOpsTotal, setFreeOpsTotal] = useState(500);
@@ -44,9 +43,20 @@ export function BalancePanel() {
 
   // Fetch balance information
   const fetchBalance = async () => {
+    if (!isAuthenticated || !user?.token) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const response = await fetch("/api/user/balance");
+      const response = await fetch("http://localhost:8080/api/user/balance", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch balance information");
@@ -54,39 +64,54 @@ export function BalancePanel() {
 
       const data = await response.json();
 
-      setBalance(data.balance);
-      setFreeOpsUsed(data.freeOperationsUsed);
-      setFreeOpsTotal(data.freeOperationsTotal);
-      setFreeOpsRemaining(data.freeOperationsRemaining);
-      setResetDate(new Date(data.nextResetDate));
+      setBalance(data.balance || 0);
+      setFreeOpsUsed(data.freeOperationsUsed || 0);
+      setFreeOpsTotal(data.freeOperationsTotal || 500);
+      setFreeOpsRemaining(data.freeOperationsRemaining || 0);
+      setResetDate(data.nextResetDate ? new Date(data.nextResetDate) : null);
       setTransactions(data.transactions || []);
     } catch (error) {
       console.error("Error fetching balance:", error);
-      toast.error("Could not load balance information");
+      toast.error(
+        t("balancePanel.errors.balanceFetchFailed") ||
+          "Could not load balance information"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // useEffect(() => {
-  //   if (session) {
-  //     fetchBalance();
-  //   }
-  // }, [session]);
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      fetchBalance();
+    }
+  }, [authLoading, isAuthenticated]);
 
   // Handle deposit
   const handleDeposit = async () => {
+    if (!isAuthenticated || !user?.token) {
+      toast.error(
+        t("balancePanel.errors.notAuthenticated") ||
+          "Please sign in to deposit funds"
+      );
+      return;
+    }
+
     try {
       setIsProcessing(true);
 
       const amount = parseFloat(depositAmount);
       if (isNaN(amount) || amount <= 0) {
-        toast.error(t("balancePanel.errors.invalidAmount"));
+        toast.error(
+          t("balancePanel.errors.invalidAmount") || "Invalid deposit amount"
+        );
         return;
       }
 
       if (amount < 5) {
-        toast.error(t("balancePanel.errors.minimumDeposit"));
+        toast.error(
+          t("balancePanel.errors.minimumDeposit") || "Minimum deposit is $5"
+        );
         return;
       }
 
@@ -94,13 +119,18 @@ export function BalancePanel() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify({ amount }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || t("balancePanel.errors.depositFailed"));
+        throw new Error(
+          error.error ||
+            t("balancePanel.errors.depositFailed") ||
+            "Deposit failed"
+        );
       }
 
       const data = await response.json();
@@ -116,7 +146,7 @@ export function BalancePanel() {
       toast.error(
         error instanceof Error
           ? error.message
-          : t("balancePanel.errors.depositFailed")
+          : t("balancePanel.errors.depositFailed") || "Deposit failed"
       );
     } finally {
       setIsProcessing(false);
@@ -142,6 +172,19 @@ export function BalancePanel() {
     100
   );
 
+  if (authLoading) {
+    return <div>{t("balancePanel.status.loading") || "Loading..."}</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div>
+        {t("balancePanel.status.pleaseSignIn") ||
+          "Please sign in to view your balance"}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -149,7 +192,7 @@ export function BalancePanel() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("balancePanel.title.currentBalance")}
+              {t("balancePanel.title.currentBalance") || "Current Balance"}
             </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -158,7 +201,8 @@ export function BalancePanel() {
               ${isLoading ? "..." : balance.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("balancePanel.description.operationCost")}
+              {t("balancePanel.description.operationCost") ||
+                "$0.005 per operation"}
             </p>
           </CardContent>
           <CardFooter className="p-4">
@@ -167,7 +211,7 @@ export function BalancePanel() {
               variant="outline"
               className="w-full"
             >
-              {t("balancePanel.button.addFunds")}
+              {t("balancePanel.button.addFunds") || "Add Funds"}
             </Button>
           </CardFooter>
         </Card>
@@ -176,7 +220,7 @@ export function BalancePanel() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("balancePanel.title.freeOperations")}
+              {t("balancePanel.title.freeOperations") || "Free Operations"}
             </CardTitle>
             <DownloadCloud className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -202,7 +246,8 @@ export function BalancePanel() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t("balancePanel.title.operationsCoverage")}
+              {t("balancePanel.title.operationsCoverage") ||
+                "Operations Coverage"}
             </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -211,7 +256,8 @@ export function BalancePanel() {
               {isLoading ? "..." : Math.floor(balance / 0.005)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("balancePanel.description.operationsWithBalance")}
+              {t("balancePanel.description.operationsWithBalance") ||
+                "Operations with current balance"}
             </p>
           </CardContent>
           <CardFooter className="p-4">
@@ -220,7 +266,7 @@ export function BalancePanel() {
               variant="outline"
               className="w-full"
             >
-              {t("balancePanel.button.addFunds")}
+              {t("balancePanel.button.addFunds") || "Add Funds"}
             </Button>
           </CardFooter>
         </Card>
@@ -229,10 +275,10 @@ export function BalancePanel() {
       <Tabs defaultValue="transactions">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="transactions">
-            {t("balancePanel.tabs.transactions")}
+            {t("balancePanel.tabs.transactions") || "Transactions"}
           </TabsTrigger>
           <TabsTrigger value="deposit" id="deposit-tab">
-            {t("balancePanel.tabs.deposit")}
+            {t("balancePanel.tabs.deposit") || "Deposit"}
           </TabsTrigger>
         </TabsList>
 
@@ -240,35 +286,43 @@ export function BalancePanel() {
           <Card>
             <CardHeader>
               <CardTitle>
-                {t("balancePanel.title.transactionHistory")}
+                {t("balancePanel.title.transactionHistory") ||
+                  "Transaction History"}
               </CardTitle>
               <CardDescription>
-                {t("balancePanel.description.transactionDescription")}
+                {t("balancePanel.description.transactionDescription") ||
+                  "Your recent account transactions"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="text-center py-4">
-                  {t("balancePanel.status.loading")}
+                  {t("balancePanel.status.loading") || "Loading..."}
                 </div>
               ) : transactions.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground">
-                  {t("balancePanel.status.noTransactions")}
+                  {t("balancePanel.status.noTransactions") ||
+                    "No transactions found"}
                 </div>
               ) : (
                 <Table>
                   <TableCaption>
-                    {t("balancePanel.table.recentTransactions")}
+                    {t("balancePanel.table.recentTransactions") ||
+                      "Recent transactions"}
                   </TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("balancePanel.table.date")}</TableHead>
                       <TableHead>
-                        {t("balancePanel.table.description")}
+                        {t("balancePanel.table.date") || "Date"}
                       </TableHead>
-                      <TableHead>{t("balancePanel.table.amount")}</TableHead>
+                      <TableHead>
+                        {t("balancePanel.table.description") || "Description"}
+                      </TableHead>
+                      <TableHead>
+                        {t("balancePanel.table.amount") || "Amount"}
+                      </TableHead>
                       <TableHead className="text-right">
-                        {t("balancePanel.table.balance")}
+                        {t("balancePanel.table.balance") || "Balance"}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -288,9 +342,13 @@ export function BalancePanel() {
                           >
                             {tx.description}
                             {tx.status === "pending" &&
-                              t("balancePanel.table.pending")}
+                              ` ${
+                                t("balancePanel.table.pending") || "(Pending)"
+                              }`}
                             {tx.status === "failed" &&
-                              t("balancePanel.table.failed")}
+                              ` ${
+                                t("balancePanel.table.failed") || "(Failed)"
+                              }`}
                           </span>
                         </TableCell>
                         <TableCell
@@ -316,16 +374,19 @@ export function BalancePanel() {
         <TabsContent value="deposit">
           <Card>
             <CardHeader>
-              <CardTitle>{t("balancePanel.title.depositFunds")}</CardTitle>
+              <CardTitle>
+                {t("balancePanel.title.depositFunds") || "Deposit Funds"}
+              </CardTitle>
               <CardDescription>
-                {t("balancePanel.description.depositDescription")}
+                {t("balancePanel.description.depositDescription") ||
+                  "Add funds to your account"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="amount">
-                    {t("balancePanel.form.depositAmount")}
+                    {t("balancePanel.form.depositAmount") || "Deposit Amount"}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -336,7 +397,9 @@ export function BalancePanel() {
                       step="5"
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
-                      placeholder={t("balancePanel.form.enterAmount")}
+                      placeholder={
+                        t("balancePanel.form.enterAmount") || "Enter amount"
+                      }
                       disabled={isProcessing}
                     />
                   </div>
@@ -368,7 +431,8 @@ export function BalancePanel() {
                     )}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {t("balancePanel.description.operationCostInfo")}
+                    {t("balancePanel.description.operationCostInfo") ||
+                      "$0.005 per operation"}
                   </p>
                 </div>
               </div>
@@ -377,14 +441,14 @@ export function BalancePanel() {
               <Button
                 className="w-full"
                 onClick={handleDeposit}
-                disabled={isProcessing}
+                disabled={isProcessing || !isAuthenticated}
               >
                 {isProcessing ? (
-                  <>{t("balancePanel.button.processing")}</>
+                  <>{t("balancePanel.button.processing") || "Processing..."}</>
                 ) : (
                   <>
                     <Upload className="mr-2 h-4 w-4" />
-                    {t("balancePanel.button.deposit")}
+                    {t("balancePanel.button.deposit") || "Deposit"}
                   </>
                 )}
               </Button>

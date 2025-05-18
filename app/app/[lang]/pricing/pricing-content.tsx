@@ -1,9 +1,7 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,11 +25,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/src/context/auth-context";
 
 export function PricingContent() {
   const { t } = useLanguageStore();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { isAuthenticated, isLoading } = useAuth();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [operationsEstimate, setOperationsEstimate] = useState(2000);
   const [depositAmount, setDepositAmount] = useState(10);
@@ -53,7 +52,9 @@ export function PricingContent() {
 
   // Handle get started action
   const handleGetStarted = () => {
-    if (!session) {
+    if (isLoading) return; // Prevent action during loading
+
+    if (!isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
@@ -156,8 +157,16 @@ export function PricingContent() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={handleGetStarted}>
-              {session ? "Add Funds to Account" : "Get Started"}
+            <Button
+              className="w-full"
+              onClick={handleGetStarted}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? "Loading..."
+                : isAuthenticated
+                ? "Add Funds to Account"
+                : "Get Started"}
             </Button>
           </CardFooter>
         </Card>
@@ -171,8 +180,12 @@ export function PricingContent() {
           Create an account and get 500 free operations every month.
         </p>
         <div className="mt-6 flex justify-center gap-4">
-          <Button size="lg" onClick={handleGetStarted}>
-            {session ? "Go to Dashboard" : "Create Account"}
+          <Button size="lg" onClick={handleGetStarted} disabled={isLoading}>
+            {isLoading
+              ? "Loading..."
+              : isAuthenticated
+              ? "Go to Dashboard"
+              : "Create Account"}
           </Button>
           <LanguageLink href="/pdf-tools">
             <Button variant="outline" size="lg">

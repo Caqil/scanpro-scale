@@ -1,22 +1,20 @@
+// src/context/auth-context.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
-import React, {
+import {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
-interface AuthState {
+type AuthContextType = {
   isAuthenticated: boolean;
+  isLoading: boolean;
   user: any | null;
-  token: string | null;
-  loading: boolean;
-}
-
-interface AuthContextType extends AuthState {
   login: (
     email: string,
     password: string
@@ -27,86 +25,79 @@ interface AuthContextType extends AuthState {
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  refreshAuth: () => Promise<void>;
-}
-
-const initialState: AuthState = {
-  isAuthenticated: false,
-  user: null,
-  token: null,
-  loading: true,
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>(initialState);
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<any | null>(null);
 
-  // Initialize auth state from storage on mount
+  // Check auth status on mount
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // Check if we have a token in storage
-        const token =
-          localStorage.getItem("authToken") ||
-          sessionStorage.getItem("authToken");
-
-        if (!token) {
-          setState({ ...initialState, loading: false });
-          return;
-        }
-
-        // Validate token with the API
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/validate-token`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          // Token is invalid, clear it
-          localStorage.removeItem("authToken");
-          sessionStorage.removeItem("authToken");
-          setState({ ...initialState, loading: false });
-          return;
-        }
-
-        // Token is valid, fetch user profile
-        const userResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!userResponse.ok) {
-          setState({ ...initialState, loading: false });
-          return;
-        }
-
-        const userData = await userResponse.json();
-
-        setState({
-          isAuthenticated: true,
-          user: userData,
-          token,
-          loading: false,
-        });
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        setState({ ...initialState, loading: false });
-      }
-    };
-
-    initializeAuth();
+    checkAuthStatus();
   }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      setIsLoading(true);
+      const authToken = Cookies.get("authToken");
+
+      if (!authToken) {
+        setIsAuthenticated(false);
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate token with API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/validate-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        setIsAuthenticated(false);
+        setUser(null);
+        Cookies.remove("authToken");
+        localStorage.removeItem("userIsAuthenticated");
+        localStorage.removeItem("auth");
+        return;
+      }
+
+      // Get user profile
+      const profileResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (profileResponse.ok) {
+        const userData = await profileResponse.json();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Auth check error:", error);
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -114,49 +105,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/login`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         }
       );
 
       const data = await response.json();
-      console.log("Setting token:", data.token);
-      document.cookie = `authToken=${data.token}; path=/; max-age=604800; SameSite=Lax`;
-      console.log("Cookies after login:", document.cookie);
-      if (!response.ok) {
+
+      if (!response.ok || !data.success) {
         return {
           success: false,
           error: data.error || "Invalid email or password",
         };
       }
 
-      // Get user profile
-      const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${data.token}`,
-          },
-        }
-      );
-      // Save token to storage (localStorage for "remember me", sessionStorage otherwise)
-      const rememberMe = localStorage.getItem("rememberMe") === "true";
-      const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("authToken", data.token);
-      const userData = await userResponse.json();
-
-      setState({
-        isAuthenticated: true,
-        user: userData,
-        token: data.token,
-        loading: false,
+      // Store authentication token in cookie
+      Cookies.set("authToken", data.token, {
+        expires: 7, // 7 days
+        path: "/",
       });
+
+      // Set local storage flags
+      localStorage.setItem("userIsAuthenticated", "true");
+      localStorage.setItem("auth", JSON.stringify({ userId: data.user.id }));
+
+      // Update auth state
+      setIsAuthenticated(true);
+      setUser(data.user);
 
       return { success: true };
     } catch (error) {
-      console.error("Login error:", error);
       return {
         success: false,
         error:
@@ -173,37 +151,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/register`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),
         }
       );
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         return {
           success: false,
           error: data.error || "Registration failed",
         };
       }
 
-      // If registration auto-logs in with a token
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
+      // Store authentication token in cookie
+      Cookies.set("authToken", data.token, {
+        expires: 7, // 7 days
+        path: "/",
+      });
 
-        setState({
-          isAuthenticated: true,
-          user: data.user,
-          token: data.token,
-          loading: false,
-        });
-      }
+      // Set localStorage flags
+      localStorage.setItem("userIsAuthenticated", "true");
+      localStorage.setItem("auth", JSON.stringify({ userId: data.user.id }));
+
+      // Update auth state
+      setIsAuthenticated(true);
+      setUser(data.user);
 
       return { success: true };
     } catch (error) {
-      console.error("Registration error:", error);
       return {
         success: false,
         error:
@@ -215,73 +192,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Clear token from storage
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
+    // Remove auth token and flags
+    Cookies.remove("authToken");
+    localStorage.removeItem("userIsAuthenticated");
+    localStorage.removeItem("auth");
 
-    // Reset auth state
-    setState({
-      isAuthenticated: false,
-      user: null,
-      token: null,
-      loading: false,
-    });
+    // Update auth state
+    setIsAuthenticated(false);
+    setUser(null);
 
-    // Redirect to login page
+    // Redirect to home page
     router.push("/en/login");
   };
 
-  const refreshAuth = async () => {
-    // Similar to initializeAuth but can be called manually to refresh user data
-    try {
-      const token =
-        localStorage.getItem("authToken") ||
-        sessionStorage.getItem("authToken");
-
-      if (!token) {
-        setState({ ...initialState, loading: false });
-        return;
-      }
-
-      const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!userResponse.ok) {
-        // If profile fetch fails, token might be invalid
-        localStorage.removeItem("authToken");
-        sessionStorage.removeItem("authToken");
-        setState({ ...initialState, loading: false });
-        return;
-      }
-
-      const userData = await userResponse.json();
-
-      setState({
-        isAuthenticated: true,
-        user: userData,
-        token,
-        loading: false,
-      });
-    } catch (error) {
-      console.error("Error refreshing auth:", error);
-      setState({ ...initialState, loading: false });
-    }
+  const refreshUser = async () => {
+    await checkAuthStatus();
   };
 
   return (
     <AuthContext.Provider
       value={{
-        ...state,
+        isAuthenticated,
+        isLoading,
+        user,
         login,
         register,
         logout,
-        refreshAuth,
+        refreshUser,
       }}
     >
       {children}
