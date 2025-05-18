@@ -41,20 +41,24 @@ export function BalancePanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Get API URL from environment variable
+  const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
   // Fetch balance information
   const fetchBalance = async () => {
-    if (!isAuthenticated || !user?.token) {
+    if (!isAuthenticated) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8080/api/user/balance", {
+      // Use API URL from environment variables
+      const response = await fetch(`${apiUrl}/api/user/balance`, {
         method: "GET",
+        credentials: "include", // Include cookies for auth
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${user.token}`,
         },
       });
 
@@ -89,7 +93,7 @@ export function BalancePanel() {
 
   // Handle deposit
   const handleDeposit = async () => {
-    if (!isAuthenticated || !user?.token) {
+    if (!isAuthenticated) {
       toast.error(
         t("balancePanel.errors.notAuthenticated") ||
           "Please sign in to deposit funds"
@@ -115,12 +119,12 @@ export function BalancePanel() {
         return;
       }
 
-      const response = await fetch("/api/user/deposit", {
+      const response = await fetch(`${apiUrl}/api/user/deposit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
         },
+        credentials: "include", // Include cookies for auth
         body: JSON.stringify({ amount }),
       });
 

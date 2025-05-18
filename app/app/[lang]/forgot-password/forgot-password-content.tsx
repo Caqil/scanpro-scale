@@ -1,30 +1,26 @@
-// app/[lang]/login/login-content.tsx
+// app/[lang]/forgot-password/forgot-password-content.tsx
 "use client";
 
-import { Suspense } from "react";
-import { useRouter } from "next/navigation";
-import { LanguageLink } from "@/components/language-link";
-import { LoginFormWithParams } from "@/components/auth/login-form-with-params";
-import { useLanguageStore } from "@/src/store/store";
-import { useAuth } from "@/src/context/auth-context";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { EnhancedForgotPasswordForm } from "@/components/auth/forgot-password-form";
+import { useAuth } from "@/src/context/auth-context";
 
-export default function LoginContent() {
-  const { t } = useLanguageStore();
-  const router = useRouter();
+export default function ForgotPasswordContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    // If already authenticated, redirect to dashboard
+    // Redirect if already authenticated
     if (!isLoading && isAuthenticated) {
-      router.push("/en/dashboard");
+      router.push(`/en/dashboard`);
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // If loading, show a loading state
+  // Show loading state while checking auth
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen flex justify-center items-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
@@ -41,38 +37,28 @@ export default function LoginContent() {
         <div className="w-full max-w-md space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-center">
-              {t("login.title")}
+              Forgot your password?
             </h2>
             <p className="text-muted-foreground text-center mt-2">
-              {t("login.description")}
+              Enter your email to receive password reset instructions
             </p>
           </div>
 
-          <Suspense fallback={<div>{t("login.loading")}</div>}>
-            <LoginFormWithParams />
-          </Suspense>
+          <EnhancedForgotPasswordForm />
 
           <p className="text-center text-sm text-muted-foreground">
-            {t("login.agreement")}{" "}
-            <LanguageLink
-              href="/terms"
-              className="underline underline-offset-4 hover:text-primary"
+            Remember your password?{" "}
+            <a
+              href="/en/login"
+              className="text-primary font-medium hover:underline"
             >
-              {t("login.terms")}
-            </LanguageLink>{" "}
-            {t("login.and")}{" "}
-            <LanguageLink
-              href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              {t("login.privacy")}
-            </LanguageLink>
-            .
+              Back to login
+            </a>
           </p>
         </div>
 
         <div className="md:hidden text-center mt-10 text-sm text-muted-foreground">
-          {t("login.copyright")}
+          © 2025 MegaPDF. All rights reserved.
         </div>
       </div>
     </div>

@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-       // credentials: "include", // Important: include cookies in the response
+        //credentials: "include", // Important: include cookies in the response
       });
 
       const data = await response.json();
