@@ -19,6 +19,9 @@ export default function DashboardPage() {
     if (!isLoading && !isAuthenticated) {
       console.log("Not authenticated, redirecting to login");
       router.push("/en/login?callbackUrl=/en/dashboard");
+    } else if (isAuthenticated && user) {
+      // Once authenticated and we have a user, fetch the usage stats
+      fetchUsageStats();
     }
   }, [isAuthenticated, isLoading, user, router]);
 
@@ -34,12 +37,18 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Usage stats response:", data);
+
         if (data.success) {
           setUsageStats({
             totalOperations: data.totalOperations || 0,
             operationCounts: data.operationCounts || {},
           });
+        } else {
+          console.error("Error in usage stats response:", data);
         }
+      } else {
+        console.error("Error fetching usage stats:", response.status);
       }
     } catch (error) {
       console.error("Error fetching usage stats:", error);
@@ -49,7 +58,7 @@ export default function DashboardPage() {
   };
 
   // Show loading indicator while checking auth
-  if (isLoading || loadingStats) {
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="container max-w-6xl py-8 flex justify-center items-center h-[60vh]">
         <div className="flex flex-col items-center gap-2">
@@ -60,17 +69,15 @@ export default function DashboardPage() {
     );
   }
 
-  // If not authenticated after loading completes, this will redirect
-
   // If we have a user, render the dashboard
-  if (user) {
-    return (
-      <div className="container max-w-6xl py-8">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <DashboardContent user={user} usageStats={usageStats} />
-      </div>
-    );
-  }
-
-  return null; // This should not render as we redirect if !isAuthenticated
+  return (
+    <div className="container max-w-6xl py-8">
+      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      <DashboardContent
+        user={user}
+        usageStats={usageStats}
+        loadingStats={loadingStats}
+      />
+    </div>
+  );
 }

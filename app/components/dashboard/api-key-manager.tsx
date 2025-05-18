@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { API_OPERATIONS } from "@/lib/validate-key";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useLanguageStore } from "@/src/store/store";
+import { Loader2 } from "lucide-react";
 
 interface ApiKey {
   id: string;
@@ -69,6 +69,7 @@ export function ApiKeyManager() {
     totalOperations: number;
     operationCounts: Record<string, number>;
   } | null>(null);
+  const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
   // Group operations into categories for better UI organization
   const operationCategories = {
@@ -113,16 +114,23 @@ export function ApiKeyManager() {
   // Load API keys on component mount
   useEffect(() => {
     loadApiKeys();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load API keys from the API
   const loadApiKeys = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/keys");
-      if (!response.ok) throw new Error("Failed to load API keys");
+      const response = await fetch(`${apiUrl}/api/keys`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load API keys");
+      }
+
       const data = await response.json();
+      console.log("API Keys loaded:", data);
+
       setApiKeys(data.keys || []);
 
       // Also load usage statistics if we have keys
@@ -140,7 +148,10 @@ export function ApiKeyManager() {
   // Load usage statistics
   const loadUsageStats = async () => {
     try {
-      const response = await fetch("/api/track-usage");
+      const response = await fetch(`${apiUrl}/api/track-usage`, {
+        credentials: "include",
+      });
+
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -159,20 +170,18 @@ export function ApiKeyManager() {
       return;
     }
 
-    if (selectedPermissions.length === 0) {
-      toast.error("Please select at least one permission");
-      return;
-    }
-
     setCreatingKey(true);
     try {
-      const response = await fetch("/api/keys", {
+      // For Go API, we'll just use the name as it may not support the permissions array
+      const payload = {
+        name: newKeyName,
+      };
+
+      const response = await fetch(`${apiUrl}/api/keys`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newKeyName,
-          permissions: selectedPermissions,
-        }),
+        body: JSON.stringify(payload),
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -210,8 +219,9 @@ export function ApiKeyManager() {
     }
 
     try {
-      const response = await fetch(`/api/keys/${keyId}`, {
+      const response = await fetch(`${apiUrl}/api/keys/${keyId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Failed to revoke API key");
@@ -306,100 +316,6 @@ export function ApiKeyManager() {
                   </div>
 
                   <Separator className="my-4" />
-
-                  <div className="space-y-2">
-                    <Label>{t("dashboard.permissions") || "Permissions"}</Label>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Select the operations this API key will be allowed to
-                      perform.
-                    </p>
-
-                    {/* Permissions by category */}
-                    {Object.entries(operationCategories).map(
-                      ([category, operations]) => (
-                        <div
-                          key={category}
-                          className="border rounded-md p-4 space-y-3 mb-3"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`category-${category}`}
-                              checked={isCategorySelected(operations)}
-                              onCheckedChange={(checked) =>
-                                toggleCategory(operations, !!checked)
-                              }
-                            />
-                            <Label
-                              htmlFor={`category-${category}`}
-                              className="font-medium"
-                            >
-                              {category}
-                            </Label>
-                          </div>
-
-                          <div className="ml-6 grid grid-cols-2 gap-2">
-                            {operations.map((permission) => (
-                              <div
-                                key={permission}
-                                className="flex items-center space-x-2"
-                              >
-                                <Checkbox
-                                  id={`permission-${permission}`}
-                                  checked={selectedPermissions.includes(
-                                    permission
-                                  )}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setSelectedPermissions([
-                                        ...selectedPermissions,
-                                        permission,
-                                      ]);
-                                    } else {
-                                      setSelectedPermissions(
-                                        selectedPermissions.filter(
-                                          (p) => p !== permission
-                                        )
-                                      );
-                                    }
-                                  }}
-                                />
-                                <Label
-                                  htmlFor={`permission-${permission}`}
-                                  className="capitalize"
-                                >
-                                  {permission}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    )}
-
-                    {/* Allow all permissions option */}
-                    <div className="border rounded-md p-4 space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="permission-all"
-                          checked={selectedPermissions.includes("*")}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedPermissions(["*"]);
-                            } else {
-                              setSelectedPermissions([]);
-                            }
-                          }}
-                        />
-                        <Label htmlFor="permission-all" className="font-medium">
-                          Grant All Permissions
-                        </Label>
-                      </div>
-                      <p className="text-sm text-muted-foreground ml-6">
-                        This will allow the API key to perform all operations,
-                        including any added in the future.
-                      </p>
-                    </div>
-                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -409,9 +325,14 @@ export function ApiKeyManager() {
                     Cancel
                   </Button>
                   <Button onClick={createApiKey} disabled={creatingKey}>
-                    {creatingKey
-                      ? "Creating..."
-                      : t("dashboard.generateKey") || "Generate Key"}
+                    {creatingKey ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      t("dashboard.generateKey") || "Generate Key"
+                    )}
                   </Button>
                 </DialogFooter>
               </>
@@ -471,24 +392,6 @@ export function ApiKeyManager() {
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>{t("dashboard.permissions") || "Permissions"}</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {newKey.permissions.includes("*") ? (
-                        <Badge variant="outline">All Permissions</Badge>
-                      ) : (
-                        newKey.permissions.map((permission) => (
-                          <Badge
-                            key={permission}
-                            variant="outline"
-                            className="capitalize"
-                          >
-                            {permission}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -506,8 +409,69 @@ export function ApiKeyManager() {
         </Dialog>
       </div>
 
+      {/* API Keys List */}
+      <Card>
+        <CardContent className="pt-6">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : apiKeys.length === 0 ? (
+            <div className="text-center py-8">
+              <Key className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                {t("dashboard.noApiKeys") || "No API Keys"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {t("dashboard.noApiKeysDesc") ||
+                  "You haven't created any API keys yet."}
+              </p>
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />{" "}
+                {t("dashboard.createFirstApiKey") || "Create API Key"}
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("dashboard.keyName") || "Name"}</TableHead>
+                  <TableHead>API Key</TableHead>
+                  <TableHead>
+                    {t("dashboard.lastUsed") || "Last Used"}
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apiKeys.map((apiKey) => (
+                  <TableRow key={apiKey.id}>
+                    <TableCell className="font-medium">{apiKey.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono text-sm">{apiKey.key}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDate(apiKey.lastUsed)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => revokeApiKey(apiKey.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Usage Stats Card */}
-      {usageStats && (
+      {usageStats && usageStats.totalOperations > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>
@@ -561,102 +525,6 @@ export function ApiKeyManager() {
           </CardContent>
         </Card>
       )}
-
-      {/* API Keys List */}
-      <Card>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : apiKeys.length === 0 ? (
-            <div className="text-center py-8">
-              <Key className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                {t("dashboard.noApiKeys") || "No API Keys"}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {t("dashboard.noApiKeysDesc") ||
-                  "You haven't created any API keys yet."}
-              </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />{" "}
-                {t("dashboard.createFirstApiKey") || "Create API Key"}
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("dashboard.keyName") || "Name"}</TableHead>
-                  <TableHead>API Key</TableHead>
-                  <TableHead>
-                    {t("dashboard.permissions") || "Permissions"}
-                  </TableHead>
-                  <TableHead>
-                    {t("dashboard.lastUsed") || "Last Used"}
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {apiKeys.map((apiKey) => (
-                  <TableRow key={apiKey.id}>
-                    <TableCell className="font-medium">{apiKey.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono text-sm">{apiKey.key}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {apiKey.permissions.includes("*") ? (
-                          <Badge>All</Badge>
-                        ) : apiKey.permissions.length > 3 ? (
-                          <>
-                            {apiKey.permissions.slice(0, 2).map((perm) => (
-                              <Badge
-                                key={perm}
-                                variant="outline"
-                                className="capitalize"
-                              >
-                                {perm}
-                              </Badge>
-                            ))}
-                            <Badge variant="outline">
-                              +{apiKey.permissions.length - 2} more
-                            </Badge>
-                          </>
-                        ) : (
-                          apiKey.permissions.map((perm) => (
-                            <Badge
-                              key={perm}
-                              variant="outline"
-                              className="capitalize"
-                            >
-                              {perm}
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(apiKey.lastUsed)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => revokeApiKey(apiKey.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

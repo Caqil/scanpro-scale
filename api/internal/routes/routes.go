@@ -62,6 +62,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
 	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
+	trackUsageHandler := handlers.NewTrackUsageHandler()
 	// Set email service on auth handler
 	authHandler.SetEmailService(emailService)
 	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
@@ -124,7 +125,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		})
 		fmt.Println("Registering route: /api/file")
 		api.GET("/file", fileHandler.ServeFile)
-
+		fmt.Println("Registering route: /api/track-usage")
+		api.GET("/track-usage", middleware.AuthMiddleware(cfg.JWTSecret), trackUsageHandler.GetUsageStats)
+		api.POST("/track-usage", middleware.AuthMiddleware(cfg.JWTSecret), trackUsageHandler.TrackOperation)
 		// Auth routes
 		auth := api.Group("/auth")
 		{

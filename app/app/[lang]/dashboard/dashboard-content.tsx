@@ -1,4 +1,3 @@
-// app/[lang]/dashboard/dashboard-content.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import {
 import { BalancePanel } from "@/components/balance-panel";
 import { useLanguageStore } from "@/src/store/store";
 import { useAuth } from "@/src/context/auth-context";
+import { Loader2 } from "lucide-react";
 
 interface DashboardContentProps {
   user: any;
@@ -22,9 +22,14 @@ interface DashboardContentProps {
     totalOperations: number;
     operationCounts: Record<string, number>;
   };
+  loadingStats: boolean;
 }
 
-export function DashboardContent({ user, usageStats }: DashboardContentProps) {
+export function DashboardContent({
+  user,
+  usageStats,
+  loadingStats,
+}: DashboardContentProps) {
   const [showVerifiedAlert, setShowVerifiedAlert] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -83,7 +88,18 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <UsageStats user={user} usageStats={usageStats} />
+          {loadingStats ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">
+                  Loading usage statistics...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <UsageStats user={user} usageStats={usageStats} />
+          )}
         </TabsContent>
 
         <TabsContent value="api-keys" className="space-y-6">

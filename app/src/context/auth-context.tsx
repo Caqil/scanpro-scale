@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -10,6 +11,7 @@ interface User {
   isEmailVerified: boolean;
   balance?: number;
   freeOperationsUsed?: number;
+  freeOperationsRemaining?: number;
   freeOperationsReset?: string;
 }
 
@@ -45,35 +47,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
+        console.log("Checking auth status...");
 
         const response = await fetch(`${apiUrl}/api/validate-token`, {
           credentials: "include", // Send HTTP-only cookie
+          headers: {
+            "Cache-Control": "no-cache", // Prevent caching issues
+          },
         });
 
         if (!response.ok) {
+          console.log("Auth check failed:", response.status);
           setIsAuthenticated(false);
           setUser(null);
           return;
         }
 
         const data = await response.json();
+        console.log("Auth check response:", data);
 
         if (data.valid) {
           setUser({
             id: data.userId,
             role: data.role,
-            name: null, // Will be populated by refreshUserData if needed
+            name: null, // Will be populated by refreshUserData
             email: null,
             isEmailVerified: false,
           });
           setIsAuthenticated(true);
-          await refreshUserData(); // Fetch full profile asynchronously
+
+          // Fetch full profile asynchronously
+          try {
+            await refreshUserData();
+          } catch (profileError) {
+            console.error("Failed to load complete profile:", profileError);
+            // Don't log out - keep basic auth info
+          }
         } else {
+          console.log("Auth token invalid");
           setIsAuthenticated(false);
           setUser(null);
         }
       } catch (error) {
-        console.error("checkAuth - Error:", error);
+        console.error("Auth check error:", error);
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -87,19 +103,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Refresh user data (fetch full profile)
   const refreshUserData = async () => {
     try {
+      console.log("Refreshing user data...");
       const response = await fetch(`${apiUrl}/api/user/profile`, {
         credentials: "include",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
       });
 
       if (!response.ok) {
+        console.error("Failed to fetch user profile:", response.status);
         throw new Error("Failed to fetch user profile");
       }
 
-      const userData: User = await response.json();
-      setUser(userData);
+      const userData = await response.json();
+      console.log("User profile loaded:", userData);
+
+      // Update user state with full profile data
+      setUser({
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        isEmailVerified: userData.isEmailVerified,
+        balance: userData.balance,
+        freeOperationsUsed: userData.freeOperationsUsed,
+        freeOperationsRemaining: userData.freeOperationsRemaining,
+        freeOperationsReset: userData.freeOperationsReset,
+      });
+
+      return userData;
     } catch (error) {
       console.error("refreshUserData - Error:", error);
       // Don't clear auth state; token may still be valid
+      throw error;
     }
   };
 
@@ -121,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
 
       if (data.success) {
+        // Set user with data from login response
         setUser({
           id: data.user.id,
           name: data.user.name,
@@ -130,9 +168,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setIsAuthenticated(true);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const callbackUrl = urlParams.get("callbackUrl") || "/en/dashboard";
-        router.push(callbackUrl);
+        // Try to fetch full profile data to get additional fields
+        try {
+          await refreshUserData();
+        } catch (profileError) {
+          console.error(
+            "Failed to load complete profile after login:",
+            profileError
+          );
+          // Continue with basic user data
+        }
 
         return { success: true };
       }
@@ -164,16 +209,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.success) {
-        // Optionally auto-login after registration
+        // Set user with data from register response
         setUser({
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
-          role: "user", // Default role, adjust as needed
+          role: "user", // Default role
           isEmailVerified: data.user.isEmailVerified,
         });
         setIsAuthenticated(true);
-        router.push("/en/dashboard");
+
         return { success: true };
       }
 
@@ -190,16 +235,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Logout function
   const logout = async () => {
     try {
-      await fetch(`${apiUrl}/api/auth/logout`, {
+      const response = await fetch(`${apiUrl}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
+
+      if (response.ok) {
+        toast.success("Logged out successfully");
+      }
     } catch (error) {
       console.error("logout - Error:", error);
     } finally {
+      // Always clear local state even if API call fails
       setIsAuthenticated(false);
       setUser(null);
-      router.push("/login");
+      router.push("/en/login");
     }
   };
 

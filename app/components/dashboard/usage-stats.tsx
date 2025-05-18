@@ -56,13 +56,20 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
 
   // Format operation name for display
   const formatOperation = (op: string): string => {
+    if (!op || op === "None") return op;
+
+    // Special case for operations that might be abbreviations
+    if (op.toLowerCase() === "ocr") return "OCR";
+    if (op.toLowerCase() === "pdf") return "PDF";
+
+    // Default formatting: capitalize first letter
     return op.charAt(0).toUpperCase() + op.slice(1);
   };
 
   // Format percentage
   const formatPercentage = (value: number, total: number): string => {
     if (total === 0) return "0%";
-    return `${Math.round((value / total) * 100)}%`;
+    return `${Math.round((value / total) * 100)}% of total usage`;
   };
 
   // Format date for display
@@ -106,19 +113,28 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
       !usageStats?.operationCounts ||
       Object.keys(usageStats.operationCounts).length === 0
     ) {
-      return { operation: t("dashboard.none"), count: 0 };
+      return { operation: t("dashboard.none") || "None", count: 0 };
     }
 
     try {
       const entries = Object.entries(usageStats.operationCounts);
       if (entries.length === 0)
-        return { operation: t("dashboard.none"), count: 0 };
+        return { operation: t("dashboard.none") || "None", count: 0 };
 
-      const [operation, count] = entries.sort((a, b) => b[1] - a[1])[0];
+      // Filter out any entries where the operation name is "pdf" (case insensitive)
+      const validEntries = entries.filter(
+        ([op, _]) => op.toLowerCase() !== "pdf"
+      );
+
+      if (validEntries.length === 0)
+        return { operation: t("dashboard.none") || "None", count: 0 };
+
+      // Sort operations by count in descending order and get the top one
+      const [operation, count] = validEntries.sort((a, b) => b[1] - a[1])[0];
       return { operation, count: count as number };
     } catch (error) {
       console.error("Error getting most used operation:", error);
-      return { operation: t("dashboard.none"), count: 0 };
+      return { operation: t("dashboard.none") || "None", count: 0 };
     }
   };
 
@@ -152,8 +168,10 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
               {freeOperationsRemaining} / {FREE_OPERATIONS_MONTHLY}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("balancePanel.description.resetsOn").replace("{date}", formatDate(user.freeOperationsReset)) || "Resets on"}{" "}
-              
+              {t("balancePanel.description.resetsOn").replace(
+                "{date}",
+                formatDate(user.freeOperationsReset)
+              ) || `Resets on ${formatDate(user.freeOperationsReset)}`}
             </p>
             <Progress value={freeOpsPercentage} className="mt-2" />
           </CardContent>
@@ -184,11 +202,12 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatOperation(mostUsed.operation)}
+              {mostUsed.operation !== "None"
+                ? formatOperation(mostUsed.operation)
+                : mostUsed.operation}
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatPercentage(mostUsed.count, totalOperations)}{" "}
-              {t("dashboard.percentageOfTotal") || "of total"}
+              {formatPercentage(mostUsed.count, totalOperations)}
             </p>
           </CardContent>
         </Card>
