@@ -1,3 +1,4 @@
+// middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -19,12 +20,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }
     
-    // Optional: Validate token with your Go API
+    // Validate token with Go API
     try {
       const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || '';
       const response = await fetch(`${apiUrl}/api/validate-token`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Cookie': `authToken=${token}`
         }
       });
       

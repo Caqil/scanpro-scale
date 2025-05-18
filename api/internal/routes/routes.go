@@ -4,11 +4,13 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/handlers"
 	"github.com/Caqil/megapdf-api/internal/middleware"
+	"github.com/Caqil/megapdf-api/internal/models"
 	"github.com/Caqil/megapdf-api/internal/services"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -71,7 +73,55 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
+		fmt.Println("Registering route: /api/validate-token")
+		api.GET("/validate-token", func(c *gin.Context) {
+			// Get token from cookie
+			token, err := c.Cookie("authToken")
 
+			// If no cookie, try from Authorization header
+			if err != nil {
+				authHeader := c.GetHeader("Authorization")
+				if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+					token = strings.TrimPrefix(authHeader, "Bearer ")
+				}
+			}
+
+			// No token found
+			if token == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"valid": false,
+					"error": "No token provided",
+				})
+				return
+			}
+
+			// Validate the token
+			userID, err := authService.ValidateToken(token)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"valid": false,
+					"error": "Invalid token",
+				})
+				return
+			}
+
+			// Get user data to include role
+			var user models.User
+			if err := db.First(&user, "id = ?", userID).Error; err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"valid": false,
+					"error": "User not found",
+				})
+				return
+			}
+
+			// Token is valid
+			c.JSON(http.StatusOK, gin.H{
+				"valid":  true,
+				"userId": userID,
+				"role":   user.Role,
+			})
+		})
 		fmt.Println("Registering route: /api/file")
 		api.GET("/file", fileHandler.ServeFile)
 
@@ -94,17 +144,29 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/auth/validate")
 			auth.GET("/validate", authHandler.ValidateResetToken)
 			fmt.Println("Registering route: /api/auth/validate-token")
-			api.GET("/validate-token", middleware.AuthMiddleware(cfg.JWTSecret), func(c *gin.Context) {
-				// If we reached here, token was validated by the middleware
-				c.JSON(http.StatusOK, gin.H{
-					"valid":  true,
-					"userId": c.GetString("userId"),
-				})
-			})
+
 			// Email verification routes
 			fmt.Println("Registering route: /api/auth/verify-email")
 			auth.GET("/verify-email", authHandler.VerifyEmail)
 			auth.POST("/verify-email", middleware.AuthMiddleware(cfg.JWTSecret), authHandler.ResendVerificationEmail)
+			fmt.Println("Registering route: /api/auth/logout")
+			auth.POST("/logout", func(c *gin.Context) {
+				// Clear the auth cookie by setting it to expire immediately
+				c.SetCookie(
+					"authToken", // Cookie name
+					"",          // Empty value
+					-1,          // Max age (-1 = delete now)
+					"/",         // Path
+					"",          // Domain
+					false,       // Secure
+					true,        // HTTP only
+				)
+
+				c.JSON(http.StatusOK, gin.H{
+					"success": true,
+					"message": "Logged out successfully",
+				})
+			})
 		}
 
 		pdf := api.Group("/pdf")

@@ -1,8 +1,7 @@
-// app/components/auth/login-form.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +22,6 @@ interface LoginFormProps {
 export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const { t } = useLanguageStore();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login } = useAuth();
 
   // Form state
@@ -37,11 +35,6 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  // Store remember me preference
-  useEffect(() => {
-    localStorage.setItem("rememberMe", rememberMe.toString());
-  }, [rememberMe]);
 
   // Validate email format
   const validateEmail = (email: string): boolean => {
@@ -83,7 +76,8 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
 
     return isValid;
   };
-  // In LoginForm component
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -98,16 +92,16 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
       const result = await login(email, password);
 
       if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error || "Login failed");
       }
 
       toast.success(t("auth.loginSuccess") || "Signed in successfully");
-      localStorage.setItem("userIsAuthenticated", "true");
-      // Add delay before redirection to ensure cookies are set
+
+      // Add a small delay to ensure the cookie is set
       setTimeout(() => {
-        // Use window.location for most reliable redirection after authentication
-        window.location.href = callbackUrl;
-      }, 500);
+        // Redirect to the callback URL
+        router.push(callbackUrl);
+      }, 300);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Login failed");
     } finally {
@@ -115,9 +109,18 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     }
   };
 
-  const handleOAuthSignIn = async (provider: string) => {
-    // Redirect to Go API OAuth endpoint
-    window.location.href = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/${provider}`;
+  const handleOAuthSignIn = (provider: string) => {
+    // Sanitize provider to prevent XSS
+    const sanitizedProvider = encodeURIComponent(provider);
+    const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
+    // Validate URL
+    if (!apiUrl.match(/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {
+      setError("Invalid OAuth configuration");
+      return;
+    }
+
+    window.location.href = `${apiUrl}/api/auth/${sanitizedProvider}`;
   };
 
   return (

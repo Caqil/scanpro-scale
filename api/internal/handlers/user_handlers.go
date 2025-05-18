@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -33,10 +34,8 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	// Check if free operations should be reset
-	now := time.Now().UTC().Format(time.RFC3339)
-
-	// Get this month's usage
-	firstDayOfMonth := models.GetFirstDayOfMonth(now)
+	now := time.Now().UTC()
+	firstDayOfMonth := models.GetFirstDayOfMonth(now.Format(time.RFC3339))
 
 	var usageStats []models.UsageStats
 	if err := db.DB.Where("user_id = ? AND date >= ?", userID, firstDayOfMonth).Find(&usageStats).Error; err != nil {
@@ -57,8 +56,8 @@ func GetUserProfile(c *gin.Context) {
 
 	// For backward compatibility with frontend, simulate subscription period
 	// Using today as start and end of next month as end
-	currentPeriodStart := now
-	currentPeriodEnd := models.GetLastDayOfMonth(now)
+	currentPeriodStart := now.Format(time.RFC3339)
+	currentPeriodEnd := models.GetLastDayOfMonth(now.Format(time.RFC3339)).Format(time.RFC3339)
 
 	// Check if user has made any deposits
 	var transactions []models.Transaction
@@ -80,11 +79,23 @@ func GetUserProfile(c *gin.Context) {
 	freeOpsReset := user.FreeOperationsReset
 	freeOpsUsed := user.FreeOperationsUsed
 
-	if user.FreeOperationsReset.Before(models.ParseDate(now)) {
+	if user.FreeOperationsReset.Before(now) {
 		// If reset date has passed, user has all free operations available
 		freeOpsRemaining = services.FreeOperationsMonthly
 
-		// Next reset date would be first day of next month (handled in middleware)
+		// Next reset date would be first day of next month
+		nextMonth := now.AddDate(0, 1, 0)
+		freeOpsReset = time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, time.UTC)
+		freeOpsUsed = 0
+
+		// Update the user
+		if err := db.DB.Model(&user).Updates(map[string]interface{}{
+			"free_operations_used":  0,
+			"free_operations_reset": freeOpsReset,
+		}).Error; err != nil {
+			// Log but don't fail the request
+			fmt.Printf("Error updating free operations reset: %v\n", err)
+		}
 	} else {
 		// Otherwise calculate remaining based on used count
 		freeOpsRemaining = services.FreeOperationsMonthly - freeOpsUsed
@@ -95,6 +106,11 @@ func GetUserProfile(c *gin.Context) {
 
 	// Construct the response
 	c.JSON(http.StatusOK, gin.H{
+		"id":                      user.ID,
+		"name":                    user.Name,
+		"email":                   user.Email,
+		"role":                    user.Role,
+		"isEmailVerified":         user.IsEmailVerified,
 		"tier":                    tier,
 		"status":                  "active", // Always active in pay-as-you-go
 		"currentPeriodStart":      currentPeriodStart,
@@ -104,11 +120,7 @@ func GetUserProfile(c *gin.Context) {
 		"balance":                 currentBalance,
 		"freeOperationsUsed":      freeOpsUsed,
 		"freeOperationsRemaining": freeOpsRemaining,
-		"freeOperationsReset":     freeOpsReset,
-		"name":                    user.Name,
-		"email":                   user.Email,
-		"role":                    user.Role,
-		"isEmailVerified":         user.IsEmailVerified,
+		"freeOperationsReset":     freeOpsReset.Format(time.RFC3339),
 	})
 }
 

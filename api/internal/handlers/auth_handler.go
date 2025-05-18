@@ -76,7 +76,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Login user
 	result, err := h.service.Login(req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -88,10 +87,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Set token as HTTP-only cookie
+	c.SetCookie(
+		"authToken",  // Cookie name
+		result.Token, // Cookie value
+		60*60*24*7,   // Max age (7 days in seconds)
+		"/",          // Path
+		"",           // Domain (empty = current domain)
+		false,        // Secure (true in production with HTTPS)
+		true,         // HTTP only
+	)
+
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"token":   result.Token,
+		"token":   result.Token, // Still include token in response
 		"user": gin.H{
 			"id":              result.User.ID,
 			"name":            result.User.Name,

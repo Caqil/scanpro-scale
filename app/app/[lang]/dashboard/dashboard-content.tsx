@@ -1,7 +1,7 @@
 // app/[lang]/dashboard/dashboard-content.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfile } from "@/components/user-profile";
@@ -14,6 +14,7 @@ import {
 } from "@/components/email-verification-alert";
 import { BalancePanel } from "@/components/balance-panel";
 import { useLanguageStore } from "@/src/store/store";
+import { useAuth } from "@/src/context/auth-context";
 
 interface DashboardContentProps {
   user: any;
@@ -30,48 +31,25 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
   const pathname = usePathname();
   const justVerified = searchParams?.get("verified") === "true";
   const { t } = useLanguageStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated } = useAuth();
+
   // Effect to redirect admin users
   useEffect(() => {
-    if (user.role === "admin" && pathname) {
-      // Extract language from pathname (e.g., /en/dashboard -> en)
-      const pathParts = pathname.split("/");
-      const lang = pathParts[1] || "en";
-      router.push(`/admin/dashboard`);
+    if (user?.role === "admin" && pathname) {
+      // Navigate to admin dashboard
+      router.push("/en/admin/dashboard");
     }
-  }, [user.role, router, pathname]);
-  useEffect(() => {
-    // Check if user is authenticated on client side
-    const checkAuth = () => {
-      // Check for auth in localStorage
-      const authData = localStorage.getItem("auth");
-      const userIsAuth = localStorage.getItem("userIsAuthenticated");
+  }, [user?.role, router, pathname]);
 
-      // Check for auth cookie
-      const hasAuthCookie = document.cookie.includes("authToken=");
-
-      if (authData || userIsAuth === "true" || hasAuthCookie) {
-        setIsAuthenticated(true);
-      } else {
-        // Redirect to login if not authenticated
-        router.push("/en/login?callbackUrl=/en/dashboard");
-      }
-
-      setIsLoading(false);
-    };
-
-    checkAuth();
-  }, [router]);
   // Show verified alert if the user just verified their email
   useEffect(() => {
-    if (justVerified && user.isEmailVerified) {
+    if (justVerified && user?.isEmailVerified) {
       setShowVerifiedAlert(true);
     }
-  }, [justVerified, user.isEmailVerified]);
+  }, [justVerified, user?.isEmailVerified]);
 
   // Show loading while redirecting admin
-  if (user.role === "admin") {
+  if (user?.role === "admin") {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -82,7 +60,7 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
   return (
     <div className="space-y-6">
       {/* Show appropriate alert based on verification status */}
-      {!user.isEmailVerified && (
+      {user && !user.isEmailVerified && (
         <EmailVerificationAlert userEmail={user.email} userName={user.name} />
       )}
 
@@ -100,7 +78,6 @@ export function DashboardContent({ user, usageStats }: DashboardContentProps) {
             {t("balancePanel.table.balance") || "Balance"}
           </TabsTrigger>
           <TabsTrigger value="profile">
-            {" "}
             {t("nav.profile") || "Profile"}
           </TabsTrigger>
         </TabsList>

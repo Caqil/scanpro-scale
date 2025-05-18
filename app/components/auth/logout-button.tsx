@@ -1,6 +1,3 @@
-// app/components/auth/logout-button.tsx
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
@@ -17,7 +14,7 @@ export function LogoutButton({
   const handleSignOut = async () => {
     try {
       setIsLoggingOut(true);
-      logout();
+      await logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
