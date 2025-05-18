@@ -66,7 +66,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	authHandler.SetEmailService(emailService)
 	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
 	fileHandler := handlers.NewFileHandler(cfg)
-
+	adminHandler := handlers.NewAdminHandler()
 	// API routes
 	api := r.Group("/api")
 	{
@@ -223,7 +223,21 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/user/password")
 			user.PUT("/password", handlers.ChangeUserPassword)
 		}
-
+		admin := api.Group("/admin")
+		admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		admin.Use(middleware.AdminMiddleware())
+		{
+			admin.GET("/dashboard", adminHandler.GetDashboardStats)
+			admin.GET("/users", adminHandler.GetUsers)
+			admin.GET("/users/:id", adminHandler.GetUser)
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.PATCH("/users/:id", adminHandler.UpdateUser)
+			admin.DELETE("/users/:id", adminHandler.DeleteUser)
+			admin.GET("/api-usage", adminHandler.GetAPIUsage)
+			admin.GET("/transactions", adminHandler.GetTransactions)
+			admin.GET("/activity", adminHandler.GetActivityLogs)
+			admin.POST("/settings", adminHandler.UpdateSettings)
+		}
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		{

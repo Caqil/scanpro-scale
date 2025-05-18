@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { ApiUsageData } from "@/src/types/admin";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 export function ApiUsageContent() {
   const [usageData, setUsageData] = useState<ApiUsageData | null>(null);
@@ -30,7 +31,9 @@ export function ApiUsageContent() {
   const fetchUsageData = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/usage");
+
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(`${apiUrl}/api/admin/api-usage`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch usage data");

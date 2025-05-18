@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Caqil/megapdf-api/internal/db"
 	"github.com/Caqil/megapdf-api/internal/models"
@@ -21,6 +22,58 @@ func NewAuthHandler(service *services.AuthService, jwtSecret string) *AuthHandle
 		service:   service,
 		jwtSecret: jwtSecret,
 	}
+}
+func (h *AuthHandler) ValidateToken(c *gin.Context) {
+	var token string
+
+	// Try to get token from header
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		token = strings.TrimPrefix(authHeader, "Bearer ")
+	}
+
+	// If no token in header, try cookie
+	if token == "" {
+		cookieToken, err := c.Cookie("authToken")
+		if err == nil && cookieToken != "" {
+			token = cookieToken
+		}
+	}
+
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"valid": false,
+			"error": "No token provided",
+		})
+		return
+	}
+
+	// Validate the token
+	userID, err := h.service.ValidateToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"valid": false,
+			"error": "Invalid token",
+		})
+		return
+	}
+
+	// Get user data to include role
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"valid": false,
+			"error": "User not found",
+		})
+		return
+	}
+
+	// Token is valid
+	c.JSON(http.StatusOK, gin.H{
+		"valid":  true,
+		"userId": userID,
+		"role":   user.Role,
+	})
 }
 
 // Register handles user registration
@@ -87,6 +140,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Determine if request is secure
+	secure := c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
+
 	// Set token as HTTP-only cookie
 	c.SetCookie(
 		"authToken",  // Cookie name
@@ -94,14 +150,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		60*60*24*7,   // Max age (7 days in seconds)
 		"/",          // Path
 		"",           // Domain (empty = current domain)
-		false,        // Secure (true in production with HTTPS)
+		secure,       // Secure (based on protocol)
 		true,         // HTTP only
 	)
 
-	// Return success response
+	// Return success response with token for localStorage
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"token":   result.Token, // Still include token in response
+		"token":   result.Token, // Include token for localStorage
 		"user": gin.H{
 			"id":              result.User.ID,
 			"name":            result.User.Name,
@@ -109,6 +165,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			"isEmailVerified": result.User.IsEmailVerified,
 			"role":            result.User.Role,
 		},
+	})
+}
+func (h *AuthHandler) Logout(c *gin.Context) {
+	// Clear the authToken cookie
+	c.SetCookie(
+		"authToken", // Cookie name
+		"",          // Empty value
+		-1,          // Negative maxAge to delete the cookie
+		"/",         // Path
+		"",          // Domain
+		false,       // Secure
+		true,        // HttpOnly
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Logged out successfully",
 	})
 }
 

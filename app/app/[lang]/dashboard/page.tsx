@@ -16,15 +16,9 @@ export default function DashboardPage() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
     if (!isLoading && !isAuthenticated) {
+      console.log("Not authenticated, redirecting to login");
       router.push("/en/login?callbackUrl=/en/dashboard");
-      return;
-    }
-
-    // If authenticated, fetch user data if needed
-    if (isAuthenticated && user) {
-      fetchUsageStats();
     }
   }, [isAuthenticated, isLoading, user, router]);
 

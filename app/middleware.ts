@@ -1,46 +1,40 @@
-// middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Protected routes
   const protectedRoutes = ['/dashboard', '/admin'];
-  const isProtectedRoute = protectedRoutes.some(route => pathname.includes(route));
-  console.log("Middleware running for path:", pathname);
-  
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.includes(route));
+
   if (isProtectedRoute) {
-    // Get your custom auth token from cookie
     const token = request.cookies.get('authToken')?.value || '';
-    console.log("Token found:", !!token);
-    
+    // Transform cookies into [name, value] pairs for Object.fromEntries
+    const cookies = Object.fromEntries(
+      request.cookies.getAll().map((cookie) => [cookie.name, cookie.value])
+    );
+    console.log('Middleware - Token:', token ? 'Found' : 'Not found', 'Cookies:', cookies);
+
     if (!token) {
-      // No token, redirect to login
       const lang = pathname.split('/')[1] || 'en';
       return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }
-    
-    // Validate token with Go API
+
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || '';
-      const response = await fetch(`${apiUrl}/api/validate-token`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_GO_API_URL}/api/validate-token`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Cookie': `authToken=${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
-      
+
+      console.log('Middleware - Token validation status:', response.status);
+
       if (!response.ok) {
-        // Token invalid, redirect to login
+        console.error('Middleware - Token validation failed:', await response.text());
         const lang = pathname.split('/')[1] || 'en';
         return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
       }
-      
-      // For admin routes, check if user has admin role
+
       const isAdminRoute = pathname.includes('/admin');
       if (isAdminRoute) {
-        // Get user data from response
         const data = await response.json();
         if (data.role !== 'admin') {
           const lang = pathname.split('/')[1] || 'en';
@@ -48,8 +42,7 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (error) {
-      // Error validating token, redirect to login
-      console.error("Token validation error:", error);
+      console.error('Middleware - Token validation error:', error);
       const lang = pathname.split('/')[1] || 'en';
       return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }

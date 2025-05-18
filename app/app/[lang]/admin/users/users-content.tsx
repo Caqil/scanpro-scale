@@ -11,6 +11,7 @@ import { Search, UserPlus, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AdminUser } from "@/src/types/admin";
 import { UserDetailModal } from "@/components/admin/users/user-detail-modal";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 export function AdminUsersContent() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -39,12 +40,15 @@ export function AdminUsersContent() {
         ...filters,
       });
 
-      const response = await fetch(`/api/admin/users?${params}`);
-      
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/users?${params}`
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
-      
+
       const data = await response.json();
       setUsers(data.users);
       setTotalPages(data.totalPages);
@@ -66,7 +70,6 @@ export function AdminUsersContent() {
     setFilters(newFilters);
     setPage(1);
   };
-
   const handleUserAction = async (action: string) => {
     if (action === "email" && selectedUser) {
       window.location.href = `mailto:${selectedUser.email}`;
@@ -79,41 +82,71 @@ export function AdminUsersContent() {
         const updates: any = {};
         if (action === "make-admin") updates.role = "admin";
         if (action === "remove-admin") updates.role = "user";
-        if (action === "suspend") updates.suspended = true;
+        if (action === "suspend") updates.role = "suspended";
+        if (action === "unsuspend") updates.role = "user";
+        if (action === "reset-free-operations") updates.freeOperationsUsed = 0;
 
-        const response = await fetch("/api/admin/users", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: selectedUser.id, updates }),
-        });
+        // Use the Go API URL from environment variables
+        const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
-        if (!response.ok) throw new Error("Failed to update user");
+        const response = await fetch(
+          `${apiUrl}/api/admin/users/${selectedUser.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Include cookies for authentication
+            body: JSON.stringify({ updates }),
+          }
+        );
 
-        toast.success("User updated successfully");
+        if (!response.ok)
+          throw new Error(`Failed to update user: ${response.status}`);
+
+        toast.success(
+          `User ${action.replace("-", " ")} completed successfully`
+        );
         fetchUsers();
         setSelectedUser(null);
       } catch (error) {
         console.error("Error updating user:", error);
-        toast.error("Failed to update user");
+        toast.error(`Failed to ${action.replace("-", " ")} user`);
       }
     }
   };
 
   const exportUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users/export");
-      if (!response.ok) throw new Error("Failed to export users");
-      
+      // Use the Go API URL from environment variables
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
+      // Add any filter parameters if needed
+      const params = new URLSearchParams({
+        format: "csv",
+        ...filters, // Include any active filters
+      });
+
+      const response = await fetch(
+        `${apiUrl}/api/admin/users/export?${params}`,
+        {
+          credentials: "include", // Include cookies for authentication
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to export users: ${response.status}`);
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `users-export-${new Date().toISOString().split("T")[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success("Users exported successfully");
     } catch (error) {
       console.error("Error exporting users:", error);
@@ -158,7 +191,11 @@ export function AdminUsersContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => u.subscription && u.subscription.tier !== 'free').length}
+              {
+                users.filter(
+                  (u) => u.subscription && u.subscription.tier !== "free"
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -168,7 +205,7 @@ export function AdminUsersContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => u.role === 'admin').length}
+              {users.filter((u) => u.role === "admin").length}
             </div>
           </CardContent>
         </Card>
@@ -178,12 +215,14 @@ export function AdminUsersContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => {
-                if (!u.lastActive) return false;
-                const lastActive = new Date(u.lastActive);
-                const today = new Date();
-                return lastActive.toDateString() === today.toDateString();
-              }).length}
+              {
+                users.filter((u) => {
+                  if (!u.lastActive) return false;
+                  const lastActive = new Date(u.lastActive);
+                  const today = new Date();
+                  return lastActive.toDateString() === today.toDateString();
+                }).length
+              }
             </div>
           </CardContent>
         </Card>

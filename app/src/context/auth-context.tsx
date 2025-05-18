@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import {
+  fetchWithAuth,
+  getAuthToken,
+  removeAuthToken,
+  setAuthToken,
+} from "../utils/auth";
 
 interface User {
   id: string;
@@ -47,39 +53,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
+        const token = getAuthToken();
 
-        // Check for auth cookie
-        const hasAuthCookie = document.cookie.includes("authToken=");
+        console.log(
+          "checkAuth - Token:",
+          token ? "Found" : "Not found",
+          "Cookies:",
+          document.cookie
+        );
 
-        if (!hasAuthCookie) {
+        if (!token) {
+          console.log("checkAuth - No token, setting unauthenticated");
           setIsAuthenticated(false);
           setUser(null);
           return;
         }
 
-        // Verify token with API
-        const response = await fetch(`${apiUrl}/api/validate-token`, {
-          credentials: "include", // Important: include cookies in the request
-        });
+        const response = await fetchWithAuth(`${apiUrl}/api/validate-token`);
+
+        console.log(
+          "checkAuth - Validate token status:",
+          response.status,
+          "Response:",
+          await response.text()
+        );
 
         if (!response.ok) {
-          throw new Error("Invalid token");
+          console.error(
+            "checkAuth - Token validation failed:",
+            response.status,
+            await response.text()
+          );
+          setIsAuthenticated(false);
+          setUser(null);
+          removeAuthToken();
+          return;
         }
 
         const data = await response.json();
 
         if (data.valid) {
-          setIsAuthenticated(true);
-          // Fetch user data
-          await refreshUserData();
+          console.log("checkAuth - Token valid, fetching profile");
+          const userResponse = await fetchWithAuth(
+            `${apiUrl}/api/user/profile`
+          );
+          console.log(
+            "checkAuth - Profile fetch status:",
+            userResponse.status,
+            "Response:",
+            await userResponse.text()
+          );
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUser(userData);
+            setIsAuthenticated(true); // Move this after successful profile fetch
+          } else {
+            console.error(
+              "checkAuth - Profile fetch failed:",
+              userResponse.status,
+              await userResponse.text()
+            );
+            setIsAuthenticated(false);
+            setUser(null);
+            removeAuthToken();
+          }
         } else {
+          console.log("checkAuth - Token invalid");
           setIsAuthenticated(false);
           setUser(null);
+          removeAuthToken();
         }
       } catch (error) {
+        console.error("checkAuth - Error:", error);
         setIsAuthenticated(false);
         setUser(null);
-        console.error("Auth check failed:", error);
+        removeAuthToken();
       } finally {
         setIsLoading(false);
       }
@@ -105,44 +154,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Don't clear auth state here - the token might still be valid
     }
   };
-
+  // src/context/auth-context.tsx
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        //credentials: "include", // Important: include cookies in the response
+        credentials: "include",
       });
+
+      console.log("login - Status:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("login - Error:", errorData);
+        throw new Error(errorData.error || "Login failed");
+      }
 
       const data = await response.json();
 
-      if (!response.ok) {
-        return { success: false, error: data.error || "Login failed" };
-      }
+      console.log("login - Response data:", data);
 
-      if (data.success) {
-        // The cookie should be set by the server, but we can also store in localStorage as backup
-        localStorage.setItem("userIsAuthenticated", "true");
-        // Store basic user info
-        if (data.user) {
-          localStorage.setItem("userData", JSON.stringify(data.user));
-        }
-
+      if (data.token) {
+        setAuthToken(data.token);
         setIsAuthenticated(true);
         setUser(data.user);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const callbackUrl = urlParams.get("callbackUrl") || "/en/dashboard";
+        router.push(callbackUrl);
+
         return { success: true };
       } else {
-        return { success: false, error: data.error || "Login failed" };
+        throw new Error("No token received");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("login - Error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Login failed",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
+    }
+  };
+
+  // Update logout method
+  const logout = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      await fetchWithAuth(`${apiUrl}/api/auth/logout`, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Always clean up state
+      setIsAuthenticated(false);
+      setUser(null);
+      removeAuthToken();
     }
   };
 
@@ -175,36 +244,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         success: false,
         error: error instanceof Error ? error.message : "Registration failed",
       };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      // Clear localStorage
-      localStorage.removeItem("userIsAuthenticated");
-      localStorage.removeItem("userData");
-
-      // Clear cookie
-      Cookies.remove("authToken");
-
-      // Call logout endpoint (if available)
-      try {
-        await fetch(`${apiUrl}/api/auth/logout`, {
-          method: "POST",
-          credentials: "include",
-        });
-      } catch (error) {
-        console.error("Logout API call failed:", error);
-      }
-
-      // Update state
-      setIsAuthenticated(false);
-      setUser(null);
-
-      // Redirect to login
-      router.push("/en/login");
-    } catch (error) {
-      console.error("Logout error:", error);
     }
   };
 

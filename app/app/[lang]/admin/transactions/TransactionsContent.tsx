@@ -47,6 +47,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Search, Download, Filter, Calendar, ArrowUpDown } from "lucide-react";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 interface Transaction {
   id: string;
@@ -96,7 +97,8 @@ export function TransactionsContent() {
     status: "all",
     dateRange: "30d",
   });
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
 
   useEffect(() => {
     fetchTransactions();
@@ -106,7 +108,7 @@ export function TransactionsContent() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         search: filters.search,
@@ -114,13 +116,16 @@ export function TransactionsContent() {
         status: filters.status,
         dateRange: filters.dateRange,
       });
-      
-      const response = await fetch(`/api/admin/transactions?${params.toString()}`);
-      
+
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/transactions?${params.toString()}`
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch transactions");
       }
-      
+
       const data = await response.json();
       setTransactions(data.transactions);
       setTotalPages(data.totalPages);
@@ -131,15 +136,14 @@ export function TransactionsContent() {
       setLoading(false);
     }
   };
-
   const fetchStats = async () => {
     try {
       const response = await fetch("/api/admin/transactions/stats");
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch transaction stats");
       }
-      
+
       const data = await response.json();
       setStats(data);
     } catch (error) {
@@ -156,13 +160,15 @@ export function TransactionsContent() {
         status: filters.status,
         dateRange: filters.dateRange,
       });
-      
-      const response = await fetch(`/api/admin/transactions/export?${params.toString()}`);
-      
+
+      const response = await fetch(
+        `/api/admin/transactions/export?${params.toString()}`
+      );
+
       if (!response.ok) {
         throw new Error("Failed to export transactions");
       }
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -172,7 +178,7 @@ export function TransactionsContent() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success("Transactions exported successfully");
     } catch (error) {
       console.error("Error exporting transactions:", error);
@@ -221,8 +227,8 @@ export function TransactionsContent() {
       userId: "user-1",
       userName: "John Doe",
       userEmail: "john@example.com",
-      amount: 50.00,
-      balanceAfter: 50.00,
+      amount: 50.0,
+      balanceAfter: 50.0,
       description: "Deposit - completed",
       status: "completed",
       createdAt: new Date().toISOString(),
@@ -254,9 +260,9 @@ export function TransactionsContent() {
   const mockStats: TransactionStats = {
     overview: {
       total: 150,
-      income: 1500.00,
-      expenses: 200.00,
-      averageDeposit: 35.00,
+      income: 1500.0,
+      expenses: 200.0,
+      averageDeposit: 35.0,
       depositCount: 42,
       operationsToday: 156,
       totalOperations: 5678,
@@ -265,7 +271,10 @@ export function TransactionsContent() {
       const date = new Date();
       date.setDate(date.getDate() - i);
       return {
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
         income: Math.floor(Math.random() * 200) + 50,
         operations: Math.floor(Math.random() * 100) + 20,
       };
@@ -346,7 +355,8 @@ export function TransactionsContent() {
               {stats?.overview.operationsToday || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency((stats?.overview.operationsToday || 0) * 0.005)} in revenue
+              {formatCurrency((stats?.overview.operationsToday || 0) * 0.005)}{" "}
+              in revenue
             </p>
           </CardContent>
         </Card>
@@ -360,9 +370,7 @@ export function TransactionsContent() {
             <div className="text-2xl font-bold">
               {stats?.overview.totalOperations || 0}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Lifetime total
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Lifetime total</p>
           </CardContent>
         </Card>
       </div>
@@ -500,7 +508,9 @@ export function TransactionsContent() {
                       >
                         <TableCell>
                           <div>
-                            <p className="font-medium">{transaction.userName}</p>
+                            <p className="font-medium">
+                              {transaction.userName}
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               {transaction.userEmail}
                             </p>
@@ -532,7 +542,9 @@ export function TransactionsContent() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>{formatDate(transaction.createdAt)}</TableCell>
+                        <TableCell>
+                          {formatDate(transaction.createdAt)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -679,10 +691,12 @@ export function TransactionsContent() {
                       }}
                     />
                     <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip formatter={(value: any, name: any) => {
-                      if (name === "income") return formatCurrency(value);
-                      return value;
-                    }} />
+                    <Tooltip
+                      formatter={(value: any, name: any) => {
+                        if (name === "income") return formatCurrency(value);
+                        return value;
+                      }}
+                    />
                     <Legend />
                     <Bar
                       yAxisId="left"
@@ -705,17 +719,22 @@ export function TransactionsContent() {
       </Tabs>
 
       {/* Transaction Detail Modal */}
-      <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+      <Dialog
+        open={!!selectedTransaction}
+        onOpenChange={() => setSelectedTransaction(null)}
+      >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Transaction Details</DialogTitle>
           </DialogHeader>
-          
+
           {selectedTransaction && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Transaction ID</p>
+                  <p className="text-sm text-muted-foreground">
+                    Transaction ID
+                  </p>
                   <p className="font-mono text-sm">{selectedTransaction.id}</p>
                 </div>
                 <Badge
@@ -730,7 +749,7 @@ export function TransactionsContent() {
                   {selectedTransaction.status}
                 </Badge>
               </div>
-              
+
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">User</p>
                 <div className="flex items-center gap-2">
@@ -738,37 +757,51 @@ export function TransactionsContent() {
                     {selectedTransaction.userName?.[0] || "U"}
                   </div>
                   <div>
-                    <p className="font-medium">{selectedTransaction.userName}</p>
-                    <p className="text-sm text-muted-foreground">{selectedTransaction.userEmail}</p>
+                    <p className="font-medium">
+                      {selectedTransaction.userName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedTransaction.userEmail}
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Amount</p>
-                <p className={`text-xl font-bold ${getTransactionTypeColor(selectedTransaction.amount)}`}>
+                <p
+                  className={`text-xl font-bold ${getTransactionTypeColor(
+                    selectedTransaction.amount
+                  )}`}
+                >
                   {selectedTransaction.amount > 0 ? "+" : ""}
                   {formatCurrency(selectedTransaction.amount)}
                 </p>
               </div>
-              
+
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Balance After Transaction</p>
-                <p className="font-medium">{formatCurrency(selectedTransaction.balanceAfter)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Balance After Transaction
+                </p>
+                <p className="font-medium">
+                  {formatCurrency(selectedTransaction.balanceAfter)}
+                </p>
               </div>
-              
+
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Description</p>
                 <p className="font-medium">{selectedTransaction.description}</p>
               </div>
-              
+
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Date & Time</p>
-                <p className="font-medium">{formatDate(selectedTransaction.createdAt)}</p>
+                <p className="font-medium">
+                  {formatDate(selectedTransaction.createdAt)}
+                </p>
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button onClick={() => setSelectedTransaction(null)}>Close</Button>
           </DialogFooter>

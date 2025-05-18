@@ -11,28 +11,25 @@ import { UserGrowthChart } from "@/components/admin/dashboard/user-growth-chart"
 import { ApiUsageChart } from "@/components/admin/dashboard/api-usage-chart";
 import { RecentActivity } from "@/components/admin/dashboard/recent-activity";
 import { SystemHealth } from "@/components/admin/dashboard/system-health";
-
+import { fetchWithAuth } from "@/src/utils/auth";
 export function AdminDashboardContent() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
       setRefreshing(true);
 
-      // Fetch data from the API route
-      const response = await fetch("/api/admin/dashboard");
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(`${apiUrl}/api/admin/dashboard`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch dashboard stats");
       }
 
-      const data: AdminStats = await response.json();
+      const data = await response.json();
       setStats(data);
-
-      console.log("Dashboard stats loaded:", data); // Debug log
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       toast.error("Failed to load dashboard data");
