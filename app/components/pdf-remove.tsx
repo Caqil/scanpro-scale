@@ -20,13 +20,16 @@ import {
   SaveIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FileDropzone } from "./dropzone";
+import { useAuth } from "@/src/context/auth-context";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
 interface PdfPage {
   width: number;
@@ -37,6 +40,7 @@ interface PdfPage {
 
 export function PdfRemove() {
   const { t } = useLanguageStore();
+  const { isAuthenticated, user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState<PdfPage[]>([]);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
@@ -45,11 +49,16 @@ export function PdfRemove() {
   const [processedPdfUrl, setProcessedPdfUrl] = useState<string>("");
   const [previewPage, setPreviewPage] = useState<number | null>(null);
   const [previewScale, setPreviewScale] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+  const [insufficientBalance, setInsufficientBalance] =
+    useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processPdf = async (pdfFile: File) => {
     setProcessing(true);
     setProgress(0);
+    setError(null);
+    setInsufficientBalance(false);
 
     try {
       const fileUrl = URL.createObjectURL(pdfFile);
@@ -76,6 +85,7 @@ export function PdfRemove() {
       URL.revokeObjectURL(fileUrl);
     } catch (error) {
       console.error("Error processing PDF:", error);
+      setError(t("removePdf.messages.error") || "Error processing PDF");
       toast.error(t("removePdf.messages.error") || "Error processing PDF");
     } finally {
       setProcessing(false);
@@ -90,7 +100,9 @@ export function PdfRemove() {
     } else {
       // Don't allow selecting all pages
       if (newSelectedPages.size >= pages.length - 1) {
-        toast.error(t("removePdf.messages.cannotRemoveAll") || "Cannot remove all pages");
+        toast.error(
+          t("removePdf.messages.cannotRemoveAll") || "Cannot remove all pages"
+        );
         return;
       }
       newSelectedPages.add(pageNumber);
@@ -122,44 +134,144 @@ export function PdfRemove() {
 
     setProcessing(true);
     setProgress(0);
+    setError(null);
+    setInsufficientBalance(false);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      // Convert 0-indexed to 1-indexed for API
-      const pagesToRemove = Array.from(selectedPages).map((page) => page + 1);
-      formData.append("pagesToRemove", JSON.stringify(pagesToRemove));
+    return new Promise((resolve, reject) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        // Convert 0-indexed to 1-indexed for API
+        const pagesToRemove = Array.from(selectedPages).map((page) => page + 1);
+        formData.append("pagesToRemove", JSON.stringify(pagesToRemove));
 
-      const response = await fetch("/api/pdf/remove", {
-        method: "POST",
-        body: formData,
-      });
+        // Use the Go API endpoint when authenticated, otherwise use Next.js API
+        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/remove`;
 
-      setProgress(50);
+        console.log("Submitting to API URL:", apiUrl);
+        console.log("Pages to remove:", pagesToRemove);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t("removePdf.messages.error"));
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader(
+          "x-api-key",
+          "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0"
+        );
+
+        // Add auth headers if authenticated
+        if (isAuthenticated) {
+          // Include cookies for auth
+          xhr.withCredentials = true;
+        }
+
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            // Update progress for upload phase (0–50%)
+            setProgress(percentComplete / 2);
+          }
+        };
+
+        // Handle completion
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("API response:", data);
+
+              // Update progress to complete
+              setProgress(100);
+              setProcessedPdfUrl(data.fileUrl);
+              setProcessing(false);
+
+              toast.success(
+                t("removePdf.messages.success") || "Pages removed successfully!"
+              );
+
+              resolve(data);
+            } catch (parseError) {
+              console.error("Error parsing response:", parseError);
+              const errorMessage =
+                t("removePdf.messages.error") || "An unknown error occurred";
+              setError(errorMessage);
+              setProgress(0);
+              setProcessing(false);
+              toast.error(t("removePdf.messages.error") || "Operation Failed", {
+                description: errorMessage,
+              });
+              reject(parseError);
+            }
+          } else if (xhr.status === 402) {
+            // Handle insufficient balance error
+            let errorMessage =
+              t("removePdf.messages.insufficientBalance") ||
+              "Insufficient balance";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              if (errorData.insufficientBalance) {
+                setInsufficientBalance(true);
+              }
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+
+            setError(errorMessage);
+            setProgress(0);
+            setProcessing(false);
+            toast.error(t("removePdf.messages.error") || "Operation Failed", {
+              description: errorMessage,
+            });
+            reject(new Error(errorMessage));
+          } else {
+            let errorMessage = "Operation failed";
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+              console.error("Failed to parse error response:", jsonError);
+            }
+            errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+
+            setError(errorMessage);
+            setProgress(0);
+            setProcessing(false);
+            toast.error(t("removePdf.messages.error") || "Operation Failed", {
+              description: errorMessage,
+            });
+            reject(new Error(errorMessage));
+          }
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const errorMessage =
+            t("removePdf.messages.error") || "An unknown error occurred";
+          setError(errorMessage);
+          setProgress(0);
+          setProcessing(false);
+          toast.error(t("removePdf.messages.error") || "Operation Failed", {
+            description: errorMessage,
+          });
+          reject(new Error("Network error"));
+        };
+
+        // Send the request
+        xhr.send(formData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : t("removePdf.messages.error") || "An unknown error occurred";
+        setError(errorMessage);
+        setProgress(0);
+        setProcessing(false);
+        toast.error(t("removePdf.messages.error") || "Operation Failed", {
+          description: errorMessage,
+        });
+        reject(err);
       }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setProcessedPdfUrl(result.fileUrl);
-        setProgress(100);
-        toast.success(t("removePdf.messages.success") || "Pages removed successfully!");
-      } else {
-        throw new Error(result.error || t("removePdf.messages.error"));
-      }
-    } catch (error) {
-      console.error("Error removing pages:", error);
-      toast.error(
-        error instanceof Error ? error.message : t("removePdf.messages.error") || "Error removing pages"
-      );
-    } finally {
-      setProcessing(false);
-      setProgress(0);
-    }
+    });
   };
 
   const reset = () => {
@@ -169,6 +281,8 @@ export function PdfRemove() {
     setPages([]);
     setPreviewPage(null);
     setPreviewScale(1);
+    setError(null);
+    setInsufficientBalance(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -230,6 +344,45 @@ export function PdfRemove() {
     return remaining;
   };
 
+  // Show insufficient balance message
+  if (insufficientBalance) {
+    return (
+      <div className="bg-muted/30 rounded-lg p-4 w-full">
+        <div className="flex flex-col min-h-[600px] bg-background rounded-lg border shadow-sm">
+          <div className="flex-1 flex items-center justify-center p-6">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6 p-4 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 mx-auto w-20 h-20 flex items-center justify-center">
+                  <XCircleIcon className="h-10 w-10" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-3">
+                  {t("common.insufficientBalance") || "Insufficient Balance"}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {t("common.insufficientBalanceDesc") ||
+                    "You don't have enough balance to perform this operation. Please add funds to your account."}
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button variant="outline" onClick={reset}>
+                    <RefreshCwIcon className="h-4 w-4 mr-2" />
+                    {t("ui.startOver") || "Start Over"}
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      (window.location.href = "/dashboard/billing")
+                    }
+                  >
+                    {t("common.addFunds") || "Add Funds"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-muted/30 rounded-lg p-4 w-full">
       <div className="flex flex-col min-h-[600px] bg-background rounded-lg border shadow-sm">
@@ -251,10 +404,16 @@ export function PdfRemove() {
                 }
               }}
               title={t("removePdf.uploadTitle") || "Upload Your PDF"}
-              description={t("removePdf.uploadDesc") || "Upload a PDF file to remove pages. Your file will be processed securely."}
+              description={
+                t("removePdf.uploadDesc") ||
+                "Upload a PDF file to remove pages. Your file will be processed securely."
+              }
               browseButtonText={t("ui.browse") || "Browse Files"}
               browseButtonVariant="default"
-              securityText={t("ui.filesSecurity") || "Your files are secure and never stored permanently"}
+              securityText={
+                t("ui.filesSecurity") ||
+                "Your files are secure and never stored permanently"
+              }
             />
           </div>
         )}
@@ -268,11 +427,14 @@ export function PdfRemove() {
                   {t("removePdf.selectPages") || "Select Pages to Remove"}
                 </h3>
                 <p className="text-muted-foreground">
-                  {t("removePdf.selectPagesDesc") || "Click on pages to mark them for removal"}
+                  {t("removePdf.selectPagesDesc") ||
+                    "Click on pages to mark them for removal"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {selectedPages.size} {t("removePdf.pagesSelected") || "pages selected"} ·{" "}
-                  {getRemainingPages().length} {t("removePdf.pagesRemaining") || "pages remaining"}
+                  {selectedPages.size}{" "}
+                  {t("removePdf.pagesSelected") || "pages selected"} ·{" "}
+                  {getRemainingPages().length}{" "}
+                  {t("removePdf.pagesRemaining") || "pages remaining"}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -308,7 +470,8 @@ export function PdfRemove() {
                 {t("removePdf.processing") || "Processing PDF..."}
               </h3>
               <p className="text-muted-foreground mb-6">
-                {t("removePdf.messages.processing") || "Please wait while we process your PDF."}
+                {t("removePdf.messages.processing") ||
+                  "Please wait while we process your PDF."}
               </p>
               <Progress value={progress} className="w-full h-2" />
             </div>
@@ -324,10 +487,12 @@ export function PdfRemove() {
                   <CheckIcon className="h-10 w-10" />
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">
-                  {t("removePdf.messages.success") || "Pages Removed Successfully!"}
+                  {t("removePdf.messages.success") ||
+                    "Pages Removed Successfully!"}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {t("removePdf.messages.downloadReady") || "Your processed PDF is ready for download."}
+                  {t("removePdf.messages.downloadReady") ||
+                    "Your processed PDF is ready for download."}
                 </p>
                 <div className="flex gap-4 justify-center">
                   <Button variant="outline" onClick={reset}>
@@ -341,6 +506,31 @@ export function PdfRemove() {
                     {t("ui.download") || "Download"}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Error Section */}
+        {error && (
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6 p-4 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 mx-auto w-20 h-20 flex items-center justify-center">
+                  <XCircleIcon className="h-10 w-10" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-3">
+                  {t("common.error") || "Error"}
+                </h3>
+                <p className="text-muted-foreground mb-6">{error}</p>
+                <Button
+                  onClick={() => {
+                    setError(null);
+                    setProcessing(false);
+                  }}
+                >
+                  {t("ui.tryAgain") || "Try Again"}
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -405,7 +595,8 @@ export function PdfRemove() {
                       onClick={(e) => handlePageSelect(e, previewPage)}
                     >
                       <XCircleIcon className="h-4 w-4 mr-2" />
-                      {t("removePdf.removeFromDocument") || "Remove from Document"}
+                      {t("removePdf.removeFromDocument") ||
+                        "Remove from Document"}
                     </Button>
                   ) : (
                     <Button

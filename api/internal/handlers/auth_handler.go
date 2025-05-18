@@ -2,25 +2,31 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Caqil/megapdf-api/internal/config"
 	"github.com/Caqil/megapdf-api/internal/db"
 	"github.com/Caqil/megapdf-api/internal/models"
 	"github.com/Caqil/megapdf-api/internal/services"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AuthHandler struct {
 	service      *services.AuthService
 	jwtSecret    string
 	emailService *services.EmailService
+	config       *config.Config // Add this field
 }
 
-func NewAuthHandler(service *services.AuthService, jwtSecret string) *AuthHandler {
+// Updated NewAuthHandler constructor
+func NewAuthHandler(service *services.AuthService, jwtSecret string, cfg *config.Config) *AuthHandler {
 	return &AuthHandler{
 		service:   service,
 		jwtSecret: jwtSecret,
+		config:    cfg,
 	}
 }
 func (h *AuthHandler) ValidateToken(c *gin.Context) {
@@ -102,6 +108,40 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Track if email was actually sent
+	emailSent := false
+
+	// Send verification email if email service is available
+	if h.emailService != nil && result.User.VerificationToken != nil {
+		// Get user directly to ensure we have the verification token
+		verificationToken := *result.User.VerificationToken
+
+		emailResult, emailErr := h.emailService.SendVerificationEmail(
+			result.User.Email,
+			verificationToken,
+			result.User.Name,
+		)
+
+		if emailErr == nil && emailResult.Success {
+			emailSent = true
+			// Log success in debug mode
+			if c.GetString("mode") == "development" {
+				fmt.Printf("[DEBUG] Verification email sent to %s\n", result.User.Email)
+			}
+		} else {
+			// Log the error but don't fail registration
+			errMsg := "Unknown error"
+			if emailErr != nil {
+				errMsg = emailErr.Error()
+			} else if emailResult != nil {
+				errMsg = emailResult.Error
+			}
+			fmt.Printf("Failed to send verification email: %s\n", errMsg)
+		}
+	} else {
+		fmt.Println("Email service not configured or verification token missing")
+	}
+
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -112,7 +152,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			"email":           result.User.Email,
 			"isEmailVerified": result.User.IsEmailVerified,
 		},
-		"emailSent": true, // This should be based on actual email success
+		"emailSent": emailSent, // Accurately report if email was sent
 	})
 }
 
@@ -285,6 +325,20 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Get user info from token to send confirmation email later
+	var resetToken models.PasswordResetToken
+	if err := db.DB.Where("token = ?", req.Token).First(&resetToken).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	// Get user details for email
+	var user models.User
+	if err := db.DB.Where("email = ?", resetToken.Email).First(&user).Error; err != nil {
+		// Continue with password reset even if we can't find user details
+		fmt.Printf("Warning: Could not get user details for reset confirmation email: %v\n", err)
+	}
+
 	// Reset password
 	err := h.service.ResetPassword(req.Token, req.Password)
 	if err != nil {
@@ -292,9 +346,36 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Send confirmation email if email service is available
+	emailSent := false
+	if h.emailService != nil {
+		emailResult, err := h.emailService.SendPasswordResetSuccessEmail(
+			resetToken.Email,
+			user.Name,
+		)
+
+		if err == nil && emailResult.Success {
+			emailSent = true
+			// Log success in debug mode
+			if c.GetString("mode") == "development" {
+				fmt.Printf("[DEBUG] Password reset confirmation email sent to %s\n", resetToken.Email)
+			}
+		} else {
+			// Log the error but don't fail the password reset
+			errMsg := "Unknown error"
+			if err != nil {
+				errMsg = err.Error()
+			} else if emailResult != nil {
+				errMsg = emailResult.Error
+			}
+			fmt.Printf("Failed to send password reset confirmation email: %s\n", errMsg)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Password has been reset successfully",
+		"success":   true,
+		"message":   "Password has been reset successfully",
+		"emailSent": emailSent,
 	})
 }
 
@@ -325,52 +406,154 @@ func (h *AuthHandler) ResendVerificationEmail(c *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Authentication required",
+		})
 		return
 	}
+
+	fmt.Printf("Request to resend verification email for user ID: %s\n", userID)
 
 	// Get user from database
 	var user models.User
 	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		fmt.Printf("Error finding user: %v\n", err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "User not found",
+		})
 		return
 	}
 
 	// Check if email is already verified
 	if user.IsEmailVerified {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is already verified"})
+		fmt.Printf("User %s email is already verified\n", userID)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Email is already verified",
+		})
 		return
 	}
 
-	// Generate new verification token
-	verificationToken, err := h.service.ResendVerificationEmail(userID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resend verification email"})
+	// Generate new verification token if needed
+	var verificationToken string
+
+	if user.VerificationToken == nil || *user.VerificationToken == "" {
+		// Generate new token
+		verificationToken = uuid.New().String()
+
+		// Update user
+		if err := db.DB.Model(&user).Update("verification_token", verificationToken).Error; err != nil {
+			fmt.Printf("Error updating verification token: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to generate verification token",
+			})
+			return
+		}
+	} else {
+		// Use existing token
+		verificationToken = *user.VerificationToken
+	}
+
+	fmt.Printf("Using verification token: %s for user: %s (%s)\n", verificationToken, user.ID, user.Email)
+
+	// Check if email service is properly configured
+	if h.emailService == nil {
+		fmt.Println("Email service is not initialized")
+
+		// In development mode, provide the token directly
+		if c.GetString("mode") == "development" {
+			c.JSON(http.StatusOK, gin.H{
+				"success":            true,
+				"message":            "DEVELOPMENT MODE: Verification would be sent in production",
+				"devVerificationUrl": fmt.Sprintf("%s/api/auth/verify-email?token=%s", h.config.AppURL, verificationToken),
+				"devNote":            "Configure SMTP settings to send actual emails",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Email service not configured",
+			})
+		}
 		return
+	}
+
+	// Use function in email service to create verification URL
+	verifyUrl := fmt.Sprintf("%s/api/auth/verify-email?token=%s", h.config.AppURL, verificationToken)
+	fmt.Printf("Verification URL: %s\n", verifyUrl)
+
+	// Create email template
+	template := `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Verify Your Email</h2>
+            <p>Hello {{.Name}},</p>
+            <p>Thank you for registering with MegaPDF. Please verify your email address by clicking the button below.</p>
+            <div style="margin: 30px 0; text-align: center;">
+                <a href="{{.VerifyUrl}}" 
+                style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                Verify Email
+                </a>
+            </div>
+            <p>If you did not create an account, please ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;" />
+            <p style="color: #6B7280; font-size: 14px;">MegaPDF - PDF Tools</p>
+        </div>
+    `
+
+	userName := user.Name
+	if userName == "" {
+		userName = "there" // Default if name is empty
 	}
 
 	// Send verification email
-	if user.Email != "" && h.emailService != nil {
-		emailResult, err := h.emailService.SendVerificationEmail(
-			user.Email,
-			verificationToken,
-			user.Name,
-		)
+	emailResult, err := h.emailService.SendEmail(services.EmailData{
+		To:       user.Email,
+		Subject:  "MegaPDF Email Verification",
+		Template: template,
+		Data: map[string]interface{}{
+			"Name":      userName,
+			"VerifyUrl": verifyUrl,
+		},
+	})
 
-		if err != nil || !emailResult.Success {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"})
-			return
+	// Check for SMTP configuration error specifically
+	if err != nil && strings.Contains(err.Error(), "SMTP settings not configured") {
+		// For development, provide the token directly so testing can continue
+		if c.GetString("mode") == "development" {
+			c.JSON(http.StatusOK, gin.H{
+				"success":            true,
+				"message":            "DEVELOPMENT MODE: Email sending skipped due to missing SMTP settings",
+				"devVerificationUrl": verifyUrl,
+				"devNote":            "Configure SMTP settings to send actual emails",
+			})
+		} else {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"error":   "Email service not properly configured",
+				"details": "The server's email configuration is incomplete",
+			})
 		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Verification email sent successfully",
-		})
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "User has no email address or email service not configured",
-		})
+		return
 	}
+
+	if err != nil {
+		fmt.Printf("Error sending verification email: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("Failed to send verification email: %v", err),
+		})
+		return
+	}
+
+	if !emailResult.Success {
+		fmt.Printf("Email sending failed: %s\n", emailResult.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("Failed to send verification email: %s", emailResult.Error),
+		})
+		return
+	}
+
+	// Return success response
+	fmt.Printf("Verification email sent successfully to %s\n", user.Email)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Verification email sent successfully",
+	})
 }
 
 // SetEmailService sets the email service for this handler

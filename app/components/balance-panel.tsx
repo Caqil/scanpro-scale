@@ -28,6 +28,18 @@ import { DollarSign, CreditCard, DownloadCloud, Upload } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { useAuth } from "@/src/context/auth-context";
 
+const formatLargeNumber = (num: number) => {
+  if (num >= 1_000_000_000_000) {
+    return `${(num / 1_000_000_000_000).toFixed(1)}T`; // Trillions
+  } else if (num >= 1_000_000_000) {
+    return `${(num / 1_000_000_000).toFixed(1)}B`; // Billions
+  } else if (num >= 1_000_000) {
+    return `${(num / 1_000_000).toFixed(1)}M`; // Millions
+  } else {
+    return num.toLocaleString(); // Use commas for smaller numbers
+  }
+};
+
 export function BalancePanel() {
   const { t } = useLanguageStore();
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
@@ -202,7 +214,13 @@ export function BalancePanel() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${isLoading ? "..." : balance.toFixed(2)}
+              $
+              {isLoading
+                ? "..."
+                : balance.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("balancePanel.description.operationCost") ||
@@ -257,7 +275,9 @@ export function BalancePanel() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : Math.floor(balance / 0.005)}
+              {isLoading
+                ? "..."
+                : formatLargeNumber(Math.floor(balance / 0.005))}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("balancePanel.description.operationsWithBalance") ||

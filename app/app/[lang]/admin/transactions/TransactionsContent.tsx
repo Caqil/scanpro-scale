@@ -78,8 +78,9 @@ interface TransactionStats {
     income: number;
     operations: number;
   }[];
-  byUserType: {
-    type: string;
+  // Modified to use operation categories instead of user types
+  byCategory?: {
+    category: string;
     income: number;
     count: number;
   }[];
@@ -136,16 +137,19 @@ export function TransactionsContent() {
       setLoading(false);
     }
   };
+
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/admin/transactions/stats");
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(`${apiUrl}/api/admin/transactions`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch transaction stats");
       }
 
       const data = await response.json();
-      setStats(data);
+      // The Go API returns stats embedded in the main response
+      setStats(data.stats);
     } catch (error) {
       console.error("Error fetching transaction stats:", error);
       toast.error("Failed to load transaction statistics");
@@ -159,10 +163,12 @@ export function TransactionsContent() {
         type: filters.type,
         status: filters.status,
         dateRange: filters.dateRange,
+        format: "csv",
       });
 
-      const response = await fetch(
-        `/api/admin/transactions/export?${params.toString()}`
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/transactions/export?${params.toString()}`
       );
 
       if (!response.ok) {
@@ -279,9 +285,13 @@ export function TransactionsContent() {
         operations: Math.floor(Math.random() * 100) + 20,
       };
     }).reverse(),
-    byUserType: [
-      { type: "free", income: 700, count: 35 },
-      { type: "paid", income: 800, count: 15 },
+    // Changed to operation categories instead of user types
+    byCategory: [
+      { category: "Convert", income: 450, count: 45 },
+      { category: "Compress", income: 350, count: 35 },
+      { category: "Merge", income: 300, count: 30 },
+      { category: "Split", income: 200, count: 20 },
+      { category: "Protect", income: 150, count: 15 },
     ],
   };
 
@@ -295,7 +305,7 @@ export function TransactionsContent() {
     }
   }, [transactions, stats, loading]);
 
-  const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444"];
+  const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#6366f1"];
 
   return (
     <div className="space-y-6">
@@ -625,94 +635,110 @@ export function TransactionsContent() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by User Type</CardTitle>
+                <CardTitle>Revenue by Operation Type</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats?.byUserType || []}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          `${name} ${(percent * 100).toFixed(0)}%`
-                        }
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="income"
-                        nameKey="type"
-                      >
-                        {stats?.byUserType.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: any) => formatCurrency(value)}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                {stats?.byCategory && stats.byCategory.length > 0 ? (
+                  <div className="h-[350px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.byCategory}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name} ${(percent * 100).toFixed(0)}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="income"
+                          nameKey="category"
+                        >
+                          {stats.byCategory.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: any) => formatCurrency(value)}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[350px] flex items-center justify-center">
+                    <p className="text-muted-foreground">
+                      No operation type data available
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Payments by User Type</CardTitle>
+              <CardTitle>Operations by Type</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={stats?.byUserType || []}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="type"
-                      label={{
-                        value: "User Type",
-                        position: "insideBottom",
-                        offset: -5,
-                      }}
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      label={{
-                        value: "Revenue ($)",
-                        angle: -90,
-                        position: "insideLeft",
-                      }}
-                    />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip
-                      formatter={(value: any, name: any) => {
-                        if (name === "income") return formatCurrency(value);
-                        return value;
-                      }}
-                    />
-                    <Legend />
-                    <Bar
-                      yAxisId="left"
-                      dataKey="income"
-                      fill="#4f46e5"
-                      name="Revenue"
-                    />
-                    <Bar
-                      yAxisId="right"
-                      dataKey="count"
-                      fill="#10b981"
-                      name="Transaction Count"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {stats?.byCategory && stats.byCategory.length > 0 ? (
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={stats.byCategory}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="category"
+                        label={{
+                          value: "Operation Type",
+                          position: "insideBottom",
+                          offset: -5,
+                        }}
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        label={{
+                          value: "Revenue ($)",
+                          angle: -90,
+                          position: "insideLeft",
+                        }}
+                      />
+                      <YAxis yAxisId="right" orientation="right" />
+                      <Tooltip
+                        formatter={(value: any, name: any) => {
+                          if (name === "income") return formatCurrency(value);
+                          return value;
+                        }}
+                      />
+                      <Legend />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="income"
+                        fill="#4f46e5"
+                        name="Revenue"
+                      />
+                      <Bar
+                        yAxisId="right"
+                        dataKey="count"
+                        fill="#10b981"
+                        name="Operation Count"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[400px] flex items-center justify-center">
+                  <p className="text-muted-foreground">
+                    No operation type data available
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

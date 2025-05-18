@@ -93,7 +93,7 @@ export function PdfPageNumberer() {
       xhr.open("POST", apiUrl);
       xhr.setRequestHeader(
         "x-api-key",
-        "sk_3af243bc27c4397a6d26b4ba528224097748171444c2a231"
+        "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0"
       );
 
       // Track upload progress

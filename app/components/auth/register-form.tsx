@@ -507,8 +507,9 @@ export function RegisterForm() {
           >
             <Info className="h-4 w-4 text-blue-500" />
             <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
-              {t("auth.emailVerificationRequired") ||
-                "Email verification is required to complete your registration. We'll send you a verification link when you sign up."}
+              {
+                "Email verification is required to complete your registration. We'll send you a verification link when you sign up."
+              }
             </AlertDescription>
           </Alert>
         </div>

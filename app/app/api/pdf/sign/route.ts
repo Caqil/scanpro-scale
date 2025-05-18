@@ -9,7 +9,6 @@ import sharp from "sharp";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 
 const execPromise = promisify(exec);
 
@@ -222,29 +221,10 @@ export async function POST(request: NextRequest) {
   try {
     console.log("Starting PDF signing process...");
     
-    // Get user ID from either API key (via headers) or session
-    const userId = await getUserId(request);
-    const operationType = getOperationType(request, 'sign');
     
     // IMPORTANT: Check if the user can perform this operation BEFORE processing
     // This prevents starting expensive operations for users who can't pay
-    if (userId) {
-      const canPerform = await canPerformOperation(userId, operationType);
-      
-      if (!canPerform.canPerform) {
-        return NextResponse.json(
-          {
-            error: canPerform.error || "Insufficient balance or free operations",
-            details: {
-              balance: canPerform.currentBalance,
-              freeOperationsRemaining: canPerform.freeOperationsRemaining,
-              operationCost: 0.005,
-            },
-          },
-          { status: 402 } // Payment Required status code
-        );
-      }
-    }
+    
 
     await ensureDirectories();
 
@@ -511,33 +491,7 @@ export async function POST(request: NextRequest) {
       // Only charge if we have a user ID (either from API key or session)
       let billingInfo = {};
       
-      if (userId) {
-        const operationResult = await processOperation(userId, operationType);
-        
-        if (!operationResult.success) {
-          return NextResponse.json(
-            {
-              error: operationResult.error || "Failed to process operation charge",
-              details: {
-                balance: operationResult.currentBalance,
-                freeOperationsRemaining: operationResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
-            },
-            { status: 402 } // Payment Required status code
-          );
-        }
-        
-        // Add billing info to the response
-        billingInfo = {
-          billing: {
-            usedFreeOperation: operationResult.usedFreeOperation,
-            freeOperationsRemaining: operationResult.freeOperationsRemaining,
-            currentBalance: operationResult.currentBalance,
-            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
-          }
-        };
-      }
+      
 
       const responseData: any = {
         success: true,

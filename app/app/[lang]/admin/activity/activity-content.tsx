@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 interface ActivityLog {
   id: string;
@@ -71,7 +72,6 @@ export function ActivityContent() {
   useEffect(() => {
     fetchActivities();
   }, [filters, page]);
-
   const fetchActivities = async () => {
     try {
       setLoading(true);
@@ -85,7 +85,10 @@ export function ActivityContent() {
         limit: "50",
       });
 
-      const response = await fetch(`/api/admin/activity?${params}`);
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/activity?${params}`
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch activities");
@@ -100,6 +103,41 @@ export function ActivityContent() {
       toast.error("Failed to load activity logs");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const exportLogs = async () => {
+    try {
+      const params = new URLSearchParams({
+        ...filters,
+        format: "csv",
+      });
+
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/activity/export?${params}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to export logs");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `activity-logs-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("Activity logs exported successfully");
+    } catch (error) {
+      console.error("Error exporting logs:", error);
+      toast.error("Failed to export activity logs");
     }
   };
 
@@ -134,38 +172,6 @@ export function ActivityContent() {
     if (action.includes("subscription")) return "text-green-600";
     if (action.includes("error")) return "text-red-600";
     return "text-gray-600";
-  };
-
-  const exportLogs = async () => {
-    try {
-      const params = new URLSearchParams({
-        ...filters,
-        format: "csv",
-      });
-
-      const response = await fetch(`/api/admin/activity/export?${params}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to export logs");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `activity-logs-${
-        new Date().toISOString().split("T")[0]
-      }.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success("Activity logs exported successfully");
-    } catch (error) {
-      console.error("Error exporting logs:", error);
-      toast.error("Failed to export activity logs");
-    }
   };
 
   return (

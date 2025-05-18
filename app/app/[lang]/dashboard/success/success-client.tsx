@@ -28,6 +28,7 @@ export function SuccessClient({ initialToken, payerId }: SuccessClientProps) {
 
   useEffect(() => {
     // If token was provided, verify the payment
+
     const verifyPayment = async () => {
       if (!token) {
         setVerifying(false);
@@ -38,7 +39,7 @@ export function SuccessClient({ initialToken, payerId }: SuccessClientProps) {
       try {
         console.log("Verifying payment with token:", token);
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/user/deposit/verify`,
+          `${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/deposit/verify`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

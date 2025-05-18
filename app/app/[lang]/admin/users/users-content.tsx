@@ -70,6 +70,8 @@ export function AdminUsersContent() {
     setFilters(newFilters);
     setPage(1);
   };
+
+  // Fix the handleUserAction function
   const handleUserAction = async (action: string) => {
     if (action === "email" && selectedUser) {
       window.location.href = `mailto:${selectedUser.email}`;
@@ -86,18 +88,16 @@ export function AdminUsersContent() {
         if (action === "unsuspend") updates.role = "user";
         if (action === "reset-free-operations") updates.freeOperationsUsed = 0;
 
-        // Use the Go API URL from environment variables
         const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
-        const response = await fetch(
+        const response = await fetchWithAuth(
           `${apiUrl}/api/admin/users/${selectedUser.id}`,
           {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
-            credentials: "include", // Include cookies for authentication
-            body: JSON.stringify({ updates }),
+            body: JSON.stringify(updates),
           }
         );
 
@@ -116,9 +116,9 @@ export function AdminUsersContent() {
     }
   };
 
+  // Fix the exportUsers function
   const exportUsers = async () => {
     try {
-      // Use the Go API URL from environment variables
       const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
       // Add any filter parameters if needed
@@ -127,11 +127,8 @@ export function AdminUsersContent() {
         ...filters, // Include any active filters
       });
 
-      const response = await fetch(
-        `${apiUrl}/api/admin/users/export?${params}`,
-        {
-          credentials: "include", // Include cookies for authentication
-        }
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/users/export?${params}`
       );
 
       if (!response.ok)
@@ -153,6 +150,7 @@ export function AdminUsersContent() {
       toast.error("Failed to export users");
     }
   };
+
 
   return (
     <div className="space-y-6">

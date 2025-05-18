@@ -3,6 +3,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Caqil/megapdf-api/internal/models"
@@ -263,7 +264,7 @@ func (s *BalanceService) CreateDeposit(userID string, amount float64, paymentID 
 	return &transaction, nil
 }
 
-// CompleteDeposit finalizes a deposit and updates the user's balance
+// In the CompleteDeposit method of BalanceService
 func (s *BalanceService) CompleteDeposit(paymentID string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// Find the pending transaction
@@ -272,14 +273,23 @@ func (s *BalanceService) CompleteDeposit(paymentID string) error {
 			return err
 		}
 
+		// Log for debugging
+		fmt.Printf("Found pending transaction - ID: %s, Amount: %f\n", transaction.ID, transaction.Amount)
+
 		// Get current user balance
 		var user models.User
 		if err := tx.First(&user, "id = ?", transaction.UserID).Error; err != nil {
 			return err
 		}
 
+		// Log for debugging
+		fmt.Printf("User current balance: %f\n", user.Balance)
+
 		// Calculate new balance
 		newBalance := user.Balance + transaction.Amount
+
+		// Log for debugging
+		fmt.Printf("New calculated balance: %f\n", newBalance)
 
 		// Update user balance
 		if err := tx.Model(&user).Update("balance", newBalance).Error; err != nil {

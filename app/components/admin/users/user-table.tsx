@@ -30,7 +30,7 @@ import {
   Edit2,
   Trash2,
   RefreshCw,
-  Wallet
+  Wallet,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -46,6 +46,7 @@ import { useState } from "react";
 import { AdminUser } from "@/src/types/admin";
 import { UserDetailModal } from "./user-detail-modal";
 import { UserEditModal } from "./user-edit-modal";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 interface UserTableProps {
   users: AdminUser[];
@@ -83,13 +84,17 @@ export function UserTable({
       currency: "USD",
     }).format(amount);
   };
-
   const handleAction = async (action: string, user: AdminUser) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
       if (action === "delete") {
-        const response = await fetch(`/api/admin/users/${user.id}`, {
-          method: "DELETE",
-        });
+        const response = await fetchWithAuth(
+          `${apiUrl}/api/admin/users/${user.id}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (!response.ok) throw new Error("Failed to delete user");
 
@@ -120,11 +125,14 @@ export function UserTable({
           return;
       }
 
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/users/${user.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to update user");
 
@@ -178,7 +186,13 @@ export function UserTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={user.role === "admin" ? "destructive" : user.role === "suspended" ? "outline" : "secondary"}
+                  variant={
+                    user.role === "admin"
+                      ? "destructive"
+                      : user.role === "suspended"
+                      ? "outline"
+                      : "secondary"
+                  }
                 >
                   {user.role}
                 </Badge>
@@ -194,9 +208,7 @@ export function UserTable({
                     </span>
                   </div>
                   <div>
-                    <Badge
-                      variant="outline"
-                    >
+                    <Badge variant="outline">
                       {user.subscription?.tier || "free"}
                     </Badge>
                   </div>
@@ -234,12 +246,12 @@ export function UserTable({
                       <Mail className="mr-2 h-4 w-4" />
                       Send Email
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => 
+                    <DropdownMenuItem
+                      onClick={() =>
                         setConfirmAction({
                           user,
                           action: "reset-free-operations",
-                          open: true
+                          open: true,
                         })
                       }
                     >
@@ -271,13 +283,16 @@ export function UserTable({
                       onClick={() =>
                         setConfirmAction({
                           user,
-                          action: user.role === "suspended" ? "unsuspend" : "suspend",
+                          action:
+                            user.role === "suspended" ? "unsuspend" : "suspend",
                           open: true,
                         })
                       }
                     >
                       <Ban className="mr-2 h-4 w-4" />
-                      {user.role === "suspended" ? "Unsuspend User" : "Suspend User"}
+                      {user.role === "suspended"
+                        ? "Unsuspend User"
+                        : "Suspend User"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
@@ -363,7 +378,8 @@ export function UserTable({
               this user?
               {confirmAction?.action === "delete" && (
                 <p className="text-destructive mt-2">
-                  This action cannot be undone. All user data will be permanently deleted.
+                  This action cannot be undone. All user data will be
+                  permanently deleted.
                 </p>
               )}
             </DialogDescription>

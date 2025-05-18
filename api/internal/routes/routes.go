@@ -4,6 +4,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -18,10 +19,24 @@ import (
 	"gorm.io/gorm"
 )
 
+func maskPassword(password string) string {
+	if password != "" {
+		return "********"
+	}
+	return "[not set]"
+}
 func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Add route logging
 	fmt.Println("Setting up routes...")
-
+	// Initialize email service with additional logging
+	fmt.Println("Initializing email service with config:")
+	fmt.Printf("  SMTP Host: %s\n", cfg.SMTPHost)
+	fmt.Printf("  SMTP Port: %d\n", cfg.SMTPPort)
+	fmt.Printf("  SMTP User: %s\n", cfg.SMTPUser)               // Log just presence, not the actual username
+	fmt.Printf("  SMTP Pass: %s\n", maskPassword(cfg.SMTPPass)) // Mask password for security
+	fmt.Printf("  Email From: %s\n", cfg.EmailFrom)
+	fmt.Printf("  App URL: %s\n", cfg.AppURL)
+	fmt.Printf("  Debug Mode: %v\n", cfg.Debug)
 	// Apply CORS middleware globally
 	r.Use(middleware.CORSMiddleware())
 	r.Use(middleware.LoggerMiddleware())
@@ -61,13 +76,15 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
-	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret)
+	authHandler := handlers.NewAuthHandler(authService, cfg.JWTSecret, cfg)
 	trackUsageHandler := handlers.NewTrackUsageHandler()
-	// Set email service on auth handler
-	authHandler.SetEmailService(emailService)
 	apiKeyHandler := handlers.NewApiKeyHandler(apiKeyService)
 	fileHandler := handlers.NewFileHandler(cfg)
 	adminHandler := handlers.NewAdminHandler()
+	paypalWebhookHandler := handlers.NewPayPalWebhookHandler()
+	fmt.Println("Setting email service on auth handler")
+	authHandler.SetEmailService(emailService)
+
 	// API routes
 	api := r.Group("/api")
 	{
@@ -75,6 +92,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
 		fmt.Println("Registering route: /api/validate-token")
+		api.POST("/webhooks/paypal", paypalWebhookHandler.HandleWebhook)
 		api.GET("/validate-token", func(c *gin.Context) {
 			// Get token from cookie
 			token, err := c.Cookie("authToken")
@@ -123,6 +141,15 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 				"role":   user.Role,
 			})
 		})
+		if balanceHandlerType := reflect.TypeOf(balanceHandler); balanceHandlerType != nil {
+			if method, exists := balanceHandlerType.MethodByName("SetEmailService"); exists {
+				fmt.Println("Setting email service on balance handler")
+				reflect.ValueOf(balanceHandler).Method(method.Index).Call([]reflect.Value{reflect.ValueOf(emailService)})
+			} else {
+				fmt.Println("Balance handler does not have SetEmailService method yet")
+			}
+		}
+
 		fmt.Println("Registering route: /api/file")
 		api.GET("/file", fileHandler.ServeFile)
 		fmt.Println("Registering route: /api/track-usage")
@@ -152,6 +179,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/auth/verify-email")
 			auth.GET("/verify-email", authHandler.VerifyEmail)
 			auth.POST("/verify-email", middleware.AuthMiddleware(cfg.JWTSecret), authHandler.ResendVerificationEmail)
+
 			fmt.Println("Registering route: /api/auth/logout")
 			auth.POST("/logout", func(c *gin.Context) {
 				// Clear the auth cookie by setting it to expire immediately
@@ -196,6 +224,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/pdf/pagenumber")
 			pdf.POST("/pagenumber", pdfHandler.AddPageNumbersToPDF)
+
+			fmt.Println("Registering route: /api/pdf/remove")
+			pdf.POST("/remove", pdfHandler.RemovePagesFromPDF)
 
 			fmt.Println("Registering route: /api/pdf/watermark")
 			pdf.POST("/watermark", pdfHandler.WatermarkPDF)

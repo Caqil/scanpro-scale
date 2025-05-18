@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { AdminUser } from "@/src/types/admin";
 import { toast } from "sonner";
+import { fetchWithAuth } from "@/src/utils/auth";
 
 interface UserEditModalProps {
   user: AdminUser | null;
@@ -30,7 +31,12 @@ interface UserEditModalProps {
   onSave: () => void;
 }
 
-export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProps) {
+export function UserEditModal({
+  user,
+  open,
+  onClose,
+  onSave,
+}: UserEditModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,8 +50,8 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || "",  // Handle null values
-        email: user.email || "",  // Handle null values
+        name: user.name || "", // Handle null values
+        email: user.email || "", // Handle null values
         role: user.role || "user",
         balance: user.balance?.toString() || "0",
         freeOperationsUsed: user.freeOperationsUsed?.toString() || "0",
@@ -54,26 +60,30 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
   }, [user]);
 
   if (!user) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setSaving(true);
-      
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name || null,  // Send null if empty
-          email: formData.email || null,  // Send null if empty
-          role: formData.role,
-          balance: parseFloat(formData.balance),
-          freeOperationsUsed: parseInt(formData.freeOperationsUsed),
-        }),
-      });
+
+      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
+      const response = await fetchWithAuth(
+        `${apiUrl}/api/admin/users/${user.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: formData.name || null, // Send null if empty
+            email: formData.email || null, // Send null if empty
+            role: formData.role,
+            balance: parseFloat(formData.balance),
+            freeOperationsUsed: parseInt(formData.freeOperationsUsed),
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update user");
@@ -193,7 +203,10 @@ export function UserEditModal({ user, open, onClose, onSave }: UserEditModalProp
                 min="0"
                 value={formData.freeOperationsUsed}
                 onChange={(e) =>
-                  setFormData({ ...formData, freeOperationsUsed: e.target.value })
+                  setFormData({
+                    ...formData,
+                    freeOperationsUsed: e.target.value,
+                  })
                 }
                 placeholder="0"
                 className="col-span-3"

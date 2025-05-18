@@ -21,10 +21,7 @@ interface PdfPreviewProps {
   ) => void; // Added pageHeight
 }
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
 export function PdfPreview({ file }: PdfPreviewProps) {
   const [numPages, setNumPages] = useState<number>(0);

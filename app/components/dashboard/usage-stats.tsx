@@ -28,7 +28,17 @@ interface UsageStatsProps {
     operationCounts?: Record<string, number>;
   };
 }
-
+const formatLargeNumber = (num: number) => {
+  if (num >= 1_000_000_000_000) {
+    return `${(num / 1_000_000_000_000).toFixed(1)}T`; // Trillions
+  } else if (num >= 1_000_000_000) {
+    return `${(num / 1_000_000_000).toFixed(1)}B`; // Billions
+  } else if (num >= 1_000_000) {
+    return `${(num / 1_000_000).toFixed(1)}M`; // Millions
+  } else {
+    return num.toLocaleString(); // Use commas for smaller numbers
+  }
+};
 export function UsageStats({ user, usageStats }: UsageStatsProps) {
   const { t } = useLanguageStore();
   const [chartData, setChartData] = useState<any[]>([]);
@@ -185,11 +195,17 @@ export function UsageStats({ user, usageStats }: UsageStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${(user.balance || 0).toFixed(2)}
+              $
+              {user.balance.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </div>
+
             <p className="text-xs text-muted-foreground">
               {t("balancePanel.title.operationsCoverage") || "Covers"}{" "}
-              {operationsCoverage} {t("dashboard.operations") || "operations"}
+              {formatLargeNumber(Math.floor(operationsCoverage / 0.005))}{" "}
+              {t("dashboard.operations") || "operations"}
             </p>
           </CardContent>
         </Card>
