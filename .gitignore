@@ -1,6 +1,7 @@
 # Dependencies
 /api/public
 /api/uploads
+/api/data
 /app/node_modules
 /.pnp
 .pnp.js

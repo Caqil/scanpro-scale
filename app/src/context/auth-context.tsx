@@ -1,14 +1,6 @@
-// src/context/auth-context.tsx
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import {
-  fetchWithAuth,
-  getAuthToken,
-  removeAuthToken,
-  setAuthToken,
-} from "../utils/auth";
 
 interface User {
   id: string;
@@ -34,7 +26,7 @@ interface AuthContextType {
     email: string,
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUserData: () => Promise<void>;
 }
 
@@ -48,87 +40,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
 
-  // Check if user is authenticated on component mount
+  // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const token = getAuthToken();
 
-        console.log(
-          "checkAuth - Token:",
-          token ? "Found" : "Not found",
-          "Cookies:",
-          document.cookie
-        );
-
-        if (!token) {
-          console.log("checkAuth - No token, setting unauthenticated");
-          setIsAuthenticated(false);
-          setUser(null);
-          return;
-        }
-
-        const response = await fetchWithAuth(`${apiUrl}/api/validate-token`);
-
-        console.log(
-          "checkAuth - Validate token status:",
-          response.status,
-          "Response:",
-          await response.text()
-        );
+        const response = await fetch(`${apiUrl}/api/validate-token`, {
+          credentials: "include", // Send HTTP-only cookie
+        });
 
         if (!response.ok) {
-          console.error(
-            "checkAuth - Token validation failed:",
-            response.status,
-            await response.text()
-          );
           setIsAuthenticated(false);
           setUser(null);
-          removeAuthToken();
           return;
         }
 
         const data = await response.json();
 
         if (data.valid) {
-          console.log("checkAuth - Token valid, fetching profile");
-          const userResponse = await fetchWithAuth(
-            `${apiUrl}/api/user/profile`
-          );
-          console.log(
-            "checkAuth - Profile fetch status:",
-            userResponse.status,
-            "Response:",
-            await userResponse.text()
-          );
-
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            setUser(userData);
-            setIsAuthenticated(true); // Move this after successful profile fetch
-          } else {
-            console.error(
-              "checkAuth - Profile fetch failed:",
-              userResponse.status,
-              await userResponse.text()
-            );
-            setIsAuthenticated(false);
-            setUser(null);
-            removeAuthToken();
-          }
+          setUser({
+            id: data.userId,
+            role: data.role,
+            name: null, // Will be populated by refreshUserData if needed
+            email: null,
+            isEmailVerified: false,
+          });
+          setIsAuthenticated(true);
+          await refreshUserData(); // Fetch full profile asynchronously
         } else {
-          console.log("checkAuth - Token invalid");
           setIsAuthenticated(false);
           setUser(null);
-          removeAuthToken();
         }
       } catch (error) {
         console.error("checkAuth - Error:", error);
         setIsAuthenticated(false);
         setUser(null);
-        removeAuthToken();
       } finally {
         setIsLoading(false);
       }
@@ -137,58 +84,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [apiUrl]);
 
+  // Refresh user data (fetch full profile)
   const refreshUserData = async () => {
     try {
       const response = await fetch(`${apiUrl}/api/user/profile`, {
-        credentials: "include", // Include cookies
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch user data");
+        throw new Error("Failed to fetch user profile");
       }
 
-      const userData = await response.json();
+      const userData: User = await response.json();
       setUser(userData);
     } catch (error) {
-      console.error("Failed to refresh user data:", error);
-      // Don't clear auth state here - the token might still be valid
+      console.error("refreshUserData - Error:", error);
+      // Don't clear auth state; token may still be valid
     }
   };
-  // src/context/auth-context.tsx
+
+  // Login function
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",
+        credentials: "include", // Receive HTTP-only cookie
       });
-
-      console.log("login - Status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("login - Error:", errorData);
-        throw new Error(errorData.error || "Login failed");
+        return { success: false, error: errorData.error || "Login failed" };
       }
 
       const data = await response.json();
 
-      console.log("login - Response data:", data);
-
-      if (data.token) {
-        setAuthToken(data.token);
+      if (data.success) {
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          isEmailVerified: data.user.isEmailVerified,
+        });
         setIsAuthenticated(true);
-        setUser(data.user);
 
         const urlParams = new URLSearchParams(window.location.search);
         const callbackUrl = urlParams.get("callbackUrl") || "/en/dashboard";
         router.push(callbackUrl);
 
         return { success: true };
-      } else {
-        throw new Error("No token received");
       }
+
+      return { success: false, error: "Login failed" };
     } catch (error) {
       console.error("login - Error:", error);
       return {
@@ -198,30 +147,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update logout method
-  const logout = async () => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
-      await fetchWithAuth(`${apiUrl}/api/auth/logout`, {
-        method: "POST",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Always clean up state
-      setIsAuthenticated(false);
-      setUser(null);
-      removeAuthToken();
-    }
-  };
-
+  // Register function
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
         credentials: "include",
       });
@@ -233,17 +164,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.success) {
-        // Could automatically log in the user here if desired
+        // Optionally auto-login after registration
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: "user", // Default role, adjust as needed
+          isEmailVerified: data.user.isEmailVerified,
+        });
+        setIsAuthenticated(true);
+        router.push("/en/dashboard");
         return { success: true };
-      } else {
-        return { success: false, error: data.error || "Registration failed" };
       }
+
+      return { success: false, error: "Registration failed" };
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("register - Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Registration failed",
       };
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      await fetch(`${apiUrl}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("logout - Error:", error);
+    } finally {
+      setIsAuthenticated(false);
+      setUser(null);
+      router.push("/login");
     }
   };
 
