@@ -211,7 +211,9 @@ func (s *EmailService) SendEmail(data EmailData) (*EmailResult, error) {
 }
 
 // baseTemplate is the main template wrapper with header and footer
-const baseTemplate = `<!DOCTYPE html>
+// This replaces the existing baseTemplate in email_service.go
+const baseTemplate = `
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -249,7 +251,7 @@ const baseTemplate = `<!DOCTYPE html>
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-0704 4-4-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.075' fill-rule='evenodd'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.075' fill-rule='evenodd'/%3E%3C/svg%3E");
       opacity: 0.6;
       z-index: 0;
     }
@@ -437,7 +439,8 @@ const baseTemplate = `<!DOCTYPE html>
     </div>
   </div>
 </body>
-</html>`
+</html>
+`
 
 // SendPasswordResetEmail sends a password reset email
 func (s *EmailService) SendPasswordResetEmail(to, token string) (*EmailResult, error) {
@@ -602,6 +605,241 @@ func (s *EmailService) SendVerificationEmail(to, token string, name string) (*Em
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Email Verification",
+		Template: baseTemplate,
+		Data:     data,
+	})
+}
+
+// Function to send a deposit confirmation email
+func (s *EmailService) SendDepositConfirmationEmail(to string, amount float64, newBalance float64, transactionID string, username string) (*EmailResult, error) {
+	// Format the amount with two decimal places
+	formattedAmount := fmt.Sprintf("$%.2f", amount)
+	formattedBalance := fmt.Sprintf("$%.2f", newBalance)
+
+	// Dashboard URL
+	dashboardURL := fmt.Sprintf("%s/en/dashboard/billing", s.config.AppURL)
+
+	// Content template for deposit confirmation
+	contentTemplate := `
+	  <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Deposit Confirmation</h2>
+	  <p>Hello {{if .Username}}{{.Username}}{{else}}there{{end}}!</p>
+	  
+	  <div class="success-box">
+		<p style="margin: 0;"><strong>Success:</strong> Your deposit of {{.Amount}} has been processed and added to your MegaPDF account.</p>
+	  </div>
+	  
+	  <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 24px 0;">
+		<h3 style="margin-top: 0; font-size: 18px; font-weight: 600; color: #111827;">Transaction Details</h3>
+		<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
+		  <tr>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; color: #6B7280;">Transaction ID:</td>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 500;">{{.TransactionID}}</td>
+		  </tr>
+		  <tr>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; color: #6B7280;">Date:</td>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 500;">{{.CurrentTime}}</td>
+		  </tr>
+		  <tr>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; color: #6B7280;">Amount:</td>
+			<td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 500;">{{.Amount}}</td>
+		  </tr>
+		  <tr>
+			<td style="padding: 12px 0; font-weight: 600;">New Balance:</td>
+			<td style="padding: 12px 0; text-align: right; font-weight: 700; color: #111827; font-size: 18px;">{{.NewBalance}}</td>
+		  </tr>
+		</table>
+	  </div>
+	  
+	  <p>Thank you for your continued support of MegaPDF. Your deposit allows you to continue using our premium PDF tools.</p>
+	  
+	  <div class="text-center" style="padding: 16px 0;">
+		<a href="{{.DashboardURL}}" class="button-primary">View Your Account</a>
+	  </div>
+	  
+	  <hr class="divider">
+	  
+	  <p class="text-small text-center">If you did not make this deposit or if you notice any issues, please contact our support team immediately.</p>
+	`
+
+	// Combine content into base template
+	data := map[string]interface{}{
+		"Content":       template.HTML(contentTemplate),
+		"Username":      username,
+		"Amount":        formattedAmount,
+		"NewBalance":    formattedBalance,
+		"TransactionID": transactionID,
+		"DashboardURL":  dashboardURL,
+		"CurrentTime":   time.Now().Format("January 2, 2006 15:04 MST"),
+		"Year":          time.Now().Year(),
+	}
+
+	// Send the email
+	return s.SendEmail(EmailData{
+		To:       to,
+		Subject:  "MegaPDF Deposit Confirmation",
+		Template: baseTemplate,
+		Data:     data,
+	})
+}
+
+// Function to send a low balance warning email
+func (s *EmailService) SendLowBalanceWarningEmail(to string, currentBalance float64, username string) (*EmailResult, error) {
+	// Format the balance with two decimal places
+	formattedBalance := fmt.Sprintf("$%.2f", currentBalance)
+
+	// Deposit URL
+	depositURL := fmt.Sprintf("%s/en/dashboard/billing", s.config.AppURL)
+
+	// Content template for low balance warning
+	contentTemplate := `
+	  <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Low Balance Alert</h2>
+	  <p>Hello {{if .Username}}{{.Username}}{{else}}there{{end}}!</p>
+	  
+	  <div class="warning-box">
+		<p style="margin: 0;"><strong>Warning:</strong> Your MegaPDF account balance is running low.</p>
+	  </div>
+	  
+	  <p>Your current account balance is <strong>{{.CurrentBalance}}</strong>. With this balance, you may not be able to perform many more PDF operations.</p>
+	  
+	  <p>To ensure uninterrupted access to all MegaPDF features, we recommend adding funds to your account.</p>
+	  
+	  <div class="text-center" style="padding: 16px 0;">
+		<a href="{{.DepositURL}}" class="button-primary">Add Funds Now</a>
+	  </div>
+	  
+	  <div class="info-box">
+		<p style="margin: 0;"><strong>Reminder:</strong> Each PDF operation costs approximately $0.005 USD. Maintaining a positive balance ensures you can continue using our premium tools without interruption.</p>
+	  </div>
+	  
+	  <hr class="divider">
+	  
+	  <p class="text-small text-center">If you have any questions about your account balance or billing, please contact our support team.</p>
+	`
+
+	// Combine content into base template
+	data := map[string]interface{}{
+		"Content":        template.HTML(contentTemplate),
+		"Username":       username,
+		"CurrentBalance": formattedBalance,
+		"DepositURL":     depositURL,
+		"Year":           time.Now().Year(),
+	}
+
+	// Send the email
+	return s.SendEmail(EmailData{
+		To:       to,
+		Subject:  "MegaPDF Low Balance Alert",
+		Template: baseTemplate,
+		Data:     data,
+	})
+}
+
+// Function to send an operation limit warning email
+func (s *EmailService) SendOperationLimitWarningEmail(to string, remainingOperations int, resetDate time.Time, username string) (*EmailResult, error) {
+	// Format the reset date
+	formattedResetDate := resetDate.Format("Monday, January 2, 2006")
+
+	// Upgrade URL
+	upgradeURL := fmt.Sprintf("%s/en/dashboard/billing", s.config.AppURL)
+
+	// Content template for operation limit warning
+	contentTemplate := `
+	  <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Operation Limit Alert</h2>
+	  <p>Hello {{if .Username}}{{.Username}}{{else}}there{{end}}!</p>
+	  
+	  <div class="warning-box">
+		<p style="margin: 0;"><strong>Notice:</strong> You're approaching your monthly free operation limit for MegaPDF.</p>
+	  </div>
+	  
+	  <p>You have <strong>{{.RemainingOperations}} operations</strong> remaining for this month. Your free operation count will reset on <strong>{{.ResetDate}}</strong>.</p>
+	  
+	  <p>Options to consider:</p>
+	  
+	  <ul class="feature-list">
+		<li class="feature-item">Add funds to your account to continue using premium features after your free operations are exhausted</li>
+		<li class="feature-item">Wait until the operation count resets at the beginning of next month</li>
+		<li class="feature-item">Prioritize your most important PDF tasks with your remaining operations</li>
+	  </ul>
+	  
+	  <div class="text-center" style="padding: 16px 0;">
+		<a href="{{.UpgradeURL}}" class="button-primary">Add Funds to Your Account</a>
+	  </div>
+	  
+	  <div class="info-box">
+		<p style="margin: 0;"><strong>Tip:</strong> If you regularly use MegaPDF for your work, adding funds to your account ensures uninterrupted access to all our tools.</p>
+	  </div>
+	  
+	  <hr class="divider">
+	  
+	  <p class="text-small text-center">If you have any questions about our pricing or features, please contact our support team.</p>
+	`
+
+	// Combine content into base template
+	data := map[string]interface{}{
+		"Content":             template.HTML(contentTemplate),
+		"Username":            username,
+		"RemainingOperations": remainingOperations,
+		"ResetDate":           formattedResetDate,
+		"UpgradeURL":          upgradeURL,
+		"Year":                time.Now().Year(),
+	}
+
+	// Send the email
+	return s.SendEmail(EmailData{
+		To:       to,
+		Subject:  "MegaPDF Operation Limit Alert",
+		Template: baseTemplate,
+		Data:     data,
+	})
+}
+
+// Function to send an email when operations are exhausted
+func (s *EmailService) SendOperationsExhaustedEmail(to string, resetDate time.Time, username string) (*EmailResult, error) {
+	// Format the reset date
+	formattedResetDate := resetDate.Format("Monday, January 2, 2006")
+
+	// Deposit URL
+	depositURL := fmt.Sprintf("%s/en/dashboard/billing", s.config.AppURL)
+
+	// Content template for exhausted operations
+	contentTemplate := `
+	  <h2 style="margin-top: 0; font-size: 24px; font-weight: 600; color: #111827;">Free Operations Exhausted</h2>
+	  <p>Hello {{if .Username}}{{.Username}}{{else}}there{{end}}!</p>
+	  
+	  <div class="warning-box">
+		<p style="margin: 0;"><strong>Notice:</strong> You have used all of your free PDF operations for this month.</p>
+	  </div>
+	  
+	  <p>Your monthly free operations have been exhausted. Your operation count will reset on <strong>{{.ResetDate}}</strong>.</p>
+	  
+	  <p>To continue using MegaPDF services without interruption, you can add funds to your account. Each operation costs only $0.005 USD.</p>
+	  
+	  <div class="text-center" style="padding: 16px 0;">
+		<a href="{{.DepositURL}}" class="button-primary">Add Funds Now</a>
+	  </div>
+	  
+	  <div class="info-box">
+		<p style="margin: 0;"><strong>Did you know?</strong> Adding just $5 to your account provides you with 1,000 additional PDF operations!</p>
+	  </div>
+	  
+	  <hr class="divider">
+	  
+	  <p class="text-small text-center">Thank you for using MegaPDF. We appreciate your continued support.</p>
+	`
+
+	// Combine content into base template
+	data := map[string]interface{}{
+		"Content":    template.HTML(contentTemplate),
+		"Username":   username,
+		"ResetDate":  formattedResetDate,
+		"DepositURL": depositURL,
+		"Year":       time.Now().Year(),
+	}
+
+	// Send the email
+	return s.SendEmail(EmailData{
+		To:       to,
+		Subject:  "MegaPDF Free Operations Exhausted",
 		Template: baseTemplate,
 		Data:     data,
 	})

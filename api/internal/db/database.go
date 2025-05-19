@@ -65,6 +65,8 @@ func InitDB() (*gorm.DB, error) {
 		&models.PasswordResetToken{},
 		&models.VerificationToken{},
 		&models.PaymentWebhookEvent{},
+		&models.LowBalanceAlert{}, // Add this line
+		&models.OperationsAlert{},
 		// Add any other models here
 	)
 	if err != nil {
@@ -89,7 +91,6 @@ func createAdminUser(db *gorm.DB) error {
 	if err := db.Model(&models.User{}).Where("role = ?", "admin").Count(&adminCount).Error; err != nil {
 		return err
 	}
-
 
 	return nil
 }

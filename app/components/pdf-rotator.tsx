@@ -222,7 +222,7 @@ export function PdfRotator() {
           setProcessedFileUrl(fileUrl);
           console.log("Processed file URL:", fileUrl);
           toast.success(
-            t("rotatePdf.messages.success") || "PDF rotated successfully!"
+            t("rotatePdf.form.success") || "PDF rotated successfully!"
           );
         },
         onError: (err) => {

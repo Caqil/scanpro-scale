@@ -146,3 +146,24 @@ type PaymentWebhookEvent struct {
 	RawData      string `gorm:"type:text"`
 	CreatedAt    time.Time
 }
+
+// LowBalanceAlert tracks when low balance warnings have been sent
+type LowBalanceAlert struct {
+	ID        string `gorm:"primaryKey;type:varchar(100)"`
+	UserID    string
+	CreatedAt time.Time
+
+	// Relations
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+// OperationsAlert tracks when operation limit warnings or exhausted notifications have been sent
+type OperationsAlert struct {
+	ID        string `gorm:"primaryKey;type:varchar(100)"`
+	UserID    string
+	Type      string `gorm:"type:varchar(50)"` // "warning" or "exhausted"
+	CreatedAt time.Time
+
+	// Relations
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}

@@ -150,74 +150,74 @@ func (h *BalanceHandler) CreateDeposit(c *gin.Context) {
 // @Router /api/user/deposit/verify [post]
 // VerifyDeposit function
 func (h *BalanceHandler) VerifyDeposit(c *gin.Context) {
-    // Get user ID from context
-    userID, exists := c.Get("userId")
-    if !exists {
-        c.JSON(http.StatusUnauthorized, gin.H{
-            "error": "Unauthorized",
-        })
-        return
-    }
+	// Get user ID from context
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
 
-    // Parse request body
-    var requestBody struct {
-        OrderID string `json:"orderId" binding:"required"`
-        PayerID string `json:"payerId"` // Optional, helpful for PayPal
-    }
+	// Parse request body
+	var requestBody struct {
+		OrderID string `json:"orderId" binding:"required"`
+		PayerID string `json:"payerId"` // Optional, helpful for PayPal
+	}
 
-    if err := c.ShouldBindJSON(&requestBody); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "error": "Invalid request body: " + err.Error(),
-        })
-        return
-    }
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body: " + err.Error(),
+		})
+		return
+	}
 
-    // Create PayPal service
-    paypalService := services.NewPayPalService(
-        os.Getenv("PAYPAL_CLIENT_ID"),
-        os.Getenv("PAYPAL_CLIENT_SECRET"),
-        os.Getenv("PAYPAL_API_BASE"),
-        os.Getenv("NEXT_PUBLIC_APP_URL"),
-    )
+	// Create PayPal service
+	paypalService := services.NewPayPalService(
+		os.Getenv("PAYPAL_CLIENT_ID"),
+		os.Getenv("PAYPAL_CLIENT_SECRET"),
+		os.Getenv("PAYPAL_API_BASE"),
+		os.Getenv("NEXT_PUBLIC_APP_URL"),
+	)
 
-    // Verify and capture the payment
-    verified, amount, err := paypalService.VerifyOrder(requestBody.OrderID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error": "Failed to verify payment: " + err.Error(),
-        })
-        return
-    }
+	// Verify and capture the payment
+	verified, amount, err := paypalService.VerifyOrder(requestBody.OrderID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to verify payment: " + err.Error(),
+		})
+		return
+	}
 
-    if !verified {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success": false,
-            "error": "Payment verification failed",
-        })
-        return
-    }
+	if !verified {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Payment verification failed",
+		})
+		return
+	}
 
-    // Complete the deposit in the database
-    if err := h.service.CompleteDeposit(requestBody.OrderID); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error": "Failed to complete deposit: " + err.Error(),
-        })
-        return
-    }
+	// Complete the deposit in the database
+	if err := h.service.CompleteDeposit(requestBody.OrderID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to complete deposit: " + err.Error(),
+		})
+		return
+	}
 
-    // Get updated balance
-    result, err := h.service.GetBalance(userID.(string))
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error": "Failed to get updated balance: " + err.Error(),
-        })
-        return
-    }
+	// Get updated balance
+	result, err := h.service.GetBalance(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get updated balance: " + err.Error(),
+		})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{
-        "success":    true,
-        "message":    "Deposit completed successfully",
-        "amount":     amount,
-        "newBalance": result["balance"],
-    })
+	c.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"message":    "Deposit completed successfully",
+		"amount":     amount,
+		"newBalance": result["balance"],
+	})
 }
