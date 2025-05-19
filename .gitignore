@@ -7,7 +7,7 @@
 .pnp.js
 .yarn/install-state.gz
 # Environment Variables
-
+/api/.env
 /app/.env
 /app/.env.local
 /app/.env.development.local
