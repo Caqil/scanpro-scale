@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Caqil/megapdf-api/internal/config"
-	"github.com/Caqil/megapdf-api/internal/db"
-	"github.com/Caqil/megapdf-api/internal/models"
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

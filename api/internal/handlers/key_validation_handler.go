@@ -4,7 +4,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

@@ -2,12 +2,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/db"
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/repository"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -1217,5 +1220,149 @@ func (h *AdminHandler) UpdateSettings(c *gin.Context) {
 		"success":  true,
 		"message":  "Settings updated successfully",
 		"settings": req.Settings,
+	})
+}
+
+// Add this function to internal/handlers/admin_handler.go
+// GetPricingSettings returns the current pricing settings
+func (h *AdminHandler) GetPricingSettings(c *gin.Context) {
+	// Get pricing settings from database
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Return pricing data
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"pricing": gin.H{
+			"operationCost":         pricing.OperationCost,
+			"freeOperationsMonthly": pricing.FreeOperationsMonthly,
+			"operations":            services.APIOperations, // Include the list of operations
+			"customPrices":          pricing.CustomPrices,
+			"customPlans": []gin.H{
+				{
+					"name":       "Free",
+					"price":      0,
+					"operations": pricing.FreeOperationsMonthly,
+					"features": []string{
+						"Basic PDF operations",
+						"Limited to 500 operations per month",
+						"No credit card required",
+					},
+				},
+				{
+					"name":             "Pay-as-you-go",
+					"price":            pricing.OperationCost,
+					"priceDescription": fmt.Sprintf("$%.3f per operation", pricing.OperationCost),
+					"features": []string{
+						"All PDF operations",
+						"Unlimited usage",
+						"Only pay for what you use",
+						"No monthly fees",
+					},
+				},
+			},
+		},
+	})
+}
+
+// UpdatePricingSettings updates global pricing settings
+func (h *AdminHandler) UpdatePricingSettings(c *gin.Context) {
+	// Parse pricing settings from request
+	var req struct {
+		OperationCost         *float64 `json:"operationCost"`
+		FreeOperationsMonthly *int     `json:"freeOperationsMonthly"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get current pricing settings
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve current pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Update with new values if provided
+	if req.OperationCost != nil {
+		pricing.OperationCost = *req.OperationCost
+	}
+
+	if req.FreeOperationsMonthly != nil {
+		pricing.FreeOperationsMonthly = *req.FreeOperationsMonthly
+	}
+
+	// Save updated settings
+	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to save pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Pricing settings updated successfully",
+		"pricing": gin.H{
+			"operationCost":         pricing.OperationCost,
+			"freeOperationsMonthly": pricing.FreeOperationsMonthly,
+		},
+	})
+}
+
+// UpdateOperationPricing updates operation-specific pricing
+func (h *AdminHandler) UpdateOperationPricing(c *gin.Context) {
+	// Parse pricing settings from request
+	var req struct {
+		CustomPrices map[string]float64 `json:"customPrices"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get current pricing settings
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve current pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Update custom prices
+	pricing.CustomPrices = req.CustomPrices
+
+	// Save updated settings
+	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to save custom pricing: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":      true,
+		"message":      "Operation-specific pricing updated successfully",
+		"customPrices": pricing.CustomPrices,
 	})
 }

@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/config"
-	"github.com/Caqil/megapdf-api/internal/handlers"
-	"github.com/Caqil/megapdf-api/internal/middleware"
-	"github.com/Caqil/megapdf-api/internal/models"
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/handlers"
+	"github.com/MegaPDF/megapdf-official/api/internal/middleware"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -271,6 +271,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			admin.GET("/transactions", adminHandler.GetTransactions)
 			admin.GET("/activity", adminHandler.GetActivityLogs)
 			admin.POST("/settings", adminHandler.UpdateSettings)
+			admin.GET("/pricing", adminHandler.GetPricingSettings)
+			admin.POST("/pricing", adminHandler.UpdatePricingSettings)
+			admin.POST("/operation-pricing", adminHandler.UpdateOperationPricing)
 		}
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))

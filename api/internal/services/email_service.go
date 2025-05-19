@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
 	"gopkg.in/gomail.v2"
 )
 

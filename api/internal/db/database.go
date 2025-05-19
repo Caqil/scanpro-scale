@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -67,6 +67,7 @@ func InitDB() (*gorm.DB, error) {
 		&models.PaymentWebhookEvent{},
 		&models.LowBalanceAlert{}, // Add this line
 		&models.OperationsAlert{},
+		&models.PricingSetting{},
 		// Add any other models here
 	)
 	if err != nil {

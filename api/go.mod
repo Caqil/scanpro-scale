@@ -1,4 +1,4 @@
-module github.com/Caqil/megapdf-api
+module github.com/MegaPDF/megapdf-official/api
 
 go 1.23.0
 

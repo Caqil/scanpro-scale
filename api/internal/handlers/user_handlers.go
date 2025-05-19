@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/db"
-	"github.com/Caqil/megapdf-api/internal/models"
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )

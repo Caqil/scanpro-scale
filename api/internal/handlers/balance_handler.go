@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

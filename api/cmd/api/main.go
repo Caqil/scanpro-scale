@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/Caqil/megapdf-api/docs"
-	"github.com/Caqil/megapdf-api/internal/config"
-	"github.com/Caqil/megapdf-api/internal/db" // Add this import
-	"github.com/Caqil/megapdf-api/internal/routes"
+	"github.com/MegaPDF/megapdf-official/api/docs"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/db" // Add this import
+	"github.com/MegaPDF/megapdf-official/api/internal/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

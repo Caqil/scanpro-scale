@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Caqil/megapdf-api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
 )
 
 // Config holds all the application configuration

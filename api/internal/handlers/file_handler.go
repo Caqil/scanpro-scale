@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Caqil/megapdf-api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
 	"github.com/gin-gonic/gin"
 )
 

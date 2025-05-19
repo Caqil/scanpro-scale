@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/config"
-	"github.com/Caqil/megapdf-api/internal/services"
+	"github.com/MegaPDF/megapdf-official/api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/pdfcpu/pdfcpu/pkg/api"

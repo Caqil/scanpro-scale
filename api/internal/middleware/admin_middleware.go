@@ -1,12 +1,11 @@
-
 // internal/middleware/admin_middleware.go
 package middleware
 
 import (
 	"net/http"
 
-	"github.com/Caqil/megapdf-api/internal/db"
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"github.com/gin-gonic/gin"
 )
 

@@ -30,8 +30,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FREE_OPERATIONS_MONTHLY, OPERATION_COST } from "@/lib/balance-service";
-import { API_OPERATIONS } from "@/lib/validate-key";
+import { useAuth } from "@/src/context/auth-context";
+
+// API operations array from Go API
+const API_OPERATIONS = [
+  "convert",
+  "compress",
+  "merge",
+  "split",
+  "protect",
+  "unlock",
+  "watermark",
+  "sign",
+  "rotate",
+  "ocr",
+  "repair",
+  "edit",
+  "annotate",
+  "extract",
+  "redact",
+  "organize",
+  "chat",
+  "remove",
+];
+
+// Constants for default values
+const OPERATION_COST = 0.005;
+const FREE_OPERATIONS_MONTHLY = 500;
 
 interface OperationPrice {
   operationName: string;
@@ -40,6 +65,7 @@ interface OperationPrice {
 }
 
 export function PricingContent() {
+  const { isAuthenticated, user } = useAuth();
   const [globalOperationCost, setGlobalOperationCost] =
     useState(OPERATION_COST);
   const [freeOperationsLimit, setFreeOperationsLimit] = useState(
@@ -49,39 +75,135 @@ export function PricingContent() {
   const [editingOperation, setEditingOperation] =
     useState<OperationPrice | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load initial prices
+  // Load initial pricing data
   useEffect(() => {
-    // Here you would normally fetch from API
-    // For now we'll use the constants from the library
-    const initialPrices = API_OPERATIONS.map((op) => ({
-      operationName: op,
-      price: OPERATION_COST,
-      customPrice: false,
-    }));
-    setOperationPrices(initialPrices);
-  }, []);
+    async function loadPricingData() {
+      try {
+        setLoading(true);
+
+        if (!isAuthenticated) {
+          console.error("User not authenticated");
+          toast.error("Authentication required");
+          return;
+        }
+
+        // Call the Go backend API directly
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/pricing`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch pricing data: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.pricing) {
+          // Set global pricing values
+          setGlobalOperationCost(data.pricing.operationCost);
+          setFreeOperationsLimit(data.pricing.freeOperationsMonthly);
+
+          // Initialize operation prices from API
+          const operations = data.pricing.operations || API_OPERATIONS;
+          const initialPrices = operations.map((op: string) => {
+            // Check if there's a custom price for this operation
+            const hasCustomPrice =
+              data.pricing.customPrices &&
+              data.pricing.customPrices[op] !== undefined;
+
+            return {
+              operationName: op,
+              price: hasCustomPrice
+                ? data.pricing.customPrices[op]
+                : data.pricing.operationCost,
+              customPrice: hasCustomPrice,
+            };
+          });
+
+          setOperationPrices(initialPrices);
+          console.log("Loaded pricing data:", data.pricing);
+        } else {
+          // Fallback to defaults
+          const initialPrices = API_OPERATIONS.map((op) => ({
+            operationName: op,
+            price: OPERATION_COST,
+            customPrice: false,
+          }));
+          setOperationPrices(initialPrices);
+          console.log("Using default pricing (no data from API)");
+        }
+      } catch (error) {
+        console.error("Error loading pricing data:", error);
+
+        // Fallback to defaults on error
+        const initialPrices = API_OPERATIONS.map((op) => ({
+          operationName: op,
+          price: OPERATION_COST,
+          customPrice: false,
+        }));
+        setOperationPrices(initialPrices);
+
+        toast.error("Failed to load pricing settings");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (isAuthenticated) {
+      loadPricingData();
+    }
+  }, [isAuthenticated]);
 
   const handleSaveGlobalSettings = async () => {
     try {
+      if (!isAuthenticated) {
+        toast.error("Authentication required");
+        return;
+      }
+
       setSaving(true);
-      // Here you would normally call your API
-      // await fetch('/api/admin/settings/pricing', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     globalOperationCost,
-      //     freeOperationsLimit
-      //   })
-      // });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call Go backend API directly
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/pricing`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            operationCost: globalOperationCost,
+            freeOperationsMonthly: freeOperationsLimit,
+          }),
+        }
+      );
 
-      toast.success("Global pricing settings updated successfully");
+      if (!response.ok) {
+        throw new Error(`Failed to save global settings: ${response.status}`);
+      }
+
+      // Update operation prices with new global cost for non-custom prices
+      setOperationPrices((prev) =>
+        prev.map((op) => ({
+          ...op,
+          price: op.customPrice ? op.price : globalOperationCost,
+        }))
+      );
+
+      toast.success("Global pricing settings saved successfully");
     } catch (error) {
-      console.error("Error saving pricing settings:", error);
-      toast.error("Failed to update pricing settings");
+      console.error("Error saving global settings:", error);
+      toast.error("Failed to save global settings");
     } finally {
       setSaving(false);
     }
@@ -91,25 +213,51 @@ export function PricingContent() {
     if (!editingOperation) return;
 
     try {
+      if (!isAuthenticated) {
+        toast.error("Authentication required");
+        return;
+      }
+
       setSaving(true);
-      // Here you would normally call your API
-      // await fetch('/api/admin/settings/pricing/operation', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(editingOperation)
-      // });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Update local state
-      setOperationPrices((prices) =>
-        prices.map((p) =>
-          p.operationName === editingOperation.operationName
-            ? editingOperation
-            : p
-        )
+      // Update the local state first
+      const updatedPrices = operationPrices.map((op) =>
+        op.operationName === editingOperation.operationName
+          ? editingOperation
+          : op
       );
+
+      setOperationPrices(updatedPrices);
+
+      // Collect all custom prices
+      const customPrices = updatedPrices
+        .filter((p) => p.customPrice)
+        .reduce(
+          (acc, p) => ({
+            ...acc,
+            [p.operationName]: p.price,
+          }),
+          {}
+        );
+
+      // Call Go backend API directly
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/operation-pricing`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            customPrices,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to save operation price: ${response.status}`);
+      }
 
       setEditingOperation(null);
       toast.success(
@@ -117,7 +265,7 @@ export function PricingContent() {
       );
     } catch (error) {
       console.error("Error saving operation price:", error);
-      toast.error("Failed to update operation price");
+      toast.error("Failed to save operation price");
     } finally {
       setSaving(false);
     }
@@ -130,6 +278,22 @@ export function PricingContent() {
       minimumFractionDigits: 3,
     }).format(amount);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        Authentication required
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        Loading pricing settings...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

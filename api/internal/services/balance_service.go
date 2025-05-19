@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -303,4 +303,21 @@ func (s *BalanceService) CompleteDeposit(paymentID string) error {
 			"balance_after": newBalance,
 		}).Error
 	})
+}
+func (s *BalanceService) getOperationCost(operation string) float64 {
+	// Get pricing info
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		// Fallback to default if we can't get pricing info
+		return OperationCost
+	}
+
+	// Check for custom price
+	if customPrice, ok := pricing.CustomPrices[operation]; ok {
+		return customPrice
+	}
+
+	// Otherwise use global price
+	return pricing.OperationCost
 }

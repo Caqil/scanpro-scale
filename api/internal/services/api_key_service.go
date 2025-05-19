@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

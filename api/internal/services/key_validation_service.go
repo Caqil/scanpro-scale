@@ -4,7 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Caqil/megapdf-api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/repository"
 	"gorm.io/gorm"
 )
 
@@ -38,7 +39,6 @@ var APIOperations = []string{
 type KeyValidationService struct {
 	db *gorm.DB
 }
-
 
 func NewKeyValidationService(db *gorm.DB) *KeyValidationService {
 	return &KeyValidationService{db: db}
@@ -112,10 +112,36 @@ func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*Va
 	}
 
 	return &ValidationResult{
-		Valid:  true,
-		UserID: keyRecord.UserID,
+		Valid:                   true,
+		UserID:                  keyRecord.UserID,
 		FreeOperationsRemaining: freeOpsRemaining,
 		Balance:                 keyRecord.User.Balance,
 		FreeOperationsReset:     freeOpsReset,
 	}, nil
+}
+func (s *KeyValidationService) GetPricingSettings() (float64, int, error) {
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		return OperationCost, FreeOperationsMonthly, err
+	}
+
+	return pricing.OperationCost, pricing.FreeOperationsMonthly, nil
+}
+
+// GetOperationCost returns the cost for a specific operation
+func (s *KeyValidationService) GetOperationCost(operation string) (float64, error) {
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		return OperationCost, err
+	}
+
+	// Check if there's a custom price for this operation
+	if price, ok := pricing.CustomPrices[operation]; ok {
+		return price, nil
+	}
+
+	// Otherwise return the global operation cost
+	return pricing.OperationCost, nil
 }
