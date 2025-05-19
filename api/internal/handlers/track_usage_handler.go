@@ -1,4 +1,4 @@
-// internal/handlers/track_usage_handler.go
+// internal/services/track_usage_handler.go
 package handlers
 
 import (
@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
-	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -69,10 +69,10 @@ func (h *TrackUsageHandler) GetUsageStats(c *gin.Context) {
 	freeOpsRemaining := 0
 	if user.FreeOperationsReset.Before(now) {
 		// If reset date has passed, user has all free operations available
-		freeOpsRemaining = services.FreeOperationsMonthly
+		freeOpsRemaining = constants.FreeOperationsMonthly
 	} else {
 		// Otherwise calculate remaining based on used count
-		freeOpsRemaining = services.FreeOperationsMonthly - user.FreeOperationsUsed
+		freeOpsRemaining = constants.FreeOperationsMonthly - user.FreeOperationsUsed
 		if freeOpsRemaining < 0 {
 			freeOpsRemaining = 0
 		}
@@ -85,7 +85,7 @@ func (h *TrackUsageHandler) GetUsageStats(c *gin.Context) {
 		"operationCounts":         operationCounts,
 		"freeOperationsUsed":      user.FreeOperationsUsed,
 		"freeOperationsRemaining": freeOpsRemaining,
-		"freeOperationsTotal":     services.FreeOperationsMonthly,
+		"freeOperationsTotal":     constants.FreeOperationsMonthly,
 		"nextResetDate":           user.FreeOperationsReset,
 		"period": gin.H{
 			"start": startOfMonth,

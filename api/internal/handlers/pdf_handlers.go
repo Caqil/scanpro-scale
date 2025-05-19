@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/config"
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -75,7 +76,7 @@ func (h *PDFHandler) ConvertPDF(c *gin.Context) {
 				"details": gin.H{
 					"balance":                 result.CurrentBalance,
 					"freeOperationsRemaining": result.FreeOperationsRemaining,
-					"operationCost":           services.OperationCost,
+					"operationCost":           constants.OperationCost,
 				},
 			})
 			return
@@ -265,7 +266,7 @@ func (h *PDFHandler) ConvertPDF(c *gin.Context) {
 		if result.UsedFreeOperation {
 			opCost = 0
 		} else {
-			opCost = services.OperationCost
+			opCost = constants.OperationCost
 		}
 
 		billingInfo = gin.H{
@@ -591,7 +592,7 @@ func (h *PDFHandler) SplitPDF(c *gin.Context) {
 				"details": gin.H{
 					"balance":                 result.CurrentBalance,
 					"freeOperationsRemaining": result.FreeOperationsRemaining,
-					"operationCost":           services.OperationCost,
+					"operationCost":           constants.OperationCost,
 				},
 			})
 			return
@@ -746,7 +747,7 @@ func (h *PDFHandler) SplitPDF(c *gin.Context) {
 		if result.UsedFreeOperation {
 			opCost = 0
 		} else {
-			opCost = services.OperationCost
+			opCost = constants.OperationCost
 		}
 
 		billingInfo = gin.H{
@@ -1510,7 +1511,7 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -1664,7 +1665,7 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -1703,7 +1704,7 @@ func (h *PDFHandler) UnlockPDF(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -1780,7 +1781,7 @@ func (h *PDFHandler) UnlockPDF(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -1818,7 +1819,7 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -1926,7 +1927,7 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -1966,7 +1967,7 @@ func (h *PDFHandler) RotatePDF(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -2066,7 +2067,7 @@ func (h *PDFHandler) RotatePDF(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -2132,7 +2133,7 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -2251,7 +2252,7 @@ func (h *PDFHandler) ProtectPDF(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -2290,7 +2291,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 			"details": gin.H{
 				"balance":                 result.CurrentBalance,
 				"freeOperationsRemaining": result.FreeOperationsRemaining,
-				"operationCost":           services.OperationCost,
+				"operationCost":           constants.OperationCost,
 			},
 		})
 		return
@@ -2443,7 +2444,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 			"usedFreeOperation":       result.UsedFreeOperation,
 			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           services.OperationCost,
+			"operationCost":           constants.OperationCost,
 		},
 	})
 }
@@ -2660,7 +2661,7 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 				"details": gin.H{
 					"balance":                 result.CurrentBalance,
 					"freeOperationsRemaining": result.FreeOperationsRemaining,
-					"operationCost":           services.OperationCost,
+					"operationCost":           constants.OperationCost,
 				},
 			})
 			return
@@ -2972,7 +2973,7 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		if result.UsedFreeOperation {
 			opCost = 0
 		} else {
-			opCost = services.OperationCost
+			opCost = constants.OperationCost
 		}
 
 		response["billing"] = gin.H{

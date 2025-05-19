@@ -1,40 +1,18 @@
+// internal/services/key_validation_service.go
 package services
 
 import (
 	"errors"
 	"time"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"github.com/MegaPDF/megapdf-official/api/internal/repository"
 	"gorm.io/gorm"
 )
 
-const (
-	OperationCost         = 0.005
-	FreeOperationsMonthly = 500
-)
-
-// API operation constants
-var APIOperations = []string{
-	"convert",
-	"compress",
-	"merge",
-	"split",
-	"protect",
-	"unlock",
-	"watermark",
-	"sign",
-	"rotate",
-	"ocr",
-	"repair",
-	"edit",
-	"annotate",
-	"extract",
-	"redact",
-	"organize",
-	"chat",
-	"remove",
-}
+// API operation constants - now imported from constants package
+var APIOperations = constants.APIOperations
 
 type KeyValidationService struct {
 	db *gorm.DB
@@ -106,7 +84,7 @@ func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*Va
 	}
 
 	// Calculate remaining free operations
-	freeOpsRemaining := FreeOperationsMonthly - freeOpsUsed
+	freeOpsRemaining := constants.FreeOperationsMonthly - freeOpsUsed
 	if freeOpsRemaining < 0 {
 		freeOpsRemaining = 0
 	}
@@ -123,7 +101,7 @@ func (s *KeyValidationService) GetPricingSettings() (float64, int, error) {
 	pricingRepo := repository.NewPricingRepository()
 	pricing, err := pricingRepo.GetPricingSettings()
 	if err != nil {
-		return OperationCost, FreeOperationsMonthly, err
+		return constants.OperationCost, constants.FreeOperationsMonthly, err
 	}
 
 	return pricing.OperationCost, pricing.FreeOperationsMonthly, nil
@@ -134,7 +112,7 @@ func (s *KeyValidationService) GetOperationCost(operation string) (float64, erro
 	pricingRepo := repository.NewPricingRepository()
 	pricing, err := pricingRepo.GetPricingSettings()
 	if err != nil {
-		return OperationCost, err
+		return constants.OperationCost, err
 	}
 
 	// Check if there's a custom price for this operation

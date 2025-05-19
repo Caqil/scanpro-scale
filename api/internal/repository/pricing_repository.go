@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
-	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -28,8 +28,8 @@ func (r *PricingRepository) GetPricingSettings() (*models.CustomPricing, error) 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		// Return default settings if not found
 		return &models.CustomPricing{
-			OperationCost:         services.OperationCost,
-			FreeOperationsMonthly: services.FreeOperationsMonthly,
+			OperationCost:         constants.OperationCost,
+			FreeOperationsMonthly: constants.FreeOperationsMonthly,
 			CustomPrices:          make(map[string]float64),
 		}, nil
 	} else if result.Error != nil {

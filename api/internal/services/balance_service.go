@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -66,7 +68,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 		}
 
 		// Check if free operations are available
-		if freeOpsUsed < FreeOperationsMonthly {
+		if freeOpsUsed < constants.FreeOperationsMonthly {
 			// Use a free operation
 			if err := tx.Model(&user).Update("free_operations_used", freeOpsUsed+1).Error; err != nil {
 				return err
@@ -80,14 +82,17 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 			result = OperationResult{
 				Success:                 true,
 				UsedFreeOperation:       true,
-				FreeOperationsRemaining: FreeOperationsMonthly - freeOpsUsed - 1,
+				FreeOperationsRemaining: constants.FreeOperationsMonthly - freeOpsUsed - 1,
 				CurrentBalance:          user.Balance,
 			}
 			return nil
 		}
 
+		// Get the operation cost
+		operationCost := s.getOperationCost(operation)
+
 		// No free operations left, use balance
-		if user.Balance < OperationCost {
+		if user.Balance < operationCost {
 			result = OperationResult{
 				Success:                 false,
 				UsedFreeOperation:       false,
@@ -99,7 +104,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 		}
 
 		// Deduct from balance
-		newBalance := user.Balance - OperationCost
+		newBalance := user.Balance - operationCost
 
 		if err := tx.Model(&user).Update("balance", newBalance).Error; err != nil {
 			return err
@@ -109,7 +114,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 		transaction := models.Transaction{
 			ID:           uuid.New().String(),
 			UserID:       userID,
-			Amount:       -OperationCost,
+			Amount:       -operationCost,
 			BalanceAfter: newBalance,
 			Description:  "Operation: " + operation,
 			Status:       "completed",
@@ -228,8 +233,8 @@ func (s *BalanceService) GetBalance(userID string) (map[string]interface{}, erro
 		"success":                 true,
 		"balance":                 user.Balance,
 		"freeOperationsUsed":      freeOpsUsed,
-		"freeOperationsRemaining": FreeOperationsMonthly - freeOpsUsed,
-		"freeOperationsTotal":     FreeOperationsMonthly,
+		"freeOperationsRemaining": constants.FreeOperationsMonthly - freeOpsUsed,
+		"freeOperationsTotal":     constants.FreeOperationsMonthly,
 		"nextResetDate":           resetDate,
 		"transactions":            formattedTransactions,
 		"totalOperations":         totalOperations,
@@ -304,13 +309,14 @@ func (s *BalanceService) CompleteDeposit(paymentID string) error {
 		}).Error
 	})
 }
+
 func (s *BalanceService) getOperationCost(operation string) float64 {
 	// Get pricing info
 	pricingRepo := repository.NewPricingRepository()
 	pricing, err := pricingRepo.GetPricingSettings()
 	if err != nil {
 		// Fallback to default if we can't get pricing info
-		return OperationCost
+		return constants.OperationCost
 	}
 
 	// Check for custom price

@@ -22,8 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function SettingsContent() {
+  const [saving, setSaving] = useState({
+    general: false,
+    api: false,
+    email: false,
+    security: false,
+  });
+
   const [generalSettings, setGeneralSettings] = useState({
     siteName: "MegaPDF",
     siteDescription: "Professional PDF tools and API services",
@@ -50,30 +59,85 @@ export function SettingsContent() {
     smtpPassword: "",
   });
 
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorAuthRequired: false,
+    passwordMinLength: "8",
+    passwordRequireUppercase: true,
+    passwordRequireNumbers: true,
+    passwordRequireSymbols: false,
+    sessionTimeout: "24", // hours
+    maxLoginAttempts: "5",
+    blockTimeAfterFailures: "30", // minutes
+    allowedIPs: "",
+    jwtSecret: "", // This would typically be masked or not displayed
+    corsAllowedOrigins: "*",
+  });
+
   const handleSaveGeneral = async () => {
     try {
+      // Set loading state
+      setSaving({ ...saving, general: true });
+
       // Implement save logic here
+      // Simulating API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       toast.success("General settings saved successfully");
     } catch (error) {
       toast.error("Failed to save general settings");
+    } finally {
+      setSaving({ ...saving, general: false });
     }
   };
 
   const handleSaveApi = async () => {
     try {
+      // Set loading state
+      setSaving({ ...saving, api: true });
+
       // Implement save logic here
+      // Simulating API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       toast.success("API settings saved successfully");
     } catch (error) {
       toast.error("Failed to save API settings");
+    } finally {
+      setSaving({ ...saving, api: false });
     }
   };
 
   const handleSaveEmail = async () => {
     try {
+      // Set loading state
+      setSaving({ ...saving, email: true });
+
       // Implement save logic here
+      // Simulating API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       toast.success("Email settings saved successfully");
     } catch (error) {
       toast.error("Failed to save email settings");
+    } finally {
+      setSaving({ ...saving, email: false });
+    }
+  };
+
+  const handleSaveSecurity = async () => {
+    try {
+      // Set loading state
+      setSaving({ ...saving, security: true });
+
+      // Implement save logic here
+      // Simulating API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      toast.success("Security settings saved successfully");
+    } catch (error) {
+      toast.error("Failed to save security settings");
+    } finally {
+      setSaving({ ...saving, security: false });
     }
   };
 
@@ -178,7 +242,9 @@ export function SettingsContent() {
                   }
                 />
               </div>
-              <Button onClick={handleSaveGeneral}>Save Changes</Button>
+              <Button onClick={handleSaveGeneral} disabled={saving.general}>
+                {saving.general ? "Saving..." : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -269,7 +335,9 @@ export function SettingsContent() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleSaveApi}>Save Changes</Button>
+              <Button onClick={handleSaveApi} disabled={saving.api}>
+                {saving.api ? "Saving..." : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -385,7 +453,9 @@ export function SettingsContent() {
                   </div>
                 </>
               )}
-              <Button onClick={handleSaveEmail}>Save Changes</Button>
+              <Button onClick={handleSaveEmail} disabled={saving.email}>
+                {saving.email ? "Saving..." : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -398,10 +468,189 @@ export function SettingsContent() {
                 Configure security and authentication settings
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Security settings coming soon...
-              </p>
+            <CardContent className="space-y-6">
+              {/* Password Policy */}
+              <div>
+                <h3 className="text-lg font-medium mb-4">Password Policy</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="passwordMinLength">
+                      Minimum Password Length
+                    </Label>
+                    <Input
+                      id="passwordMinLength"
+                      type="number"
+                      min="6"
+                      max="32"
+                      value={securitySettings.passwordMinLength}
+                      onChange={(e) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          passwordMinLength: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="passwordRequireUppercase">
+                        Require Uppercase Letters
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Passwords must contain at least one uppercase letter
+                      </p>
+                    </div>
+                    <Switch
+                      id="passwordRequireUppercase"
+                      checked={securitySettings.passwordRequireUppercase}
+                      onCheckedChange={(checked) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          passwordRequireUppercase: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="passwordRequireNumbers">
+                        Require Numbers
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Passwords must contain at least one number
+                      </p>
+                    </div>
+                    <Switch
+                      id="passwordRequireNumbers"
+                      checked={securitySettings.passwordRequireNumbers}
+                      onCheckedChange={(checked) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          passwordRequireNumbers: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="passwordRequireSymbols">
+                        Require Special Characters
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Passwords must contain at least one special character
+                      </p>
+                    </div>
+                    <Switch
+                      id="passwordRequireSymbols"
+                      checked={securitySettings.passwordRequireSymbols}
+                      onCheckedChange={(checked) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          passwordRequireSymbols: checked,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Authentication Settings */}
+              <div>
+                <h3 className="text-lg font-medium mb-4">Authentication</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="twoFactorAuthRequired">
+                        Require Two-Factor Authentication
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Force all users to set up 2FA for their accounts
+                      </p>
+                    </div>
+                    <Switch
+                      id="twoFactorAuthRequired"
+                      checked={securitySettings.twoFactorAuthRequired}
+                      onCheckedChange={(checked) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          twoFactorAuthRequired: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sessionTimeout">
+                      Session Timeout (hours)
+                    </Label>
+                    <Input
+                      id="sessionTimeout"
+                      type="number"
+                      min="1"
+                      max="168"
+                      value={securitySettings.sessionTimeout}
+                      onChange={(e) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          sessionTimeout: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* API Security (Just the main settings) */}
+              <div>
+                <h3 className="text-lg font-medium mb-4">API Security</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="corsAllowedOrigins">
+                      CORS Allowed Origins
+                    </Label>
+                    <Input
+                      id="corsAllowedOrigins"
+                      value={securitySettings.corsAllowedOrigins}
+                      onChange={(e) =>
+                        setSecuritySettings({
+                          ...securitySettings,
+                          corsAllowedOrigins: e.target.value,
+                        })
+                      }
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Comma-separated list of origins allowed to access the API
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Alert variant="default" className="bg-muted">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>More Security Options</AlertTitle>
+                <AlertDescription>
+                  Additional security settings like brute force protection and
+                  IP restrictions are available in the dedicated Security
+                  Settings page.
+                </AlertDescription>
+              </Alert>
+
+              <Button onClick={handleSaveSecurity} disabled={saving.security}>
+                {saving.security ? "Saving..." : "Save Basic Security Settings"}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  (window.location.href = "/en/admin/settings/security")
+                }
+              >
+                Advanced Security Settings
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
-	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -81,7 +81,7 @@ func GetUserProfile(c *gin.Context) {
 
 	if user.FreeOperationsReset.Before(now) {
 		// If reset date has passed, user has all free operations available
-		freeOpsRemaining = services.FreeOperationsMonthly
+		freeOpsRemaining = constants.FreeOperationsMonthly
 
 		// Next reset date would be first day of next month
 		nextMonth := now.AddDate(0, 1, 0)
@@ -98,7 +98,7 @@ func GetUserProfile(c *gin.Context) {
 		}
 	} else {
 		// Otherwise calculate remaining based on used count
-		freeOpsRemaining = services.FreeOperationsMonthly - freeOpsUsed
+		freeOpsRemaining = constants.FreeOperationsMonthly - freeOpsUsed
 		if freeOpsRemaining < 0 {
 			freeOpsRemaining = 0
 		}
@@ -116,7 +116,7 @@ func GetUserProfile(c *gin.Context) {
 		"currentPeriodStart":      currentPeriodStart,
 		"currentPeriodEnd":        currentPeriodEnd,
 		"operations":              operations,
-		"limit":                   services.FreeOperationsMonthly,
+		"limit":                   constants.FreeOperationsMonthly,
 		"balance":                 currentBalance,
 		"freeOperationsUsed":      freeOpsUsed,
 		"freeOperationsRemaining": freeOpsRemaining,
