@@ -33,7 +33,7 @@ func (r *APIKeyRepository) GetByID(id string) (*models.ApiKey, error) {
 // GetByKey retrieves an API key by the key string
 func (r *APIKeyRepository) GetByKey(key string) (*models.ApiKey, error) {
 	var apiKey models.ApiKey
-	if err := db.DB.First(&apiKey, "key = ?", key).Error; err != nil {
+	if err := db.DB.First(&apiKey, "`key` = ?", key).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Key not found
 		}
@@ -45,7 +45,7 @@ func (r *APIKeyRepository) GetByKey(key string) (*models.ApiKey, error) {
 // GetByKeyWithUser retrieves an API key with its user by the key string
 func (r *APIKeyRepository) GetByKeyWithUser(key string) (*models.ApiKey, *models.User, error) {
 	var apiKey models.ApiKey
-	if err := db.DB.Preload("User").First(&apiKey, "key = ?", key).Error; err != nil {
+	if err := db.DB.Preload("User").First(&apiKey, "`key` = ?", key).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, nil // Key not found
 		}

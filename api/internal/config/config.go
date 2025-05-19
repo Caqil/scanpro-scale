@@ -28,15 +28,33 @@ type Config struct {
 	ContactRecipient   string
 	AppURL             string
 	Debug              bool
+
+	// DB Config
+	DBHost            string
+	DBPort            int
+	DBName            string
+	DBUser            string
+	DBPassword        string
+	DBCharset         string
+	DBCollation       string
+	DBTimezone        string
+	DBMaxIdleConns    int
+	DBMaxOpenConns    int
+	DBConnMaxLifetime string
 }
 
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
 	port, _ := strconv.Atoi(getEnv("PORT", "8080"))
 	smtpPort, _ := strconv.Atoi(getEnv("SMTP_PORT", "587"))
+	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "3306"))
+	dbMaxIdleConns, _ := strconv.Atoi(getEnv("DB_MAX_IDLE_CONNS", "10"))
+	dbMaxOpenConns, _ := strconv.Atoi(getEnv("DB_MAX_OPEN_CONNS", "100"))
+	dbConnMaxLifetime := getEnv("DB_CONN_MAX_LIFETIME", "1h")
 
 	return &Config{
-		Port:               port,
+		Port: port,
+
 		JWTSecret:          getEnv("JWT_SECRET", "your-default-secret-key"),
 		TempDir:            getEnv("TEMP_DIR", "temp"),
 		UploadDir:          getEnv("UPLOAD_DIR", "uploads"),
@@ -53,6 +71,19 @@ func LoadConfig() *Config {
 		ContactRecipient:   getEnv("CONTACT_RECIPIENT_EMAIL", ""),
 		AppURL:             getEnv("APP_URL", "http://localhost:8080"),
 		Debug:              getEnv("DEBUG", "false") == "true",
+
+		// Database config
+		DBHost:            getEnv("DB_HOST", "127.0.0.1"),
+		DBPort:            dbPort,
+		DBName:            getEnv("DB_NAME", ""),
+		DBUser:            getEnv("DB_USER", ""),
+		DBPassword:        getEnv("DB_PASSWORD", ""),
+		DBCharset:         getEnv("DB_CHARSET", "utf8mb4"),
+		DBCollation:       getEnv("DB_COLLATION", "utf8mb4_unicode_ci"),
+		DBTimezone:        getEnv("DB_TIMEZONE", "UTC"),
+		DBMaxIdleConns:    dbMaxIdleConns,
+		DBMaxOpenConns:    dbMaxOpenConns,
+		DBConnMaxLifetime: dbConnMaxLifetime,
 	}
 }
 

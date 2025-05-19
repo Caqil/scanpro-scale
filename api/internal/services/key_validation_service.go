@@ -42,7 +42,7 @@ func (s *KeyValidationService) ValidateKey(apiKey string, operation string) (*Va
 
 	// Look up the key
 	var keyRecord models.ApiKey
-	result := s.db.Preload("User").Where("key = ?", apiKey).First(&keyRecord)
+	result := s.db.Preload("User").Where("`key` = ?", apiKey).First(&keyRecord)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return &ValidationResult{

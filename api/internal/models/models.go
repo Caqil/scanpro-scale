@@ -85,7 +85,6 @@ type ApiKey struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-
 	// Relations
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
