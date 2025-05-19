@@ -156,8 +156,8 @@ export function SettingsContent() {
           <TabsTrigger value="api">API</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
-
         <TabsContent value="general">
           <Card>
             <CardHeader>

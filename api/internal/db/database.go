@@ -68,6 +68,7 @@ func InitDB() (*gorm.DB, error) {
 		&models.LowBalanceAlert{}, // Add this line
 		&models.OperationsAlert{},
 		&models.PricingSetting{},
+		&models.Setting{},
 		// Add any other models here
 	)
 	if err != nil {
@@ -83,6 +84,7 @@ func InitDB() (*gorm.DB, error) {
 	DB = db
 	fmt.Println("Database initialized successfully!")
 	return db, nil
+
 }
 
 // createAdminUser creates a default admin user if no admin exists

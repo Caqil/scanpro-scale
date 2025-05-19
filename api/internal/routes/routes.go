@@ -84,7 +84,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	paypalWebhookHandler := handlers.NewPayPalWebhookHandler()
 	fmt.Println("Setting email service on auth handler")
 	authHandler.SetEmailService(emailService)
-
+	settingsHandler := handlers.NewSettingsHandler()
 	// API routes
 	api := r.Group("/api")
 	{
@@ -274,6 +274,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			admin.GET("/pricing", adminHandler.GetPricingSettings)
 			admin.POST("/pricing", adminHandler.UpdatePricingSettings)
 			admin.POST("/operation-pricing", adminHandler.UpdateOperationPricing)
+			admin.GET("/settings/:category", settingsHandler.GetSettings)
+			admin.POST("/settings/:category", settingsHandler.UpdateSettings)
+			admin.GET("/settings", settingsHandler.GetAllSettings)
 		}
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
