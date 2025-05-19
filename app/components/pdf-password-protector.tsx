@@ -128,7 +128,7 @@ export function PdfPasswordProtector() {
     }
 
     // Use the Go API URL instead of Next.js API
-    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/protect`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/protect`;
     console.log("Submitting to Go API URL:", apiUrl);
 
     try {
@@ -502,7 +502,7 @@ export function PdfPasswordProtector() {
                     >
                       <a
                         href={`${
-                          process.env.NEXT_PUBLIC_GO_API_URL
+                          process.env.NEXT_PUBLIC_API_URL
                         }/api/file?folder=protected&filename=${encodeURIComponent(
                           protectedFileUrl
                         )}`}

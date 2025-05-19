@@ -64,7 +64,7 @@ function BalancePanel() {
     var _j = react_1.useState(true), isLoading = _j[0], setIsLoading = _j[1];
     var _k = react_1.useState(false), isProcessing = _k[0], setIsProcessing = _k[1];
     // Get API URL from environment variable
-    var apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    var apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
     // Fetch balance information
     var fetchBalance = function () { return __awaiter(_this, void 0, void 0, function () {
         var response, data, error_1;

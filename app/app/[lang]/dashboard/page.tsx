@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const fetchUsageStats = async () => {
     try {
       setLoadingStats(true);
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
       // Fetch usage stats from API
       const response = await fetch(`${apiUrl}/api/track-usage`, {

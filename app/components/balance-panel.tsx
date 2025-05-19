@@ -54,7 +54,7 @@ export function BalancePanel() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Get API URL from environment variable
-  const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   // Fetch balance information
   const fetchBalance = async () => {

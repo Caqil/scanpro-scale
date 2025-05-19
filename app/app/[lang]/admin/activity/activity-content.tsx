@@ -85,7 +85,7 @@ export function ActivityContent() {
         limit: "50",
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(
         `${apiUrl}/api/admin/activity?${params}`
       );
@@ -113,7 +113,7 @@ export function ActivityContent() {
         format: "csv",
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(
         `${apiUrl}/api/admin/activity/export?${params}`
       );

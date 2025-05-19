@@ -118,7 +118,7 @@ export function TransactionsContent() {
         dateRange: filters.dateRange,
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(
         `${apiUrl}/api/admin/transactions?${params.toString()}`
       );
@@ -140,7 +140,7 @@ export function TransactionsContent() {
 
   const fetchStats = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(`${apiUrl}/api/admin/transactions`);
 
       if (!response.ok) {
@@ -166,7 +166,7 @@ export function TransactionsContent() {
         format: "csv",
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(
         `${apiUrl}/api/admin/transactions/export?${params.toString()}`
       );

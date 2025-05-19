@@ -161,7 +161,7 @@ export function PdfOcr() {
         formData.append("enhanceScanned", enhanceScanned.toString());
         formData.append("preserveLayout", preserveLayout.toString());
 
-        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/ocr`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/ocr`;
         console.log("Submitting to Go API URL:", apiUrl);
         console.log("File name:", file.name, "File size:", file.size);
 

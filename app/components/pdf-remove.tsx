@@ -146,7 +146,7 @@ export function PdfRemove() {
         formData.append("pagesToRemove", JSON.stringify(pagesToRemove));
 
         // Use the Go API endpoint when authenticated, otherwise use Next.js API
-        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/remove`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/remove`;
 
         console.log("Submitting to API URL:", apiUrl);
         console.log("Pages to remove:", pagesToRemove);
@@ -502,7 +502,7 @@ export function PdfRemove() {
                   <Button
                     onClick={() =>
                       window.open(
-                        `${process.env.NEXT_PUBLIC_GO_API_URL}${processedPdfUrl}`,
+                        `${process.env.NEXT_PUBLIC_API_URL}${processedPdfUrl}`,
                         "_blank"
                       )
                     }

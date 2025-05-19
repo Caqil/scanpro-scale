@@ -34,7 +34,7 @@ export function EmailVerificationAlert({
 
     try {
       // Use the environment variable for the Go API URL
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       console.log(
         "Sending verification email request to:",
         `${apiUrl}/api/auth/verify-email`

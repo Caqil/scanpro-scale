@@ -101,7 +101,7 @@ export function EnhancedResetPasswordForm({
         // Call the Go API to validate the token
         const res = await fetch(
           `${
-            process.env.NEXT_PUBLIC_GO_API_URL
+            process.env.NEXT_PUBLIC_API_URL
           }/api/auth/validate?token=${encodeURIComponent(token)}`
         );
 
@@ -168,7 +168,7 @@ export function EnhancedResetPasswordForm({
     try {
       // Call the Go API endpoint to reset the password
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/reset-password/confirm`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password/confirm`,
         {
           method: "POST",
           headers: {

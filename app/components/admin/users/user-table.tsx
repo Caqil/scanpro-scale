@@ -86,7 +86,7 @@ export function UserTable({
   };
   const handleAction = async (action: string, user: AdminUser) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
       if (action === "delete") {
         const response = await fetchWithAuth(

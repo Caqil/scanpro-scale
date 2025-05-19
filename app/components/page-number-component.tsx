@@ -73,7 +73,7 @@ export function PdfPageNumberer() {
   }, []);
 
   // Get the Go API URL from env
-  const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+  const goApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   const handleOptionChange = (key: string, value: any) => {
     setOptions((prev) => ({ ...prev, [key]: value }));

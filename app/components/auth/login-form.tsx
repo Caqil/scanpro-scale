@@ -112,7 +112,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const handleOAuthSignIn = (provider: string) => {
     // Sanitize provider to prevent XSS
     const sanitizedProvider = encodeURIComponent(provider);
-    const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
     // Validate URL
     if (!apiUrl.match(/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {

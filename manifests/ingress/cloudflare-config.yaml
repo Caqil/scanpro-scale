@@ -7,18 +7,25 @@ data:
   config.yaml: |
     tunnel: 0402c9ec-a21b-4b53-ab38-5442cc70600b
     credentials-file: /etc/cloudflared/creds/credentials.json
-    
-    # Log level can be debug, info, warn, error, fatal
+
     loglevel: info
-    
+
     ingress:
-      # Route traffic for mega-pdf.com to your mega-pdf service
+      # API subdomain
+      - hostname: api.mega-pdf.com
+        service: http://megapdf-api.megapdf-api.svc.cluster.local:8080
+      
+      # Main domain
       - hostname: mega-pdf.com
         service: http://megapdf.megapdf.svc.cluster.local:3000
       
-      # Route traffic for any subdomain to the same service
-      - hostname: "*.mega-pdf.com"
+      # www subdomain
+      - hostname: www.mega-pdf.com
         service: http://megapdf.megapdf.svc.cluster.local:3000
       
-      # Return 404 for anything else
+      # Add any other specific subdomains you need
+      # - hostname: blog.mega-pdf.com
+      #   service: http://megapdf.megapdf.svc.cluster.local:3000
+      
+      # Catch-all rule for anything else
       - service: http_status:404

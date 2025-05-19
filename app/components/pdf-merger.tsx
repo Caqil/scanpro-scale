@@ -157,7 +157,7 @@ export function PdfMerger() {
           JSON.stringify(files.map((_, index) => index))
         );
 
-        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/merge`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/merge`;
         console.log("Submitting to Go API URL:", apiUrl);
         console.log("Number of files:", files.length);
 
@@ -457,8 +457,7 @@ export function PdfMerger() {
                 <Button className="w-full sm:w-auto" asChild variant="default">
                   <a
                     href={
-                      `${process.env.NEXT_PUBLIC_GO_API_URL}` +
-                      `${mergedFileUrl}`
+                      `${process.env.NEXT_PUBLIC_API_URL}` + `${mergedFileUrl}`
                     }
                     download
                   >

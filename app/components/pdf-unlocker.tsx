@@ -109,7 +109,7 @@ export function PdfUnlocker() {
     }
 
     // Use the Go API URL instead of Next.js API
-    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/unlock`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/unlock`;
     console.log("Submitting to Go API URL:", apiUrl);
 
     try {
@@ -354,7 +354,7 @@ export function PdfUnlocker() {
                     >
                       <a
                         href={`${
-                          process.env.NEXT_PUBLIC_GO_API_URL
+                          process.env.NEXT_PUBLIC_API_URL
                         }/api/file?folder=unlocked&filename=${encodeURIComponent(
                           unlockedFileUrl
                         )}`}

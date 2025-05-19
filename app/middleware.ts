@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_GO_API_URL}/api/validate-token`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/validate-token`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
         credentials: 'include',

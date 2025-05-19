@@ -21,7 +21,7 @@ export function AdminDashboardContent() {
       setLoading(true);
       setRefreshing(true);
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(`${apiUrl}/api/admin/dashboard`);
 
       if (!response.ok) {

@@ -32,7 +32,7 @@ export function ApiUsageContent() {
     try {
       setLoading(true);
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(`${apiUrl}/api/admin/api-usage`);
 
       if (!response.ok) {

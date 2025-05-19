@@ -143,7 +143,7 @@ export function PdfSplitter() {
 
   const pollJobStatus = useCallback(async () => {
     if (!statusUrl || !jobId) return;
-    const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    const goApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const fullStatusUrl = statusUrl.startsWith("/")
       ? `${goApiUrl}${statusUrl}`
       : statusUrl;
@@ -300,7 +300,7 @@ export function PdfSplitter() {
     }
 
     // Use the Go API URL instead of Next.js API
-    const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/split`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/split`;
     console.log("Submitting to Go API URL:", apiUrl);
 
     try {
@@ -423,10 +423,10 @@ export function PdfSplitter() {
     (url: string): string => {
       if (!url) return "";
       return url.startsWith("/")
-        ? `${process.env.NEXT_PUBLIC_GO_API_URL}${url}`
+        ? `${process.env.NEXT_PUBLIC_API_URL}${url}`
         : url;
     },
-    [`${process.env.NEXT_PUBLIC_GO_API_URL}`]
+    [`${process.env.NEXT_PUBLIC_API_URL}`]
   );
 
   return (

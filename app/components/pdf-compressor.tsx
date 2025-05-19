@@ -149,7 +149,7 @@ export function MultiPdfCompressor() {
             compressionQuality = "70";
         }
         formData.append("quality", compressionQuality);
-        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/pdf/compress`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/compress`;
         console.log("Submitting to Go API URL:", apiUrl);
         console.log("File name:", file.name, "File size:", file.size);
         console.log("Quality setting:", compressionQuality);
@@ -347,7 +347,7 @@ export function MultiPdfCompressor() {
       const zip = new JSZip();
 
       const goApiUrl =
-        process.env.NEXT_PUBLIC_GO_API_URL || "http://localhost:8080";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
       for (const file of completedFiles) {
         // Make sure to prepend the Go API URL if the fileUrl is a relative path
@@ -532,7 +532,7 @@ export function MultiPdfCompressor() {
                             >
                               <a
                                 href={
-                                  `${process.env.NEXT_PUBLIC_GO_API_URL}` +
+                                  `${process.env.NEXT_PUBLIC_API_URL}` +
                                   compressedFiles[fileItem.file.name].fileUrl
                                 }
                                 download={

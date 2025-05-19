@@ -205,7 +205,7 @@ export function PdfOcrExtractor() {
         formData.append("enhanceScanned", values.enhanceScanned.toString());
         formData.append("preserveLayout", values.preserveLayout.toString());
 
-        const apiUrl = `${process.env.NEXT_PUBLIC_GO_API_URL}/api/ocr/extract`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/ocr/extract`;
         console.log("Submitting to Go API URL:", apiUrl);
         console.log("File name:", file.name, "File size:", file.size);
 

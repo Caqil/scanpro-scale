@@ -9,7 +9,7 @@ export async function isAuthenticated() {
   }
   
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_GO_API_URL}/api/auth/validate-token`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/validate-token`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -31,7 +31,7 @@ export async function isAdmin() {
   }
   
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_GO_API_URL}/api/user/profile`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/profile`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

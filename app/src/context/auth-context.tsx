@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   // Check authentication on mount
   useEffect(() => {

@@ -40,7 +40,7 @@ export function AdminUsersContent() {
         ...filters,
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(
         `${apiUrl}/api/admin/users?${params}`
       );
@@ -88,7 +88,7 @@ export function AdminUsersContent() {
         if (action === "unsuspend") updates.role = "user";
         if (action === "reset-free-operations") updates.freeOperationsUsed = 0;
 
-        const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
         const response = await fetchWithAuth(
           `${apiUrl}/api/admin/users/${selectedUser.id}`,
@@ -119,7 +119,7 @@ export function AdminUsersContent() {
   // Fix the exportUsers function
   const exportUsers = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
       // Add any filter parameters if needed
       const params = new URLSearchParams({
@@ -150,7 +150,6 @@ export function AdminUsersContent() {
       toast.error("Failed to export users");
     }
   };
-
 
   return (
     <div className="space-y-6">

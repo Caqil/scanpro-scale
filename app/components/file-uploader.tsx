@@ -245,9 +245,7 @@ export function FileUploader({
       }
 
       // Determine API URL (use Go API if configured)
-      const apiUrl = `${
-        process.env.NEXT_PUBLIC_GO_API_URL || ""
-      }/api/pdf/convert`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/pdf/convert`;
       console.log("Submitting to API URL:", apiUrl);
       console.log("File name:", file.name, "File size:", file.size);
       console.log(

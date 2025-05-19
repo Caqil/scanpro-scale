@@ -69,7 +69,7 @@ export function ApiKeyManager() {
     totalOperations: number;
     operationCounts: Record<string, number>;
   } | null>(null);
-  const apiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   // Group operations into categories for better UI organization
   const operationCategories = {

@@ -168,7 +168,7 @@ export function PdfRotator() {
 
   const handleProcessPdf = async () => {
     if (!file) return;
-    const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+    const goApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
     if (!goApiUrl) {
       toast.error(
         t("rotatePdf.errors.noApiUrl") ||
@@ -195,7 +195,7 @@ export function PdfRotator() {
 
     setIsProcessing(true);
     setProgress(0);
-    const apiUrl = `${goApiUrl}/api/pdf/rotate`; // Updated to use NEXT_PUBLIC_GO_API_URL
+    const apiUrl = `${goApiUrl}/api/pdf/rotate`; // Updated to use NEXT_PUBLIC_API_URL
     const formData = new FormData();
     formData.append("file", file);
     formData.append("angle", angle);
@@ -218,7 +218,7 @@ export function PdfRotator() {
           setProgress(100);
           const fileUrl = result.fileUrl.startsWith("http")
             ? result.fileUrl
-            : `${process.env.NEXT_PUBLIC_GO_API_URL}${result.fileUrl}`;
+            : `${process.env.NEXT_PUBLIC_API_URL}${result.fileUrl}`;
           setProcessedFileUrl(fileUrl);
           console.log("Processed file URL:", fileUrl);
           toast.success(
