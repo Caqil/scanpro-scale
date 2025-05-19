@@ -1,7 +1,7 @@
 # Use a Go base image for building the application
 FROM golang:1.21-bullseye AS builder
 
-WORKDIR /app
+WORKDIR /api
 
 # Copy go.mod and go.sum files first to leverage Docker cache
 COPY api/go.mod api/go.sum ./
@@ -11,7 +11,7 @@ RUN go mod download
 COPY api/ ./
 
 # Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -o megapdf-api ./cmd/api
+RUN CGO_ENABLED=1 GOOS=linux go build -o mega-api ./cmd/api
 
 # Create the runtime image
 FROM debian:bullseye-slim
@@ -20,9 +20,9 @@ FROM debian:bullseye-slim
 ENV PORT=8080
 ENV DEBUG=false
 ENV TEMP_DIR=/tmp
-ENV UPLOAD_DIR=/app/uploads
-ENV PUBLIC_DIR=/app/public
-ENV DATABASE_PATH=/app/data/megapdf.db
+ENV UPLOAD_DIR=/api/uploads
+ENV PUBLIC_DIR=/api/public
+ENV DATABASE_PATH=/api/data/megapdf.db
 
 # Install required PDF processing tools and dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -65,34 +65,34 @@ RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir ocrmypdf PyPDF2
 
 # Create necessary directories
-RUN mkdir -p /app/uploads /app/public /app/data /app/temp
+RUN mkdir -p /api/uploads /api/public /api/data /api/temp
 
 # Copy the compiled Go binary from the builder stage
-WORKDIR /app
-COPY --from=builder /app/megapdf-api .
+WORKDIR /api
+COPY --from=builder /api/megapdf-api .
 
 # Create subdirectories for file storage
-RUN mkdir -p /app/public/conversions \
-    /app/public/compressions \
-    /app/public/merges \
-    /app/public/splits \
-    /app/public/rotations \
-    /app/public/watermarked \
-    /app/public/watermarks \
-    /app/public/protected \
-    /app/public/unlocked \
-    /app/public/pagenumbers \
-    /app/public/ocr \
-    /app/public/edited \
-    /app/public/processed \
-    /app/public/unwatermarked \
-    /app/public/redacted \
-    /app/public/repaired \
-    /app/public/signatures \
-    /app/public/status
+RUN mkdir -p /api/public/conversions \
+    /api/public/compressions \
+    /api/public/merges \
+    /api/public/splits \
+    /api/public/rotations \
+    /api/public/watermarked \
+    /api/public/watermarks \
+    /api/public/protected \
+    /api/public/unlocked \
+    /api/public/pagenumbers \
+    /api/public/ocr \
+    /api/public/edited \
+    /api/public/processed \
+    /api/public/unwatermarked \
+    /api/public/redacted \
+    /api/public/repaired \
+    /api/public/signatures \
+    /api/public/status
 
 # Make the binary executable
-RUN chmod +x /app/megapdf-api
+RUN chmod +x /api/megapdf-api
 
 # Expose the port the app runs on
 EXPOSE 8080

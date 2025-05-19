@@ -2915,16 +2915,18 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		// Define color in pdfcpu format (convert #RRGGBB to RGB float values)
 		pdfcpuColor := formatColorForDescription(color)
 
-		// Build the description string
+		offsetX, offsetY := getAdjustedOffsets(position, marginX, marginY)
 		description := fmt.Sprintf(
 			"pos:%s, font:%s, points:%d, scale:1, color:%s, opacity:1, offset:%d %d",
 			positionMode,
 			getFontMap(fontFamily),
 			fontSize,
 			pdfcpuColor,
-			marginX,
-			marginY,
+			offsetX,
+			offsetY,
 		)
+
+		fmt.Printf("Adding page number with description: %s\n", description)
 
 		// Command to add page number to the specific page using watermark
 		cmd := exec.Command(
@@ -2940,12 +2942,15 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		fmt.Println(cmd.String()) // Debug: print the command
 		cmdOutput, err := cmd.CombinedOutput()
 		if err != nil {
+			// Log more detailed error information
+			fmt.Printf("pdfcpu command failed: %v\nOutput: %s\n", err, string(cmdOutput))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to add page number to page " + strconv.Itoa(pageNum) + ": " + string(cmdOutput),
 			})
 			return
 		}
 	}
+
 	// Generate file URL
 	fileURL := fmt.Sprintf("/api/file?folder=pagenumbers&filename=%s-numbered.pdf", uniqueID)
 
@@ -2980,26 +2985,38 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-
-// Helper function to copy a file
-func copyFile(src, dst string) error {
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
+func getAdjustedOffsets(position string, marginX, marginY int) (int, int) {
+	// Ensure minimum margins
+	minMargin := 10
+	if marginX < minMargin {
+		marginX = minMargin
 	}
-	defer sourceFile.Close()
-
-	destFile, err := os.Create(dst)
-	if err != nil {
-		return err
+	if marginY < minMargin {
+		marginY = minMargin
 	}
-	defer destFile.Close()
 
-	_, err = io.Copy(destFile, sourceFile)
-	return err
+	// pdfcpu uses positive values for all offsets, with the position
+	// determining where the text is anchored. The margins are always
+	// applied inward from the edges.
+	switch position {
+	case "top-left":
+		return marginX, -marginY // Negative Y to move down from top edge
+	case "top-center":
+		return 0, -marginY // Centered horizontally, negative Y
+	case "top-right":
+		return -marginX, -marginY // Negative X to move left from right, negative Y
+	case "bottom-left":
+		return marginX, marginY
+	case "bottom-center":
+		return 0, marginY // Centered horizontally
+	case "bottom-right":
+		return -marginX, marginY // Negative X to move left from right
+	default:
+		return 0, marginY // Default to bottom-center behavior
+	}
 }
 
-// Helper function to map position to pdfcpu format
+// mapPositionToPdfcpu maps our position names to pdfcpu's position codes
 func mapPositionToPdfcpu(position string) string {
 	switch position {
 	case "top-left":
@@ -3017,6 +3034,24 @@ func mapPositionToPdfcpu(position string) string {
 	default:
 		return "bc" // Default to bottom center
 	}
+}
+
+// Helper function to copy a file
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	return err
 }
 
 // Helper function to format page number according to format
