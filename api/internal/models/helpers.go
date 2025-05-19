@@ -2,6 +2,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -80,26 +82,60 @@ func FormatDate(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
+// StringSlice is a string slice that implements driver.Valuer and sql.Scanner
+type StringSlice []string
+
+// Value implements the driver.Valuer interface
+func (s StringSlice) Value() (driver.Value, error) {
+	if len(s) == 0 {
+		return "[]", nil
+	}
+	return json.Marshal(s)
+}
+
+// Scan implements the sql.Scanner interface
+func (s *StringSlice) Scan(value interface{}) error {
+	if value == nil {
+		*s = StringSlice{}
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case string:
+		bytes = []byte(v)
+	case []byte:
+		bytes = v
+	default:
+		return fmt.Errorf("unsuported type: %T", value)
+	}
+
+	return json.Unmarshal(bytes, s)
+}
+
 // ConvertJSONArray converts between JSON string arrays and Go string slices
-// This is useful for storing arrays in SQLite
+// This is useful for storing arrays in MySQL
 func ConvertJSONArray(jsonArray string) []string {
 	if jsonArray == "" {
 		return []string{}
 	}
 
-	// Remove brackets and split by commas
-	trimmed := strings.TrimPrefix(strings.TrimSuffix(jsonArray, "]"), "[")
-	if trimmed == "" {
-		return []string{}
-	}
+	var result []string
+	if err := json.Unmarshal([]byte(jsonArray), &result); err != nil {
+		// Fallback: Try parsing manually if JSON unmarshal fails
+		trimmed := strings.TrimPrefix(strings.TrimSuffix(jsonArray, "]"), "[")
+		if trimmed == "" {
+			return []string{}
+		}
 
-	// Split by comma and remove quotes
-	parts := strings.Split(trimmed, ",")
-	result := make([]string, len(parts))
+		// Split by comma and remove quotes
+		parts := strings.Split(trimmed, ",")
+		result = make([]string, len(parts))
 
-	for i, part := range parts {
-		// Remove quotes and trim spaces
-		result[i] = strings.Trim(strings.TrimSpace(part), "\"'")
+		for i, part := range parts {
+			// Remove quotes and trim spaces
+			result[i] = strings.Trim(strings.TrimSpace(part), "\"'")
+		}
 	}
 
 	return result
@@ -111,14 +147,20 @@ func ConvertToJSONArray(slice []string) string {
 		return "[]"
 	}
 
-	// Quote each element
-	quoted := make([]string, len(slice))
-	for i, s := range slice {
-		quoted[i] = fmt.Sprintf("\"%s\"", s)
+	bytes, err := json.Marshal(slice)
+	if err != nil {
+		// Fallback: Manual JSON construction
+		// Quote each element
+		quoted := make([]string, len(slice))
+		for i, s := range slice {
+			quoted[i] = fmt.Sprintf("\"%s\"", s)
+		}
+
+		// Join with commas and add brackets
+		return "[" + strings.Join(quoted, ",") + "]"
 	}
 
-	// Join with commas and add brackets
-	return "[" + strings.Join(quoted, ",") + "]"
+	return string(bytes)
 }
 
 // GetNow returns the current time in UTC

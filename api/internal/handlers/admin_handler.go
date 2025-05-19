@@ -298,10 +298,9 @@ func (h *AdminHandler) GetUsers(c *gin.Context) {
 		formattedKeys := make([]gin.H, len(apiKeys))
 		for j, key := range apiKeys {
 			formattedKeys[j] = gin.H{
-				"id":          key.ID,
-				"name":        key.Name,
-				"lastUsed":    key.LastUsed,
-				"permissions": key.Permissions,
+				"id":       key.ID,
+				"name":     key.Name,
+				"lastUsed": key.LastUsed,
 			}
 		}
 
@@ -408,10 +407,9 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 	formattedKeys := make([]gin.H, len(apiKeys))
 	for i, key := range apiKeys {
 		formattedKeys[i] = gin.H{
-			"id":          key.ID,
-			"name":        key.Name,
-			"lastUsed":    key.LastUsed,
-			"permissions": key.Permissions,
+			"id":       key.ID,
+			"name":     key.Name,
+			"lastUsed": key.LastUsed,
 		}
 	}
 

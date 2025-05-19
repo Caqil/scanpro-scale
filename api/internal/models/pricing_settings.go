@@ -1,4 +1,3 @@
-// internal/models/pricing_settings.go
 package models
 
 import (
@@ -12,7 +11,7 @@ import (
 type PricingSetting struct {
 	ID          string `gorm:"primaryKey;type:varchar(100)"`
 	Key         string `gorm:"uniqueIndex;type:varchar(255)"`
-	Value       string `gorm:"type:text"`
+	Value       string `gorm:"type:json"` // Using JSON type for MySQL
 	Description string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -32,9 +31,16 @@ func (cp CustomPricing) Value() (driver.Value, error) {
 
 // Implement the sql.Scanner interface
 func (cp *CustomPricing) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	var bytes []byte
+
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("type assertion to []byte or string failed")
 	}
-	return json.Unmarshal(b, &cp)
+
+	return json.Unmarshal(bytes, &cp)
 }

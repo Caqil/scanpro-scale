@@ -4,33 +4,36 @@ package db
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
 
-// InitDB initializes the SQLite database connection
+// InitDB initializes the MySQL database connection
 func InitDB() (*gorm.DB, error) {
-	// Get database path from environment or use default
-	dbPath := os.Getenv("DATABASE_PATH")
-	if dbPath == "" {
-		// Default to data directory in project root
-		dbPath = "data/megapdf.db"
-	}
+	// Get database configuration from environment variables
+	dbHost := getEnv("DB_HOST", "localhost")
+	dbPort := getEnv("DB_PORT", "3306")
+	dbName := getEnv("DB_NAME", "megapdf")
+	dbUser := getEnv("DB_USER", "root")
+	dbPassword := getEnv("DB_PASSWORD", "")
+	dbCharset := getEnv("DB_CHARSET", "utf8mb4")
+	dbCollation := getEnv("DB_COLLATION", "utf8mb4_unicode_ci")
+	dbTimezone := getEnv("DB_TIMEZONE", "UTC")
 
-	// Ensure directory exists
-	dir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return nil, err
-	}
+	// Build MySQL connection string
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=%s&collation=%s&parseTime=True&loc=%s",
+		dbUser, dbPassword, dbHost, dbPort, dbName,
+		dbCharset, dbCollation, dbTimezone,
+	)
 
-	// Connect to SQLite database
+	// Configure GORM
 	config := &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC() // Use UTC for consistent timestamps
@@ -42,16 +45,25 @@ func InitDB() (*gorm.DB, error) {
 		config.Logger = logger.Default.LogMode(logger.Info)
 	}
 
-	fmt.Println("Connecting to SQLite database at:", dbPath)
-	db, err := gorm.Open(sqlite.Open(dbPath), config)
+	fmt.Println("Connecting to MySQL database at:", dbHost+":"+dbPort)
+	db, err := gorm.Open(mysql.Open(dsn), config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to SQLite database: %w", err)
+		return nil, fmt.Errorf("failed to connect to MySQL database: %w", err)
 	}
 
-	// Enable foreign key constraints
-	if err := db.Exec("PRAGMA foreign_keys = ON").Error; err != nil {
-		return nil, fmt.Errorf("failed to enable foreign key constraints: %w", err)
+	// Configure connection pool
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database connection: %w", err)
 	}
+
+	// Set connection pool settings
+	maxIdleConns := 10
+	maxOpenConns := 100
+	connMaxLifetime := time.Hour
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
 	// Auto-migrate all models
 	fmt.Println("Auto-migrating database schema...")
@@ -65,7 +77,7 @@ func InitDB() (*gorm.DB, error) {
 		&models.PasswordResetToken{},
 		&models.VerificationToken{},
 		&models.PaymentWebhookEvent{},
-		&models.LowBalanceAlert{}, // Add this line
+		&models.LowBalanceAlert{},
 		&models.OperationsAlert{},
 		&models.PricingSetting{},
 		&models.Setting{},
@@ -84,7 +96,15 @@ func InitDB() (*gorm.DB, error) {
 	DB = db
 	fmt.Println("Database initialized successfully!")
 	return db, nil
+}
 
+// getEnv gets an environment variable or returns a default value
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
 
 // createAdminUser creates a default admin user if no admin exists
