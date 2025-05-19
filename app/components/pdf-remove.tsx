@@ -500,7 +500,12 @@ export function PdfRemove() {
                     {t("ui.startOver") || "Start Over"}
                   </Button>
                   <Button
-                    onClick={() => window.open(processedPdfUrl, "_blank")}
+                    onClick={() =>
+                      window.open(
+                        `${process.env.NEXT_PUBLIC_GO_API_URL}${processedPdfUrl}`,
+                        "_blank"
+                      )
+                    }
                   >
                     <DownloadIcon className="h-4 w-4 mr-2" />
                     {t("ui.download") || "Download"}

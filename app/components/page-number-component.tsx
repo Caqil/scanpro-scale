@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -38,6 +38,11 @@ export function PdfPageNumberer() {
   const [progress, setProgress] = useState(0);
   const [numberedPdfUrl, setNumberedPdfUrl] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [numberedPages, setNumberedPages] = useState<number>(0);
+
+  // Get format from URL if provided
+  const [initialFormat, setInitialFormat] = useState<string>("numeric");
 
   // Page numbering options
   const [options, setOptions] = useState({
@@ -55,8 +60,21 @@ export function PdfPageNumberer() {
     skipFirstPage: false,
   });
 
+  // Initialize from URL params on component mount
+  useEffect(() => {
+    // Get format from URL params if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const format = urlParams.get("format");
+
+    if (format && ["numeric", "roman", "alphabetic"].includes(format)) {
+      setInitialFormat(format);
+      setOptions((prev) => ({ ...prev, format }));
+    }
+  }, []);
+
   // Get the Go API URL from env
   const goApiUrl = process.env.NEXT_PUBLIC_GO_API_URL || "";
+
   const handleOptionChange = (key: string, value: any) => {
     setOptions((prev) => ({ ...prev, [key]: value }));
   };
@@ -74,6 +92,8 @@ export function PdfPageNumberer() {
     setIsProcessing(true);
     setProgress(0);
     setError(null);
+    setTotalPages(0);
+    setNumberedPages(0);
 
     try {
       const formData = new FormData();
@@ -91,10 +111,14 @@ export function PdfPageNumberer() {
       // Create a new XHR request to track upload progress
       const xhr = new XMLHttpRequest();
       xhr.open("POST", apiUrl);
-      xhr.setRequestHeader(
-        "x-api-key",
-        "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0"
-      );
+
+      // Add API key if available
+      const apiKey =
+        localStorage.getItem("apiKey") ||
+        "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0";
+      if (apiKey) {
+        xhr.setRequestHeader("x-api-key", apiKey);
+      }
 
       // Track upload progress
       xhr.upload.onprogress = (event) => {
@@ -118,6 +142,15 @@ export function PdfPageNumberer() {
             // Update progress to complete
             setProgress(100);
             setIsProcessing(false);
+
+            // Set page count information
+            if (response.totalPages) {
+              setTotalPages(response.totalPages);
+            }
+
+            if (response.numberedPages) {
+              setNumberedPages(response.numberedPages);
+            }
 
             // Format file URL to include Go API base URL if needed
             const fileUrl = response.fileUrl.startsWith("/")
@@ -198,6 +231,8 @@ export function PdfPageNumberer() {
     setProgress(0);
     setIsUploading(false);
     setIsProcessing(false);
+    setTotalPages(0);
+    setNumberedPages(0);
   };
 
   // Check if form is being submitted
@@ -317,6 +352,7 @@ export function PdfPageNumberer() {
                     </Label>
                     <Tabs
                       defaultValue={options.format}
+                      value={options.format}
                       onValueChange={(value) =>
                         handleOptionChange("format", value)
                       }
@@ -491,7 +527,7 @@ export function PdfPageNumberer() {
                           onChange={(e) =>
                             handleOptionChange(
                               "fontSize",
-                              parseInt(e.target.value)
+                              parseInt(e.target.value) || 12
                             )
                           }
                           className="w-full"
@@ -534,7 +570,7 @@ export function PdfPageNumberer() {
                         onChange={(e) =>
                           handleOptionChange(
                             "startNumber",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 1
                           )
                         }
                         disabled={isSubmitting}
@@ -765,6 +801,31 @@ export function PdfPageNumberer() {
               {t("pageNumber.ui.readyDesc") ||
                 "Your PDF file has been processed and page numbers have been added according to your settings."}
             </p>
+
+            {/* Stats about the processed PDF */}
+            {(totalPages > 0 || numberedPages > 0) && (
+              <div className="bg-muted/30 rounded-lg p-4 mb-6 w-full max-w-xs">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {totalPages > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground">Total Pages</span>
+                      <span className="font-medium text-lg">{totalPages}</span>
+                    </div>
+                  )}
+                  {numberedPages > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground">
+                        Pages Numbered
+                      </span>
+                      <span className="font-medium text-lg">
+                        {numberedPages}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <Button
               size="lg"
               className="px-8"

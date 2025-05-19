@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
@@ -552,663 +551,6 @@ func convertWithLibreOffice(inputPath, outputPath, inputFormat, outputFormat str
 	}
 
 	return fmt.Errorf("no converted file found")
-}
-
-// AddPageNumbersToPDF adds page numbers to a PDF file
-// @Summary Add page numbers to a PDF file
-// @Description Adds customizable page numbers to a PDF file
-// @Tags pdf
-// @Accept multipart/form-data
-// @Produce json
-// @Param file formData file true "PDF file to add page numbers to (max 50MB)"
-// @Param position formData string false "Position of page numbers: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right" default(bottom-center)
-// @Param format formData string false "Format of page numbers: numeric, roman, alphabetic" default(numeric)
-// @Param fontFamily formData string false "Font family: Helvetica, Times, Courier" default(Helvetica)
-// @Param fontSize formData int false "Font size in points" default(12)
-// @Param color formData string false "Text color in hex format" default(#000000)
-// @Param startNumber formData int false "First page number" default(1)
-// @Param prefix formData string false "Text to add before page number" default()
-// @Param suffix formData string false "Text to add after page number" default()
-// @Param marginX formData int false "Horizontal margin in points" default(40)
-// @Param marginY formData int false "Vertical margin in points" default(30)
-// @Param selectedPages formData string false "Pages to add numbers to (e.g., '1-3,5,7-9'), empty for all pages"
-// @Param skipFirstPage formData bool false "Skip numbering on the first page" default(false)
-// @Security ApiKeyAuth
-// @Success 200 {object} object{success=boolean,message=string,fileUrl=string,fileName=string,originalName=string,totalPages=integer,numberedPages=integer,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
-// @Failure 400 {object} object{error=string}
-// @Failure 401 {object} object{error=string}
-// @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
-// @Failure 500 {object} object{error=string}
-// @Router /api/pdf/pagenumber [post]
-
-func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
-	// Get user ID and operation type from context
-	userID, exists := c.Get("userId")
-	operation, _ := c.Get("operationType")
-
-	// Check if we need to process payment
-	if exists {
-		// Process the operation charge
-		result, err := h.balanceService.ProcessOperation(userID.(string), "AddPageNumbers")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to process operation: " + err.Error(),
-			})
-			return
-		}
-
-		if !result.Success {
-			c.JSON(http.StatusPaymentRequired, gin.H{
-				"error": result.Error,
-				"details": gin.H{
-					"balance":                 result.CurrentBalance,
-					"freeOperationsRemaining": result.FreeOperationsRemaining,
-					"operationCost":           services.OperationCost,
-				},
-			})
-			return
-		}
-	}
-
-	// Create necessary directories
-	if err := os.MkdirAll(h.config.UploadDir, 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create upload directory: " + err.Error(),
-		})
-		return
-	}
-
-	if err := os.MkdirAll(filepath.Join(h.config.PublicDir, "pagenumbers"), 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create pagenumbers directory: " + err.Error(),
-		})
-		return
-	}
-
-	// Get file from form
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to get file: " + err.Error(),
-		})
-		return
-	}
-
-	// Check file extension
-	if filepath.Ext(file.Filename) != ".pdf" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Only PDF files are supported",
-		})
-		return
-	}
-
-	// Validate file size (max 50MB)
-	if file.Size > 50*1024*1024 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "File size exceeds 50MB limit",
-		})
-		return
-	}
-
-	// Get page numbering options
-	position := c.DefaultPostForm("position", "bottom-center")
-	format := c.DefaultPostForm("format", "numeric")
-	fontFamily := c.DefaultPostForm("fontFamily", "Helvetica")
-	fontSizeStr := c.DefaultPostForm("fontSize", "12")
-	color := c.DefaultPostForm("color", "#000000")
-	startNumberStr := c.DefaultPostForm("startNumber", "1")
-	prefix := c.DefaultPostForm("prefix", "")
-	suffix := c.DefaultPostForm("suffix", "")
-	marginXStr := c.DefaultPostForm("marginX", "40")
-	marginYStr := c.DefaultPostForm("marginY", "30")
-	selectedPages := c.DefaultPostForm("selectedPages", "") // Empty means all pages
-	skipFirstPage := c.DefaultPostForm("skipFirstPage", "false") == "true"
-
-	// Log received parameters for debugging
-	fmt.Printf("Received parameters: position=%s, format=%s, fontFamily=%s, fontSize=%s, color=%s, startNumber=%s, marginX=%s, marginY=%s, selectedPages=%s, skipFirstPage=%v\n",
-		position, format, fontFamily, fontSizeStr, color, startNumberStr, marginXStr, marginYStr, selectedPages, skipFirstPage)
-
-	// Validate position
-	validPositions := map[string]bool{
-		"top-left":      true,
-		"top-center":    true,
-		"top-right":     true,
-		"bottom-left":   true,
-		"bottom-center": true,
-		"bottom-right":  true,
-	}
-	if !validPositions[position] {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid position. Must be one of: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right",
-		})
-		return
-	}
-
-	// Validate format
-	validFormats := map[string]bool{
-		"numeric":    true,
-		"roman":      true,
-		"alphabetic": true,
-	}
-	if !validFormats[format] {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid format. Must be one of: numeric, roman, alphabetic",
-		})
-		return
-	}
-
-	// Validate and parse numeric parameters
-	fontSize, err := strconv.Atoi(fontSizeStr)
-	if err != nil || fontSize <= 0 || fontSize > 72 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid font size. Must be a positive number between 1 and 72",
-		})
-		return
-	}
-
-	startNumber, err := strconv.Atoi(startNumberStr)
-	if err != nil || startNumber <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid start number. Must be a positive number",
-		})
-		return
-	}
-
-	marginX, err := strconv.Atoi(marginXStr)
-	if err != nil || marginX < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid horizontal margin. Must be a non-negative number",
-		})
-		return
-	}
-
-	marginY, err := strconv.Atoi(marginYStr)
-	if err != nil || marginY < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid vertical margin. Must be a non-negative number",
-		})
-		return
-	}
-
-	// Create unique file names
-	uniqueID := uuid.New().String()
-	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input.pdf")
-	outputPath := filepath.Join(h.config.PublicDir, "pagenumbers", uniqueID+"-numbered.pdf")
-
-	// Save uploaded file
-	if err := c.SaveUploadedFile(file, inputPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to save file: " + err.Error(),
-		})
-		return
-	}
-	defer os.Remove(inputPath)
-
-	// Verify the file exists and is accessible
-	fileInfo, err := os.Stat(inputPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to access the saved PDF file: " + err.Error(),
-		})
-		return
-	}
-
-	if fileInfo.Size() == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Uploaded file is empty",
-		})
-		return
-	}
-
-	fmt.Printf("File saved successfully at %s with size %d bytes\n", inputPath, fileInfo.Size())
-
-	// Get PDF page count - using multiple methods with fallback
-	var totalPages int
-
-	// Method 1: Try using pdfcpu info command and parse output
-	cmd := exec.Command("pdfcpu", "info", inputPath)
-	output, err := cmd.CombinedOutput()
-	if err == nil {
-		fmt.Printf("pdfcpu info output: %s\n", string(output))
-		pageCountRegex := regexp.MustCompile("(?i)Pages?\\s*[:=]\\s*(\\d+)")
-		matches := pageCountRegex.FindStringSubmatch(string(output))
-		if len(matches) >= 2 {
-			totalPages, err = strconv.Atoi(matches[1])
-			if err == nil && totalPages > 0 {
-				fmt.Printf("Method 1 (pdfcpu info command) succeeded: %d pages\n", totalPages)
-			}
-		}
-	}
-
-	// Method 2: Try using pdfinfo command (if available)
-	if totalPages == 0 {
-		cmd := exec.Command("pdfinfo", inputPath)
-		output, err := cmd.CombinedOutput()
-		if err == nil {
-			fmt.Printf("pdfinfo output: %s\n", string(output))
-			pageCountRegex := regexp.MustCompile("Pages:\\s*(\\d+)")
-			matches := pageCountRegex.FindStringSubmatch(string(output))
-			if len(matches) >= 2 {
-				totalPages, err = strconv.Atoi(matches[1])
-				if err == nil && totalPages > 0 {
-					fmt.Printf("Method 2 (pdfinfo) succeeded: %d pages\n", totalPages)
-				}
-			}
-		}
-	}
-
-	// Method 3: Estimate based on file size if all else fails
-	if totalPages == 0 {
-		fileSizeInMB := float64(fileInfo.Size()) / (1024 * 1024)
-		totalPages = int(math.Max(1, math.Round(fileSizeInMB*10))) // ~10 pages per MB is a rough estimate
-		fmt.Printf("Using estimated page count based on file size: %d pages\n", totalPages)
-	}
-
-	// Ensure we have at least 1 page
-	if totalPages < 1 {
-		totalPages = 1
-	}
-
-	// Parse selected pages
-	pagesToNumber := make([]int, 0)
-	if selectedPages == "" {
-		// If no pages specified, number all pages
-		for i := 1; i <= totalPages; i++ {
-			pagesToNumber = append(pagesToNumber, i)
-		}
-	} else {
-		// Parse page ranges (e.g., "1-3,5,7-9")
-		parts := strings.Split(selectedPages, ",")
-		for _, part := range parts {
-			part = strings.TrimSpace(part)
-			if part == "" {
-				continue
-			}
-
-			if strings.Contains(part, "-") {
-				// It's a range
-				rangeParts := strings.Split(part, "-")
-				if len(rangeParts) != 2 {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page range format: " + part,
-					})
-					return
-				}
-
-				start, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
-				if err != nil || start < 1 || start > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number in range: " + rangeParts[0],
-					})
-					return
-				}
-
-				end, err := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
-				if err != nil || end < start || end > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number in range: " + rangeParts[1],
-					})
-					return
-				}
-
-				for i := start; i <= end; i++ {
-					pagesToNumber = append(pagesToNumber, i)
-				}
-			} else {
-				// It's a single page
-				page, err := strconv.Atoi(part)
-				if err != nil || page < 1 || page > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number: " + part,
-					})
-					return
-				}
-				pagesToNumber = append(pagesToNumber, page)
-			}
-		}
-	}
-
-	// Skip first page if specified
-	if skipFirstPage {
-		filtered := make([]int, 0, len(pagesToNumber))
-		for _, page := range pagesToNumber {
-			if page != 1 {
-				filtered = append(filtered, page)
-			}
-		}
-		pagesToNumber = filtered
-	}
-
-	// Make sure there are pages to number
-	if len(pagesToNumber) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No pages selected for numbering",
-		})
-		return
-	}
-
-	// First, check if pdfcpu is available
-	_, err = exec.LookPath("pdfcpu")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "pdfcpu utility is not available on the server. Please contact support.",
-		})
-		return
-	}
-
-	// Copy input to output file
-	if err := copyFile(inputPath, outputPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to prepare output file: " + err.Error(),
-		})
-		return
-	}
-
-	// Wait a moment to ensure file is fully written and closed
-	time.Sleep(200 * time.Millisecond)
-
-	// Create a temporary directory for any intermediate files
-	tmpDir, err := os.MkdirTemp("", "pagenumbers")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create temp directory: " + err.Error(),
-		})
-		return
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Try multiple approaches to add page numbers
-	var success bool
-
-	// APPROACH 1: Using direct pdfcpu stamp with additional flags to ensure visibility
-	if !success {
-		// First, create a temporary copy to work with
-		tempOutput := filepath.Join(tmpDir, "temp-output.pdf")
-		if err := copyFile(inputPath, tempOutput); err != nil {
-			fmt.Printf("Failed to create temp output file: %v\n", err)
-		} else {
-			// Process each page individually with explicit options
-			for _, pageNum := range pagesToNumber {
-				// Format the page number according to the selected format
-				var formattedNumber string
-				switch format {
-				case "roman":
-					formattedNumber = toRoman(startNumber + pageNum - 1)
-				case "alphabetic":
-					formattedNumber = toAlphabetic(startNumber + pageNum - 1)
-				default: // numeric
-					formattedNumber = strconv.Itoa(startNumber + pageNum - 1)
-				}
-
-				// Create the text content with prefix and suffix
-				pageText := prefix + formattedNumber + suffix
-
-				// Map position to pdfcpu position
-				pdfcpuPosition := ""
-				switch position {
-				case "top-left":
-					pdfcpuPosition = "tl"
-				case "top-center":
-					pdfcpuPosition = "tc"
-				case "top-right":
-					pdfcpuPosition = "tr"
-				case "bottom-left":
-					pdfcpuPosition = "bl"
-				case "bottom-center":
-					pdfcpuPosition = "bc"
-				case "bottom-right":
-					pdfcpuPosition = "br"
-				default:
-					pdfcpuPosition = "bc" // Default to bottom center
-				}
-
-				// Use VERY explicit command to ensure visibility
-				cmd := exec.Command(
-					"pdfcpu",
-					"stamp", "add",
-					"-pages", strconv.Itoa(pageNum),
-					"-mode", "text",
-					"-pos", pdfcpuPosition,
-					"-font", getFontMap(fontFamily),
-					"-size", strconv.Itoa(fontSize),
-					"-color", formatColor(color),
-					"-opacity", "1", // Fully opaque
-					"-margin", fmt.Sprintf("%d,%d", marginX, marginY),
-					"-bgcolor", "1.0 1.0 1.0 0.0", // Transparent background
-					pageText,
-					tempOutput,
-					tempOutput,
-				)
-
-				cmdOutput, err := cmd.CombinedOutput()
-				fmt.Printf("Adding page number %s to page %d: %s\n", pageText, pageNum, string(cmdOutput))
-
-				if err != nil {
-					fmt.Printf("Failed to add page number to page %d: %v\n", pageNum, err)
-					success = false
-					break
-				}
-
-				success = true
-			}
-
-			// If successful, copy the result to the final output
-			if success {
-				if err := copyFile(tempOutput, outputPath); err != nil {
-					fmt.Printf("Failed to copy final result: %v\n", err)
-					success = false
-				}
-			}
-		}
-	}
-
-	// APPROACH 2: Using pdftk if available
-	if !success {
-		// Check if pdftk is available
-		_, err := exec.LookPath("pdftk")
-		if err == nil {
-			fmt.Println("Trying pdftk approach")
-
-			// This approach would need to create small PDFs with just the page numbers
-			// and then use pdftk to stamp them onto the original
-			// This is simplified - a real implementation would be more complex
-
-			// For now, we'll use a simplified approach using stamp
-			tempStamp := filepath.Join(tmpDir, "stamp.pdf")
-			tempOutput := filepath.Join(tmpDir, "pdftk-output.pdf")
-
-			// Create a simple stamp PDF (this is highly simplified)
-			if err := ioutil.WriteFile(tempStamp, []byte("%PDF-1.4\n1 0 obj\n<</Type/Page>>\nendobj\n"), 0644); err != nil {
-				fmt.Printf("Failed to create stamp file: %v\n", err)
-			} else {
-				cmd := exec.Command(
-					"pdftk",
-					inputPath,
-					"stamp", tempStamp,
-					"output", tempOutput,
-				)
-
-				cmdOutput, err := cmd.CombinedOutput()
-				fmt.Printf("pdftk output: %s\n", string(cmdOutput))
-
-				if err == nil && fileExists(tempOutput) {
-					if err := copyFile(tempOutput, outputPath); err == nil {
-						success = true
-						fmt.Println("pdftk approach succeeded")
-					}
-				} else {
-					fmt.Printf("pdftk failed: %v\n", err)
-				}
-			}
-		}
-	}
-
-	// APPROACH 3: Use a pure Go approach with a PDF library
-	if !success {
-		// This would use a library like gofpdf to create a new PDF with page numbers
-		// For simplicity, we'll use a direct disk-based approach
-
-		// Create a simple metadata file
-		fmt.Println("Trying pure-Go approach")
-
-		// Pure Go approach would be implemented here
-		// For now, we'll just copy the original as our fallback
-
-		// Ensure we have output even if all methods fail
-		if err := copyFile(inputPath, outputPath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create final output: " + err.Error(),
-			})
-			return
-		}
-	}
-
-	// Generate file URL
-	fileURL := fmt.Sprintf("/api/file?folder=pagenumbers&filename=%s-numbered.pdf", uniqueID)
-
-	// Billing info
-	var billingInfo gin.H
-	if exists {
-		result, _ := h.balanceService.ProcessOperation(userID.(string), operation.(string))
-
-		var opCost float64
-		if result.UsedFreeOperation {
-			opCost = 0
-		} else {
-			opCost = services.OperationCost
-		}
-
-		billingInfo = gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
-			"currentBalance":          result.CurrentBalance,
-			"operationCost":           opCost,
-		}
-	}
-
-	// Return the result
-	response := gin.H{
-		"success":       true,
-		"message":       "Page numbers added successfully",
-		"fileUrl":       fileURL,
-		"fileName":      fmt.Sprintf("%s-numbered.pdf", uniqueID),
-		"originalName":  file.Filename,
-		"totalPages":    totalPages,
-		"numberedPages": len(pagesToNumber),
-	}
-
-	// Add billing info if available
-	if exists {
-		response["billing"] = billingInfo
-	}
-
-	c.JSON(http.StatusOK, response)
-}
-
-// Helper function to copy a file
-func copyFile(src, dst string) error {
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sourceFile.Close()
-
-	destFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, sourceFile)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Helper function to convert number to Roman numerals
-func toRoman(num int) string {
-	if num <= 0 {
-		return ""
-	}
-
-	romanNumerals := []struct {
-		value   int
-		numeral string
-	}{
-		{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"},
-		{100, "C"}, {90, "XC"}, {50, "L"}, {40, "XL"},
-		{10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"},
-	}
-
-	var result strings.Builder
-
-	for _, rn := range romanNumerals {
-		for num >= rn.value {
-			result.WriteString(rn.numeral)
-			num -= rn.value
-		}
-	}
-
-	return result.String()
-}
-
-// Helper function to convert number to alphabetic format (A, B, C, ..., Z, AA, AB, etc.)
-func toAlphabetic(num int) string {
-	if num <= 0 {
-		return ""
-	}
-
-	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	length := len(alphabet)
-
-	var result strings.Builder
-
-	// Convert to base-26 representation
-	n := num
-	for n > 0 {
-		n--
-		remainder := n % length
-		result.WriteByte(alphabet[remainder])
-		n /= length
-	}
-
-	// Reverse the string
-	runes := []rune(result.String())
-	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
-		runes[i], runes[j] = runes[j], runes[i]
-	}
-
-	return string(runes)
-}
-
-// Helper function to map font family names to pdfcpu font names
-func getFontMap(fontFamily string) string {
-	switch strings.ToLower(fontFamily) {
-	case "times", "timesnewroman", "times new roman":
-		return "times"
-	case "courier":
-		return "courier"
-	default: // Helvetica is the default
-		return "helvetica"
-	}
-}
-
-// Helper function to format color string for pdfcpu
-// Converts #RRGGBB to 0xrrggbb format
-func formatColor(hexColor string) string {
-	// Remove # prefix if present
-	hexColor = strings.TrimPrefix(hexColor, "#")
-
-	// Ensure it's a valid hex color
-	if len(hexColor) != 6 {
-		// Return default black if invalid
-		return "0x000000"
-	}
-
-	// Return in pdfcpu format
-	return "0x" + hexColor
 }
 
 // SplitPDF godoc
@@ -3104,4 +2446,675 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 			"operationCost":           services.OperationCost,
 		},
 	})
+}
+
+// RemovePagesFromPDF removes specific pages from a PDF file
+func (h *PDFHandler) RemovePagesFromPDF(c *gin.Context) {
+	// Get user ID for billing purposes
+	userID, exists := c.Get("userId")
+
+	// Process the operation charge if user is authenticated
+	if exists && userID != nil {
+		result, err := h.balanceService.ProcessOperation(userID.(string), "Remove")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to process operation: " + err.Error(),
+			})
+			return
+		}
+
+		if !result.Success {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error":                   result.Error,
+				"insufficientBalance":     true,
+				"freeOperationsRemaining": result.FreeOperationsRemaining,
+				"currentBalance":          result.CurrentBalance,
+			})
+			return
+		}
+	}
+
+	// Ensure the directories exist
+	if err := os.MkdirAll(h.config.UploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create upload directory: " + err.Error(),
+		})
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Join(h.config.PublicDir, "processed"), 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create processed directory: " + err.Error(),
+		})
+		return
+	}
+
+	// Get the uploaded file
+	uploadedFile, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to get uploaded file: " + err.Error(),
+		})
+		return
+	}
+
+	// Validate file type is PDF
+	if !strings.HasSuffix(strings.ToLower(uploadedFile.Filename), ".pdf") {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Only PDF files are supported",
+		})
+		return
+	}
+
+	// Generate unique filenames
+	uniqueID := uuid.New().String()
+	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input.pdf")
+	outputPath := filepath.Join(h.config.PublicDir, "processed", uniqueID+"-output.pdf")
+
+	// Save the uploaded file
+	if err := c.SaveUploadedFile(uploadedFile, inputPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save file: " + err.Error(),
+		})
+		return
+	}
+	defer os.Remove(inputPath) // Clean up input file after processing
+
+	// Parse the pages to remove
+	pagesToRemoveJSON := c.PostForm("pagesToRemove")
+	if pagesToRemoveJSON == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No pages specified for removal",
+		})
+		return
+	}
+
+	var pagesToRemove []int
+	if err := json.Unmarshal([]byte(pagesToRemoveJSON), &pagesToRemove); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid page selection format: " + err.Error(),
+		})
+		return
+	}
+
+	if len(pagesToRemove) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No pages selected for removal",
+		})
+		return
+	}
+
+	// Get the total page count
+	pageCountCmd := exec.Command("qpdf", "--show-npages", inputPath)
+	pageCountOutput, err := pageCountCmd.CombinedOutput()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to determine PDF page count: " + err.Error(),
+		})
+		return
+	}
+
+	totalPages, err := strconv.Atoi(strings.TrimSpace(string(pageCountOutput)))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to parse page count: " + err.Error(),
+		})
+		return
+	}
+
+	// Create a set of pages to be removed for easy lookup
+	pagesToRemoveSet := make(map[int]bool)
+	for _, page := range pagesToRemove {
+		// Validate page numbers
+		if page < 1 || page > totalPages {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Invalid page number: %d (total pages: %d)", page, totalPages),
+			})
+			return
+		}
+		pagesToRemoveSet[page] = true
+	}
+
+	// Make sure we're not removing all pages
+	if len(pagesToRemoveSet) >= totalPages {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Cannot remove all pages from PDF",
+		})
+		return
+	}
+
+	// Build the list of pages to keep
+	var pagesToKeep []string
+	for i := 1; i <= totalPages; i++ {
+		if !pagesToRemoveSet[i] {
+			pagesToKeep = append(pagesToKeep, strconv.Itoa(i))
+		}
+	}
+
+	// Execute the qpdf command to remove pages
+	args := []string{
+		inputPath,  // input file
+		outputPath, // output file
+		"--pages",  // pages option
+		inputPath,  // input file again (required by qpdf)
+	}
+
+	// Add the pages to keep
+	for _, page := range pagesToKeep {
+		args = append(args, page)
+	}
+
+	// Add the final "--" to complete the command
+	args = append(args, "--")
+
+	// Execute qpdf to create the new PDF with selected pages
+	cmd := exec.Command("qpdf", args...)
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to remove pages: " + err.Error() + "\nOutput: " + string(output),
+		})
+		return
+	}
+
+	// Verify the output file exists and has content
+	fileInfo, err := os.Stat(outputPath)
+	if err != nil || fileInfo.Size() == 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create output file or file is empty",
+		})
+		return
+	}
+
+	// Generate output filename for the URL
+	outputFilename := uniqueID + "-output.pdf"
+	fileUrl := fmt.Sprintf("/api/file?folder=processed&filename=%s", outputFilename)
+
+	// Return success response
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"fileUrl": fileUrl,
+	})
+}
+
+// AddPageNumbersToPDF adds page numbers to a PDF file
+func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
+	// Get user ID and operation type from context
+	userID, exists := c.Get("userId")
+	operation, _ := c.Get("operationType")
+
+	// Process the operation charge
+	if exists {
+		result, err := h.balanceService.ProcessOperation(userID.(string), "AddPageNumbers")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to process operation: " + err.Error(),
+			})
+			return
+		}
+
+		if !result.Success {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error": result.Error,
+				"details": gin.H{
+					"balance":                 result.CurrentBalance,
+					"freeOperationsRemaining": result.FreeOperationsRemaining,
+					"operationCost":           services.OperationCost,
+				},
+			})
+			return
+		}
+	}
+
+	// Create necessary directories
+	if err := os.MkdirAll(h.config.UploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create upload directory: " + err.Error(),
+		})
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Join(h.config.PublicDir, "pagenumbers"), 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create pagenumbers directory: " + err.Error(),
+		})
+		return
+	}
+
+	// Get file from form
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to get file: " + err.Error(),
+		})
+		return
+	}
+
+	// Check file extension
+	if filepath.Ext(file.Filename) != ".pdf" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Only PDF files are supported",
+		})
+		return
+	}
+
+	// Validate file size (max 50MB)
+	if file.Size > 50*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "File size exceeds 50MB limit",
+		})
+		return
+	}
+
+	// Get page numbering options
+	position := c.DefaultPostForm("position", "bottom-center")
+	format := c.DefaultPostForm("format", "numeric")
+	fontFamily := c.DefaultPostForm("fontFamily", "Helvetica")
+	fontSizeStr := c.DefaultPostForm("fontSize", "12")
+	color := c.DefaultPostForm("color", "#000000")
+	startNumberStr := c.DefaultPostForm("startNumber", "1")
+	prefix := c.DefaultPostForm("prefix", "")
+	suffix := c.DefaultPostForm("suffix", "")
+	marginXStr := c.DefaultPostForm("marginX", "40")
+	marginYStr := c.DefaultPostForm("marginY", "30")
+	selectedPages := c.DefaultPostForm("selectedPages", "") // Empty means all pages
+	skipFirstPage := c.DefaultPostForm("skipFirstPage", "false") == "true"
+
+	// Validate position
+	validPositions := map[string]bool{
+		"top-left":      true,
+		"top-center":    true,
+		"top-right":     true,
+		"bottom-left":   true,
+		"bottom-center": true,
+		"bottom-right":  true,
+	}
+	if !validPositions[position] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid position. Must be one of: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right",
+		})
+		return
+	}
+
+	// Validate format
+	validFormats := map[string]bool{
+		"numeric":    true,
+		"roman":      true,
+		"alphabetic": true,
+	}
+	if !validFormats[format] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid format. Must be one of: numeric, roman, alphabetic",
+		})
+		return
+	}
+
+	// Validate and parse numeric parameters
+	fontSize, err := strconv.Atoi(fontSizeStr)
+	if err != nil || fontSize <= 0 || fontSize > 72 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid font size. Must be a positive number between 1 and 72",
+		})
+		return
+	}
+
+	startNumber, err := strconv.Atoi(startNumberStr)
+	if err != nil || startNumber <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid start number. Must be a positive number",
+		})
+		return
+	}
+
+	marginX, err := strconv.Atoi(marginXStr)
+	if err != nil || marginX < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid horizontal margin. Must be a non-negative number",
+		})
+		return
+	}
+
+	marginY, err := strconv.Atoi(marginYStr)
+	if err != nil || marginY < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid vertical margin. Must be a non-negative number",
+		})
+		return
+	}
+
+	// Create unique file names
+	uniqueID := uuid.New().String()
+	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input.pdf")
+	outputPath := filepath.Join(h.config.PublicDir, "pagenumbers", uniqueID+"-numbered.pdf")
+
+	// Save uploaded file
+	if err := c.SaveUploadedFile(file, inputPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save file: " + err.Error(),
+		})
+		return
+	}
+	defer os.Remove(inputPath)
+
+	// Get PDF page count using pdfcpu
+	cmd := exec.Command("pdfcpu", "info", inputPath)
+	output, err := cmd.CombinedOutput()
+
+	totalPages := 0
+	if err == nil {
+		// Try to extract page count from output
+		pageCountRegex := regexp.MustCompile("Pages\\s*:\\s*(\\d+)")
+		matches := pageCountRegex.FindStringSubmatch(string(output))
+		if len(matches) >= 2 {
+			totalPages, _ = strconv.Atoi(matches[1])
+		}
+	}
+
+	if totalPages == 0 {
+		// Fallback: estimate from file size
+		fileSizeInMB := float64(file.Size) / (1024 * 1024)
+		totalPages = int(math.Max(1, math.Round(fileSizeInMB*10))) // ~10 pages per MB is a rough estimate
+	}
+
+	// Parse selected pages
+	pagesToNumber := make([]int, 0)
+	if selectedPages == "" {
+		// If no pages specified, number all pages
+		for i := 1; i <= totalPages; i++ {
+			pagesToNumber = append(pagesToNumber, i)
+		}
+	} else {
+		// Parse page ranges (e.g., "1-3,5,7-9")
+		parts := strings.Split(selectedPages, ",")
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part == "" {
+				continue
+			}
+
+			if strings.Contains(part, "-") {
+				// It's a range
+				rangeParts := strings.Split(part, "-")
+				if len(rangeParts) != 2 {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid page range format: " + part,
+					})
+					return
+				}
+
+				start, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
+				if err != nil || start < 1 || start > totalPages {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid page number in range: " + rangeParts[0],
+					})
+					return
+				}
+
+				end, err := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
+				if err != nil || end < start || end > totalPages {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid page number in range: " + rangeParts[1],
+					})
+					return
+				}
+
+				for i := start; i <= end; i++ {
+					pagesToNumber = append(pagesToNumber, i)
+				}
+			} else {
+				// It's a single page
+				page, err := strconv.Atoi(part)
+				if err != nil || page < 1 || page > totalPages {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid page number: " + part,
+					})
+					return
+				}
+				pagesToNumber = append(pagesToNumber, page)
+			}
+		}
+	}
+
+	// Skip first page if specified
+	if skipFirstPage {
+		filtered := make([]int, 0, len(pagesToNumber))
+		for _, page := range pagesToNumber {
+			if page != 1 {
+				filtered = append(filtered, page)
+			}
+		}
+		pagesToNumber = filtered
+	}
+
+	// Make sure there are pages to number
+	if len(pagesToNumber) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No pages selected for numbering",
+		})
+		return
+	}
+
+	// Copy input to output file
+	if err := copyFile(inputPath, outputPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to prepare output file: " + err.Error(),
+		})
+		return
+	}
+
+	// Use pdfcpu to add page numbers
+	positionMode := mapPositionToPdfcpu(position)
+	for _, pageNum := range pagesToNumber {
+		// Format the page number according to the selected format
+		formattedNumber := formatPageNumber(pageNum, format, startNumber)
+
+		// Create the text content with prefix and suffix
+		pageText := prefix + formattedNumber + suffix
+
+		// Define color in pdfcpu format (convert #RRGGBB to RGB float values)
+		pdfcpuColor := formatColorForDescription(color)
+
+		// Build the description string
+		description := fmt.Sprintf(
+			"pos:%s, font:%s, points:%d, scale:1, color:%s, opacity:1, offset:%d %d",
+			positionMode,
+			getFontMap(fontFamily),
+			fontSize,
+			pdfcpuColor,
+			marginX,
+			marginY,
+		)
+
+		// Command to add page number to the specific page using watermark
+		cmd := exec.Command(
+			"pdfcpu",
+			"watermark", "add",
+			"-pages", strconv.Itoa(pageNum),
+			"-mode", "text",
+			"--", pageText, description, // Pass text and description after --
+			outputPath,
+			outputPath,
+		)
+
+		fmt.Println(cmd.String()) // Debug: print the command
+		cmdOutput, err := cmd.CombinedOutput()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to add page number to page " + strconv.Itoa(pageNum) + ": " + string(cmdOutput),
+			})
+			return
+		}
+	}
+	// Generate file URL
+	fileURL := fmt.Sprintf("/api/file?folder=pagenumbers&filename=%s-numbered.pdf", uniqueID)
+
+	// Return response
+	response := gin.H{
+		"success":       true,
+		"message":       "Page numbers added successfully",
+		"fileUrl":       fileURL,
+		"fileName":      fmt.Sprintf("%s-numbered.pdf", uniqueID),
+		"originalName":  file.Filename,
+		"totalPages":    totalPages,
+		"numberedPages": len(pagesToNumber),
+	}
+
+	// Add billing info if available
+	if exists {
+		result, _ := h.balanceService.ProcessOperation(userID.(string), operation.(string))
+		var opCost float64
+		if result.UsedFreeOperation {
+			opCost = 0
+		} else {
+			opCost = services.OperationCost
+		}
+
+		response["billing"] = gin.H{
+			"usedFreeOperation":       result.UsedFreeOperation,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"currentBalance":          result.CurrentBalance,
+			"operationCost":           opCost,
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// Helper function to copy a file
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	return err
+}
+
+// Helper function to map position to pdfcpu format
+func mapPositionToPdfcpu(position string) string {
+	switch position {
+	case "top-left":
+		return "tl"
+	case "top-center":
+		return "tc"
+	case "top-right":
+		return "tr"
+	case "bottom-left":
+		return "bl"
+	case "bottom-center":
+		return "bc"
+	case "bottom-right":
+		return "br"
+	default:
+		return "bc" // Default to bottom center
+	}
+}
+
+// Helper function to format page number according to format
+func formatPageNumber(pageNum int, format string, startNumber int) string {
+	actualNumber := pageNum + startNumber - 1
+
+	switch format {
+	case "roman":
+		return toRoman(actualNumber)
+	case "alphabetic":
+		return toAlphabetic(actualNumber)
+	default: // numeric
+		return strconv.Itoa(actualNumber)
+	}
+}
+
+// Helper function to convert number to Roman numerals
+func toRoman(num int) string {
+	if num <= 0 {
+		return ""
+	}
+
+	romanNumerals := []struct {
+		value   int
+		numeral string
+	}{
+		{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"},
+		{100, "C"}, {90, "XC"}, {50, "L"}, {40, "XL"},
+		{10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"},
+	}
+
+	var result strings.Builder
+
+	for _, rn := range romanNumerals {
+		for num >= rn.value {
+			result.WriteString(rn.numeral)
+			num -= rn.value
+		}
+	}
+
+	return result.String()
+}
+
+// Helper function to convert number to alphabetic format (A, B, C, ..., Z, AA, AB, etc.)
+func toAlphabetic(num int) string {
+	if num <= 0 {
+		return ""
+	}
+
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	length := len(alphabet)
+
+	var result strings.Builder
+
+	// Convert to base-26 representation
+	n := num
+	for n > 0 {
+		n--
+		remainder := n % length
+		result.WriteByte(alphabet[remainder])
+		n /= length
+	}
+
+	// Reverse the string
+	runes := []rune(result.String())
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+
+	return string(runes)
+}
+
+// Helper function to map font family names to pdfcpu font names
+func getFontMap(fontFamily string) string {
+	switch strings.ToLower(fontFamily) {
+	case "times", "timesnewroman", "times new roman":
+		return "times"
+	case "courier":
+		return "Courier"
+	default: // Helvetica is the default
+		return "Helvetica"
+	}
+}
+
+func formatColorForDescription(hexColor string) string {
+	// Remove # prefix if present
+	hexColor = strings.TrimPrefix(hexColor, "#")
+
+	// Default to black if invalid
+	if len(hexColor) != 6 {
+		return "0 0 0"
+	}
+
+	// Convert hex to RGB integers
+	r, _ := strconv.ParseInt(hexColor[0:2], 16, 32)
+	g, _ := strconv.ParseInt(hexColor[2:4], 16, 32)
+	b, _ := strconv.ParseInt(hexColor[4:6], 16, 32)
+
+	// Convert to float values (0.0 to 1.0)
+	return fmt.Sprintf("%.3f %.3f %.3f", float64(r)/255.0, float64(g)/255.0, float64(b)/255.0)
 }
