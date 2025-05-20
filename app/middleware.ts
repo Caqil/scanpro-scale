@@ -7,7 +7,6 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedRoute) {
     const token = request.cookies.get('authToken')?.value || '';
-    // Transform cookies into [name, value] pairs for Object.fromEntries
     const cookies = Object.fromEntries(
       request.cookies.getAll().map((cookie) => [cookie.name, cookie.value])
     );
@@ -19,10 +18,10 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/validate-token`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/validate-token`, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: 'include',
+        credentials: 'include', // Send cookies, including authToken
       });
 
       console.log('Middleware - Token validation status:', response.status);
@@ -33,13 +32,17 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
       }
 
+      const data = await response.json();
+      if (!data.success) {
+        console.error('Middleware - Token validation failed: Invalid response', data);
+        const lang = pathname.split('/')[1] || 'en';
+        return NextResponse.redirect(new URL(`/${lang}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
+      }
+
       const isAdminRoute = pathname.includes('/admin');
-      if (isAdminRoute) {
-        const data = await response.json();
-        if (data.role !== 'admin') {
-          const lang = pathname.split('/')[1] || 'en';
-          return NextResponse.redirect(new URL(`/${lang}/dashboard`, request.url));
-        }
+      if (isAdminRoute && data.user?.role !== 'admin') {
+        const lang = pathname.split('/')[1] || 'en';
+        return NextResponse.redirect(new URL(`/${lang}/dashboard`, request.url));
       }
     } catch (error) {
       console.error('Middleware - Token validation error:', error);
@@ -50,3 +53,7 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/admin/:path*'],
+};

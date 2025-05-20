@@ -311,7 +311,7 @@ export function PdfSplitter() {
       xhr.open("POST", apiUrl);
       xhr.setRequestHeader(
         "x-api-key",
-        "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0"
+        "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
       );
 
       xhr.upload.onprogress = (event) => {

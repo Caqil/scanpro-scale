@@ -115,7 +115,7 @@ export function PdfPageNumberer() {
       // Add API key if available
       const apiKey =
         localStorage.getItem("apiKey") ||
-        "sk_f31cd57d242139773df0110592133eefe90cdd253296cad0";
+        "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe";
       if (apiKey) {
         xhr.setRequestHeader("x-api-key", apiKey);
       }
