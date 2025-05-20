@@ -6,9 +6,6 @@
       "dom.iterable",
       "esnext"
     ],
-    "types": [
-      "@prisma/client"
-    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
