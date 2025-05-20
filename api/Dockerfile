@@ -22,9 +22,8 @@ ENV DEBUG=false
 ENV TEMP_DIR=/tmp
 ENV UPLOAD_DIR=/app/uploads
 ENV PUBLIC_DIR=/app/public
-ENV DATABASE_PATH=/app/data/megapdf.db
 
-# Install required PDF processing tools and dependencies
+# Install required PDF processing tools, dependencies, and MariaDB client libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     qpdf \
     pdftk \
@@ -34,13 +33,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     ca-certificates \
-    sqlite3 \
+    mariadb-client \
+    libmariadb-dev \
     curl \
     wget \
     unzip \
     python3 \
     python3-pip \
-    python3-venv \  
+    python3-venv \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -66,7 +66,7 @@ RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir ocrmypdf PyPDF2
 
 # Create necessary directories
-RUN mkdir -p /app/uploads /app/public /app/data /app/temp
+RUN mkdir -p /app/uploads /app/public /app/temp
 
 # Copy the compiled Go binary from the builder stage
 WORKDIR /app

@@ -1,10 +1,11 @@
-// internal/middleware/auth_middleware.go
+// api/internal/middleware/auth_middleware.go
 package middleware
 
 import (
 	"net/http"
 	"strings"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/db" // Add this import
 	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -36,8 +37,9 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
-		// Validate token
-		userID, err := services.NewAuthService(nil, jwtSecret).ValidateToken(token)
+		// Validate token - use the global DB instance instead of nil
+		authService := services.NewAuthService(db.DB, jwtSecret)
+		userID, err := authService.ValidateToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid token",

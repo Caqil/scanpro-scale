@@ -207,8 +207,28 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		},
 	})
 }
+
+// In api/internal/handlers/auth_handler.go
 func (h *AuthHandler) Logout(c *gin.Context) {
-	// Clear the authToken cookie
+	// Get token from cookie or header
+	var token string
+	cookieToken, err := c.Cookie("authToken")
+	if err == nil {
+		token = cookieToken
+	} else {
+		// Try from Authorization header
+		authHeader := c.GetHeader("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			token = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+	}
+
+	// If token found, delete session
+	if token != "" {
+		db.DB.Where("session_token = ?", token).Delete(&models.Session{})
+	}
+
+	// Clear the cookie
 	c.SetCookie(
 		"authToken", // Cookie name
 		"",          // Empty value

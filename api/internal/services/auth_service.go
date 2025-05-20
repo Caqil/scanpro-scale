@@ -3,6 +3,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
@@ -79,10 +80,25 @@ func (s *AuthService) Register(name, email, password string) (*AuthResult, error
 		return nil, err
 	}
 
-	// Generate JWT token
 	token, err := s.generateToken(user.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Create a session record
+	expiry := time.Now().Add(time.Hour * 24 * 7) // 7 days
+	session := models.Session{
+		ID:           uuid.New().String(),
+		UserID:       user.ID,
+		SessionToken: token,
+		Expires:      expiry,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	// Save the session to database
+	if err := s.db.Create(&session).Error; err != nil {
+		fmt.Printf("Error creating session record: %v\n", err)
 	}
 
 	return &AuthResult{
@@ -115,12 +131,27 @@ func (s *AuthService) Login(email, password string) (*AuthResult, error) {
 		}, nil
 	}
 
-	// Generate JWT token
 	token, err := s.generateToken(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Create a session record in the database
+	expiry := time.Now().Add(time.Hour * 24 * 7) // 7 days
+	session := models.Session{
+		ID:           uuid.New().String(),
+		UserID:       user.ID,
+		SessionToken: token,
+		Expires:      expiry,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	// Save the session to database
+	if err := s.db.Create(&session).Error; err != nil {
+		// Log the error but don't fail the login
+		fmt.Printf("Error creating session record: %v\n", err)
+	}
 	return &AuthResult{
 		Success: true,
 		Token:   token,
@@ -297,7 +328,28 @@ func (s *AuthService) ValidateToken(tokenString string) (string, error) {
 
 	// Validate the token
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims["sub"].(string), nil
+		userID := claims["sub"].(string)
+
+		// Only check database if we have a DB connection
+		if s.db != nil {
+			// Check session in database (add this functionality)
+			var session models.Session
+			result := s.db.Where("session_token = ? AND expires > ?", tokenString, time.Now()).First(&session)
+
+			if result.Error != nil {
+				// If no session found, token is invalid
+				if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					return "", errors.New("no valid session found for token")
+				}
+				return "", result.Error
+			}
+
+			// Return the user ID from the session
+			return session.UserID, nil
+		}
+
+		// If no DB connection, just return the user ID from the token
+		return userID, nil
 	}
 
 	return "", errors.New("invalid token")
