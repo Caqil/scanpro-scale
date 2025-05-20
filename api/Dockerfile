@@ -71,7 +71,7 @@ RUN mkdir -p /app/uploads /app/public /app/temp
 # Copy the compiled Go binary from the builder stage
 WORKDIR /app
 COPY --from=builder /app/mega-api .
-
+COPY --from=builder /app/templates ./templates
 # Create subdirectories for file storage
 RUN mkdir -p /app/public/conversions \
     /app/public/compressions \
