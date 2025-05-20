@@ -1,4 +1,3 @@
-// app/components/user-profile.tsx
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,8 @@ import { useAuth } from "@/src/context/auth-context";
 import { apiRequest } from "@/src/utils/api";
 
 export function UserProfile() {
-  const { user, refreshAuth } = useAuth();
+  // Change from refreshAuth to refreshUserData (which exists in your auth context)
+  const { user, refreshUserData } = useAuth();
   const [name, setName] = useState(user?.name || "");
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +25,7 @@ export function UserProfile() {
       });
 
       toast.success("Profile updated successfully");
-      refreshAuth(); // Refresh user data
+      refreshUserData(); // Use refreshUserData instead of refreshAuth
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(
@@ -53,7 +53,8 @@ export function UserProfile() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
-          value={user?.email}
+          // Ensure value is always a string, fixing the type error
+          value={user?.email || ""}
           disabled
           placeholder="Your email"
         />

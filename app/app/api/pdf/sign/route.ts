@@ -4,7 +4,6 @@ import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import { existsSync } from "fs";
 import path, { join } from "path";
 import { v4 as uuidv4 } from "uuid";
-import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
 import sharp from "sharp";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 import { exec } from "child_process";

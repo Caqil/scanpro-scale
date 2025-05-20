@@ -6,8 +6,6 @@ import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { trackApiUsage, validateApiKey } from "@/lib/validate-key";
-import { canPerformOperation, getOperationType, getUserId, processOperation } from "@/lib/operation-tracker";
 
 // Promisify exec for async/await
 const execAsync = promisify(exec);
@@ -79,28 +77,28 @@ export async function POST(request: NextRequest) {
     console.log("Starting PDF rotation process using pdfcpu...");
     
     // Get user ID from either API key (via headers) or session
-    const userId = await getUserId(request);
-    const operationType = getOperationType(request, 'rotate');
+    // const userId = await getUserId(request);
+    // const operationType = getOperationType(request, 'rotate');
     
     // IMPORTANT: Check if the user can perform this operation BEFORE processing
     // This prevents starting expensive operations for users who can't pay
-    if (userId) {
-      const canPerform = await canPerformOperation(userId, operationType);
+    // if (userId) {
+    //   const canPerform = await canPerformOperation(userId, operationType);
       
-      if (!canPerform.canPerform) {
-        return NextResponse.json(
-          {
-            error: canPerform.error || "Insufficient balance or free operations",
-            details: {
-              balance: canPerform.currentBalance,
-              freeOperationsRemaining: canPerform.freeOperationsRemaining,
-              operationCost: 0.005,
-            },
-          },
-          { status: 402 } // Payment Required status code
-        );
-      }
-    }
+    //   if (!canPerform.canPerform) {
+    //     return NextResponse.json(
+    //       {
+    //         error: canPerform.error || "Insufficient balance or free operations",
+    //         details: {
+    //           balance: canPerform.currentBalance,
+    //           freeOperationsRemaining: canPerform.freeOperationsRemaining,
+    //           operationCost: 0.005,
+    //         },
+    //       },
+    //       { status: 402 } // Payment Required status code
+    //     );
+    //   }
+    // }
 
     await ensureDirectories();
 
@@ -252,33 +250,33 @@ export async function POST(request: NextRequest) {
       // Only charge if we have a user ID (either from API key or session)
       let billingInfo = {};
       
-      if (userId) {
-        const operationResult = await processOperation(userId, operationType);
+      // if (userId) {
+      //   const operationResult = await processOperation(userId, operationType);
         
-        if (!operationResult.success) {
-          return NextResponse.json(
-            {
-              error: operationResult.error || "Failed to process operation charge",
-              details: {
-                balance: operationResult.currentBalance,
-                freeOperationsRemaining: operationResult.freeOperationsRemaining,
-                operationCost: 0.005,
-              },
-            },
-            { status: 402 } // Payment Required status code
-          );
-        }
+      //   if (!operationResult.success) {
+      //     return NextResponse.json(
+      //       {
+      //         error: operationResult.error || "Failed to process operation charge",
+      //         details: {
+      //           balance: operationResult.currentBalance,
+      //           freeOperationsRemaining: operationResult.freeOperationsRemaining,
+      //           operationCost: 0.005,
+      //         },
+      //       },
+      //       { status: 402 } // Payment Required status code
+      //     );
+      //   }
         
-        // Add billing info to the response
-        billingInfo = {
-          billing: {
-            usedFreeOperation: operationResult.usedFreeOperation,
-            freeOperationsRemaining: operationResult.freeOperationsRemaining,
-            currentBalance: operationResult.currentBalance,
-            operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
-          }
-        };
-      }
+      //   // Add billing info to the response
+      //   billingInfo = {
+      //     billing: {
+      //       usedFreeOperation: operationResult.usedFreeOperation,
+      //       freeOperationsRemaining: operationResult.freeOperationsRemaining,
+      //       currentBalance: operationResult.currentBalance,
+      //       operationCost: operationResult.usedFreeOperation ? 0 : 0.005,
+      //     }
+      //   };
+      // }
 
       // Return success response with the file URL
       return NextResponse.json({
