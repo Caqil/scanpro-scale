@@ -13,7 +13,7 @@ type User struct {
 	Role                string  `gorm:"type:varchar(50);default:'user'"`
 	VerificationToken   *string `gorm:"type:varchar(255)"`
 	IsEmailVerified     bool    `gorm:"default:false"`
-	Balance             float64 `gorm:"type:decimal(10,2);default:0"`
+	Balance             float64 `gorm:"type:decimal(10,3);default:0"`
 	FreeOperationsUsed  int     `gorm:"default:0"`
 	FreeOperationsReset time.Time
 	CreatedAt           time.Time

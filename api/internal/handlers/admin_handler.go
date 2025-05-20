@@ -1404,3 +1404,29 @@ func (h *AdminHandler) UpdatePricingSettings(c *gin.Context) {
 		},
 	})
 }
+
+// In internal/handlers/admin_handler.go - Add this debugging function
+func DebugPricingSettings() {
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		fmt.Printf("ADMIN PRICING ERROR: Failed to retrieve pricing settings: %v\n", err)
+		return
+	}
+
+	fmt.Printf("ADMIN PRICING DEBUG: Current settings:\n")
+	fmt.Printf("  - Global operation cost: %.6f\n", pricing.OperationCost)
+	fmt.Printf("  - Free operations monthly: %d\n", pricing.FreeOperationsMonthly)
+	fmt.Printf("  - Custom prices: %+v\n", pricing.CustomPrices)
+
+	// Check database raw value
+	var rawValue string
+	if err := db.DB.Model(&models.PricingSetting{}).
+		Where("`key` = ?", "pricing_settings").
+		Select("value").
+		Row().Scan(&rawValue); err == nil {
+		fmt.Println("ADMIN PRICING DEBUG: Raw JSON from database:", rawValue)
+	} else {
+		fmt.Printf("ADMIN PRICING ERROR: Failed to get raw JSON: %v\n", err)
+	}
+}

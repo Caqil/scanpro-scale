@@ -12,6 +12,7 @@ import (
 	"github.com/MegaPDF/megapdf-official/api/internal/handlers"
 	"github.com/MegaPDF/megapdf-official/api/internal/middleware"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/MegaPDF/megapdf-official/api/internal/repository"
 	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -19,6 +20,55 @@ import (
 	"gorm.io/gorm"
 )
 
+func ResetCustomPricing(c *gin.Context) {
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Clear all custom prices or specific ones
+	pricing.CustomPrices = make(map[string]float64)
+
+	// Make sure global price is correct
+	pricing.OperationCost = 0.005
+
+	// Save the updated pricing
+	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save updated pricing: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Custom pricing cleared, global price set to 0.005",
+	})
+}
+
+// Add to your routes (or run as a test)
+func DebugCustomPrices(c *gin.Context) {
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// List all custom prices
+	c.JSON(http.StatusOK, gin.H{
+		"globalPrice":  pricing.OperationCost,
+		"customPrices": pricing.CustomPrices,
+		// Check specifically for compress
+		"compressPrice": pricing.CustomPrices["compress"],
+	})
+}
 func maskPassword(password string) string {
 	if password != "" {
 		return "********"

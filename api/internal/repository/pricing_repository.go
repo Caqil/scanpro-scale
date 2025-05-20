@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
@@ -47,13 +48,15 @@ func (r *PricingRepository) GetPricingSettings() (*models.CustomPricing, error) 
 	}
 
 	// Unmarshal the settings
+	fmt.Println("PRICING DEBUG: Retrieved settings from database, raw value:", setting.Value)
 	var pricing models.CustomPricing
 	if err := json.Unmarshal([]byte(setting.Value), &pricing); err != nil {
-		// Debug logging
-		fmt.Printf("Error unmarshaling pricing settings: %v\n", err)
+		fmt.Printf("CRITICAL ERROR: Failed to unmarshal pricing settings: %v\n", err)
+		fmt.Println("Raw JSON:", setting.Value)
 		return nil, err
 	}
-
+	fmt.Printf("PRICING DEBUG: Unmarshaled settings: global=%.6f, free=%d, custom prices=%+v\n",
+		pricing.OperationCost, pricing.FreeOperationsMonthly, pricing.CustomPrices)
 	// Debug logging
 	fmt.Printf("Successfully fetched pricing settings: global=%.3f, free=%d, custom=%v\n",
 		pricing.OperationCost, pricing.FreeOperationsMonthly, pricing.CustomPrices)
@@ -119,4 +122,39 @@ func (r *PricingRepository) SavePricingSettings(pricing *models.CustomPricing) e
 		fmt.Println("Successfully updated pricing settings")
 	}
 	return err
+}
+
+func (r *PricingRepository) ForceResetPricing() error {
+	// Create correct pricing settings
+	pricing := models.CustomPricing{
+		OperationCost:         0.005, // EXPLICITLY SET CORRECT VALUE
+		FreeOperationsMonthly: 500,   // EXPLICITLY SET CORRECT VALUE
+		CustomPrices:          make(map[string]float64),
+	}
+
+	// Marshal to JSON
+	pricingJSON, err := json.Marshal(pricing)
+	if err != nil {
+		return err
+	}
+
+	// Delete existing settings
+	if err := db.DB.Where("`key` = ?", "pricing_settings").Delete(&models.PricingSetting{}).Error; err != nil {
+		fmt.Println("WARNING: Failed to delete existing pricing:", err)
+	}
+
+	// Create new settings record
+	pricingSetting := models.PricingSetting{
+		ID:          uuid.New().String(),
+		Key:         "pricing_settings",
+		Value:       string(pricingJSON),
+		Description: "RESET: Global pricing settings for operations",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	fmt.Printf("EMERGENCY FIX: Resetting pricing to global=%.6f, free=%d\n",
+		pricing.OperationCost, pricing.FreeOperationsMonthly)
+
+	return db.DB.Create(&pricingSetting).Error
 }

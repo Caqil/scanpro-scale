@@ -106,20 +106,3 @@ func (s *KeyValidationService) GetPricingSettings() (float64, int, error) {
 
 	return pricing.OperationCost, pricing.FreeOperationsMonthly, nil
 }
-
-// GetOperationCost returns the cost for a specific operation
-func (s *KeyValidationService) GetOperationCost(operation string) (float64, error) {
-	pricingRepo := repository.NewPricingRepository()
-	pricing, err := pricingRepo.GetPricingSettings()
-	if err != nil {
-		return constants.OperationCost, err
-	}
-
-	// Check if there's a custom price for this operation
-	if price, ok := pricing.CustomPrices[operation]; ok {
-		return price, nil
-	}
-
-	// Otherwise return the global operation cost
-	return pricing.OperationCost, nil
-}
