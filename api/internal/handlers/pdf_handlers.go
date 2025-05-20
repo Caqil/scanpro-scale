@@ -743,19 +743,12 @@ func (h *PDFHandler) SplitPDF(c *gin.Context) {
 	if exists {
 		result, _ := h.balanceService.ProcessOperation(userID.(string), operation.(string))
 
-		var opCost float64
-		if result.UsedFreeOperation {
-			opCost = 0
-		} else {
-			opCost = constants.OperationCost
-		}
-
 		billingInfo = gin.H{
 			"billing": gin.H{
-				"usedFreeOperation":       result.UsedFreeOperation,
-				"freeOperationsRemaining": result.FreeOperationsRemaining,
 				"currentBalance":          result.CurrentBalance,
-				"operationCost":           opCost,
+				"freeOperationsRemaining": result.FreeOperationsRemaining,
+				"operationCost":           result.OperationCost,
+				"usedFreeOperation":       result.UsedFreeOperation,
 			},
 		}
 	}
@@ -1864,10 +1857,10 @@ func (h *PDFHandler) UnlockPDF(c *gin.Context) {
 		"filename":     fmt.Sprintf("%s-unlocked.pdf", uniqueID),
 		"originalName": file.Filename,
 		"billing": gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           constants.OperationCost,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"operationCost":           result.OperationCost,
+			"usedFreeOperation":       result.UsedFreeOperation,
 		},
 	})
 }
@@ -2010,10 +2003,10 @@ func (h *PDFHandler) CompressPDF(c *gin.Context) {
 		"compressedSize":   compressedSize,
 		"compressionRatio": fmt.Sprintf("%.2f%%", compressionRatio),
 		"billing": gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           constants.OperationCost,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"operationCost":           result.OperationCost,
+			"usedFreeOperation":       result.UsedFreeOperation,
 		},
 	})
 }
@@ -2150,10 +2143,10 @@ func (h *PDFHandler) RotatePDF(c *gin.Context) {
 		"filename":     fmt.Sprintf("%s-rotated.pdf", uniqueID),
 		"originalName": file.Filename,
 		"billing": gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           constants.OperationCost,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"operationCost":           result.OperationCost,
+			"usedFreeOperation":       result.UsedFreeOperation,
 		},
 	})
 }
@@ -2527,10 +2520,10 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 		"totalInputSize": totalInputSize,
 		"fileCount":      len(files),
 		"billing": gin.H{
-			"usedFreeOperation":       result.UsedFreeOperation,
-			"freeOperationsRemaining": result.FreeOperationsRemaining,
 			"currentBalance":          result.CurrentBalance,
-			"operationCost":           constants.OperationCost,
+			"freeOperationsRemaining": result.FreeOperationsRemaining,
+			"operationCost":           result.OperationCost,
+			"usedFreeOperation":       result.UsedFreeOperation,
 		},
 	})
 }

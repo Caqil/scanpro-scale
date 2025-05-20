@@ -22,6 +22,7 @@ type OperationResult struct {
 	UsedFreeOperation       bool
 	FreeOperationsRemaining int
 	CurrentBalance          float64
+	OperationCost           float64
 	Error                   string
 }
 
@@ -32,6 +33,13 @@ func NewBalanceService(db *gorm.DB) *BalanceService {
 // ProcessOperation charges a user for an operation
 func (s *BalanceService) ProcessOperation(userID string, operation string) (*OperationResult, error) {
 	var result OperationResult
+
+	// Get the operation cost BEFORE entering the transaction to prevent
+	// query errors inside the transaction
+	operationCost := s.getOperationCost(operation)
+
+	// Debug log
+	fmt.Printf("Processing operation %s for user %s with cost %.3f\n", operation, userID, operationCost)
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// Get user data
@@ -67,8 +75,20 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 			}
 		}
 
+		// Get free operations limit
+		freeOperationsLimit := constants.FreeOperationsMonthly
+
+		// Try to get from pricing settings
+		pricingRepo := repository.NewPricingRepository()
+		if pricing, err := pricingRepo.GetPricingSettings(); err == nil {
+			freeOperationsLimit = pricing.FreeOperationsMonthly
+		}
+
+		// Debug logs
+		fmt.Printf("Free operations: used=%d, limit=%d\n", freeOpsUsed, freeOperationsLimit)
+
 		// Check if free operations are available
-		if freeOpsUsed < constants.FreeOperationsMonthly {
+		if freeOpsUsed < freeOperationsLimit {
 			// Use a free operation
 			if err := tx.Model(&user).Update("free_operations_used", freeOpsUsed+1).Error; err != nil {
 				return err
@@ -79,17 +99,30 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 				return err
 			}
 
+			// Create transaction for the free operation with 0 cost
+			freeTransaction := models.Transaction{
+				ID:           uuid.New().String(),
+				UserID:       userID,
+				Amount:       0, // No cost for free operation
+				BalanceAfter: user.Balance,
+				Description:  fmt.Sprintf("Operation: %s (Free)", operation),
+				Status:       "completed",
+				CreatedAt:    time.Now(),
+			}
+
+			if err := tx.Create(&freeTransaction).Error; err != nil {
+				return err
+			}
+
 			result = OperationResult{
 				Success:                 true,
 				UsedFreeOperation:       true,
-				FreeOperationsRemaining: constants.FreeOperationsMonthly - freeOpsUsed - 1,
+				FreeOperationsRemaining: freeOperationsLimit - freeOpsUsed - 1,
 				CurrentBalance:          user.Balance,
+				OperationCost:           operationCost,
 			}
 			return nil
 		}
-
-		// Get the operation cost
-		operationCost := s.getOperationCost(operation)
 
 		// No free operations left, use balance
 		if user.Balance < operationCost {
@@ -98,6 +131,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 				UsedFreeOperation:       false,
 				FreeOperationsRemaining: 0,
 				CurrentBalance:          user.Balance,
+				OperationCost:           operationCost,
 				Error:                   "Insufficient balance",
 			}
 			return nil
@@ -105,6 +139,9 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 
 		// Deduct from balance
 		newBalance := user.Balance - operationCost
+
+		// Debug log
+		fmt.Printf("Deducting %.3f from balance %.3f, new balance: %.3f\n", operationCost, user.Balance, newBalance)
 
 		if err := tx.Model(&user).Update("balance", newBalance).Error; err != nil {
 			return err
@@ -114,7 +151,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 		transaction := models.Transaction{
 			ID:           uuid.New().String(),
 			UserID:       userID,
-			Amount:       -operationCost,
+			Amount:       -operationCost, // Explicitly make it negative to indicate a deduction
 			BalanceAfter: newBalance,
 			Description:  "Operation: " + operation,
 			Status:       "completed",
@@ -135,6 +172,7 @@ func (s *BalanceService) ProcessOperation(userID string, operation string) (*Ope
 			UsedFreeOperation:       false,
 			FreeOperationsRemaining: 0,
 			CurrentBalance:          newBalance,
+			OperationCost:           operationCost,
 		}
 		return nil
 	})
@@ -194,6 +232,13 @@ func (s *BalanceService) GetBalance(userID string) (map[string]interface{}, erro
 	freeOpsUsed := user.FreeOperationsUsed
 	resetDate := user.FreeOperationsReset
 
+	// Get free operations limit from pricing settings
+	freeOperationsLimit := constants.FreeOperationsMonthly
+	pricingRepo := repository.NewPricingRepository()
+	if pricing, err := pricingRepo.GetPricingSettings(); err == nil {
+		freeOperationsLimit = pricing.FreeOperationsMonthly
+	}
+
 	if resetDate.Before(now) {
 		// Reset would happen on next operation, but for display we show as reset
 		freeOpsUsed = 0
@@ -233,8 +278,8 @@ func (s *BalanceService) GetBalance(userID string) (map[string]interface{}, erro
 		"success":                 true,
 		"balance":                 user.Balance,
 		"freeOperationsUsed":      freeOpsUsed,
-		"freeOperationsRemaining": constants.FreeOperationsMonthly - freeOpsUsed,
-		"freeOperationsTotal":     constants.FreeOperationsMonthly,
+		"freeOperationsRemaining": freeOperationsLimit - freeOpsUsed,
+		"freeOperationsTotal":     freeOperationsLimit,
 		"nextResetDate":           resetDate,
 		"transactions":            formattedTransactions,
 		"totalOperations":         totalOperations,
@@ -311,19 +356,29 @@ func (s *BalanceService) CompleteDeposit(paymentID string) error {
 }
 
 func (s *BalanceService) getOperationCost(operation string) float64 {
+	// Debug log
+	fmt.Println("Getting operation cost for:", operation)
+
 	// Get pricing info
 	pricingRepo := repository.NewPricingRepository()
 	pricing, err := pricingRepo.GetPricingSettings()
 	if err != nil {
+		// Log the error
+		fmt.Printf("Error getting pricing settings: %v, using default\n", err)
 		// Fallback to default if we can't get pricing info
 		return constants.OperationCost
 	}
 
+	// Debug log
+	fmt.Printf("Pricing settings: global=%.3f, custom=%v\n", pricing.OperationCost, pricing.CustomPrices)
+
 	// Check for custom price
 	if customPrice, ok := pricing.CustomPrices[operation]; ok {
+		fmt.Printf("Using custom price for %s: %.3f\n", operation, customPrice)
 		return customPrice
 	}
 
 	// Otherwise use global price
+	fmt.Printf("Using global price for %s: %.3f\n", operation, pricing.OperationCost)
 	return pricing.OperationCost
 }

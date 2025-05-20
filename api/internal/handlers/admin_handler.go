@@ -1271,57 +1271,7 @@ func (h *AdminHandler) GetPricingSettings(c *gin.Context) {
 	})
 }
 
-// UpdatePricingSettings updates global pricing settings
-func (h *AdminHandler) UpdatePricingSettings(c *gin.Context) {
-	// Parse pricing settings from request
-	var req struct {
-		OperationCost         *float64 `json:"operationCost"`
-		FreeOperationsMonthly *int     `json:"freeOperationsMonthly"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Get current pricing settings
-	pricingRepo := repository.NewPricingRepository()
-	pricing, err := pricingRepo.GetPricingSettings()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error":   "Failed to retrieve current pricing settings: " + err.Error(),
-		})
-		return
-	}
-
-	// Update with new values if provided
-	if req.OperationCost != nil {
-		pricing.OperationCost = *req.OperationCost
-	}
-
-	if req.FreeOperationsMonthly != nil {
-		pricing.FreeOperationsMonthly = *req.FreeOperationsMonthly
-	}
-
-	// Save updated settings
-	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error":   "Failed to save pricing settings: " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Pricing settings updated successfully",
-		"pricing": gin.H{
-			"operationCost":         pricing.OperationCost,
-			"freeOperationsMonthly": pricing.FreeOperationsMonthly,
-		},
-	})
-}
+// internal/handlers/admin_handler.go - UpdateOperationPricing function updated
 
 // UpdateOperationPricing updates operation-specific pricing
 func (h *AdminHandler) UpdateOperationPricing(c *gin.Context) {
@@ -1335,6 +1285,9 @@ func (h *AdminHandler) UpdateOperationPricing(c *gin.Context) {
 		return
 	}
 
+	// Debug log
+	fmt.Printf("Received custom pricing update request: %v\n", req.CustomPrices)
+
 	// Get current pricing settings
 	pricingRepo := repository.NewPricingRepository()
 	pricing, err := pricingRepo.GetPricingSettings()
@@ -1346,8 +1299,14 @@ func (h *AdminHandler) UpdateOperationPricing(c *gin.Context) {
 		return
 	}
 
+	// Debug log
+	fmt.Printf("Current pricing before update: global=%.3f, custom=%v\n", pricing.OperationCost, pricing.CustomPrices)
+
 	// Update custom prices
 	pricing.CustomPrices = req.CustomPrices
+
+	// Debug log
+	fmt.Printf("New pricing to save: global=%.3f, custom=%v\n", pricing.OperationCost, pricing.CustomPrices)
 
 	// Save updated settings
 	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
@@ -1358,9 +1317,90 @@ func (h *AdminHandler) UpdateOperationPricing(c *gin.Context) {
 		return
 	}
 
+	// Verify the settings were saved correctly by fetching them again
+	updatedPricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		fmt.Printf("Warning: Could not verify pricing was saved: %v\n", err)
+	} else {
+		fmt.Printf("Verified saved pricing: global=%.3f, custom=%v\n", updatedPricing.OperationCost, updatedPricing.CustomPrices)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":      true,
 		"message":      "Operation-specific pricing updated successfully",
 		"customPrices": pricing.CustomPrices,
+	})
+}
+
+// UpdateGlobalPricing function updated
+func (h *AdminHandler) UpdatePricingSettings(c *gin.Context) {
+	// Parse pricing settings from request
+	var req struct {
+		OperationCost         *float64 `json:"operationCost"`
+		FreeOperationsMonthly *int     `json:"freeOperationsMonthly"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Debug log
+	fmt.Printf("Received global pricing update request: cost=%.3f, freeOps=%d\n",
+		*req.OperationCost, *req.FreeOperationsMonthly)
+
+	// Get current pricing settings
+	pricingRepo := repository.NewPricingRepository()
+	pricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve current pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Debug log
+	fmt.Printf("Current pricing before update: global=%.3f, free=%d, custom=%v\n",
+		pricing.OperationCost, pricing.FreeOperationsMonthly, pricing.CustomPrices)
+
+	// Update with new values if provided
+	if req.OperationCost != nil {
+		pricing.OperationCost = *req.OperationCost
+	}
+
+	if req.FreeOperationsMonthly != nil {
+		pricing.FreeOperationsMonthly = *req.FreeOperationsMonthly
+	}
+
+	// Debug log
+	fmt.Printf("New pricing to save: global=%.3f, free=%d, custom=%v\n",
+		pricing.OperationCost, pricing.FreeOperationsMonthly, pricing.CustomPrices)
+
+	// Save updated settings
+	if err := pricingRepo.SavePricingSettings(pricing); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to save pricing settings: " + err.Error(),
+		})
+		return
+	}
+
+	// Verify the settings were saved correctly by fetching them again
+	updatedPricing, err := pricingRepo.GetPricingSettings()
+	if err != nil {
+		fmt.Printf("Warning: Could not verify pricing was saved: %v\n", err)
+	} else {
+		fmt.Printf("Verified saved pricing: global=%.3f, free=%d, custom=%v\n",
+			updatedPricing.OperationCost, updatedPricing.FreeOperationsMonthly, updatedPricing.CustomPrices)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Pricing settings updated successfully",
+		"pricing": gin.H{
+			"operationCost":         pricing.OperationCost,
+			"freeOperationsMonthly": pricing.FreeOperationsMonthly,
+		},
 	})
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon, Calculator } from "lucide-react";
+import { CheckIcon, Calculator, LoaderCircle } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { LanguageLink } from "@/components/language-link";
 import { Slider } from "@/components/ui/slider";
@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/src/context/auth-context";
+import { toast } from "sonner";
 
 export function PricingContent() {
   const { t } = useLanguageStore();
@@ -34,13 +35,67 @@ export function PricingContent() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [operationsEstimate, setOperationsEstimate] = useState(2000);
   const [depositAmount, setDepositAmount] = useState(10);
+  const [pricingLoading, setPricingLoading] = useState(true);
+  const [pricing, setPricing] = useState({
+    operationCost: 0.005,
+    freeOperationsMonthly: 500,
+    customPrices: {},
+  });
 
-  // Cost per operation in dollars
-  const OPERATION_COST = 0.005;
+  // Fetch pricing information from API
+  useEffect(() => {
+    async function fetchPricing() {
+      try {
+        setPricingLoading(true);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/pricing`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          // If API fails, use default values
+          console.warn("Failed to fetch pricing information, using defaults");
+          return;
+        }
+
+        const data = await response.json();
+        if (data.success && data.pricing) {
+          setPricing({
+            operationCost: data.pricing.operationCost || 0.005,
+            freeOperationsMonthly: data.pricing.freeOperationsMonthly || 500,
+            customPrices: data.pricing.customPrices || {},
+          });
+
+          // Recalculate deposit based on new operation cost
+          setDepositAmount(
+            calculateDeposit(operationsEstimate, data.pricing.operationCost)
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching pricing:", error);
+        toast.error(
+          "Failed to load pricing information. Using default values."
+        );
+      } finally {
+        setPricingLoading(false);
+      }
+    }
+
+    fetchPricing();
+  }, []);
 
   // Calculate deposit needed for operations
-  const calculateDeposit = (operations: number) => {
-    return Math.ceil(operations * OPERATION_COST);
+  const calculateDeposit = (
+    operations: number,
+    cost: number = pricing.operationCost
+  ) => {
+    return Math.ceil(operations * cost);
   };
 
   // Update deposit based on operations
@@ -64,8 +119,10 @@ export function PricingContent() {
 
   // Pricing features
   const features = [
-    "500 free operations every month",
-    "Pay-as-you-go pricing at $0.005 per operation",
+    `${pricing.freeOperationsMonthly} free operations every month`,
+    `Pay-as-you-go pricing at $${pricing.operationCost.toFixed(
+      3
+    )} per operation`,
     "No subscription, no recurring fees",
     "Unused balance never expires",
     "Only pay for what you use",
@@ -92,8 +149,21 @@ export function PricingContent() {
               <CardTitle className="text-xl">Pay-As-You-Go</CardTitle>
               <Badge className="px-3 py-1">Most Flexible</Badge>
             </div>
-            <div className="text-3xl font-bold">$0.005</div>
-            <div className="text-sm text-muted-foreground">per operation</div>
+            {pricingLoading ? (
+              <div className="flex items-center space-x-2">
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+                <span>Loading pricing...</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold">
+                  ${pricing.operationCost.toFixed(3)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  per operation
+                </div>
+              </>
+            )}
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm mb-6">
@@ -128,12 +198,17 @@ export function PricingContent() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-muted-foreground">Monthly Free:</div>
-                  <div className="font-medium">500 operations</div>
+                  <div className="font-medium">
+                    {pricing.freeOperationsMonthly.toLocaleString()} operations
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">Additional:</div>
                   <div className="font-medium">
-                    {Math.max(0, operationsEstimate - 500).toLocaleString()}{" "}
+                    {Math.max(
+                      0,
+                      operationsEstimate - pricing.freeOperationsMonthly
+                    ).toLocaleString()}{" "}
                     operations
                   </div>
                 </div>
@@ -143,7 +218,8 @@ export function PricingContent() {
                     $
                     {Math.max(
                       0,
-                      (operationsEstimate - 500) * OPERATION_COST
+                      (operationsEstimate - pricing.freeOperationsMonthly) *
+                        pricing.operationCost
                     ).toFixed(2)}
                   </div>
                 </div>
@@ -160,9 +236,9 @@ export function PricingContent() {
             <Button
               className="w-full"
               onClick={handleGetStarted}
-              disabled={isLoading}
+              disabled={isLoading || pricingLoading}
             >
-              {isLoading
+              {isLoading || pricingLoading
                 ? "Loading..."
                 : isAuthenticated
                 ? "Add Funds to Account"
@@ -177,11 +253,16 @@ export function PricingContent() {
           {t("pricing.cta.title") || "Ready to get started?"}
         </h2>
         <p className="mt-2 text-muted-foreground">
-          Create an account and get 500 free operations every month.
+          Create an account and get {pricing.freeOperationsMonthly} free
+          operations every month.
         </p>
         <div className="mt-6 flex justify-center gap-4">
-          <Button size="lg" onClick={handleGetStarted} disabled={isLoading}>
-            {isLoading
+          <Button
+            size="lg"
+            onClick={handleGetStarted}
+            disabled={isLoading || pricingLoading}
+          >
+            {isLoading || pricingLoading
               ? "Loading..."
               : isAuthenticated
               ? "Go to Dashboard"
@@ -203,8 +284,8 @@ export function PricingContent() {
                 {t("pricing.loginRequired") || "Sign in required"}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Create an account to get 500 free operations every month and add
-                funds as needed.
+                Create an account to get {pricing.freeOperationsMonthly} free
+                operations every month and add funds as needed.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
