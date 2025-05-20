@@ -12,11 +12,7 @@ import {
   AlertCircle,
   X as XIcon,
 } from "lucide-react";
-import {
-  MAX_FILE_SIZE,
-  formatFileSize,
-  getFileTooLargeMessage,
-} from "@/lib/file-size-config";
+import { formatFileSize, getFileTooLargeMessage, MAX_FILE_SIZE } from "@/lib/file-size-config";
 
 export interface FileDropzoneProps {
   className?: string;

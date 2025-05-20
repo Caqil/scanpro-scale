@@ -31,9 +31,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLanguageStore } from "@/src/store/store";
-import useFileUpload from "@/hooks/useFileUpload";
 import { UploadProgress } from "@/components/ui/upload-progress";
 import { FileDropzone } from "./dropzone";
+import useFileUpload from "@/hooks/useFileUpload";
 
 // Define form schema
 const formSchema = z.object({

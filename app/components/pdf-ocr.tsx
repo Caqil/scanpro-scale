@@ -58,21 +58,6 @@ export function PdfOcr() {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Simulated progress for better UX
-  const simulateProgress = () => {
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((prevProgress) => {
-        if (prevProgress >= 95) {
-          clearInterval(interval);
-          return prevProgress;
-        }
-        return prevProgress + 5;
-      });
-    }, 500);
-    return interval;
-  };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -153,35 +138,40 @@ export function PdfOcr() {
     setSuccess(false);
     setDownloadUrl("");
 
-    return new Promise((resolve, reject) => {
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("language", language);
-        formData.append("enhanceScanned", enhanceScanned.toString());
-        formData.append("preserveLayout", preserveLayout.toString());
+    // Create form data for API request
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("language", language);
+    formData.append("enhanceScanned", enhanceScanned.toString());
+    formData.append("preserveLayout", preserveLayout.toString());
 
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/ocr`;
-        console.log("Submitting to Go API URL:", apiUrl);
-        console.log("File name:", file.name, "File size:", file.size);
+    // API URL (using Go API now)
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/ocr`;
+    console.log("Submitting to Go API URL:", apiUrl);
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", apiUrl);
-        xhr.setRequestHeader(
-          "x-api-key",
+    try {
+      // Use XMLHttpRequest for progress tracking
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+
+      // Add API key if available (for production)
+      xhr.setRequestHeader(
+        "x-api-key",
+        process.env.NEXT_PUBLIC_API_KEY ||
           "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
-        );
+      );
 
-        // Track upload progress
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            // Update progress for upload phase (0–50%)
-            setProgress(percentComplete / 2);
-          }
-        };
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          // Update progress for upload phase (0–50%)
+          setProgress(percentComplete / 2);
+        }
+      };
 
-        // Handle completion
+      // Set up promise to handle completion
+      const uploadPromise = new Promise<void>((resolve, reject) => {
         xhr.onload = function () {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
@@ -191,7 +181,9 @@ export function PdfOcr() {
               // Update progress to complete
               setProgress(100);
               setSuccess(true);
-              setDownloadUrl(data.searchablePdfUrl);
+              setDownloadUrl(
+                `${process.env.NEXT_PUBLIC_API_URL}${data.searchablePdfUrl}`
+              );
               setIsLoading(false);
 
               toast.success(t("ocr.success") || "PDF Processed Successfully", {
@@ -240,7 +232,7 @@ export function PdfOcr() {
         // Handle network errors
         xhr.onerror = function () {
           const errorMessage =
-            t("ocr.unknownError") || "An unknown error occurred";
+            t("ocr.unknownError") || "A network error occurred";
           setError(errorMessage);
           setProgress(0);
           setIsLoading(false);
@@ -249,23 +241,49 @@ export function PdfOcr() {
           });
           reject(new Error("Network error"));
         };
+      });
 
-        // Send the request
-        xhr.send(formData);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : t("ocr.unknownError") || "An unknown error occurred";
-        setError(errorMessage);
-        setProgress(0);
-        setIsLoading(false);
-        toast.error(t("ocr.extractionFailed") || "PDF Processing Failed", {
-          description: errorMessage,
-        });
-        reject(err);
-      }
-    });
+      // Start the upload
+      xhr.send(formData);
+
+      // Simulate processing progress after upload completes
+      const simulateProcessing = () => {
+        const interval = setInterval(() => {
+          setProgress((prevProgress) => {
+            if (prevProgress >= 50 && prevProgress < 95) {
+              // Simulate processing (50-95%)
+              return prevProgress + 5;
+            } else if (prevProgress < 50) {
+              // Don't interfere with upload progress (0-50%)
+              return prevProgress;
+            }
+            clearInterval(interval);
+            return prevProgress;
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      };
+
+      const cleanup = simulateProcessing();
+
+      // Wait for upload to complete
+      await uploadPromise;
+
+      // Clean up interval if needed
+      cleanup();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : t("ocr.unknownError") || "An unknown error occurred";
+      setError(errorMessage);
+      setProgress(0);
+      setIsLoading(false);
+      toast.error(t("ocr.extractionFailed") || "PDF Processing Failed", {
+        description: errorMessage,
+      });
+    }
   };
 
   const resetForm = () => {

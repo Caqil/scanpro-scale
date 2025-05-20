@@ -188,6 +188,38 @@ export function BalancePanel() {
     100
   );
 
+  // Format the transaction amount properly and determine type
+  const getTransactionDetails = (tx: any) => {
+    // Check if it's explicitly marked as a free operation
+    const isFree = tx.description.includes("(Free)");
+
+    // Check if it's an operation (paid or free)
+    const isOperation = tx.description.startsWith("Operation:");
+
+    // If it's an operation but not marked as free, it should be a paid operation
+    const isPaidOperation = isOperation && !isFree;
+
+    // Format the amount
+    let displayAmount;
+    if (isFree) {
+      displayAmount = "Free";
+    } else if (isPaidOperation) {
+      // For paid operations, ensure the amount is negative
+      const operationCost = Math.abs(tx.amount);
+      displayAmount = "-" + operationCost.toFixed(3);
+    } else {
+      // Add + sign for deposits, keep - for negative amounts
+      displayAmount = (tx.amount > 0 ? "+" : "") + tx.amount.toFixed(3);
+    }
+
+    return {
+      isFree,
+      isOperation,
+      isPaidOperation,
+      displayAmount,
+    };
+  };
+
   if (authLoading) {
     return <div>{t("balancePanel.status.loading") || "Loading..."}</div>;
   }
@@ -377,11 +409,16 @@ export function BalancePanel() {
                         </TableCell>
                         <TableCell
                           className={
-                            tx.amount >= 0 ? "text-green-600" : "text-red-600"
+                            tx.description.includes("(Free)")
+                              ? "text-green-600" // Free operations
+                              : tx.description.startsWith("Operation:")
+                              ? "text-red-600" // Paid operations should always be red
+                              : tx.amount > 0
+                              ? "text-green-600" // Deposits are green
+                              : "text-red-600" // Other negative amounts are red
                           }
                         >
-                          {tx.amount >= 0 ? "+" : ""}
-                          {tx.amount.toFixed(3)}
+                          {getTransactionDetails(tx).displayAmount}
                         </TableCell>
                         <TableCell className="text-right">
                           ${tx.balanceAfter.toFixed(2)}

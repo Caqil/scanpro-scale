@@ -328,21 +328,25 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		"emailSent": emailSent,
 	})
 }
-
 func (h *AuthHandler) VerifyEmail(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Verification token is required"})
 		return
 	}
+
 	err := h.service.VerifyEmail(token)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification token"})
+		// For HTML response on error
+		c.HTML(http.StatusBadRequest, "verify_email_error.html", gin.H{
+			"error": "Invalid verification token",
+		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Email verified successfully",
+
+	// Return HTML success page instead of JSON
+	c.HTML(http.StatusOK, "verify_email_success.html", gin.H{
+		"appURL": h.config.AppURL,
 	})
 }
 

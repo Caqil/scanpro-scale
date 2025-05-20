@@ -220,6 +220,8 @@ export function FileUploader({
     },
   });
   // Handle form submission
+  // Update the onSubmit function in the FileUploader component
+
   const onSubmit = async (values: FormValues) => {
     if (!file) {
       setError(t("compressPdf.error.noFiles"));
@@ -244,7 +246,7 @@ export function FileUploader({
         formData.append("password", values.password);
       }
 
-      // Determine API URL (use Go API if configured)
+      // Determine API URL
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/pdf/convert`;
       console.log("Submitting to API URL:", apiUrl);
       console.log("File name:", file.name, "File size:", file.size);
@@ -287,6 +289,11 @@ export function FileUploader({
               const filename =
                 data.filename ||
                 `${data.uniqueId}-output.${values.outputFormat}`;
+
+              // Construct the full URL for the file
+              const fileUrl = `/api/file?folder=conversions&filename=${encodeURIComponent(
+                filename
+              )}`;
               setConvertedFileUrl(filename);
 
               toast.success(t("fileUploader.successful"), {
@@ -740,7 +747,9 @@ export function FileUploader({
               </p>
               <Button className="w-full" asChild variant="default">
                 <a
-                  href={`/api/file?folder=conversions&filename=${encodeURIComponent(
+                  href={`${
+                    process.env.NEXT_PUBLIC_API_URL || ""
+                  }/api/file?folder=conversions&filename=${encodeURIComponent(
                     convertedFileUrl
                   )}`}
                   download

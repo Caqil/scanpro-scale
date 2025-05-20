@@ -34,20 +34,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   FileIcon,
   Cross2Icon,
-  CheckCircledIcon,
   UploadIcon,
   DownloadIcon,
   CopyIcon,
 } from "@radix-ui/react-icons";
-import { AlertCircle, FileText, Languages } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AnimatedOcrText } from "./animated-ocr-text";
 import { useLanguageStore } from "@/src/store/store";
-import useFileUpload from "@/hooks/useFileUpload";
-import { UploadProgress } from "./ui/upload-progress";
 
 // Available languages for OCR
 const OCR_LANGUAGES = [
@@ -89,14 +85,7 @@ export function PdfOcrExtractor() {
     url: string;
     filename: string;
   } | null>(null);
-  const {
-    isUploading,
-    progress: uploadProgress,
-    error: uploadError,
-    uploadFile,
-    resetUpload,
-    uploadStats,
-  } = useFileUpload();
+
   // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -135,7 +124,6 @@ export function PdfOcrExtractor() {
         setExtractedText(null);
         setTextFile(null);
         setError(null);
-        resetUpload();
         const fileSizeInMB = acceptedFiles[0].size / (1024 * 1024);
         const estimatedPages = Math.max(1, Math.round(fileSizeInMB * 5));
         setTotalPages(estimatedPages);
@@ -179,6 +167,7 @@ export function PdfOcrExtractor() {
         });
     }
   };
+
   const onSubmit = async (values: FormValues): Promise<void> => {
     if (!file) {
       setError(t("compressPdf.error.noFiles") || "No file selected");
@@ -205,15 +194,21 @@ export function PdfOcrExtractor() {
         formData.append("enhanceScanned", values.enhanceScanned.toString());
         formData.append("preserveLayout", values.preserveLayout.toString());
 
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/ocr/extract`;
+        // Use the Go API endpoint
+        const apiUrl = `${
+          process.env.NEXT_PUBLIC_API_URL || ""
+        }/api/ocr/extract`;
         console.log("Submitting to Go API URL:", apiUrl);
         console.log("File name:", file.name, "File size:", file.size);
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", apiUrl);
+
+        // Add API key if available (for production)
         xhr.setRequestHeader(
           "x-api-key",
-          "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
+          process.env.NEXT_PUBLIC_API_KEY ||
+            "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
         );
 
         // Track upload progress
@@ -226,7 +221,10 @@ export function PdfOcrExtractor() {
         };
 
         // Handle completion
-        xhr.onload = function () {
+        xhr.onload = function (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
@@ -285,7 +283,10 @@ export function PdfOcrExtractor() {
         };
 
         // Handle network errors
-        xhr.onerror = function () {
+        xhr.onerror = function (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) {
           const errorMessage =
             t("compressPdf.error.unknown") || "An unknown error occurred";
           setError(errorMessage);
@@ -297,8 +298,56 @@ export function PdfOcrExtractor() {
           reject(new Error("Network error"));
         };
 
+        // Simulate processing progress
+        const simulateProcessing = () => {
+          const interval = setInterval(() => {
+            setProgress((prevProgress) => {
+              if (prevProgress >= 50 && prevProgress < 95) {
+                // Simulate processing phase (50-95%)
+                return prevProgress + 5;
+              } else if (prevProgress < 50) {
+                // Don't interfere with upload progress (0-50%)
+                return prevProgress;
+              }
+              clearInterval(interval);
+              return prevProgress;
+            });
+          }, 1000);
+
+          return () => clearInterval(interval);
+        };
+
+        const cleanup = simulateProcessing();
+
         // Send the request
         xhr.send(formData);
+
+        // Store original handlers
+        const originalOnload: (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) => void = xhr.onload;
+        const originalOnerror: (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) => void = xhr.onerror;
+
+        // Wrap handlers to include cleanup
+        xhr.onload = function (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) {
+          cleanup();
+          originalOnload.call(this, ev);
+        };
+
+        xhr.onerror = function (
+          this: XMLHttpRequest,
+          ev: ProgressEvent<EventTarget>
+        ) {
+          cleanup();
+          originalOnerror.call(this, ev);
+        };
       } catch (err) {
         const errorMessage =
           err instanceof Error
@@ -314,6 +363,7 @@ export function PdfOcrExtractor() {
       }
     });
   };
+
   return (
     <Card className="border shadow-sm">
       <CardHeader>
@@ -545,20 +595,24 @@ export function PdfOcrExtractor() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            {(isUploading || isProcessing) && (
-              <UploadProgress
-                progress={progress}
-                isUploading={isUploading}
-                isProcessing={isProcessing}
-                processingProgress={progress}
-                error={uploadError}
-                label={
-                  isUploading
-                    ? t("ocr.processing.title")
-                    : t("ocr.processing.message")
-                }
-                uploadStats={uploadStats}
-              />
+
+            {isProcessing && (
+              <div className="mt-6 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>{t("ocr.processingPdf")}</span>
+                  <span>{progress}%</span>
+                </div>
+                <Progress value={progress} className="w-full" />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {progress < 30
+                    ? t("ocr.analyzing")
+                    : progress < 60
+                    ? t("ocr.preprocessing")
+                    : progress < 90
+                    ? t("ocr.recognizing")
+                    : t("ocr.finishing")}
+                </p>
+              </div>
             )}
 
             {extractedText && (
@@ -578,12 +632,7 @@ export function PdfOcrExtractor() {
                     </Button>
                     {textFile && (
                       <Button type="button" variant="outline" size="sm" asChild>
-                        <a
-                          href={`/api/file?folder=ocr&filename=${encodeURIComponent(
-                            textFile.filename
-                          )}`}
-                          download
-                        >
+                        <a href={textFile.url} download>
                           <DownloadIcon className="h-4 w-4 mr-1" />{" "}
                           {t("ocr.results.download")}
                         </a>

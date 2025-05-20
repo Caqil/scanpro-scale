@@ -30,8 +30,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLanguageStore } from "@/src/store/store";
 import { UploadProgress } from "@/components/ui/upload-progress";
-import useFileUpload from "@/hooks/useFileUpload";
 import { FileDropzone } from "@/components/dropzone";
+import useFileUpload from "@/hooks/useFileUpload";
 
 // Form schema
 const formSchema = z.object({

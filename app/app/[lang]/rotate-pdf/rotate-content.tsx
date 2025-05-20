@@ -162,45 +162,6 @@ export function RotateFaqSection() {
   );
 }
 
-export function BestPracticesSection() {
-  const { t } = useLanguageStore();
-
-  const dosList = t("rotatePdf.bestPractices.dosList");
-  const dontsList = t("rotatePdf.bestPractices.dontsList");
-
-  return (
-    <div className="mb-12 bg-muted/30 p-6 rounded-xl">
-      <h2 className="text-2xl font-bold mb-6 text-center">{t("rotatePdf.bestPractices.title")}</h2>
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-card p-4 rounded-lg border">
-          <h3 className="text-lg font-medium mb-3 text-primary">{t("rotatePdf.bestPractices.dos")}</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {Array.isArray(dosList) &&
-              dosList.map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <Check className="text-green-500 mr-2 mt-0.5 h-4 w-4" />
-                  {item}
-                </li>
-              ))}
-          </ul>
-        </div>
-        <div className="bg-card p-4 rounded-lg border">
-          <h3 className="text-lg font-medium mb-3 text-destructive">{t("rotatePdf.bestPractices.donts")}</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {Array.isArray(dontsList) &&
-              dontsList.map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <AlertTriangle className="text-red-500 mr-2 mt-0.5 h-4 w-4" />
-                  {item}
-                </li>
-              ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function RelatedToolsSection() {
   const { t } = useLanguageStore();
 

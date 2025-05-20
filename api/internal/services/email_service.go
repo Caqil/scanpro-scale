@@ -41,6 +41,21 @@ type EmailData struct {
 	Data     map[string]interface{}
 }
 
+// Helper function to render content templates separately
+func (s *EmailService) renderContentTemplate(contentTemplate string, data map[string]interface{}) (template.HTML, error) {
+	tmpl, err := template.New("content").Parse(contentTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse content template: %v", err)
+	}
+
+	var contentBuffer bytes.Buffer
+	if err := tmpl.Execute(&contentBuffer, data); err != nil {
+		return "", fmt.Errorf("failed to execute content template: %v", err)
+	}
+
+	return template.HTML(contentBuffer.String()), nil
+}
+
 // SendEmail sends an email with the given data
 func (s *EmailService) SendEmail(data EmailData) (*EmailResult, error) {
 	fmt.Printf("Attempting to send email to %s, subject: %s\n", data.To, data.Subject)
@@ -58,7 +73,7 @@ func (s *EmailService) SendEmail(data EmailData) (*EmailResult, error) {
 	m.SetHeader("To", data.To)
 	m.SetHeader("Subject", data.Subject)
 
-	// Parse the base template and any nested templates
+	// Parse the base template
 	tmpl, err := template.New("base").Parse(data.Template)
 	if err != nil {
 		fmt.Printf("ERROR: Failed to parse email template: %v\n", err)
@@ -367,6 +382,7 @@ func (s *EmailService) SendVerificationEmail(to, token string, name string) (*Em
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Verify Your Email</h2>
       <p>Hello {{.Name}},</p>
@@ -377,7 +393,7 @@ func (s *EmailService) SendVerificationEmail(to, token string, name string) (*Em
       <div class="info-box">
         <p style="margin: 0;">This link expires in 24 hours.</p>
       </div>
-      <p class="text-muted">If you didn’t sign up, please ignore this email.</p>
+      <p class="text-muted">If you didn't sign up, please ignore this email.</p>
       <div class="code-block">{{.VerifyUrl}}</div>
       <h3 style="font-size: 18px; font-weight: 600; color: #ff9999;">Why Verify?</h3>
       <ul class="feature-list">
@@ -386,24 +402,38 @@ func (s *EmailService) SendVerificationEmail(to, token string, name string) (*Em
         <li class="feature-item">Enable account recovery</li>
       </ul>
     `
-	data := map[string]interface{}{
-		"Content":   template.HTML(contentTemplate),
+
+	// Prepare content-specific data
+	contentData := map[string]interface{}{
 		"Name":      displayName,
 		"VerifyUrl": verifyUrl,
-		"Year":      time.Now().Year(),
-		"Subject":   "MegaPDF Email Verification",
 	}
+
+	// Pre-render the content template with its specific variables
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare final data for base template
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Email Verification",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Email Verification",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
 // SendPasswordResetEmail sends a password reset email
 func (s *EmailService) SendPasswordResetEmail(to, token string) (*EmailResult, error) {
 	resetUrl := fmt.Sprintf("%s/en/reset-password?token=%s", s.config.AppURL, token)
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Password Reset Request</h2>
       <p>We received a request to reset your MegaPDF account password. Click the button below to set a new password:</p>
@@ -413,22 +443,32 @@ func (s *EmailService) SendPasswordResetEmail(to, token string) (*EmailResult, e
       <div class="info-box">
         <p style="margin: 0;">This link expires in 1 hour for security reasons.</p>
       </div>
-      <p class="text-muted">If you didn’t request a password reset, please ignore this email or contact support.</p>
+      <p class="text-muted">If you didn't request a password reset, please ignore this email or contact support.</p>
       <div class="code-block">{{.ResetUrl}}</div>
       <p class="text-muted">Request received at {{.CurrentTime}}.</p>
     `
-	data := map[string]interface{}{
-		"Content":     template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"ResetUrl":    resetUrl,
 		"CurrentTime": time.Now().UTC().Format(time.RFC1123),
-		"Year":        time.Now().Year(),
-		"Subject":     "MegaPDF Password Reset",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Password Reset",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Password Reset",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
@@ -439,6 +479,7 @@ func (s *EmailService) SendPasswordResetSuccessEmail(to string, name string) (*E
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Password Reset Successful</h2>
       <p>Hello {{.Name}},</p>
@@ -450,7 +491,7 @@ func (s *EmailService) SendPasswordResetSuccessEmail(to string, name string) (*E
         <a href="{{.LoginUrl}}" class="button">Sign In</a>
       </div>
       <div class="warning-box">
-        <p style="margin: 0;">If you didn’t make this change, contact support immediately.</p>
+        <p style="margin: 0;">If you didn't make this change, contact support immediately.</p>
       </div>
       <h3 style="font-size: 18px; font-weight: 600; color: #ff9999;">Security Tips</h3>
       <ul class="feature-list">
@@ -459,18 +500,28 @@ func (s *EmailService) SendPasswordResetSuccessEmail(to string, name string) (*E
         <li class="feature-item">Monitor account activity regularly</li>
       </ul>
     `
-	data := map[string]interface{}{
-		"Content":  template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"Name":     displayName,
 		"LoginUrl": loginUrl,
-		"Year":     time.Now().Year(),
-		"Subject":  "MegaPDF Password Reset Successful",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Password Reset Successful",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Password Reset Successful",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
@@ -483,6 +534,7 @@ func (s *EmailService) SendDepositConfirmationEmail(to string, amount float64, n
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Deposit Confirmation</h2>
       <p>Hello {{.Username}},</p>
@@ -498,24 +550,34 @@ func (s *EmailService) SendDepositConfirmationEmail(to string, amount float64, n
       <div class="text-center">
         <a href="{{.DashboardURL}}" class="button">View Account</a>
       </div>
-      <p class="text-muted">If you didn’t make this deposit, contact support immediately.</p>
+      <p class="text-muted">If you didn't make this deposit, contact support immediately.</p>
     `
-	data := map[string]interface{}{
-		"Content":       template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"Username":      displayName,
 		"Amount":        formattedAmount,
 		"NewBalance":    formattedBalance,
 		"TransactionID": transactionID,
 		"DashboardURL":  dashboardURL,
 		"CurrentTime":   time.Now().Format("January 2, 2006 15:04 MST"),
-		"Year":          time.Now().Year(),
-		"Subject":       "MegaPDF Deposit Confirmation",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Deposit Confirmation",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Deposit Confirmation",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
@@ -527,6 +589,7 @@ func (s *EmailService) SendLowBalanceWarningEmail(to string, currentBalance floa
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Low Balance Alert</h2>
       <p>Hello {{.Username}},</p>
@@ -542,19 +605,29 @@ func (s *EmailService) SendLowBalanceWarningEmail(to string, currentBalance floa
       </div>
       <p class="text-muted">Contact support if you have questions about your balance.</p>
     `
-	data := map[string]interface{}{
-		"Content":        template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"Username":       displayName,
 		"CurrentBalance": formattedBalance,
 		"DepositURL":     depositURL,
-		"Year":           time.Now().Year(),
-		"Subject":        "MegaPDF Low Balance Alert",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Low Balance Alert",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Low Balance Alert",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
@@ -566,6 +639,7 @@ func (s *EmailService) SendOperationLimitWarningEmail(to string, remainingOperat
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Operation Limit Alert</h2>
       <p>Hello {{.Username}},</p>
@@ -583,20 +657,30 @@ func (s *EmailService) SendOperationLimitWarningEmail(to string, remainingOperat
       </ul>
       <p class="text-muted">Contact support for pricing or feature questions.</p>
     `
-	data := map[string]interface{}{
-		"Content":             template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"Username":            displayName,
 		"RemainingOperations": remainingOperations,
 		"ResetDate":           formattedResetDate,
 		"UpgradeURL":          upgradeURL,
-		"Year":                time.Now().Year(),
-		"Subject":             "MegaPDF Operation Limit Alert",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Operation Limit Alert",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Operation Limit Alert",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }
 
@@ -608,11 +692,12 @@ func (s *EmailService) SendOperationsExhaustedEmail(to string, resetDate time.Ti
 	if displayName == "" {
 		displayName = "User"
 	}
+
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Free Operations Exhausted</h2>
       <p>Hello {{.Username}},</p>
       <div class="warning-box">
-        <p style="margin: 0;">You’ve used all your free PDF operations this month.</p>
+        <p style="margin: 0;">You've used all your free PDF operations this month.</p>
       </div>
       <p>Your free operations will reset on {{.ResetDate}}. Add funds to continue using MegaPDF now.</p>
       <div class="text-center">
@@ -623,18 +708,28 @@ func (s *EmailService) SendOperationsExhaustedEmail(to string, resetDate time.Ti
       </div>
       <p class="text-muted">Thank you for choosing MegaPDF.</p>
     `
-	data := map[string]interface{}{
-		"Content":    template.HTML(contentTemplate),
+
+	contentData := map[string]interface{}{
 		"Username":   displayName,
 		"ResetDate":  formattedResetDate,
 		"DepositURL": depositURL,
-		"Year":       time.Now().Year(),
-		"Subject":    "MegaPDF Free Operations Exhausted",
 	}
+
+	renderedContent, err := s.renderContentTemplate(contentTemplate, contentData)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := map[string]interface{}{
+		"Content": renderedContent,
+		"Year":    time.Now().Year(),
+		"Subject": "MegaPDF Free Operations Exhausted",
+	}
+
 	return s.SendEmail(EmailData{
 		To:       to,
 		Subject:  "MegaPDF Free Operations Exhausted",
 		Template: baseTemplate,
-		Data:     data,
+		Data:     finalData,
 	})
 }

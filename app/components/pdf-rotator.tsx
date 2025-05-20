@@ -34,8 +34,6 @@ import {
   ChevronRight,
   ListFilter,
 } from "lucide-react";
-import useFileUpload from "@/hooks/useFileUpload";
-import { UploadProgress } from "./ui/upload-progress";
 import { FileDropzone } from "@/components/dropzone";
 
 // Initialize pdf.js worker
@@ -46,6 +44,65 @@ interface PageRotation {
   angle: number;
   original: number;
 }
+
+// Upload stats interface for tracking
+interface UploadStats {
+  startTime: number;
+  endTime: number | null;
+  bytesTotal: number;
+  bytesUploaded: number;
+  uploadSpeed: number;
+  estimatedTimeRemaining: number | null;
+}
+
+// UploadProgress props interface
+interface UploadProgressProps {
+  progress: number;
+  isUploading: boolean;
+  isProcessing: boolean;
+  processingProgress: number;
+  error: string | null;
+  label: string;
+  uploadStats: UploadStats | null;
+}
+
+// UploadProgress component to replace the imported one
+const UploadProgress = ({
+  progress,
+  isUploading,
+  isProcessing,
+  processingProgress,
+  error,
+  label,
+  uploadStats,
+}: UploadProgressProps) => {
+  return (
+    <div className="mt-4 p-3 border rounded-md bg-background">
+      <div className="flex justify-between items-center mb-2">
+        <p className="text-sm font-medium">{label}</p>
+        <span className="text-sm">{Math.round(progress)}%</span>
+      </div>
+      <Progress value={progress} className="h-2" />
+      {uploadStats && (
+        <div className="text-xs text-muted-foreground mt-2">
+          {uploadStats.uploadSpeed > 0 && (
+            <p>
+              Upload speed: {(uploadStats.uploadSpeed / 1024 / 1024).toFixed(2)}{" "}
+              MB/s
+            </p>
+          )}
+          {uploadStats.estimatedTimeRemaining && (
+            <p>
+              Time remaining: {Math.ceil(uploadStats.estimatedTimeRemaining)}{" "}
+              seconds
+            </p>
+          )}
+        </div>
+      )}
+      {error && <p className="text-sm text-destructive mt-2">{error}</p>}
+    </div>
+  );
+};
 
 export function PdfRotator() {
   const { t } = useLanguageStore();
@@ -65,14 +122,160 @@ export function PdfRotator() {
   const [showPageSelector, setShowPageSelector] = useState<boolean>(false);
   const [rotationAngle, setRotationAngle] = useState<number>(90); // Default to 90 degrees
   const [originalName, setOriginalName] = useState<string>("");
-  const {
-    isUploading,
-    progress: uploadProgress,
-    error: uploadError,
-    uploadFile,
-    resetUpload,
-    uploadStats,
-  } = useFileUpload();
+
+  // Replacement for useFileUpload hook
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadStats, setUploadStats] = useState<UploadStats | null>(null);
+
+  // Abort controller for cancellation
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Reset upload state
+  const resetUpload = () => {
+    setIsUploading(false);
+    setUploadProgress(0);
+    setUploadError(null);
+    setUploadStats(null);
+
+    // Cancel any ongoing upload
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
+  // Upload file function - replacement for uploadFile from hook
+  const uploadFile = async (
+    file: File,
+    formData: FormData,
+    options: {
+      url: string;
+      headers?: Record<string, string>;
+      onProgress?: (progress: number) => void;
+      onSuccess?: (result: any) => void;
+      onError?: (error: Error) => void;
+    }
+  ) => {
+    const { url, headers = {}, onProgress, onSuccess, onError } = options;
+
+    try {
+      setIsUploading(true);
+      setUploadError(null);
+
+      // Initialize stats
+      const stats: UploadStats = {
+        startTime: Date.now(),
+        endTime: null,
+        bytesTotal: file.size,
+        bytesUploaded: 0,
+        uploadSpeed: 0,
+        estimatedTimeRemaining: null,
+      };
+      setUploadStats(stats);
+
+      // Create a new AbortController
+      abortControllerRef.current = new AbortController();
+      const { signal } = abortControllerRef.current;
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const progress = (event.loaded / event.total) * 100;
+          setUploadProgress(progress);
+
+          if (onProgress) {
+            onProgress(progress);
+          }
+
+          // Update stats
+          const now = Date.now();
+          const elapsedTime = (now - stats.startTime) / 1000; // in seconds
+          const uploadSpeed = event.loaded / elapsedTime; // bytes per second
+          const remainingBytes = event.total - event.loaded;
+          const estimatedTimeRemaining =
+            uploadSpeed > 0 ? remainingBytes / uploadSpeed : null;
+
+          setUploadStats({
+            ...stats,
+            bytesUploaded: event.loaded,
+            uploadSpeed,
+            estimatedTimeRemaining,
+          });
+        }
+      });
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const result = JSON.parse(xhr.responseText);
+          setUploadStats((prevStats) => ({
+            ...prevStats!,
+            endTime: Date.now(),
+            bytesUploaded: prevStats!.bytesTotal,
+          }));
+
+          setIsUploading(false);
+
+          if (onSuccess) {
+            onSuccess(result);
+          }
+        } else {
+          const errorMessage = `Upload failed with status ${xhr.status}: ${xhr.statusText}`;
+          setUploadError(errorMessage);
+          setIsUploading(false);
+
+          if (onError) {
+            onError(new Error(errorMessage));
+          }
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        const errorMessage = "Network error occurred during upload";
+        setUploadError(errorMessage);
+        setIsUploading(false);
+
+        if (onError) {
+          onError(new Error(errorMessage));
+        }
+      });
+
+      xhr.addEventListener("abort", () => {
+        setIsUploading(false);
+        const errorMessage = "Upload was aborted";
+        setUploadError(errorMessage);
+
+        if (onError) {
+          onError(new Error(errorMessage));
+        }
+      });
+
+      // Open and send the request
+      xhr.open("POST", url, true);
+
+      // Set headers
+      Object.keys(headers).forEach((key) => {
+        xhr.setRequestHeader(key, headers[key]);
+      });
+
+      // Set up abort handling
+      signal.addEventListener("abort", () => {
+        xhr.abort();
+      });
+
+      // Send the form data
+      xhr.send(formData);
+    } catch (error) {
+      setIsUploading(false);
+      setUploadError((error as Error).message);
+
+      if (onError) {
+        onError(error as Error);
+      }
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -80,6 +283,9 @@ export function PdfRotator() {
       if (fileUrl) {
         URL.revokeObjectURL(fileUrl);
       }
+
+      // Cancel any ongoing upload
+      resetUpload();
     };
   }, [fileUrl]);
 
@@ -91,6 +297,7 @@ export function PdfRotator() {
     setPageRotations([]);
     setProcessedFileUrl("");
     setProgress(0);
+    setOriginalName(selectedFile.name);
   };
 
   const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -152,20 +359,6 @@ export function PdfRotator() {
       )
     );
   };
-
-  const handleRotatePage = (
-    pageNumber: number,
-    direction: "clockwise" | "counterclockwise"
-  ) => {
-    const angle = direction === "clockwise" ? rotationAngle : -rotationAngle;
-
-    setPageRotations((prevRotations) =>
-      prevRotations.map((rotation) =>
-        rotation.pageNumber === pageNumber ? { ...rotation, angle } : rotation
-      )
-    );
-  };
-
   const handleProcessPdf = async () => {
     if (!file) return;
     const goApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -176,7 +369,13 @@ export function PdfRotator() {
       );
       return;
     }
-    if (pageRotations.every((rotation) => rotation.angle === 0)) {
+
+    // Find all pages that have been rotated
+    const rotatedPages = pageRotations.filter(
+      (rotation) => rotation.angle !== 0
+    );
+
+    if (rotatedPages.length === 0) {
       toast.error(
         t("rotatePdf.errors.noRotation") ||
           "Please rotate at least one page before processing"
@@ -184,26 +383,23 @@ export function PdfRotator() {
       return;
     }
 
-    const rotatedPage = pageRotations.find((rotation) => rotation.angle !== 0);
-    if (!rotatedPage) {
-      toast.error(
-        t("rotatePdf.errors.noRotation") || "No pages have been rotated"
-      );
-      return;
-    }
-    const angle = Math.abs(rotatedPage.angle).toString();
+    // Get the angle from the first rotated page (assuming same angle for all rotated pages)
+    const angle = Math.abs(rotatedPages[0].angle).toString();
+
+    // Get the page numbers of all rotated pages
+    const rotatedPageNumbers = rotatedPages
+      .map((page) => page.pageNumber)
+      .join(",");
 
     setIsProcessing(true);
     setProgress(0);
-    const apiUrl = `${goApiUrl}/api/pdf/rotate`; // Updated to use NEXT_PUBLIC_API_URL
+    const apiUrl = `${goApiUrl}/api/pdf/rotate`;
     const formData = new FormData();
     formData.append("file", file);
     formData.append("angle", angle);
 
-    if (pageFormat !== "all") {
-      const pages = selectedPages.join(",");
-      formData.append("pages", pages);
-    }
+    // Always send the specific pages to rotate, regardless of pageFormat
+    formData.append("pages", rotatedPageNumbers);
 
     try {
       await uploadFile(file, formData, {
@@ -244,6 +440,25 @@ export function PdfRotator() {
     }
   };
 
+  // Also update handleRotatePage to ensure the page is selected when rotated
+  const handleRotatePage = (
+    pageNumber: number,
+    direction: "clockwise" | "counterclockwise"
+  ) => {
+    const angle = direction === "clockwise" ? rotationAngle : -rotationAngle;
+
+    setPageRotations((prevRotations) =>
+      prevRotations.map((rotation) =>
+        rotation.pageNumber === pageNumber ? { ...rotation, angle } : rotation
+      )
+    );
+
+    // Add the page to selected pages if it's being rotated
+    if (angle !== 0 && !selectedPages.includes(pageNumber)) {
+      setSelectedPages([...selectedPages, pageNumber].sort((a, b) => a - b));
+    }
+  };
+
   const handleReset = () => {
     setFile(null);
     setFileUrl("");
@@ -253,6 +468,7 @@ export function PdfRotator() {
     setCurrentPage(1);
     setProcessedFileUrl("");
     setProgress(0);
+    resetUpload();
   };
 
   const handlePageFormatChange = (format: string) => {

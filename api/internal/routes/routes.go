@@ -112,7 +112,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			c.Next()
 		})
 	}
-
+	r.LoadHTMLGlob("templates/*")
+	fmt.Println("Loaded HTML templates from api/templates/")
 	fmt.Println("Running in", mode, "mode")
 
 	// Initialize services
@@ -135,7 +136,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	fmt.Println("Setting email service on auth handler")
 	authHandler.SetEmailService(emailService)
 	settingsHandler := handlers.NewSettingsHandler()
-	// API routes
+	ocrHandler := handlers.NewOcrHandler(balanceService, cfg)
 	api := r.Group("/api")
 	{
 		fmt.Println("Registering route: /api/validate-key")
@@ -205,7 +206,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		fmt.Println("Registering route: /api/track-usage")
 		api.GET("/track-usage", middleware.AuthMiddleware(cfg.JWTSecret), trackUsageHandler.GetUsageStats)
 		api.POST("/track-usage", middleware.AuthMiddleware(cfg.JWTSecret), trackUsageHandler.TrackOperation)
-		// Auth routes
+		fmt.Println("Registering route: /api/ocr")
+		api.POST("/ocr", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.OcrPdf)
+
+		fmt.Println("Registering route: /api/ocr/extract")
+		api.POST("/ocr/extract", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.ExtractText)
 		auth := api.Group("/auth")
 		{
 			fmt.Println("Registering route: /api/auth/register")
@@ -255,6 +260,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		{
 			fmt.Println("Registering route: /api/pdf/compress")
 			pdf.POST("/compress", pdfHandler.CompressPDF)
+
+			fmt.Println("Registering route: /api/pdf/convert")
+			pdf.POST("/convert", pdfHandler.ConvertPDF)
 
 			fmt.Println("Registering route: /api/pdf/protect")
 			pdf.POST("/protect", pdfHandler.ProtectPDF)
