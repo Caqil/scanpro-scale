@@ -1,172 +1,162 @@
-// components/WatermarkPositionPreview.tsx
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import React from "react";
 
-interface WatermarkPositionPreviewProps {
+type WatermarkPositionPreviewProps = {
   position: string;
-  customX: number;
-  customY: number;
+  customX?: number;
+  customY?: number;
   rotation: number;
-  watermarkType: "text" | "image";
+  watermarkType: string;
   text?: string;
   textColor?: string;
   fontSize?: number;
   imagePreviewUrl?: string;
   scale?: number;
-}
+};
 
 export function WatermarkPositionPreview({
   position,
-  customX,
-  customY,
+  customX = 50,
+  customY = 50,
   rotation,
   watermarkType,
   text = "WATERMARK",
   textColor = "#FF0000",
-  fontSize = 48,
+  fontSize = 24,
   imagePreviewUrl,
   scale = 50,
 }: WatermarkPositionPreviewProps) {
-  const containerWidth = 200; // Fixed width for preview
-  const containerHeight = 300; // Fixed height for preview
-  const padding = 0.05; // 5% padding, matching API
-  const paddingX = containerWidth * padding;
-  const paddingY = containerHeight * padding;
-
-  // State to store the actual dimensions of the watermark
-  const [watermarkDimensions, setWatermarkDimensions] = useState<{
-    width: number;
-    height: number;
-  }>({ width: 0, height: 0 });
-
-  const watermarkRef = useRef<HTMLDivElement>(null);
-
-  // Calculate scale factor to fit watermark in preview (proportional to A4 page: 612x792pt)
-  const scaleFactor = Math.min(containerWidth / 612, containerHeight / 792);
-  const previewFontSize = fontSize * scaleFactor;
-  const previewImgWidth = 100 * (scale / 100) * scaleFactor;
-  const previewImgHeight = 100 * (scale / 100) * scaleFactor;
-
-  // Measure the actual dimensions of the watermark after rendering
-  useEffect(() => {
-    if (watermarkRef.current) {
-      const { width, height } = watermarkRef.current.getBoundingClientRect();
-      setWatermarkDimensions({ width, height });
+  // Calculate position classes based on the selected position
+  const getPositionStyles = () => {
+    switch (position) {
+      case "center":
+        return "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2";
+      case "top-left":
+        return "absolute top-4 left-4";
+      case "top-right":
+        return "absolute top-4 right-4";
+      case "bottom-left":
+        return "absolute bottom-4 left-4";
+      case "bottom-right":
+        return "absolute bottom-4 right-4";
+      case "custom":
+        return `absolute transform -translate-x-1/2 -translate-y-1/2`;
+      case "tile":
+        return ""; // Special case for tiling
+      default:
+        return "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2";
     }
-  }, [text, previewFontSize, textColor, imagePreviewUrl, previewImgWidth, previewImgHeight]);
+  };
 
-  // Use the actual dimensions for centering
-  const watermarkWidth = watermarkDimensions.width;
-  const watermarkHeight = watermarkDimensions.height;
+  // Get custom position styles
+  const getCustomPositionStyle = () => {
+    if (position !== "custom") return {};
 
-  let positions: { x: number; y: number }[] = [];
+    return {
+      top: `${customY}%`,
+      left: `${customX}%`,
+    };
+  };
 
-  switch (position.toLowerCase()) {
-    case "center":
-      positions.push({
-        x: containerWidth / 2 - watermarkWidth / 2,
-        y: containerHeight / 2 - watermarkHeight / 2,
-      });
-      break;
+  // Get rotation style
+  const getRotationStyle = () => {
+    return {
+      transform: `${
+        position === "custom" ? "translate(-50%, -50%) " : ""
+      }rotate(${rotation}deg)`,
+    };
+  };
 
-    case "tile": {
-      // Estimate dimensions for tiling if actual dimensions aren't available yet
-      const tileWidth = containerWidth / 3;
-      const tileHeight = containerHeight / 3;
-      for (let x = tileWidth / 2; x < containerWidth; x += tileWidth) {
-        for (let y = tileHeight / 2; y < containerHeight; y += tileHeight) {
-          positions.push({
-            x: x - watermarkWidth / 2,
-            y: y - watermarkHeight / 2,
-          });
-        }
+  // Calculate font size for preview (scaled down for preview)
+  const previewFontSize = fontSize
+    ? Math.max(12, Math.min(fontSize / 2, 36))
+    : 24;
+
+  // Create tiled watermarks for "tile" position
+  const renderTiledWatermarks = () => {
+    const watermarks = [];
+    const gridSize = 3; // 3x3 grid
+
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const key = `${row}-${col}`;
+        const top = `${(100 / gridSize) * row + 100 / gridSize / 2}%`;
+        const left = `${(100 / gridSize) * col + 100 / gridSize / 2}%`;
+
+        watermarks.push(
+          <div
+            key={key}
+            className="absolute transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              top,
+              left,
+              ...getRotationStyle(),
+            }}
+          >
+            {renderWatermarkContent()}
+          </div>
+        );
       }
-      break;
     }
 
-    case "top-left":
-      positions.push({
-        x: paddingX,
-        y: paddingY,
-      });
-      break;
+    return watermarks;
+  };
 
-    case "top-right":
-      positions.push({
-        x: containerWidth - paddingX - watermarkWidth,
-        y: paddingY,
-      });
-      break;
-
-    case "bottom-left":
-      positions.push({
-        x: paddingX,
-        y: containerHeight - paddingY - watermarkHeight,
-      });
-      break;
-
-    case "bottom-right":
-      positions.push({
-        x: containerWidth - paddingX - watermarkWidth,
-        y: containerHeight - paddingY - watermarkHeight,
-      });
-      break;
-
-    case "custom":
-      positions.push({
-        x: (customX / 100) * containerWidth - watermarkWidth / 2,
-        y: (customY / 100) * containerHeight - watermarkHeight / 2,
-      });
-      break;
-
-    default:
-      positions.push({
-        x: containerWidth / 2 - watermarkWidth / 2,
-        y: containerHeight / 2 - watermarkHeight / 2,
-      });
-  }
-
-  return (
-    <div
-      className="relative border rounded-lg bg-gray-100"
-      style={{ width: containerWidth, height: containerHeight }}
-    >
-      {positions.map((pos, index) => (
-        <div
-          key={index}
-          ref={watermarkRef}
-          className="absolute"
+  // Render the watermark content (text or image)
+  const renderWatermarkContent = () => {
+    if (watermarkType === "image" && imagePreviewUrl) {
+      return (
+        <img
+          src={imagePreviewUrl}
+          alt="Watermark"
+          className="max-w-full max-h-full object-contain"
           style={{
-            left: `${pos.x}px`,
-            top: `${pos.y}px`,
-            transform: `rotate(${rotation}deg)`,
-            transformOrigin: "center",
+            maxWidth: scale ? `${scale}%` : "50%",
+            opacity: 0.5, // Show preview with opacity
+          }}
+        />
+      );
+    } else {
+      return (
+        <div
+          className="whitespace-nowrap"
+          style={{
+            color: textColor || "#FF0000",
+            fontSize: `${previewFontSize}px`,
+            fontWeight: "bold",
+            opacity: 0.5, // Show preview with opacity
           }}
         >
-          {watermarkType === "text" ? (
-            <span
-              style={{
-                color: textColor,
-                fontSize: `${previewFontSize}px`,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {text}
-            </span>
-          ) : (
-            imagePreviewUrl && (
-              <img
-                src={imagePreviewUrl}
-                alt="Watermark"
-                style={{
-                  width: `${previewImgWidth}px`,
-                  height: `${previewImgHeight}px`,
-                }}
-              />
-            )
-          )}
+          {text || "WATERMARK"}
         </div>
-      ))}
+      );
+    }
+  };
+
+  return (
+    <div className="relative w-full h-60 bg-gray-100 border rounded overflow-hidden">
+      {/* Page representation */}
+      <div className="absolute inset-0 flex items-center justify-center text-gray-300">
+        <div className="text-xs uppercase text-center">
+          <div className="border-b border-gray-200 w-16 mb-1 mx-auto"></div>
+          <span>PDF Page</span>
+          <div className="border-t border-gray-200 w-16 mt-1 mx-auto"></div>
+        </div>
+      </div>
+
+      {/* Watermark preview */}
+      {position === "tile" ? (
+        renderTiledWatermarks()
+      ) : (
+        <div
+          className={getPositionStyles()}
+          style={{
+            ...getCustomPositionStyle(),
+            ...getRotationStyle(),
+          }}
+        >
+          {renderWatermarkContent()}
+        </div>
+      )}
     </div>
   );
 }

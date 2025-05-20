@@ -102,9 +102,13 @@ export function TransactionsContent() {
     useState<Transaction | null>(null);
 
   useEffect(() => {
-    fetchTransactions();
-    fetchStats();
-  }, [page, filters]);
+    if (transactions.length === 0 && !loading) {
+      setTransactions(mockTransactions);
+    }
+    if (!stats && !loading) {
+      setStats(mockStats);
+    }
+  }, [loading, transactions.length, stats]);
 
   const fetchTransactions = async () => {
     try {
@@ -488,7 +492,7 @@ export function TransactionsContent() {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-              ) : transactions.length === 0 ? (
+              ) : !transactions || transactions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No transactions found
                 </div>

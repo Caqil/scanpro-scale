@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,7 +44,6 @@ import {
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { WatermarkPositionPreview } from "./watermark-position-preview";
-import useFileUpload from "@/hooks/useFileUpload";
 
 // Define the form schema
 const watermarkFormSchema = z.object({
@@ -53,7 +51,7 @@ const watermarkFormSchema = z.object({
   text: z.string().optional(),
   textColor: z.string().default("#FF0000"),
   fontSize: z.number().min(8).max(120).default(48),
-  fontFamily: z.string().default("Arial"),
+  fontFamily: z.string().default("Helvetica"),
   position: z.enum([
     "center",
     "tile",
@@ -63,7 +61,7 @@ const watermarkFormSchema = z.object({
     "bottom-right",
     "custom",
   ]),
-  rotation: z.number().min(0).max(360).default(45),
+  rotation: z.number().min(0).max(360).default(0),
   opacity: z.number().min(1).max(100).default(30),
   scale: z.number().min(10).max(100).default(50),
   pages: z.enum(["all", "even", "odd", "custom"]),
@@ -93,6 +91,7 @@ export function WatermarkPDF() {
     pagesWatermarked: number;
     fileUrl: string;
     fileName: string;
+    fileSize?: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const watermarkImageRef = useRef<HTMLInputElement>(null);
@@ -103,7 +102,7 @@ export function WatermarkPDF() {
     text: "WATERMARK",
     textColor: "#FF0000",
     fontSize: 48,
-    fontFamily: "Arial",
+    fontFamily: "Helvetica",
     position: "center",
     rotation: 0,
     opacity: 30,
@@ -224,7 +223,7 @@ export function WatermarkPDF() {
     }
 
     try {
-      // Using fetch directly for more control over the progress
+      // Using XMLHttpRequest for better progress tracking
       const xhr = new XMLHttpRequest();
 
       xhr.upload.addEventListener("progress", (event) => {
@@ -267,12 +266,16 @@ export function WatermarkPDF() {
               setProgress(100);
               setDownloadUrl(response.fileUrl);
               setWatermarkedPdfUrl(response.fileUrl);
+
+              // Create result info
               setResultInfo({
                 originalName: response.originalName || file.name,
                 pagesWatermarked: response.pagesWatermarked || 0,
                 fileUrl: response.fileUrl,
                 fileName: response.filename || "watermarked.pdf",
+                fileSize: response.fileSize || 0,
               });
+
               toast.success(
                 t("watermarkPdf.successDesc") || "PDF watermarked successfully!"
               );
@@ -321,7 +324,11 @@ export function WatermarkPDF() {
         );
       });
 
-      xhr.open("POST", "/api/pdf/watermark");
+      xhr.open("POST", `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/watermark`);
+      xhr.setRequestHeader(
+        "x-api-key",
+        "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
+      );
       xhr.send(formData);
     } catch (error) {
       console.error("Watermark error:", error);
@@ -347,6 +354,14 @@ export function WatermarkPDF() {
     setDownloadUrl(null);
     setWatermarkedPdfUrl("");
     form.reset(defaultValues);
+  };
+
+  // Format file size for display
+  const formatFileSize = (size: number | undefined) => {
+    if (!size) return "";
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -436,7 +451,7 @@ export function WatermarkPDF() {
               <Progress value={progress} className="w-full h-2 mb-4" />
               <p className="text-sm text-muted-foreground">
                 {processState === "uploading"
-                  ? t("watermarkPdf.uploadingDesc") ||
+                  ? t("watermarkPdf.uploading") ||
                     "Uploading your PDF file to our servers..."
                   : t("watermarkPdf.processingDesc") ||
                     "Adding watermark to your PDF. This may take a moment..."}
@@ -471,14 +486,26 @@ export function WatermarkPDF() {
                   {resultInfo.originalName}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {t("watermarkPdf.pagesWatermarked") || "Pages Watermarked"}:
-                </span>
-                <span className="font-medium">
-                  {resultInfo.pagesWatermarked}
-                </span>
-              </div>
+              {resultInfo.fileSize && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {t("watermarkPdf.fileSize") || "File size"}:
+                  </span>
+                  <span className="font-medium">
+                    {formatFileSize(resultInfo.fileSize)}
+                  </span>
+                </div>
+              )}
+              {resultInfo.pagesWatermarked > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {t("watermarkPdf.pagesWatermarked") || "Pages Watermarked"}:
+                  </span>
+                  <span className="font-medium">
+                    {resultInfo.pagesWatermarked}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3">
@@ -504,18 +531,18 @@ export function WatermarkPDF() {
               <AlertOctagon className="h-8 w-8 text-red-600" />
             </div>
             <h3 className="text-xl font-semibold mb-3">
-              {t("watermarkPdf.error") || "Error Processing PDF"}
+              {t("watermarkPdf.unknownError") || "Error Processing PDF"}
             </h3>
             <p className="text-muted-foreground mb-6">
-              {t("watermarkPdf.errorDesc") ||
+              {t("watermarkPdf.unknownErrorDesc") ||
                 "We encountered an error while processing your PDF. Please try again."}
             </p>
             <div className="flex flex-col gap-3">
               <Button variant="outline" onClick={() => setProcessState("idle")}>
-                {t("watermarkPdf.tryAgain") || "Try Again"}
+                {t("error.tryAgain") || "Try Again"}
               </Button>
               <Button variant="ghost" onClick={handleReset}>
-                {t("watermarkPdf.uploadNew") || "Upload a Different PDF"}
+                {t("ui.reupload") || "Upload a Different PDF"}
               </Button>
             </div>
           </div>
@@ -642,14 +669,11 @@ export function WatermarkPDF() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Arial">Arial</SelectItem>
-                                <SelectItem value="Times New Roman">
-                                  Times New Roman
-                                </SelectItem>
-                                <SelectItem value="Courier">Courier</SelectItem>
                                 <SelectItem value="Helvetica">
                                   Helvetica
                                 </SelectItem>
+                                <SelectItem value="Times">Times</SelectItem>
+                                <SelectItem value="Courier">Courier</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />

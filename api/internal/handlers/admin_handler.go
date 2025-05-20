@@ -699,15 +699,15 @@ func (h *AdminHandler) GetAPIUsage(c *gin.Context) {
 	// Get daily API usage for the last 30 days
 	var dailyUsage []gin.H
 	rows, err := db.DB.Raw(`
-		SELECT 
-			date(date) as day,
-			SUM(count) as requests,
-			COUNT(DISTINCT user_id) as users
-		FROM usage_stats
-		WHERE date >= date('now', '-30 days')
-		GROUP BY date(date)
-		ORDER BY date(date)
-	`).Rows()
+    SELECT 
+        DATE(date) as day,
+        SUM(count) as requests,
+        COUNT(DISTINCT user_id) as users
+    FROM usage_stats
+    WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY DATE(date)
+    ORDER BY DATE(date)
+`).Rows()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get daily usage"})

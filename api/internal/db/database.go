@@ -67,30 +67,30 @@ func InitDB() (*gorm.DB, error) {
 
 	// Auto-migrate all models
 	fmt.Println("Auto-migrating database schema...")
-	err = db.AutoMigrate(
-		&models.User{},
-		&models.Transaction{},
-		&models.Account{},
-		&models.Session{},
-		&models.ApiKey{},
-		&models.UsageStats{},
-		&models.PasswordResetToken{},
-		&models.VerificationToken{},
-		&models.PaymentWebhookEvent{},
-		&models.LowBalanceAlert{},
-		&models.OperationsAlert{},
-		&models.PricingSetting{},
-		&models.Setting{},
-		// Add any other models here
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to auto-migrate database schema: %w", err)
-	}
+	// err = db.AutoMigrate(
+	// 	&models.User{},
+	// 	&models.Transaction{},
+	// 	&models.Account{},
+	// 	&models.Session{},
+	// 	&models.ApiKey{},
+	// 	&models.UsageStats{},
+	// 	&models.PasswordResetToken{},
+	// 	&models.VerificationToken{},
+	// 	&models.PaymentWebhookEvent{},
+	// 	&models.LowBalanceAlert{},
+	// 	&models.OperationsAlert{},
+	// 	&models.PricingSetting{},
+	// 	&models.Setting{},
+	// 	// Add any other models here
+	// )
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to auto-migrate database schema: %w", err)
+	// }
 
-	// Create admin user if it doesn't exist
-	if err := createAdminUser(db); err != nil {
-		return nil, fmt.Errorf("failed to create admin user: %w", err)
-	}
+	// // Create admin user if it doesn't exist
+	// if err := createAdminUser(db); err != nil {
+	// 	return nil, fmt.Errorf("failed to create admin user: %w", err)
+	// }
 
 	// Store DB in package variable for global access
 	DB = db
