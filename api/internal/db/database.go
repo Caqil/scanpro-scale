@@ -2,11 +2,14 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/MegaPDF/megapdf-official/api/internal/constants"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
+	"github.com/google/uuid"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -81,16 +84,25 @@ func InitDB() (*gorm.DB, error) {
 	// 	&models.OperationsAlert{},
 	// 	&models.PricingSetting{},
 	// 	&models.Setting{},
-	// 	// Add any other models here
 	// )
 	// if err != nil {
 	// 	return nil, fmt.Errorf("failed to auto-migrate database schema: %w", err)
 	// }
 
-	// // Create admin user if it doesn't exist
-	// if err := createAdminUser(db); err != nil {
-	// 	return nil, fmt.Errorf("failed to create admin user: %w", err)
-	// }
+	// Create admin user if it doesn't exist
+	if err := createAdminUser(db); err != nil {
+		return nil, fmt.Errorf("failed to create admin user: %w", err)
+	}
+
+	// Initialize default settings
+	if err := initializeDefaultSettings(db); err != nil {
+		return nil, fmt.Errorf("failed to initialize default settings: %w", err)
+	}
+
+	// Initialize default pricing
+	if err := initializeDefaultPricing(db); err != nil {
+		return nil, fmt.Errorf("failed to initialize default pricing: %w", err)
+	}
 
 	// Store DB in package variable for global access
 	DB = db
@@ -115,6 +127,200 @@ func createAdminUser(db *gorm.DB) error {
 		return err
 	}
 
+	// If no admin users exist, create a default one
+	if adminCount == 0 {
+		fmt.Println("Creating default admin user...")
+		// Get admin credentials from environment
+		adminEmail := getEnv("ADMIN_EMAIL", "admin@megapdf.com")
+		adminPassword := getEnv("ADMIN_PASSWORD", "admin123")
+		adminName := getEnv("ADMIN_NAME", "Administrator")
+
+		// Hash the password
+		hashedPassword, err := models.HashPassword(adminPassword)
+		if err != nil {
+			return fmt.Errorf("failed to hash admin password: %w", err)
+		}
+
+		// Set reset date to start of next month
+		now := time.Now()
+		nextMonth := now.AddDate(0, 1, 0)
+		resetDate := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, time.Local)
+
+		// Create the admin user
+		admin := models.User{
+			ID:                  uuid.New().String(),
+			Name:                adminName,
+			Email:               adminEmail,
+			Password:            hashedPassword,
+			Role:                "admin",
+			IsEmailVerified:     true,
+			Balance:             0,
+			FreeOperationsUsed:  0,
+			FreeOperationsReset: resetDate,
+			CreatedAt:           time.Now(),
+			UpdatedAt:           time.Now(),
+		}
+
+		if err := db.Create(&admin).Error; err != nil {
+			return fmt.Errorf("failed to create admin user: %w", err)
+		}
+
+		fmt.Printf("Default admin user created with email: %s\n", adminEmail)
+	}
+
+	return nil
+}
+
+// initializeDefaultSettings creates default settings if they don't exist
+func initializeDefaultSettings(db *gorm.DB) error {
+	fmt.Println("Initializing default settings...")
+
+	// Check if settings already exist
+	var settingsCount int64
+	if err := db.Model(&models.Setting{}).Count(&settingsCount).Error; err != nil {
+		return err
+	}
+
+	if settingsCount > 0 {
+		fmt.Println("Settings already exist, skipping initialization")
+		return nil
+	}
+
+	// Default settings for general category
+	generalSettings := map[string]interface{}{
+		"site_name":                  "MegaPDF",
+		"site_description":           "Professional PDF tools and API services",
+		"maintenance_mode":           false,
+		"registration_enabled":       true,
+		"require_email_verification": true,
+	}
+
+	// Default settings for API category
+	apiSettings := map[string]interface{}{
+		"default_rate_limit": 100,
+		"max_file_size":      50,
+		"api_timeout":        30,
+		"logging_enabled":    true,
+		"log_level":          "info",
+	}
+
+	// Default settings for email category
+	emailSettings := map[string]interface{}{
+		"email_provider": "smtp",
+		"from_email":     "noreply@megapdf.com",
+		"from_name":      "MegaPDF",
+		"smtp_host":      "",
+		"smtp_port":      587,
+		"smtp_user":      "",
+		"smtp_password":  "",
+	}
+
+	// Default settings for security category
+	securitySettings := map[string]interface{}{
+		"two_factor_required":        false,
+		"password_min_length":        8,
+		"password_require_uppercase": true,
+		"password_require_numbers":   true,
+		"password_require_symbols":   false,
+		"session_timeout":            24,
+		"max_login_attempts":         5,
+		"block_time_after_failures":  30,
+		"allowed_ips":                "",
+		"jwt_secret":                 "",
+		"cors_allowed_origins":       "*",
+	}
+
+	// Helper function to save settings for a category
+	saveSettings := func(category string, settings map[string]interface{}) error {
+		for key, value := range settings {
+			valueJSON, err := json.Marshal(value)
+			if err != nil {
+				return fmt.Errorf("failed to marshal value for %s.%s: %w", category, key, err)
+			}
+
+			setting := models.Setting{
+				ID:          uuid.New().String(),
+				Category:    category,
+				Key:         key,
+				Value:       string(valueJSON),
+				Description: fmt.Sprintf("Default %s setting", key),
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			}
+
+			if err := db.Create(&setting).Error; err != nil {
+				return fmt.Errorf("failed to create setting %s.%s: %w", category, key, err)
+			}
+		}
+		return nil
+	}
+
+	// Save all default settings
+	categories := map[string]map[string]interface{}{
+		"general":  generalSettings,
+		"api":      apiSettings,
+		"email":    emailSettings,
+		"security": securitySettings,
+	}
+
+	for category, settings := range categories {
+		if err := saveSettings(category, settings); err != nil {
+			return err
+		}
+		fmt.Printf("Default settings created for category: %s\n", category)
+	}
+
+	return nil
+}
+
+// initializeDefaultPricing creates default pricing settings if they don't exist
+func initializeDefaultPricing(db *gorm.DB) error {
+	fmt.Println("Initializing default pricing settings...")
+
+	// Check if pricing settings already exist
+	var pricingCount int64
+	if err := db.Model(&models.PricingSetting{}).Count(&pricingCount).Error; err != nil {
+		return err
+	}
+
+	if pricingCount > 0 {
+		fmt.Println("Pricing settings already exist, skipping initialization")
+		return nil
+	}
+
+	// Create default pricing settings
+	customPricing := models.CustomPricing{
+		OperationCost:         constants.OperationCost,
+		FreeOperationsMonthly: constants.FreeOperationsMonthly,
+		CustomPrices:          make(map[string]float64),
+	}
+
+	// Add custom prices for some operations (as examples)
+	customPricing.CustomPrices["ocr"] = 0.010      // More expensive
+	customPricing.CustomPrices["compress"] = 0.003 // Less expensive
+	customPricing.CustomPrices["protect"] = 0.004  // Slightly less expensive
+
+	// Marshal to JSON
+	pricingJSON, err := json.Marshal(customPricing)
+	if err != nil {
+		return fmt.Errorf("failed to marshal pricing settings: %w", err)
+	}
+
+	// Create pricing setting record
+	pricingSetting := models.PricingSetting{
+		ID:          uuid.New().String(),
+		Key:         "pricing_settings",
+		Value:       string(pricingJSON),
+		Description: "Global pricing settings for operations",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := db.Create(&pricingSetting).Error; err != nil {
+		return fmt.Errorf("failed to create pricing settings: %w", err)
+	}
+
+	fmt.Println("Default pricing settings created successfully")
 	return nil
 }
 

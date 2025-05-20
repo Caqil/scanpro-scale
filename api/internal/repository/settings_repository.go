@@ -4,6 +4,7 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
 	"github.com/google/uuid"
@@ -21,6 +22,7 @@ func NewSettingsRepository() *SettingsRepository {
 // GetSettingsByCategory retrieves all settings in a category
 func (r *SettingsRepository) GetSettingsByCategory(category string) (map[string]interface{}, error) {
 	var settings []models.Setting
+	// Note: using backticks around "key" since it's a reserved keyword
 	result := db.DB.Where("category = ?", category).Find(&settings)
 	if result.Error != nil {
 		return nil, result.Error
@@ -42,7 +44,8 @@ func (r *SettingsRepository) GetSettingsByCategory(category string) (map[string]
 // GetSetting retrieves a single setting by category and key
 func (r *SettingsRepository) GetSetting(category, key string) (interface{}, error) {
 	var setting models.Setting
-	result := db.DB.Where("category = ? AND key = ?", category, key).First(&setting)
+	// Note: using backticks around "key" since it's a reserved keyword
+	result := db.DB.Where("category = ? AND `key` = ?", category, key).First(&setting)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil // Setting not found
@@ -66,12 +69,13 @@ func (r *SettingsRepository) SaveSetting(category, key string, value interface{}
 		return err
 	}
 
-	// Check if setting exists
+	// Check if record exists
 	var setting models.Setting
-	result := db.DB.Where("category = ? AND key = ?", category, key).First(&setting)
+	// Note: using backticks around "key" since it's a reserved keyword
+	result := db.DB.Where("category = ? AND `key` = ?", category, key).First(&setting)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// Create new setting
+		// Create new record
 		setting = models.Setting{
 			ID:          uuid.New().String(),
 			Category:    category,
@@ -84,7 +88,7 @@ func (r *SettingsRepository) SaveSetting(category, key string, value interface{}
 		return result.Error
 	}
 
-	// Update existing setting
+	// Update existing record
 	return db.DB.Model(&setting).Updates(map[string]interface{}{
 		"value":       string(valueJSON),
 		"description": description,
@@ -102,7 +106,8 @@ func (r *SettingsRepository) SaveSettings(category string, settings map[string]i
 			}
 
 			var setting models.Setting
-			result := tx.Where("category = ? AND key = ?", category, key).First(&setting)
+			// Note: using backticks around "key" since it's a reserved keyword
+			result := tx.Where("category = ? AND `key` = ?", category, key).First(&setting)
 
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				// Create new setting

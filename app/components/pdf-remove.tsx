@@ -365,7 +365,7 @@ export function PdfRemove() {
                 <div className="flex gap-4 justify-center">
                   <Button variant="outline" onClick={reset}>
                     <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    {t("ui.startOver") || "Start Over"}
+                    {t("ui.reupload") || "Start Over"}
                   </Button>
                   <Button
                     onClick={() =>
@@ -497,7 +497,7 @@ export function PdfRemove() {
                 <div className="flex gap-4 justify-center">
                   <Button variant="outline" onClick={reset}>
                     <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    {t("ui.startOver") || "Start Over"}
+                    {t("ui.reupload") || "Start Over"}
                   </Button>
                   <Button
                     onClick={() =>

@@ -512,7 +512,7 @@ export function PdfMerger() {
               setProgress(0);
             }}
           >
-            {t("ui.startOver") || "Start Over"}
+            {t("ui.reupload") || "Start Over"}
           </Button>
         )}
       </CardFooter>
