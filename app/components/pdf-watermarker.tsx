@@ -36,45 +36,23 @@ interface Position {
   label: string;
 }
 
-interface Alignment {
-  value: string;
-  label: string;
-}
-
-interface RenderMode {
-  value: string;
-  label: string;
-}
-
 // List of font names available in pdfcpu
 const FONT_NAMES = ["Helvetica", "Courier", "Times", "Symbol", "ZapfDingbats"];
 
+// Define position key type for type safety
+type PositionKey = "c" | "tl" | "tc" | "tr" | "l" | "r" | "bl" | "bc" | "br";
+
 // Positions for anchoring watermarks
 const POSITIONS = [
-  { value: "c", label: "Center" },
-  { value: "tl", label: "Top Left" },
-  { value: "tc", label: "Top Center" },
-  { value: "tr", label: "Top Right" },
-  { value: "l", label: "Left" },
-  { value: "r", label: "Right" },
-  { value: "bl", label: "Bottom Left" },
-  { value: "bc", label: "Bottom Center" },
-  { value: "br", label: "Bottom Right" },
-];
-
-// Text alignment options
-const TEXT_ALIGNMENTS = [
-  { value: "l", label: "Left" },
-  { value: "c", label: "Center" },
-  { value: "r", label: "Right" },
-  { value: "j", label: "Justified" },
-];
-
-// Render modes
-const RENDER_MODES = [
-  { value: "0", label: "Fill" },
-  { value: "1", label: "Stroke" },
-  { value: "2", label: "Fill & Stroke" },
+  { value: "c" as PositionKey, label: "Center" },
+  { value: "tl" as PositionKey, label: "Top Left" },
+  { value: "tc" as PositionKey, label: "Top Center" },
+  { value: "tr" as PositionKey, label: "Top Right" },
+  { value: "l" as PositionKey, label: "Left" },
+  { value: "r" as PositionKey, label: "Right" },
+  { value: "bl" as PositionKey, label: "Bottom Left" },
+  { value: "bc" as PositionKey, label: "Bottom Center" },
+  { value: "br" as PositionKey, label: "Bottom Right" },
 ];
 
 export function WatermarkPDF() {
@@ -103,30 +81,15 @@ export function WatermarkPDF() {
   const [pageSelection, setPageSelection] = useState<string>("");
 
   // Common watermark parameters
-  const [position, setPosition] = useState<string>("c");
-  const [opacity, setOpacity] = useState<number>(100);
+  const [position, setPosition] = useState<PositionKey>("c");
+  const [opacity, setOpacity] = useState<number>(50);
   const [rotation, setRotation] = useState<number>(0);
-  const [diagonal, setDiagonal] = useState<number>(0);
-  const [scale, setScale] = useState<number>(50);
-  const [useOffset, setUseOffset] = useState<boolean>(false);
-  const [offsetX, setOffsetX] = useState<number>(0);
-  const [offsetY, setOffsetY] = useState<number>(0);
+  const [scale, setScale] = useState<number>(100);
 
   // Text-specific parameters
   const [fontName, setFontName] = useState<string>("Helvetica");
   const [fontSize, setFontSize] = useState<number>(24);
-  const [fillColor, setFillColor] = useState<string>("#808080");
-  const [strokeColor, setStrokeColor] = useState<string>("#808080");
-  const [renderMode, setRenderMode] = useState<string>("0");
-  const [textAlignment, setTextAlignment] = useState<string>("c");
-
-  // Background and border parameters
-  const [bgColor, setBgColor] = useState<string>("");
-  const [useBgColor, setUseBgColor] = useState<boolean>(false);
-  const [borderWidth, setBorderWidth] = useState<number>(0);
-  const [roundedCorners, setRoundedCorners] = useState<boolean>(false);
-  const [borderColor, setBorderColor] = useState<string>("#000000");
-  const [margins, setMargins] = useState<string>("0");
+  const [watermarkColor, setWatermarkColor] = useState<string>("#808080");
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -173,145 +136,81 @@ export function WatermarkPDF() {
     }
   }, [svgWatermark, activeTab]);
 
-  // Calculate SVG watermark position with A4 dimensions
-  const getSvgTransform = (): string => {
+  // Calculate watermark position with A4 dimensions
+  const getWatermarkPosition = () => {
     const pageWidth = 595; // A4 width in points
     const pageHeight = 842; // A4 height in points
-    let x = 0;
-    let y = 0;
-    const scaleFactor = scale / 100;
 
     // Map position to coordinates (adjusted for A4)
-    const posMap: { [key: string]: { x: number; y: number } } = {
+    const posMap: Record<PositionKey, { x: number; y: number }> = {
       c: { x: pageWidth / 2, y: pageHeight / 2 },
-      tl: { x: 10, y: 10 },
-      tc: { x: pageWidth / 2, y: 10 },
-      tr: { x: pageWidth - 10, y: 10 },
-      l: { x: 10, y: pageHeight / 2 },
-      r: { x: pageWidth - 10, y: pageHeight / 2 },
-      bl: { x: 10, y: pageHeight - 10 },
-      bc: { x: pageWidth / 2, y: pageHeight - 10 },
-      br: { x: pageWidth - 10, y: pageHeight - 10 },
+      tl: { x: 50, y: 50 },
+      tc: { x: pageWidth / 2, y: 50 },
+      tr: { x: pageWidth - 50, y: 50 },
+      l: { x: 50, y: pageHeight / 2 },
+      r: { x: pageWidth - 50, y: pageHeight / 2 },
+      bl: { x: 50, y: pageHeight - 50 },
+      bc: { x: pageWidth / 2, y: pageHeight - 50 },
+      br: { x: pageWidth - 50, y: pageHeight - 50 },
     };
 
-    const pos = posMap[position] || posMap.c;
-    x = pos.x + (useOffset ? offsetX : 0);
-    y = pos.y + (useOffset ? offsetY : 0);
-
-    let transform = `translate(${x}, ${y}) scale(${scaleFactor})`;
-    if (diagonal === 1) {
-      transform += ` rotate(45, ${x}, ${y})`;
-    } else if (diagonal === 2) {
-      transform += ` rotate(-45, ${x}, ${y})`;
-    } else if (rotation !== 0) {
-      transform += ` rotate(${rotation}, ${x}, ${y})`;
-    }
-
-    return transform;
+    return posMap[position];
   };
 
-  // Build the watermark description string with improved validation
+  // Get text anchor based on position
+  const getTextAnchor = (): string => {
+    if (["tl", "l", "bl"].includes(position)) {
+      return "start";
+    } else if (["tr", "r", "br"].includes(position)) {
+      return "end";
+    } else {
+      return "middle";
+    }
+  };
+
+  // Get text dominant-baseline based on position
+  const getTextBaseline = (): string => {
+    if (["tl", "tc", "tr"].includes(position)) {
+      return "hanging";
+    } else if (["bl", "bc", "br"].includes(position)) {
+      return "alphabetic";
+    } else {
+      return "middle";
+    }
+  };
   const buildWatermarkDescription = (): string => {
     const parts: string[] = [];
 
     // Common parameters
-    if (position !== "c") parts.push(`pos:${position}`);
+    parts.push(`pos:${position}`);
 
-    if (useOffset && (offsetX !== 0 || offsetY !== 0)) {
-      parts.push(`off:${offsetX} ${offsetY}`);
-    }
-
-    if (scale !== 50) {
+    if (scale !== 100) {
       const scaleValue = scale / 100;
       parts.push(`scale:${scaleValue.toFixed(2)}`);
     }
 
-    if (opacity !== 100) {
+    if (opacity !== 50) {
       const opacityValue = opacity / 100;
       parts.push(`op:${opacityValue.toFixed(2)}`);
     }
 
-    // Handle diagonal and rotation
-    if (diagonal > 0) {
-      parts.push(`d:${diagonal}`);
-    } else if (rotation !== 0) {
-      parts.push(`rot:${rotation}`);
-    }
+    // Always include rotation to ensure no default is applied
+    parts.push(`rot:${rotation}`);
 
     // Text-specific parameters
     if (activeTab === "text") {
-      if (fontName && !FONT_NAMES.includes(fontName)) {
-        setFontName("Helvetica"); // Fallback to default if invalid
-      }
       if (fontName !== "Helvetica") parts.push(`fontname:${fontName}`);
-
-      if (fontSize < 8 || fontSize > 72) {
-        setFontSize(24); // Clamp to valid range
-      }
       if (fontSize !== 24) parts.push(`points:${fontSize}`);
 
-      // Validate text alignment
-      const validAlignments = ["l", "c", "r", "j"];
-      if (!validAlignments.includes(textAlignment)) {
-        setTextAlignment("c"); // Fallback to center
-      }
-      if (textAlignment !== "c") parts.push(`align:${textAlignment}`);
-
-      if (fillColor !== "#808080") {
-        const r = parseInt(fillColor.slice(1, 3), 16) / 255;
-        const g = parseInt(fillColor.slice(3, 5), 16) / 255;
-        const b = parseInt(fillColor.slice(5, 7), 16) / 255;
+      if (watermarkColor !== "#808080") {
+        const r = parseInt(watermarkColor.slice(1, 3), 16) / 255;
+        const g = parseInt(watermarkColor.slice(3, 5), 16) / 255;
+        const b = parseInt(watermarkColor.slice(5, 7), 16) / 255;
         parts.push(`fillc:${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)}`);
-      }
-
-      if (strokeColor !== "#808080" && renderMode !== "0") {
-        const r = parseInt(strokeColor.slice(1, 3), 16) / 255;
-        const g = parseInt(strokeColor.slice(3, 5), 16) / 255;
-        const b = parseInt(strokeColor.slice(5, 7), 16) / 255;
-        parts.push(`strokec:${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)}`);
-      }
-
-      if (renderMode !== "0" && !["0", "1", "2"].includes(renderMode)) {
-        setRenderMode("0"); // Fallback to fill
-      }
-      if (renderMode !== "0") parts.push(`mo:${renderMode}`);
-
-      if (useBgColor && bgColor) {
-        const r = parseInt(bgColor.slice(1, 3), 16) / 255;
-        const g = parseInt(bgColor.slice(3, 5), 16) / 255;
-        const b = parseInt(bgColor.slice(5, 7), 16) / 255;
-        parts.push(`bgcolor:${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)}`);
-
-        if (margins !== "0") parts.push(`ma:${margins}`);
-
-        if (borderWidth > 0) {
-          let borderStr = `bo:${borderWidth}`;
-          if (roundedCorners) borderStr += " round";
-          if (borderColor !== "#000000") {
-            const r = parseInt(borderColor.slice(1, 3), 16) / 255;
-            const g = parseInt(borderColor.slice(3, 5), 16) / 255;
-            const b = parseInt(borderColor.slice(5, 7), 16) / 255;
-            borderStr += ` ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)}`;
-          }
-          parts.push(borderStr);
-        }
       }
     }
 
     return parts.join(", ");
-  };
-
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        resolve(base64String.split(",")[1]);
-      };
-      reader.onerror = (error) => reject(error);
-    });
   };
 
   // Apply watermark to PDF
@@ -661,240 +560,59 @@ export function WatermarkPDF() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-6">
-                      <div>
-                        <Label htmlFor="fontName">
-                          {t("watermarkPdf.fontName") || "Font Name"}
-                        </Label>
-                        <Select value={fontName} onValueChange={setFontName}>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                t("watermarkPdf.selectFont") || "Select Font"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FONT_NAMES.map((font) => (
-                              <SelectItem key={font} value={font}>
-                                {font}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="fontSize">
-                          {t("watermarkPdf.fontSize") || "Font Size"} (
-                          {fontSize})
-                        </Label>
-                        <Slider
-                          id="fontSize"
-                          min={8}
-                          max={72}
-                          step={1}
-                          value={[fontSize]}
-                          onValueChange={(values) => setFontSize(values[0])}
-                          className="mt-2"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="textAlignment">
-                          {t("watermarkPdf.textAlignment") || "Text Alignment"}
-                        </Label>
-                        <Select
-                          value={textAlignment}
-                          onValueChange={setTextAlignment}
-                        >
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                t("watermarkPdf.selectAlignment") ||
-                                "Select Alignment"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TEXT_ALIGNMENTS.map((alignment) => (
-                              <SelectItem
-                                key={alignment.value}
-                                value={alignment.value}
-                              >
-                                {alignment.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="renderMode">
-                          {t("watermarkPdf.renderMode") || "Render Mode"}
-                        </Label>
-                        <Select
-                          value={renderMode}
-                          onValueChange={setRenderMode}
-                        >
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                t("watermarkPdf.selectRenderMode") ||
-                                "Select Mode"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {RENDER_MODES.map((mode) => (
-                              <SelectItem key={mode.value} value={mode.value}>
-                                {mode.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="fillColor">
-                            {t("watermarkPdf.fillColor") || "Fill Color"}
-                          </Label>
-                          <div className="flex items-center mt-1 gap-2">
-                            <div
-                              className="w-6 h-6 rounded-full border"
-                              style={{ backgroundColor: fillColor }}
-                            />
-                            <Input
-                              id="fillColor"
-                              type="color"
-                              value={fillColor}
-                              onChange={(e) => setFillColor(e.target.value)}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="strokeColor">
-                            {t("watermarkPdf.strokeColor") || "Stroke Color"}
-                          </Label>
-                          <div className="flex items-center mt-1 gap-2">
-                            <div
-                              className="w-6 h-6 rounded-full border"
-                              style={{ backgroundColor: strokeColor }}
-                            />
-                            <Input
-                              id="strokeColor"
-                              type="color"
-                              value={strokeColor}
-                              onChange={(e) => setStrokeColor(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div>
+                      <Label htmlFor="fontName">
+                        {t("watermarkPdf.fontName") || "Font"}
+                      </Label>
+                      <Select value={fontName} onValueChange={setFontName}>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              t("watermarkPdf.selectFont") || "Select Font"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FONT_NAMES.map((font) => (
+                            <SelectItem key={font} value={font}>
+                              {font}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    <div className="space-y-6">
-                      <div>
-                        <Label htmlFor="bgColor">
-                          {t("watermarkPdf.bgColor") || "Background Color"}
-                        </Label>
-                        <div className="flex items-center mt-1 gap-2">
-                          <Switch
-                            id="useBgColor"
-                            checked={useBgColor}
-                            onCheckedChange={setUseBgColor}
-                          />
-                          <div className="flex-1 flex items-center gap-2">
-                            <div
-                              className="w-6 h-6 rounded-full border"
-                              style={{
-                                backgroundColor: useBgColor
-                                  ? bgColor
-                                  : "transparent",
-                              }}
-                            />
-                            <Input
-                              id="bgColor"
-                              type="color"
-                              value={bgColor}
-                              onChange={(e) => setBgColor(e.target.value)}
-                              disabled={!useBgColor}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div>
+                      <Label htmlFor="fontSize">
+                        {t("watermarkPdf.fontSize") || "Font Size"} ({fontSize})
+                      </Label>
+                      <Slider
+                        id="fontSize"
+                        min={8}
+                        max={72}
+                        step={1}
+                        value={[fontSize]}
+                        onValueChange={(values) => setFontSize(values[0])}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
 
-                      {useBgColor && (
-                        <>
-                          <div>
-                            <Label htmlFor="margins">
-                              {t("watermarkPdf.margins") || "Margins"}
-                            </Label>
-                            <Input
-                              id="margins"
-                              placeholder="0 or space-separated values (e.g., '5' or '5 10' or '5 10 5 10')"
-                              value={margins}
-                              onChange={(e) => setMargins(e.target.value)}
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="borderWidth">
-                              {t("watermarkPdf.borderWidth") || "Border Width"}{" "}
-                              ({borderWidth})
-                            </Label>
-                            <Slider
-                              id="borderWidth"
-                              min={0}
-                              max={10}
-                              step={1}
-                              value={[borderWidth]}
-                              onValueChange={(values) =>
-                                setBorderWidth(values[0])
-                              }
-                              className="mt-2"
-                            />
-                          </div>
-
-                          {borderWidth > 0 && (
-                            <>
-                              <div className="flex items-center space-x-2">
-                                <Switch
-                                  id="roundedCorners"
-                                  checked={roundedCorners}
-                                  onCheckedChange={setRoundedCorners}
-                                />
-                                <Label htmlFor="roundedCorners">
-                                  {t("watermarkPdf.roundedCorners") ||
-                                    "Rounded Corners"}
-                                </Label>
-                              </div>
-
-                              <div>
-                                <Label htmlFor="borderColor">
-                                  {t("watermarkPdf.borderColor") ||
-                                    "Border Color"}
-                                </Label>
-                                <div className="flex items-center mt-1 gap-2">
-                                  <div
-                                    className="w-6 h-6 rounded-full border"
-                                    style={{ backgroundColor: borderColor }}
-                                  />
-                                  <Input
-                                    id="borderColor"
-                                    type="color"
-                                    value={borderColor}
-                                    onChange={(e) =>
-                                      setBorderColor(e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </>
-                      )}
+                  <div>
+                    <Label htmlFor="watermarkColor">
+                      {t("watermarkPdf.color") || "Color"}
+                    </Label>
+                    <div className="flex items-center mt-1 gap-2">
+                      <div
+                        className="w-6 h-6 rounded-full border"
+                        style={{ backgroundColor: watermarkColor }}
+                      />
+                      <Input
+                        id="watermarkColor"
+                        type="color"
+                        value={watermarkColor}
+                        onChange={(e) => setWatermarkColor(e.target.value)}
+                      />
                     </div>
                   </div>
                 </TabsContent>
@@ -944,209 +662,95 @@ export function WatermarkPDF() {
                   {t("watermarkPdf.commonOptions") || "Watermark Options"}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="pageSelection">
-                        {t("watermarkPdf.pageSelection") || "Page Selection"}
-                      </Label>
-                      <Input
-                        id="pageSelection"
-                        placeholder={
-                          t("watermarkPdf.pageSelectionPlaceholder") ||
-                          "e.g., 1-3,5,7-9 (leave empty for all pages)"
-                        }
-                        value={pageSelection}
-                        onChange={(e) => setPageSelection(e.target.value)}
-                        className="mt-1"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {t("watermarkPdf.pageSelectionHelp") ||
-                          "You can also use 'even' or 'odd' to select even or odd pages"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="position">
-                        {t("watermarkPdf.position") || "Position"}
-                      </Label>
-                      <Select value={position} onValueChange={setPosition}>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              t("watermarkPdf.selectPosition") ||
-                              "Select Position"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {POSITIONS.map((pos) => (
-                            <SelectItem key={pos.value} value={pos.value}>
-                              {pos.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="useOffset"
-                        checked={useOffset}
-                        onCheckedChange={setUseOffset}
-                      />
-                      <Label htmlFor="useOffset">
-                        {t("watermarkPdf.useOffset") || "Use Offset"}
-                      </Label>
-                    </div>
-
-                    {useOffset && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="offsetX">
-                            {t("watermarkPdf.offsetX") || "Offset X"}
-                          </Label>
-                          <Input
-                            id="offsetX"
-                            type="number"
-                            value={offsetX}
-                            onChange={(e) => setOffsetX(Number(e.target.value))}
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="offsetY">
-                            {t("watermarkPdf.offsetY") || "Offset Y"}
-                          </Label>
-                          <Input
-                            id="offsetY"
-                            type="number"
-                            value={offsetY}
-                            onChange={(e) => setOffsetY(Number(e.target.value))}
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    )}
+                  <div>
+                    <Label htmlFor="pageSelection">
+                      {t("watermarkPdf.pageSelection") || "Page Selection"}
+                    </Label>
+                    <Input
+                      id="pageSelection"
+                      placeholder={
+                        t("watermarkPdf.pageSelectionPlaceholder") ||
+                        "e.g., 1-3,5,7-9 (leave empty for all pages)"
+                      }
+                      value={pageSelection}
+                      onChange={(e) => setPageSelection(e.target.value)}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("watermarkPdf.pageSelectionHelp") ||
+                        "You can also use 'even' or 'odd' to select even or odd pages"}
+                    </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label>
-                        {t("watermarkPdf.opacity") || "Opacity"} ({opacity}%)
-                      </Label>
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={[opacity]}
-                        onValueChange={(values) => setOpacity(values[0])}
-                        className="mt-2"
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="position">
+                      {t("watermarkPdf.position") || "Position"}
+                    </Label>
+                    <Select
+                      value={position}
+                      onValueChange={(value) =>
+                        setPosition(value as PositionKey)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            t("watermarkPdf.selectPosition") ||
+                            "Select Position"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {POSITIONS.map((pos) => (
+                          <SelectItem key={pos.value} value={pos.value}>
+                            {pos.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div>
-                      <Label>
-                        {t("watermarkPdf.scale") || "Scale"} ({scale}%)
-                      </Label>
-                      <Slider
-                        min={10}
-                        max={100}
-                        step={5}
-                        value={[scale]}
-                        onValueChange={(values) => setScale(values[0])}
-                        className="mt-2"
-                      />
-                    </div>
+                  <div>
+                    <Label>
+                      {t("watermarkPdf.opacity") || "Opacity"} ({opacity}%)
+                    </Label>
+                    <Slider
+                      min={10}
+                      max={100}
+                      step={5}
+                      value={[opacity]}
+                      onValueChange={(values) => setOpacity(values[0])}
+                      className="mt-2"
+                    />
+                  </div>
 
-                    <div className="space-y-3">
-                      <Label>{t("watermarkPdf.rotation") || "Rotation"}</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id="useDiagonal"
-                            checked={diagonal > 0}
-                            onChange={() => {
-                              setDiagonal(1);
-                              setRotation(0);
-                            }}
-                            className="h-4 w-4"
-                          />
-                          <Label htmlFor="useDiagonal" className="font-normal">
-                            {t("watermarkPdf.diagonal") || "Diagonal"}
-                          </Label>
-                        </div>
+                  <div>
+                    <Label>
+                      {t("watermarkPdf.scale") || "Scale"} ({scale}%)
+                    </Label>
+                    <Slider
+                      min={10}
+                      max={200}
+                      step={5}
+                      value={[scale]}
+                      onValueChange={(values) => setScale(values[0])}
+                      className="mt-2"
+                    />
+                  </div>
 
-                        {diagonal > 0 && (
-                          <div className="pl-6">
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="radio"
-                                id="diagonal1"
-                                checked={diagonal === 1}
-                                onChange={() => setDiagonal(1)}
-                                className="h-4 w-4"
-                              />
-                              <Label
-                                htmlFor="diagonal1"
-                                className="font-normal"
-                              >
-                                {t("watermarkPdf.diagonal1") ||
-                                  "Lower left to upper right"}
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="radio"
-                                id="diagonal2"
-                                checked={diagonal === 2}
-                                onChange={() => setDiagonal(2)}
-                                className="h-4 w-4"
-                              />
-                              <Label
-                                htmlFor="diagonal2"
-                                className="font-normal"
-                              >
-                                {t("watermarkPdf.diagonal2") ||
-                                  "Upper left to lower right"}
-                              </Label>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id="useRotation"
-                            checked={diagonal === 0}
-                            onChange={() => setDiagonal(0)}
-                            className="h-4 w-4"
-                          />
-                          <Label htmlFor="useRotation" className="font-normal">
-                            {t("watermarkPdf.customRotation") ||
-                              "Custom Rotation"}
-                          </Label>
-                        </div>
-
-                        {diagonal === 0 && (
-                          <div className="pl-6">
-                            <Label>
-                              {t("watermarkPdf.rotationAngle") ||
-                                "Rotation Angle"}{" "}
-                              ({rotation}°)
-                            </Label>
-                            <Slider
-                              min={-180}
-                              max={180}
-                              step={5}
-                              value={[rotation]}
-                              onValueChange={(values) => setRotation(values[0])}
-                              className="mt-2"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <div>
+                    <Label>
+                      {t("watermarkPdf.rotationAngle") || "Rotation"} (
+                      {rotation}°)
+                    </Label>
+                    <Slider
+                      min={-180}
+                      max={180}
+                      step={15}
+                      value={[rotation]}
+                      onValueChange={(values) => setRotation(values[0])}
+                      className="mt-2"
+                    />
                   </div>
                 </div>
               </div>
@@ -1165,8 +769,8 @@ export function WatermarkPDF() {
                   <div className="border rounded-lg overflow-hidden">
                     <svg
                       ref={svgPreviewRef}
-                      width="595"
-                      height="842"
+                      width="295"
+                      height="500"
                       viewBox="0 0 595 842"
                       className="bg-white"
                     >
@@ -1180,38 +784,81 @@ export function WatermarkPDF() {
                         stroke="#ccc"
                         strokeWidth="1"
                       />
-                      {/* Watermark */}
-                      <g
-                        id="watermark-group"
-                        transform={getSvgTransform()}
-                        opacity={opacity / 100}
-                      >
+                      {/* Preview Grid Lines - for better visualization */}
+                      <line
+                        x1="0"
+                        y1="421"
+                        x2="595"
+                        y2="421"
+                        stroke="#e0e0e0"
+                        strokeDasharray="5,5"
+                      />
+                      <line
+                        x1="297.5"
+                        y1="0"
+                        x2="297.5"
+                        y2="842"
+                        stroke="#e0e0e0"
+                        strokeDasharray="5,5"
+                      />
+
+                      <g id="watermark-group">
                         {activeTab === "text" ? (
-                          <text
-                            x="0"
-                            y="0"
-                            fontFamily={fontName}
-                            fontSize={fontSize}
-                            fill={fillColor}
-                            stroke={renderMode !== "0" ? strokeColor : "none"}
-                            strokeWidth={renderMode !== "0" ? 1 : 0}
-                            textAnchor={
-                              textAlignment === "l"
-                                ? "start"
-                                : textAlignment === "r"
-                                ? "end"
-                                : textAlignment === "j"
-                                ? "middle" // Fallback for justified in preview
-                                : "middle"
-                            }
+                          <g
+                            transform={`
+                              translate(${getWatermarkPosition().x}, ${
+                              getWatermarkPosition().y
+                            })
+                              ${rotation !== 0 ? `rotate(${rotation})` : ""}
+                              scale(${scale / 100})
+                            `}
                           >
-                            {textWatermark}
-                          </text>
+                            {/* Text shadow/outline for better visibility */}
+                            <text
+                              x="0"
+                              y="0"
+                              fontFamily={fontName}
+                              fontSize={fontSize}
+                              fill="rgba(255, 255, 255, 0.7)"
+                              stroke="rgba(255, 255, 255, 0.7)"
+                              strokeWidth={0.5}
+                              textAnchor={getTextAnchor()}
+                              dominantBaseline={getTextBaseline()}
+                              opacity={opacity / 100}
+                            >
+                              {textWatermark}
+                            </text>
+                            <text
+                              x="0"
+                              y="0"
+                              fontFamily={fontName}
+                              fontSize={fontSize}
+                              fill={watermarkColor}
+                              textAnchor={getTextAnchor()}
+                              dominantBaseline={getTextBaseline()}
+                              opacity={opacity / 100}
+                            >
+                              {textWatermark}
+                            </text>
+                          </g>
                         ) : (
                           svgWatermark && (
                             <g
-                              dangerouslySetInnerHTML={{ __html: svgWatermark }}
-                            />
+                              transform={`
+                                translate(${getWatermarkPosition().x}, ${
+                                getWatermarkPosition().y
+                              })
+                                ${rotation !== 0 ? `rotate(${rotation})` : ""}
+                                scale(${scale / 100})
+                                translate(-50%, -50%)
+                              `}
+                            >
+                              <g
+                                dangerouslySetInnerHTML={{
+                                  __html: svgWatermark,
+                                }}
+                              />
+                            </g>
                           )
                         )}
                       </g>

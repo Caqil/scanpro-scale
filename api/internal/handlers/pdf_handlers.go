@@ -1940,7 +1940,6 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	}
 	defer os.Remove(inputPath) // Clean up after processing
 
-
 	// Handle watermark content based on type
 	var watermarkContent string
 
@@ -2125,7 +2124,6 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		})
 		return
 	}
-
 
 	// Generate file URL
 	fileURL := fmt.Sprintf("/api/file?folder=watermarked&filename=%s-watermarked.pdf", uniqueID)

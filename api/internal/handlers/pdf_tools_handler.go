@@ -61,11 +61,9 @@ func (h *PDFToolsHandler) UpdateToolStatus(c *gin.Context) {
 	// Reset the body so ShouldBindJSON still works
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	var req struct {
-		enabled bool `json:"enabled" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// We'll parse the JSON manually to avoid validation issues
+	var jsonData map[string]interface{}
+	if err := c.ShouldBindJSON(&jsonData); err != nil {
 		fmt.Printf("JSON binding error for tool %s: %v\n", toolID, err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -74,17 +72,32 @@ func (h *PDFToolsHandler) UpdateToolStatus(c *gin.Context) {
 		return
 	}
 
+	// Extract the enabled status from the JSON data
+	enabled, ok := jsonData["enabled"].(bool)
+	if !ok {
+		fmt.Printf("Invalid or missing 'enabled' field for tool %s\n", toolID)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid or missing 'enabled' field",
+		})
+		return
+	}
+
+	fmt.Printf("Successfully parsed request for tool %s, enabled: %v\n", toolID, enabled)
+
 	// Try to update with the exact ID first
-	err := h.repo.UpdateToolStatus(toolID, req.enabled)
+	err := h.repo.UpdateToolStatus(toolID, enabled)
+
+	// If the exact ID fails, try with common variations
 	if err != nil {
 		// If the exact ID fails, try with common variations
 		if strings.HasSuffix(toolID, "-pdf") {
 			// Try without the "-pdf" suffix
 			baseToolID := strings.TrimSuffix(toolID, "-pdf")
-			err = h.repo.UpdateToolStatus(baseToolID, req.enabled)
+			err = h.repo.UpdateToolStatus(baseToolID, enabled)
 		} else {
 			// Try with "-pdf" suffix
-			err = h.repo.UpdateToolStatus(toolID+"-pdf", req.enabled)
+			err = h.repo.UpdateToolStatus(toolID+"-pdf", enabled)
 		}
 
 		if err != nil {

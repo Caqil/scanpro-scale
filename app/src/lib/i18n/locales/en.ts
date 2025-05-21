@@ -1314,10 +1314,6 @@ export default {
     imageWatermark: "Image Watermark",
     privacyNote: "Your files are processed securely. All uploads are automatically deleted after processing.",
 
-    // Header section
-    headerTitle: "Add Watermark to PDF",
-    headerDescription: "Add custom text or image watermarks to your PDF documents for branding, copyright protection, and document classification",
-
     // Error messages
     invalidFileType: "Invalid file type",
     selectPdfFile: "Please select a PDF file",
@@ -1339,16 +1335,60 @@ export default {
     failed: "Failed to add watermark",
     unknownError: "An unknown error occurred",
     unknownErrorDesc: "An unknown error occurred. Please try again",
-
-    // Upload and processing UI
-    uploadTitle: "Upload PDF to Watermark",
-    uploadDesc: "Drag and drop your PDF file here, or click to browse",
+    headerTitle: "Add Watermark to PDF",
+    headerDescription: "Add custom text or image watermarks to your PDF documents for branding, copyright protection, and document classification",
+    uploadTitle: "Upload Your PDF",
+    uploadDesc: "Upload a PDF file to add a watermark",
+    processing: "Processing PDF...",
+    configureWatermark: "Configure Watermark",
+    configureWatermarkDesc: "Select the type of watermark and customize its appearance",
+    commonOptions: "Watermark Options",
+    applyWatermark: "Apply Watermark",
+    text: "Watermark Text",
+    textPlaceholder: "Enter text for the watermark",
+    fontName: "Font",
+    selectFont: "Select Font",
+    fontSize: "Font Size",
+    color: "Color",
+    pageSelection: "Page Selection",
+    pageSelectionPlaceholder: "e.g., 1-3,5,7-9 (leave empty for all pages)",
+    pageSelectionHelp: "You can also use 'even' or 'odd' to select even or odd pages",
+    position: "Position",
+    selectPosition: "Select Position",
+    opacity: "Opacity",
+    scale: "Scale",
+    rotationAngle: "Rotation",
+    selectSvg: "Select SVG for Watermark",
+    uploadSvgTitle: "Upload an SVG",
+    uploadSvgDesc: "Select an SVG file to use as a watermark (max. 2MB)",
+    svgSelected: "SVG Selected",
+    types: {
+      text: {
+        title: "Text Watermark"
+      },
+      svg: {
+        title: "SVG Watermark"
+      }
+    },
+    messages: {
+      noFile: "Please upload a PDF file",
+      noText: "Please enter watermark text",
+      noSvg: "Please upload an SVG watermark",
+      invalidPageSelection: "Invalid page selection format",
+      svgReadError: "Failed to read SVG file",
+      success: "Watermark Applied Successfully!",
+      downloadReady: "Your watermarked PDF is now ready for download.",
+      processing: "Please wait while we apply the watermark to your PDF.",
+      error: "Operation Failed"
+    },
+    contentQuality: {
+      question: "Will password protection affect the PDF content or quality?",
+      answer: "No, password protection only adds security settings to your document and doesn't alter the content, layout, or quality of your PDF in any way."
+    },
     uploading: "Uploading...",
     selectPdf: "Select PDF File",
     maxSize: "Maximum file size: 50MB",
     change: "Change File",
-    commonOptions: "Watermark Settings",
-    position: "Position",
     center: "Center",
     tile: "Tile",
     custom: "Custom",
@@ -1358,7 +1398,6 @@ export default {
     odd: "Odd Pages",
     customPages: "Custom Pages",
     pagesFormat: "Enter page numbers separated by commas or ranges with hyphens (e.g., 1,3,5-10)",
-    processing: "Processing...",
     addWatermark: "Add Watermark",
     adding: "Adding Watermark",
     pleaseWait: "Please wait while we process your document",
@@ -1366,17 +1405,7 @@ export default {
     newWatermark: "Add Another Watermark",
 
     // Text watermark options
-    text: {
-      text: "Watermark Text",
-      placeholder: "e.g., CONFIDENTIAL, DRAFT, etc.",
-      color: "Text Color",
-      font: "Font",
-      selectFont: "Select Font",
-      size: "Font Size",
-      opacity: "Opacity",
-      rotation: "Rotation",
-      preview: "Preview"
-    },
+   
     positionX: "Position X",
     positionY: "Position Y",
     positions: {
@@ -1439,32 +1468,6 @@ export default {
       }
     },
 
-    // Watermark types section
-    types: {
-      title: "Watermark Types & Options",
-      text: {
-        title: "Text Watermark",
-        description: "Customize text watermarks with various options:",
-        options: {
-          text: "Custom text content (multi-line supported)",
-          font: "Font family, size, and color",
-          rotation: "Rotation angle (0-360 degrees)",
-          opacity: "Opacity level (transparent to fully visible)",
-          position: "Position (center, tiled, custom placement)"
-        }
-      },
-      image: {
-        title: "Image Watermark",
-        description: "Add image watermarks with these customizations:",
-        options: {
-          upload: "Upload your own logo or image",
-          scale: "Scale and resize",
-          rotation: "Rotation options",
-          opacity: "Transparency control",
-          position: "Position customization"
-        }
-      }
-    },
 
     // FAQ section
     faq: {
