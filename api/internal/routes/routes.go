@@ -140,13 +140,13 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	settingsHandler := handlers.NewSettingsHandler()
 	ocrHandler := handlers.NewOcrHandler(balanceService, cfg)
 	toolStatusHandler := handlers.NewToolStatusHandler()
+	cleanupHandler := handlers.NewCleanupHandler(cfg)
 	signPdfHandler := handlers.NewSignPdfHandler(
 		cfg.UploadDir,
 		filepath.Join(cfg.PublicDir, "signatures"),
 	)
 	api := r.Group("/api")
 	{
-
 		api.GET("/tools/status", toolStatusHandler.GetToolStatus)
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
@@ -333,6 +333,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		admin.Use(middleware.AdminMiddleware())
 		{
+			admin.GET("/cleanup", cleanupHandler.Cleanup)
 			admin.GET("/dashboard", adminHandler.GetDashboardStats)
 			admin.GET("/users", adminHandler.GetUsers)
 			admin.GET("/users/:id", adminHandler.GetUser)

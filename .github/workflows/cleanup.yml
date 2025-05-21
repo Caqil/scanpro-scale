@@ -1,29 +1,104 @@
-name: Scheduled Cleanup
+name: PDF Cleanup
 
 on:
   schedule:
-    # Run every hour, at minute 0
+    # Run every hour
     - cron: "0 * * * *"
-  # Optional: Allow manual triggering for testing
+  # Allow manual triggering for testing
   workflow_dispatch:
+    inputs:
+      maxAge:
+        description: "Max age in minutes"
+        required: false
+        default: "60"
+        type: string
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Run Cleanup API
+      - name: Set up variables
+        id: vars
         run: |
-          curl -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://mega-pdf.com/api/admin/cleanup?maxAge=60"
+          echo "MAX_AGE=${{ github.event.inputs.maxAge || '60' }}" >> $GITHUB_ENV
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL || 'https://mega-pdf.com' }}" >> $GITHUB_ENV
 
-      - name: Check API Response
+      - name: Login to get JWT token
+        id: login
         run: |
-          response=$(curl -s -w "\n%{http_code}" -X GET -H "x-api-key: ${{ secrets.API_KEY }}" "https://mega-pdf.com/api/admin/cleanup?maxAge=60")
-          http_code=$(echo "$response" | tail -n1)
-          content=$(echo "$response" | sed '$d')
-          echo "HTTP Status Code: $http_code"
-          echo "Response content: $content"
+          # Login and extract token
+          LOGIN_RESPONSE=$(curl -s -X POST "${{ env.API_BASE_URL }}/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "email": "${{ secrets.ADMIN_EMAIL }}",
+              "password": "${{ secrets.ADMIN_PASSWORD }}"
+            }')
 
-          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
-            echo "API call failed with status code $http_code"
+          # Check for errors
+          if echo "$LOGIN_RESPONSE" | grep -q "error"; then
+            echo "Login failed with response:"
+            echo "$LOGIN_RESPONSE"
             exit 1
           fi
+
+          # Extract token
+          TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+
+          if [ -z "$TOKEN" ]; then
+            echo "Failed to extract token from response:"
+            echo "$LOGIN_RESPONSE"
+            exit 1
+          fi
+
+          # Save token in a secure way
+          echo "::add-mask::$TOKEN"
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+
+          echo "Successfully logged in and obtained JWT token"
+
+      - name: Run cleanup with JWT authentication
+        run: |
+          echo "Running cleanup for files older than ${{ env.MAX_AGE }} minutes..."
+
+          CLEANUP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X GET "${{ env.API_BASE_URL }}/api/admin/cleanup?maxAge=${{ env.MAX_AGE }}" \
+            -H "Authorization: Bearer ${{ env.TOKEN }}")
+
+          HTTP_CODE=$(echo "$CLEANUP_RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$CLEANUP_RESPONSE" | sed '$d')
+
+          echo "Cleanup API responded with status code: $HTTP_CODE"
+
+          # Check for success
+          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+            echo "Cleanup successful!"
+            
+            # Extract statistics
+            FILES_DELETED=$(echo "$RESPONSE_BODY" | grep -o '"filesDeleted":[0-9]*' | cut -d':' -f2)
+            BYTES_RECOVERED=$(echo "$RESPONSE_BODY" | grep -o '"bytesRecovered":[0-9]*' | cut -d':' -f2)
+            
+            if [ ! -z "$FILES_DELETED" ] && [ ! -z "$BYTES_RECOVERED" ]; then
+              echo "Deleted $FILES_DELETED files, recovered $BYTES_RECOVERED bytes"
+              
+              # Convert bytes to MB for better readability if over 1MB
+              if [ "$BYTES_RECOVERED" -gt 1048576 ]; then
+                MB_RECOVERED=$(echo "scale=2; $BYTES_RECOVERED / 1048576" | bc)
+                echo "Recovered space: $MB_RECOVERED MB"
+              fi
+            else
+              echo "Full response:"
+              echo "$RESPONSE_BODY"
+            fi
+          else
+            echo "Cleanup failed with status code $HTTP_CODE"
+            echo "Response body:"
+            echo "$RESPONSE_BODY"
+            exit 1
+          fi
+
+      - name: Handle errors
+        if: failure()
+        run: |
+          echo "PDF cleanup workflow failed. Please check the logs for details."
+          echo "You may need to check the server logs or manually run the cleanup."
