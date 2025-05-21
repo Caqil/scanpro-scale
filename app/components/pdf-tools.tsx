@@ -4,6 +4,8 @@
 import { PdfToolCard } from "@/components/pdf-tool-card";
 import { useLanguageStore } from "@/src/store/store";
 import { TrashIcon } from "@radix-ui/react-icons";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   FileTextIcon,
   ImageIcon,
@@ -22,10 +24,65 @@ import {
   FileCog,
   DiamondIcon,
   SplitIcon,
+  AlertCircleIcon,
 } from "lucide-react";
+
+// Interface for tool status from API
+interface ToolStatus {
+  id: string;
+  enabled: boolean;
+}
 
 export function PdfTools() {
   const { t } = useLanguageStore();
+  const [toolStatus, setToolStatus] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+
+  // Fetch tool status from API
+  useEffect(() => {
+    const fetchToolStatus = async () => {
+      try {
+        setLoading(true);
+        // Fetch tool status from API
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const response = await fetch(`${apiUrl}/api/tools/status`);
+
+        if (response.ok) {
+          const data = await response.json();
+          // Convert array of tool status to an object for easier lookup
+          const statusObj: Record<string, boolean> = {};
+          data.tools.forEach((tool: ToolStatus) => {
+            statusObj[tool.id] = tool.enabled;
+          });
+          setToolStatus(statusObj);
+        } else {
+          // If API endpoint doesn't exist yet or fails, default all tools to enabled
+          console.warn(
+            "Failed to fetch tool status, defaulting all tools to enabled"
+          );
+          const pdfToolsList = pdfTools.flatMap((category) => category.tools);
+          const defaultStatus: Record<string, boolean> = {};
+          pdfToolsList.forEach((tool) => {
+            defaultStatus[tool.id] = true;
+          });
+          setToolStatus(defaultStatus);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tool status:", error);
+        // Default all tools to enabled on error
+        const pdfToolsList = pdfTools.flatMap((category) => category.tools);
+        const defaultStatus: Record<string, boolean> = {};
+        pdfToolsList.forEach((tool) => {
+          defaultStatus[tool.id] = true;
+        });
+        setToolStatus(defaultStatus);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchToolStatus();
+  }, []);
 
   // Define the tool categories and items with localized text
   const pdfTools = [
@@ -53,13 +110,14 @@ export function PdfTools() {
               <path
                 d="M8 8V16M10 8L12 12L14 8M14 16V8M16 8V16"
                 stroke="white"
-                stroke-width="1.5"
-                stroke-linecap="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
               />
             </svg>
           ),
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           href: "/convert/pdf-to-docx", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "pdf-to-powerpoint",
@@ -83,6 +141,7 @@ export function PdfTools() {
           ),
           iconBg: "bg-orange-100 dark:bg-orange-900/30",
           href: "/convert/pdf-to-pptx", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "pdf-to-excel",
@@ -91,6 +150,7 @@ export function PdfTools() {
           icon: <TableIcon className="h-6 w-6 text-green-500" />,
           iconBg: "bg-green-100 dark:bg-green-900/30",
           href: "/convert/pdf-to-xlsx", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "pdf-to-jpg",
@@ -99,6 +159,7 @@ export function PdfTools() {
           icon: <ImageIcon className="h-6 w-6 text-yellow-500" />,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
           href: "/convert/pdf-to-jpg", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "pdf-to-png",
@@ -107,6 +168,7 @@ export function PdfTools() {
           icon: <ImageIcon className="h-6 w-6 text-yellow-500" />,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
           href: "/convert/pdf-to-png", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "pdf-to-html",
@@ -115,6 +177,7 @@ export function PdfTools() {
           icon: <LayoutIcon className="h-6 w-6 text-amber-500" />,
           iconBg: "bg-amber-100 dark:bg-amber-900/30",
           href: "/convert/pdf-to-html", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
       ],
     },
@@ -129,6 +192,7 @@ export function PdfTools() {
           icon: <FileTextIcon className="h-6 w-6 text-blue-500" />,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           href: "/convert/docx-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "powerpoint-to-pdf",
@@ -137,6 +201,7 @@ export function PdfTools() {
           icon: <FileTextIcon className="h-6 w-6 text-orange-500" />,
           iconBg: "bg-orange-100 dark:bg-orange-900/30",
           href: "/convert/pptx-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "excel-to-pdf",
@@ -145,6 +210,7 @@ export function PdfTools() {
           icon: <TableIcon className="h-6 w-6 text-green-500" />,
           iconBg: "bg-green-100 dark:bg-green-900/30",
           href: "/convert/xlsx-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "jpg-to-pdf",
@@ -153,6 +219,7 @@ export function PdfTools() {
           icon: <ImageIcon className="h-6 w-6 text-yellow-500" />,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
           href: "/convert/jpg-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "png-to-pdf",
@@ -161,6 +228,7 @@ export function PdfTools() {
           icon: <ImageIcon className="h-6 w-6 text-yellow-500" />,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
           href: "/convert/png-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
         {
           id: "html-to-pdf",
@@ -169,6 +237,7 @@ export function PdfTools() {
           icon: <LayoutIcon className="h-6 w-6 text-amber-500" />,
           iconBg: "bg-amber-100 dark:bg-amber-900/30",
           href: "/convert/html-to-pdf", // Updated URL
+          apiToolId: "convert", // Mapped to the API tool ID
         },
       ],
     },
@@ -183,6 +252,7 @@ export function PdfTools() {
           icon: <ArrowRightIcon className="h-6 w-6 text-red-500" />,
           iconBg: "bg-red-100 dark:bg-red-900/30",
           href: "/merge-pdf",
+          apiToolId: "merge", // Mapped to the API tool ID
         },
         {
           id: "compress-pdf",
@@ -191,6 +261,7 @@ export function PdfTools() {
           icon: <ArrowDownIcon className="h-6 w-6 text-green-500" />,
           iconBg: "bg-green-100 dark:bg-green-900/30",
           href: "/compress-pdf",
+          apiToolId: "compress", // Mapped to the API tool ID
         },
         {
           id: "repair",
@@ -201,6 +272,7 @@ export function PdfTools() {
           href: "/repair-pdf",
           icon: <ReplaceAllIcon className="h-8 w-8" />,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
+          apiToolId: "repair", // Mapped to the API tool ID
         },
         {
           id: "split-pdf",
@@ -209,6 +281,7 @@ export function PdfTools() {
           icon: <SplitIcon className="h-6 w-6 text-green-500" />,
           iconBg: "bg-green-100 dark:bg-green-900/30",
           href: "/split-pdf",
+          apiToolId: "split", // Mapped to the API tool ID
         },
         {
           id: "ocr",
@@ -217,6 +290,7 @@ export function PdfTools() {
           icon: <FileCheck2 className="h-5 w-5 text-blue-500" />,
           description: t("toolDescriptions.ocr"),
           iconBg: "bg-green-100 dark:bg-yellow-900/30",
+          apiToolId: "ocr", // Mapped to the API tool ID
         },
         {
           id: "ocr-pdf",
@@ -225,6 +299,7 @@ export function PdfTools() {
           icon: <FileCheck2 className="h-5 w-5 text-blue-500" />,
           description: t("ocrPdf.description"),
           iconBg: "bg-green-100 dark:bg-yellow-900/30",
+          apiToolId: "ocr", // Mapped to the API tool ID
         },
       ],
     },
@@ -239,6 +314,7 @@ export function PdfTools() {
           icon: <RotateCcwIcon className="h-6 w-6 text-purple-500" />,
           iconBg: "bg-purple-100 dark:bg-purple-900/30",
           href: "/rotate-pdf",
+          apiToolId: "rotate", // Mapped to the API tool ID
         },
         {
           id: "watermark",
@@ -247,6 +323,7 @@ export function PdfTools() {
           icon: <Edit2Icon className="h-6 w-6 text-purple-500" />,
           iconBg: "bg-purple-100 dark:bg-purple-900/30",
           href: "/watermark-pdf",
+          apiToolId: "watermark", // Mapped to the API tool ID
         },
         {
           id: "remove-pdf-pages",
@@ -256,6 +333,7 @@ export function PdfTools() {
           iconBg: "bg-green-100 dark:bg-green-900/30",
           href: "/remove-pdf-page",
           isNew: true,
+          apiToolId: "remove", // Mapped to the API tool ID
         },
       ],
     },
@@ -270,6 +348,7 @@ export function PdfTools() {
           icon: <LockIcon className="h-6 w-6 text-blue-500" />,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           href: "/unlock-pdf",
+          apiToolId: "unlock", // Mapped to the API tool ID
         },
         {
           id: "protect-pdf",
@@ -278,6 +357,7 @@ export function PdfTools() {
           icon: <ShieldIcon className="h-6 w-6 text-blue-500" />,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           href: "/protect-pdf",
+          apiToolId: "protect", // Mapped to the API tool ID
         },
         {
           id: "sign-pdf",
@@ -287,6 +367,7 @@ export function PdfTools() {
           description: t("signPdf.description"),
           iconBg: "bg-purple-100 dark:bg-yellow-900/30",
           isNew: true,
+          apiToolId: "sign", // Mapped to the API tool ID
         },
         {
           id: "repair-pdf",
@@ -296,6 +377,7 @@ export function PdfTools() {
           icon: <FileCog className="w-6 h-6 text-indigo-500" />,
           backgroundColor: "bg-indigo-50 dark:bg-indigo-950/20",
           iconBg: "bg-green-100 dark:bg-blue-900/30",
+          apiToolId: "repair", // Mapped to the API tool ID
         },
         {
           id: "pageNumber-pdf",
@@ -308,34 +390,68 @@ export function PdfTools() {
           backgroundColor: "bg-violet-50 dark:bg-violet-950/20",
           iconBg: "bg-green-100 dark:bg-blue-900/30",
           new: true, // Mark as new
+          apiToolId: "pagenumber", // Mapped to the API tool ID
         },
       ],
     },
   ];
 
+  // Check if a tool is enabled
+  const isToolEnabled = (tool: any) => {
+    // If we're still loading, return true to avoid flickering
+    if (loading) return true;
+    // If the tool doesn't have an API tool ID mapping, default to enabled
+    if (!tool.apiToolId) return true;
+    // Check if the tool is enabled in the status map
+    return toolStatus[tool.apiToolId] !== false;
+  };
+
   return (
     <div className="container max-w-6xl py-8 mx-auto">
       <div className="space-y-8">
-        {pdfTools.map((category) => (
-          <div key={category.id} className="space-y-4">
-            <h2 className="text-xl font-bold">{category.label}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {category.tools.map((tool) => (
-                <PdfToolCard
-                  key={tool.id}
-                  id={tool.id}
-                  name={tool.name}
-                  description={tool.description}
-                  icon={tool.icon}
-                  iconBg={tool.iconBg}
-                  href={tool.href}
-                  isNew={tool.isNew}
-                />
-              ))}
+        {pdfTools.map((category) => {
+          // Filter tools that are enabled
+          const enabledTools = category.tools.filter(isToolEnabled);
+
+          // Skip rendering the category if no tools are enabled
+          if (enabledTools.length === 0) return null;
+
+          return (
+            <div key={category.id} className="space-y-4">
+              <h2 className="text-xl font-bold">{category.label}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {enabledTools.map((tool) => (
+                  <PdfToolCard
+                    key={tool.id}
+                    id={tool.id}
+                    name={tool.name}
+                    description={tool.description}
+                    icon={tool.icon}
+                    iconBg={tool.iconBg}
+                    href={tool.href}
+                    isNew={tool.isNew}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Display a message if no tools are enabled */}
+      {Object.values(toolStatus).every((status) => status === false) &&
+        !loading && (
+          <div className="flex flex-col items-center justify-center p-8 mt-8 border rounded-lg">
+            <AlertCircleIcon className="h-10 w-10 text-yellow-500 mb-4" />
+            <h3 className="text-xl font-medium mb-2">
+              Tools Temporarily Unavailable
+            </h3>
+            <p className="text-center text-muted-foreground max-w-md">
+              Our PDF tools are currently undergoing maintenance. Please check
+              back later or contact support if you need assistance.
+            </p>
+          </div>
+        )}
     </div>
   );
 }

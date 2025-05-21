@@ -14,6 +14,7 @@ import {
   Activity,
   Shield,
   Wallet,
+  FileCog,
 } from "lucide-react";
 import { LanguageLink } from "../language-link";
 
@@ -27,6 +28,11 @@ const navItems = [
     title: "Users",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "PDF Tools", // New item
+    href: "/admin/settings/pdf-tools",
+    icon: FileCog,
   },
   {
     title: "Transactions",

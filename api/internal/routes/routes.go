@@ -136,14 +136,18 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	paypalWebhookHandler := handlers.NewPayPalWebhookHandler()
 	fmt.Println("Setting email service on auth handler")
 	authHandler.SetEmailService(emailService)
+	pdfToolsHandler := handlers.NewPDFToolsHandler()
 	settingsHandler := handlers.NewSettingsHandler()
 	ocrHandler := handlers.NewOcrHandler(balanceService, cfg)
+	toolStatusHandler := handlers.NewToolStatusHandler()
 	signPdfHandler := handlers.NewSignPdfHandler(
 		cfg.UploadDir,
 		filepath.Join(cfg.PublicDir, "signatures"),
 	)
 	api := r.Group("/api")
 	{
+
+		api.GET("/tools/status", toolStatusHandler.GetToolStatus)
 		fmt.Println("Registering route: /api/validate-key")
 		api.POST("/validate-key", keyValidationHandler.ValidateKey)
 		api.GET("/validate-key", keyValidationHandler.ValidateKey)
@@ -217,6 +221,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		fmt.Println("Registering route: /api/ocr/extract")
 		api.POST("/ocr/extract", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.ExtractText)
 		api.GET("/pricing", adminHandler.GetPricingSettings)
+
 		auth := api.Group("/auth")
 		{
 			fmt.Println("Registering route: /api/auth/register")
@@ -262,6 +267,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		}
 
 		pdf := api.Group("/pdf")
+		pdf.Use(middleware.PDFToolAvailabilityMiddleware())
 		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
 		{
 			fmt.Println("Registering route: /api/pdf/compress")
@@ -293,6 +299,9 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/pdf/remove")
 			pdf.POST("/remove", pdfHandler.RemovePagesFromPDF)
+
+			fmt.Println("Registering route: /api/pdf/watermark")
+			pdf.POST("/watermark", pdfHandler.WatermarkPDF)
 
 			fmt.Println("Registering route: /api/pdf/unlock")
 			pdf.POST("/unlock", pdfHandler.UnlockPDF)
@@ -340,6 +349,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			admin.GET("/settings/:category", settingsHandler.GetSettings)
 			admin.POST("/settings/:category", settingsHandler.UpdateSettings)
 			admin.GET("/settings", settingsHandler.GetAllSettings)
+			admin.GET("/settings/pdf-tools", pdfToolsHandler.GetPDFTools)
+			admin.PATCH("/settings/pdf-tools/:id", pdfToolsHandler.UpdateToolStatus)
+			admin.POST("/settings/pdf-tools/enable-all", pdfToolsHandler.EnableAllTools)
+			admin.POST("/settings/pdf-tools/disable-all", pdfToolsHandler.DisableAllTools)
+			admin.GET("/settings/pdf-tools/categories", pdfToolsHandler.GetToolsByCategory)
 		}
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
