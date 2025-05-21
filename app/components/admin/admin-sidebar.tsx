@@ -30,7 +30,7 @@ const navItems = [
     icon: Users,
   },
   {
-    title: "PDF Tools", // New item
+    title: "PDF Tools",
     href: "/admin/settings/pdf-tools",
     icon: FileCog,
   },

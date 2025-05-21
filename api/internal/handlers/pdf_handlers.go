@@ -3,9 +3,9 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"image"
 	"io"
 	"log"
 	"math"
@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/config"
@@ -1646,6 +1645,9 @@ func (h *PDFHandler) GetSplitStatus(c *gin.Context) {
 // @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
 // @Failure 500 {object} object{error=string}
 // @Router /api/pdf/watermark [post]
+
+// WatermarkPDF adds a watermark to a PDF document using pdfcpu
+
 func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	// Get user ID and operation type from context
 	userID, exists := c.Get("userId")
@@ -1682,17 +1684,6 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		}
 	}
 
-	// Validate directories
-	for _, dir := range []string{h.config.UploadDir, filepath.Join(h.config.PublicDir, "watermarked")} {
-		if err := checkDirWritable(dir); err != nil {
-			log.Printf("Directory %s is not writable: %v", dir, err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": fmt.Sprintf("Directory setup error: %s", err.Error()),
-			})
-			return
-		}
-	}
-
 	// Get file from form
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -1719,20 +1710,11 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		return
 	}
 
-	// Check disk space
-	if err := checkDiskSpace(h.config.UploadDir, file.Size); err != nil {
-		log.Printf("Disk space check failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Insufficient disk space: " + err.Error(),
-		})
-		return
-	}
-
 	// Get watermark type
 	watermarkType := c.DefaultPostForm("watermarkType", "text")
-	if watermarkType != "text" && watermarkType != "image" {
+	if watermarkType != "text" && watermarkType != "image" && watermarkType != "pdf" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid watermark type. Must be 'text' or 'image'",
+			"error": "Invalid watermark type. Must be 'text', 'image', or 'pdf'",
 		})
 		return
 	}
@@ -1740,43 +1722,79 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	// Get watermark parameters based on type
 	var watermarkText string
 	var watermarkImage *multipart.FileHeader
+	var watermarkPdf *multipart.FileHeader
+	var watermarkPdfPage string = "1" // Default to first page
 
 	if watermarkType == "text" {
-		watermarkText = c.PostForm("text")
+		// For text watermarks - try both "content" and older "text" parameter
+		watermarkText = c.PostForm("content")
+		if watermarkText == "" {
+			watermarkText = c.PostForm("text")
+		}
+
 		if watermarkText == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Text is required for text watermarks",
 			})
 			return
 		}
-	} else {
-		watermarkImage, err = c.FormFile("watermarkImage")
+	} else if watermarkType == "image" {
+		// For image watermarks
+		watermarkImage, err = c.FormFile("content")
 		if err != nil {
-			log.Printf("Failed to get watermark image: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Image is required for image watermarks",
-			})
-			return
+			watermarkImage, err = c.FormFile("watermarkImage") // Try legacy parameter
+			if err != nil {
+				// Check for base64 content
+				base64Image := c.PostForm("content")
+				if base64Image == "" {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Image is required for image watermarks",
+					})
+					return
+				}
+			}
 		}
 
-		// Validate image file type
-		allowedImageTypes := map[string]bool{
-			".jpg":  true,
-			".jpeg": true,
-			".png":  true,
-			".gif":  true,
-			".svg":  true,
+		// If we have a file upload, validate it
+		if watermarkImage != nil {
+			// Validate image file type
+			allowedImageTypes := map[string]bool{
+				".jpg":  true,
+				".jpeg": true,
+				".png":  true,
+				".gif":  true,
+				".svg":  true,
+			}
+			imageExt := strings.ToLower(filepath.Ext(watermarkImage.Filename))
+			if !allowedImageTypes[imageExt] {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Invalid image format. Supported formats: JPG, PNG, GIF, SVG",
+				})
+				return
+			}
 		}
-		imageExt := strings.ToLower(filepath.Ext(watermarkImage.Filename))
-		if !allowedImageTypes[imageExt] {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid image format. Supported formats: JPG, PNG, GIF, SVG",
-			})
-			return
+	} else if watermarkType == "pdf" {
+		// For PDF watermarks
+		watermarkPdf, err = c.FormFile("content")
+		if err != nil {
+			watermarkPdf, err = c.FormFile("watermarkPdf") // Try legacy parameter
+			if err != nil {
+				// Check for base64 content
+				base64Pdf := c.PostForm("content")
+				if base64Pdf == "" {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "PDF is required for PDF watermarks",
+					})
+					return
+				}
+			}
 		}
+
+		// Get PDF page to use
+		watermarkPdfPage = c.DefaultPostForm("watermarkPage", "1")
 	}
 
-	// Get additional parameters
+	// Get common parameters with defaults
 	textColor := c.DefaultPostForm("textColor", "#FF0000")
 	if !regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`).MatchString(textColor) {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -1900,7 +1918,7 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	if _, err := exec.LookPath("pdfcpu"); err != nil {
 		log.Printf("pdfcpu not found: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "PDF processing tool is not installed10.0.0.1 installed on the server",
+			"error": "PDF processing tool is not installed on the server",
 		})
 		return
 	}
@@ -1910,11 +1928,9 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	inputPath := filepath.Join(h.config.UploadDir, uniqueID+"-input.pdf")
 	outputPath := filepath.Join(h.config.PublicDir, "watermarked", uniqueID+"-watermarked.pdf")
 	var watermarkPath string
-	if watermarkType == "image" && watermarkImage != nil {
-		watermarkPath = filepath.Join(h.config.UploadDir, uniqueID+"-watermark"+filepath.Ext(watermarkImage.Filename))
-	}
+	var tempFiles []string // Track temp files to clean up
 
-	// Save uploaded files
+	// Save uploaded file
 	if err := c.SaveUploadedFile(file, inputPath); err != nil {
 		log.Printf("Failed to save PDF file %s: %v", inputPath, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -1922,184 +1938,194 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		})
 		return
 	}
-	defer os.Remove(inputPath)
+	defer os.Remove(inputPath) // Clean up after processing
 
-	// Validate PDF
-	if err := validatePDF(inputPath); err != nil {
-		log.Printf("Invalid PDF file %s: %v", inputPath, err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid PDF file: " + err.Error(),
-		})
-		os.Remove(inputPath)
-		return
-	}
 
-	if watermarkType == "image" && watermarkImage != nil {
-		if err := checkDiskSpace(h.config.UploadDir, watermarkImage.Size); err != nil {
-			log.Printf("Disk space check failed for watermark image: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Insufficient disk space for watermark image: " + err.Error(),
-			})
-			os.Remove(inputPath)
-			return
-		}
+	// Handle watermark content based on type
+	var watermarkContent string
 
-		if err := c.SaveUploadedFile(watermarkImage, watermarkPath); err != nil {
-			log.Printf("Failed to save watermark image %s: %v", watermarkPath, err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to save watermark image: " + err.Error(),
-			})
-			os.Remove(inputPath)
-			return
-		}
-		defer os.Remove(watermarkPath)
-
-		// Validate watermark image
-		if err := validateImage(watermarkPath); err != nil {
-			log.Printf("Invalid watermark image %s: %v", watermarkPath, err)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid watermark image: " + err.Error(),
-			})
-			os.Remove(inputPath)
-			os.Remove(watermarkPath)
-			return
-		}
-	}
-
-	// Map position to pdfcpu modes
-	positionMode := mapPositionToPdfcpuMode(position)
-
-	// Build pdfcpu command based on watermark type
-	var cmd *exec.Cmd
-
-	// For text watermarks
-	// For text watermarks
 	if watermarkType == "text" {
-		// Process text watermark
-		opacityFloat := float64(opacity) / 100.0
+		// For text watermarks, content is the text itself
+		watermarkContent = watermarkText
+	} else if watermarkType == "image" {
+		// For image watermarks
+		if watermarkImage != nil {
+			// Handle uploaded image
+			watermarkPath = filepath.Join(h.config.UploadDir, uniqueID+"-watermark"+filepath.Ext(watermarkImage.Filename))
+			tempFiles = append(tempFiles, watermarkPath)
 
-		// Build the description for text watermark
-		// Notice: using "op" instead of "opacity" and no spaces after commas
-		description := fmt.Sprintf(
-			"pos:%s,font:%s,points:%d,rot:%d,op:%.2f,color:%s",
-			positionMode,
-			fontFamily,
-			fontSize,
-			rotation,
-			opacityFloat,
-			formatColorForPdfcpu(textColor),
-		)
+			if err := c.SaveUploadedFile(watermarkImage, watermarkPath); err != nil {
+				log.Printf("Failed to save watermark image %s: %v", watermarkPath, err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to save watermark image: " + err.Error(),
+				})
+				return
+			}
 
-		// Add position-specific parameters
-		if position == "custom" {
-			customX, _ := strconv.Atoi(customXStr)
-			customY, _ := strconv.Atoi(customYStr)
-			description += fmt.Sprintf(",coordinates:%d %d", customX, customY)
-		}
+			watermarkContent = watermarkPath
+		} else {
+			// Handle base64 image
+			base64Image := c.PostForm("content")
+			if base64Image != "" {
+				watermarkPath = filepath.Join(h.config.UploadDir, uniqueID+"-watermark.jpg")
+				tempFiles = append(tempFiles, watermarkPath)
 
-		// Build the command with CORRECT argument order
-		args := []string{
-			"watermark",
-			"add",
-			"-mode", "text",
-		}
+				if err := saveBase64File(base64Image, watermarkPath); err != nil {
+					log.Printf("Failed to save base64 image: %v", err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid image data: " + err.Error(),
+					})
+					return
+				}
 
-		if pages != "all" {
-			if pages == "custom" {
-				args = append(args, "-pages", customPages)
-			} else {
-				args = append(args, "-pages", pages)
+				watermarkContent = watermarkPath
 			}
 		}
+	} else if watermarkType == "pdf" {
+		// For PDF watermarks
+		if watermarkPdf != nil {
+			// Handle uploaded PDF
+			watermarkPath = filepath.Join(h.config.UploadDir, uniqueID+"-watermark.pdf")
+			tempFiles = append(tempFiles, watermarkPath)
 
-		// Add the critical -- separator before the text and description
-		args = append(args, "--", watermarkText, description, inputPath, outputPath)
+			if err := c.SaveUploadedFile(watermarkPdf, watermarkPath); err != nil {
+				log.Printf("Failed to save watermark PDF %s: %v", watermarkPath, err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to save watermark PDF: " + err.Error(),
+				})
+				return
+			}
 
-		// Log the exact command for debugging
-		log.Printf("Executing pdfcpu command: %s %s", "pdfcpu", strings.Join(args, " "))
+			// Add page number to reference
+			watermarkContent = watermarkPath + ":" + watermarkPdfPage
+		} else {
+			// Handle base64 PDF
+			base64Pdf := c.PostForm("content")
+			if base64Pdf != "" {
+				watermarkPath = filepath.Join(h.config.UploadDir, uniqueID+"-watermark.pdf")
+				tempFiles = append(tempFiles, watermarkPath)
 
-		cmd = exec.Command("pdfcpu", args...)
-	} else {
-		// Process image watermark
-		opacityFloat := float64(opacity) / 100.0
-		scalePercent := float64(scale) / 100.0
+				if err := saveBase64File(base64Pdf, watermarkPath); err != nil {
+					log.Printf("Failed to save base64 PDF: %v", err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid PDF data: " + err.Error(),
+					})
+					return
+				}
 
-		// Build the description for image watermark
-		description := fmt.Sprintf(
-			"rot:%d,opacity:%0.2f,scale:%0.2f",
-			rotation,
-			opacityFloat,
-			scalePercent,
-		)
-
-		if position == "custom" {
-			customX, _ := strconv.Atoi(customXStr)
-			customY, _ := strconv.Atoi(customYStr)
-			description += fmt.Sprintf(",coordinates:%d %d", customX, customY)
-		}
-
-		// Build the command with CORRECT argument order for image watermarks
-		args := []string{
-			"watermark",
-			"add",
-			"-mode", "image",
-			"-position", positionMode,
-		}
-
-		if pages != "all" {
-			if pages == "custom" {
-				args = append(args, "-pages", customPages)
-			} else {
-				args = append(args, "-pages", pages)
+				// Add page number to reference
+				watermarkContent = watermarkPath + ":" + watermarkPdfPage
 			}
 		}
-
-		// Add the -- separator and correct order for images
-		args = append(args, "--", watermarkPath, description, inputPath, outputPath)
-		cmd = exec.Command("pdfcpu", args...)
 	}
+
+	// Get or build watermark description
+	description := c.PostForm("description")
+	if description == "" {
+		// Build description from individual parameters
+		// Map position formats
+		posMap := map[string]string{
+			"center":       "c",
+			"top-left":     "tl",
+			"top-right":    "tr",
+			"bottom-left":  "bl",
+			"bottom-right": "br",
+		}
+		pdfcpuPosition := posMap[position]
+		if pdfcpuPosition == "" {
+			pdfcpuPosition = "c" // Default to center
+		}
+
+		// Convert opacity to 0-1 range
+		opacityValue := float64(opacity) / 100.0
+
+		// Convert scale to 0-1 range
+		scaleValue := float64(scale) / 100.0
+
+		// Build description for pdfcpu
+		if watermarkType == "text" {
+			// Text watermark description
+			description = fmt.Sprintf(
+				"fontname:%s,points:%d,pos:%s,rot:%d,op:%.2f,scale:%.2f,color:%s",
+				fontFamily,
+				fontSize,
+				pdfcpuPosition,
+				rotation,
+				opacityValue,
+				scaleValue,
+				formatColorForPdfcpu(textColor),
+			)
+		} else {
+			// Image or PDF watermark description
+			description = fmt.Sprintf(
+				"pos:%s,rot:%d,op:%.2f,scale:%.2f",
+				pdfcpuPosition,
+				rotation,
+				opacityValue,
+				scaleValue,
+			)
+		}
+
+		// Add custom coordinates if needed
+		if position == "custom" {
+			customX, _ := strconv.Atoi(customXStr)
+			customY, _ := strconv.Atoi(customYStr)
+			description += fmt.Sprintf(",coordinates:%d %d", customX, customY)
+		}
+	}
+
+	// Build pdfcpu command
+	args := []string{
+		"watermark",
+		"add",
+		"-mode", watermarkType,
+	}
+
+	// Add page selection
+	if pages != "all" {
+		if pages == "custom" {
+			args = append(args, "-pages", customPages)
+		} else {
+			args = append(args, "-pages", pages)
+		}
+	}
+
+	// Add content, description and file paths
+	// The -- separator is REQUIRED before the content and description
+	args = append(args, "--", watermarkContent, description, inputPath, outputPath)
+
+	// Log the command for debugging
+	log.Printf("Executing pdfcpu command: pdfcpu %s", strings.Join(args, " "))
 
 	// Execute the command with timeout
-	log.Printf("Executing pdfcpu command: %v", cmd.Args)
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Increased timeout
+	cmd := exec.Command("pdfcpu", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
+
 	output, err := cmd.CombinedOutput()
-	log.Printf("pdfcpu output: %s", string(output)) // Log output regardless of success
+
+	// Clean up temp files
+	for _, tempFile := range tempFiles {
+		os.Remove(tempFile)
+	}
+
+	// Check for errors
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Printf("pdfcpu command timed out")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "PDF processing timed out, please try with a smaller file",
 		})
-		os.Remove(inputPath)
-		if watermarkPath != "" {
-			os.Remove(watermarkPath)
-		}
 		return
 	}
+
 	if err != nil {
 		log.Printf("pdfcpu command failed: %s", string(output))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": fmt.Sprintf("Failed to add watermark to PDF: %s", string(output)),
 		})
-		os.Remove(inputPath)
-		if watermarkPath != "" {
-			os.Remove(watermarkPath)
-		}
 		return
 	}
 
-	// Validate output PDF
-	if err := validatePDF(outputPath); err != nil {
-		log.Printf("Output PDF validation failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Generated PDF is invalid: " + err.Error(),
-		})
-		os.Remove(inputPath)
-		if watermarkPath != "" {
-			os.Remove(watermarkPath)
-		}
-		return
-	}
 
 	// Generate file URL
 	fileURL := fmt.Sprintf("/api/file?folder=watermarked&filename=%s-watermarked.pdf", uniqueID)
@@ -2113,10 +2139,6 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to access watermarked file",
 		})
-		os.Remove(inputPath)
-		if watermarkPath != "" {
-			os.Remove(watermarkPath)
-		}
 		return
 	}
 
@@ -2150,86 +2172,34 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Helper function to check if a directory is writable
-func checkDirWritable(dir string) error {
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("cannot create directory %s: %v", dir, err)
+// Helper function for base64 decoding
+func saveBase64File(base64Data, filePath string) error {
+	// Remove data URL prefix if present
+	if idx := strings.Index(base64Data, ";base64,"); idx > 0 {
+		base64Data = base64Data[idx+8:]
 	}
-	testFile := filepath.Join(dir, ".testwrite")
-	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
-		return fmt.Errorf("cannot write to directory %s: %v", dir, err)
-	}
-	return os.Remove(testFile)
-}
 
-// Helper function to check disk space
-func checkDiskSpace(dir string, requiredBytes int64) error {
-	var stat syscall.Statfs_t
-	if err := syscall.Statfs(dir, &stat); err != nil {
-		return fmt.Errorf("cannot check disk space for %s: %v", dir, err)
-	}
-	availableBytes := int64(stat.Bavail * uint64(stat.Bsize))
-	if availableBytes < requiredBytes {
-		return fmt.Errorf("not enough disk space: %d bytes available, %d required", availableBytes, requiredBytes)
-	}
-	return nil
-}
-
-// Helper function to validate PDF
-func validatePDF(path string) error {
-	cmd := exec.Command("pdfcpu", "validate", path)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("PDF validation failed: %s", string(output))
-	}
-	return nil
-}
-
-// Helper function to validate image
-func validateImage(path string) error {
-	file, err := os.Open(path)
+	// Decode base64 string
+	decoded, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		return fmt.Errorf("cannot open image: %v", err)
+		return err
 	}
-	defer file.Close()
-	_, _, err = image.DecodeConfig(file)
-	if err != nil {
-		return fmt.Errorf("invalid image format: %v", err)
-	}
-	return nil
+
+	// Write to file
+	return os.WriteFile(filePath, decoded, 0644)
 }
 
-// Helper function to map our position to pdfcpu mode
-func mapPositionToPdfcpuMode(position string) string {
-	switch position {
-	case "center":
-		return "c"
-	case "top-left":
-		return "tl"
-	case "top-right":
-		return "tr"
-	case "bottom-left":
-		return "bl"
-	case "bottom-right":
-		return "br"
-	case "custom":
-		return "full"
-	case "tile":
-		return "tiled"
-	default:
-		return "c"
-	}
-}
-
-// Helper function to format color for pdfcpu
+// Format hex color for pdfcpu (convert from #RRGGBB to R G B values between 0 and 1)
 func formatColorForPdfcpu(hexColor string) string {
-	hexColor = strings.TrimPrefix(hexColor, "#")
-	if len(hexColor) != 6 {
-		return "0 0 0"
+	if !strings.HasPrefix(hexColor, "#") || len(hexColor) != 7 {
+		return "0.5 0.5 0.5" // Default to gray if invalid hex
 	}
-	r, _ := strconv.ParseInt(hexColor[0:2], 16, 0)
-	g, _ := strconv.ParseInt(hexColor[2:4], 16, 0)
-	b, _ := strconv.ParseInt(hexColor[4:6], 16, 0)
-	return fmt.Sprintf("%0.3f %0.3f %0.3f", float64(r)/255, float64(g)/255, float64(b)/255)
+
+	r, _ := strconv.ParseInt(hexColor[1:3], 16, 0)
+	g, _ := strconv.ParseInt(hexColor[3:5], 16, 0)
+	b, _ := strconv.ParseInt(hexColor[5:7], 16, 0)
+
+	return fmt.Sprintf("%.2f %.2f %.2f", float64(r)/255, float64(g)/255, float64(b)/255)
 }
 
 // UnlockPDF godoc

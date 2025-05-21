@@ -45,37 +45,6 @@ export function AdminHeader() {
     return null; // AdminHeader should not render if not authenticated
   }
 
-  const userMenu = (
-    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={user.name || ""} alt={user.name || "User"} />
-            <AvatarFallback>
-              {user.name ? user.name[0].toUpperCase() : "A"}
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden sm:inline">{user.name || "Admin"}</span>
-          <ChevronDownIcon className="h-4 w-4 opacity-70" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>{user.email || "Admin Account"}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <LanguageLink href="/admin/dashboard">Dashboard</LanguageLink>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <LanguageLink href="/admin/users">User Management</LanguageLink>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <LogoutButton />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
       <div className="flex items-center gap-4 flex-1">
@@ -89,7 +58,6 @@ export function AdminHeader() {
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>
         </Button>
-        {userMenu}
       </div>
     </header>
   );
