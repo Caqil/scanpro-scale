@@ -253,7 +253,6 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
             {t("auth.rememberMe") || "Remember me"}
           </label>
         </div>
-
         <Button type="submit" className="w-full h-11" disabled={loading}>
           {loading ? (
             <>

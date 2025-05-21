@@ -4,6 +4,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -137,6 +138,10 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	authHandler.SetEmailService(emailService)
 	settingsHandler := handlers.NewSettingsHandler()
 	ocrHandler := handlers.NewOcrHandler(balanceService, cfg)
+	signPdfHandler := handlers.NewSignPdfHandler(
+		cfg.UploadDir,
+		filepath.Join(cfg.PublicDir, "signatures"),
+	)
 	api := r.Group("/api")
 	{
 		fmt.Println("Registering route: /api/validate-key")
@@ -211,6 +216,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 		fmt.Println("Registering route: /api/ocr/extract")
 		api.POST("/ocr/extract", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.ExtractText)
+		api.GET("/pricing", adminHandler.GetPricingSettings)
 		auth := api.Group("/auth")
 		{
 			fmt.Println("Registering route: /api/auth/register")
@@ -270,6 +276,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			fmt.Println("Registering route: /api/pdf/merge")
 			pdf.POST("/merge", pdfHandler.MergePDFs)
 
+			fmt.Println("Registering route: /api/pdf/split")
+			pdf.POST("/sign", signPdfHandler.SignPDF)
 			// New routes
 			fmt.Println("Registering route: /api/pdf/split")
 			pdf.POST("/split", pdfHandler.SplitPDF)
@@ -285,9 +293,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/pdf/remove")
 			pdf.POST("/remove", pdfHandler.RemovePagesFromPDF)
-
-			fmt.Println("Registering route: /api/pdf/watermark")
-			pdf.POST("/watermark", pdfHandler.WatermarkPDF)
 
 			fmt.Println("Registering route: /api/pdf/unlock")
 			pdf.POST("/unlock", pdfHandler.UnlockPDF)

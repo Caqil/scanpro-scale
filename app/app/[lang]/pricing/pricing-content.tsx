@@ -48,7 +48,7 @@ export function PricingContent() {
       try {
         setPricingLoading(true);
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/pricing`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/pricing`,
           {
             method: "GET",
             headers: {
