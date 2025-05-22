@@ -184,7 +184,7 @@ export default function SitemapPage() {
       title: t('nav.company'),
       pages: [
         { 
-          title: t('about.title'), 
+          title: t('about.hero.title'), 
           url: "/about", 
           icon: <InfoIcon className="h-4 w-4 text-blue-500" />
         },
