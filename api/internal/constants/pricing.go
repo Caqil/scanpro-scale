@@ -27,4 +27,6 @@ var APIOperations = []string{
 	"organize",
 	"chat",
 	"remove",
+	"ExtractText",
+	"ApplyTextEdits",
 }

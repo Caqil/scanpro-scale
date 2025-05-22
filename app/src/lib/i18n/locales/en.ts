@@ -3706,6 +3706,74 @@ export default {
         depositFailed: "Failed to process deposit"
       }
   },
-  
+  "pdfTextEditor": {
+    "title": "PDF Text Editor",
+    "description": "Extract and edit text from your PDF documents with precise positioning control",
+    "noFileSelected": "No file selected",
+    "extractText": "Extract Text",
+    "savePDF": "Save PDF",
+    "reset": "Reset",
+    "startOver": "New PDF",
+    "editAnother": "Edit Another PDF",
+    "pages": "pages",
+    "page": "Page",
+    "textBlocks": "text blocks",
+    "pageInfo": "Page",
+    "editText": "Edit text...",
+    "unsavedChanges": "Unsaved Changes",
+    "extractSuccess": "Text extracted successfully",
+    "extractFailed": "Text extraction failed",
+    "saveSuccess": "PDF saved successfully",
+    "saveFailed": "Save failed",
+    "saveSuccessDesc": "Your edited PDF has been generated and is ready for download.",
+    "downloadEdited": "Download Edited PDF",
+    "noDataToSave": "No data to save",
+    "resetSuccess": "Reset to original",
+    "resetFailed": "Reset failed",
+    "uploading": "Uploading...",
+    "processing": "Processing...",
+    "extractingText": "Extracting text...",
+    "readyToEdit": "Your PDF is ready for editing",
+    "networkError": "Network error occurred",
+    "unknownError": "Unknown error occurred",
+    "tryAgain": "Try Again",
+    "dragAndDrop": "Drag & drop your PDF file",
+    "dropHereDesc": "Drop your PDF file here or click to browse. Text will be extracted automatically.",
+    "howToEdit": "How to Edit Text",
+    "editInstructions": "Use the Visual Editor to see your text positioned on the page, or the List Editor to edit text in an organized list. Click any text block to select and edit it.",
+    "visualEditor": "Visual Editor",
+    "listEditor": "List Editor",
+    "editingPage": "Editing Page",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "editingBlock": "Editing block",
+    "editing": "Editing",
+    "editTextContent": "Edit Text Content:",
+    "clickToClose": "Click header to close",
+    "noTextBlocks": "No text blocks found on this page",
+    "quickJump": "Quick jump to page",
+    "howTo": {
+      "title": "How to Edit PDF Text",
+      "step1": {
+        "title": "Upload PDF",
+        "description": "Upload your PDF document to extract all text elements"
+      },
+      "step2": {
+        "title": "Edit Text",
+        "description": "Click on any text block and edit the content directly"
+      },
+      "step3": {
+        "title": "Save Changes",
+        "description": "Save your changes to generate a new PDF with edited text"
+      }
+    },
+    "features": {
+      "title": "Text Editor Features",
+      "preserve": "Preserve original formatting and positioning",
+      "visual": "Visual text block selection and editing",
+      "multipage": "Multi-page document support",
+      "fonts": "Font and size information display"
+    }
+  }
 }
 

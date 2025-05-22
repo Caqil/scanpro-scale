@@ -140,6 +140,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	settingsHandler := handlers.NewSettingsHandler()
 	ocrHandler := handlers.NewOcrHandler(balanceService, cfg)
 	toolStatusHandler := handlers.NewToolStatusHandler()
+	pdfTextEditorHandler := handlers.NewPDFTextEditorHandler(balanceService, cfg)
 	cleanupHandler := handlers.NewCleanupHandler(cfg)
 	signPdfHandler := handlers.NewSignPdfHandler(
 		cfg.UploadDir,
@@ -305,6 +306,15 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 			fmt.Println("Registering route: /api/pdf/unlock")
 			pdf.POST("/unlock", pdfHandler.UnlockPDF)
+
+			fmt.Println("Registering route: /api/pdf/extract-text")
+			pdf.POST("/extract-text", pdfTextEditorHandler.ExtractTextToPDF)
+
+			fmt.Println("Registering route: /api/pdf/save-edited-text")
+			pdf.POST("/save-edited-text", pdfTextEditorHandler.SaveEditedPDF)
+
+			fmt.Println("Registering route: /api/pdf/edit-session")
+			pdf.GET("/edit-session", pdfTextEditorHandler.GetEditSession)
 		}
 
 		// User routes
