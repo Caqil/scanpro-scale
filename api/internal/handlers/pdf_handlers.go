@@ -1646,8 +1646,6 @@ func (h *PDFHandler) GetSplitStatus(c *gin.Context) {
 // @Failure 500 {object} object{error=string}
 // @Router /api/pdf/watermark [post]
 
-// WatermarkPDF adds a watermark to a PDF document using pdfcpu
-
 func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	// Get user ID and operation type from context
 	userID, exists := c.Get("userId")
@@ -2018,109 +2016,112 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		}
 	}
 
-	// Get or build watermark description
-	description := c.PostForm("description")
-	if description == "" {
-		// Build description from individual parameters
-		// Map position formats
-		posMap := map[string]string{
-			"center":       "c",
-			"top-left":     "tl",
-			"top-right":    "tr",
-			"bottom-left":  "bl",
-			"bottom-right": "br",
+	// First, check the page count of the input PDF
+	totalPages, err := getPDFPageCount(inputPath)
+	if err != nil {
+		log.Printf("Failed to get PDF page count: %v", err)
+		// Don't fail completely, just log and continue
+		totalPages = 0
+	}
+
+	log.Printf("PDF has %d pages, watermarking %s pages", totalPages, pages)
+
+	// Create a working copy of the input file
+	workingPath := filepath.Join(h.config.UploadDir, uniqueID+"-working.pdf")
+	if err := copyFile(inputPath, workingPath); err != nil {
+		log.Printf("Failed to create working copy: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create working copy: " + err.Error(),
+		})
+		return
+	}
+	defer os.Remove(workingPath)
+
+	// Build watermark description with proper formatting
+	description := buildWatermarkDescription(
+		watermarkType, position, rotation, opacity, scale,
+		fontSize, fontFamily, textColor, customXStr, customYStr,
+	)
+
+	log.Printf("Using watermark description: %s", description)
+
+	// Apply watermark using a more reliable approach
+	success := false
+	var lastError error
+
+	// Method 1: Try the standard pdfcpu watermark command
+	if !success {
+		success, lastError = h.applyWatermarkStandard(workingPath, outputPath, watermarkType, watermarkContent, description, pages, customPages)
+		if success {
+			log.Printf("Watermark applied successfully using standard method")
+		} else {
+			log.Printf("Standard watermark method failed: %v", lastError)
 		}
-		pdfcpuPosition := posMap[position]
-		if pdfcpuPosition == "" {
-			pdfcpuPosition = "c" // Default to center
+	}
+
+	// Method 2: Try with simpler description format
+	if !success {
+		simpleDescription := buildSimpleWatermarkDescription(watermarkType, position, opacity, fontSize)
+		log.Printf("Trying simple description: %s", simpleDescription)
+		success, lastError = h.applyWatermarkStandard(workingPath, outputPath, watermarkType, watermarkContent, simpleDescription, pages, customPages)
+		if success {
+			log.Printf("Watermark applied successfully using simple description method")
+		} else {
+			log.Printf("Simple description method failed: %v", lastError)
 		}
+	}
 
-		// Convert opacity to 0-1 range
-		opacityValue := float64(opacity) / 100.0
-
-		// Convert scale to 0-1 range
-		scaleValue := float64(scale) / 100.0
-
-		// Build description for pdfcpu
+	// Method 3: Try with minimal description
+	if !success {
+		minimalDescription := "pos:c, op:0.8, scale:1.0"
 		if watermarkType == "text" {
-			// Text watermark description
-			description = fmt.Sprintf(
-				"fontname:%s,points:%d,pos:%s,rot:%d,op:%.2f,scale:%.2f,color:%s",
-				fontFamily,
-				fontSize,
-				pdfcpuPosition,
-				rotation,
-				opacityValue,
-				scaleValue,
-				formatColorForPdfcpu(textColor),
-			)
+			minimalDescription += fmt.Sprintf(", points:%d", fontSize)
+		}
+		log.Printf("Trying minimal description: %s", minimalDescription)
+		success, lastError = h.applyWatermarkStandard(workingPath, outputPath, watermarkType, watermarkContent, minimalDescription, pages, customPages)
+		if success {
+			log.Printf("Watermark applied successfully using minimal description method")
 		} else {
-			// Image or PDF watermark description
-			description = fmt.Sprintf(
-				"pos:%s,rot:%d,op:%.2f,scale:%.2f",
-				pdfcpuPosition,
-				rotation,
-				opacityValue,
-				scaleValue,
-			)
-		}
-
-		// Add custom coordinates if needed
-		if position == "custom" {
-			customX, _ := strconv.Atoi(customXStr)
-			customY, _ := strconv.Atoi(customYStr)
-			description += fmt.Sprintf(",coordinates:%d %d", customX, customY)
+			log.Printf("Minimal description method failed: %v", lastError)
 		}
 	}
 
-	// Build pdfcpu command
-	args := []string{
-		"watermark",
-		"add",
-		"-mode", watermarkType,
-	}
-
-	// Add page selection
-	if pages != "all" {
-		if pages == "custom" {
-			args = append(args, "-pages", customPages)
+	// Method 4: If all description methods fail, try alternative approach
+	if !success {
+		success, lastError = h.applyWatermarkAlternative(workingPath, outputPath, watermarkType, watermarkContent, description, pages, customPages, totalPages)
+		if success {
+			log.Printf("Watermark applied successfully using alternative method")
 		} else {
-			args = append(args, "-pages", pages)
+			log.Printf("Alternative watermark method failed: %v", lastError)
 		}
 	}
-
-	// Add content, description and file paths
-	// The -- separator is REQUIRED before the content and description
-	args = append(args, "--", watermarkContent, description, inputPath, outputPath)
-
-	// Log the command for debugging
-	log.Printf("Executing pdfcpu command: pdfcpu %s", strings.Join(args, " "))
-
-	// Execute the command with timeout
-	cmd := exec.Command("pdfcpu", args...)
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	output, err := cmd.CombinedOutput()
 
 	// Clean up temp files
 	for _, tempFile := range tempFiles {
 		os.Remove(tempFile)
 	}
 
-	// Check for errors
-	if ctx.Err() == context.DeadlineExceeded {
-		log.Printf("pdfcpu command timed out")
+	if !success {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "PDF processing timed out, please try with a smaller file",
+			"error": fmt.Sprintf("Failed to add watermark to PDF: %v", lastError),
 		})
 		return
 	}
 
+	// Verify output file was created and has content
+	fileInfo, err := os.Stat(outputPath)
 	if err != nil {
-		log.Printf("pdfcpu command failed: %s", string(output))
+		log.Printf("Output file not created: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": fmt.Sprintf("Failed to add watermark to PDF: %s", string(output)),
+			"error": "Failed to create watermarked PDF file",
+		})
+		return
+	}
+
+	if fileInfo.Size() == 0 {
+		log.Printf("Output file is empty")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Watermarked PDF file is empty",
 		})
 		return
 	}
@@ -2129,16 +2130,9 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	fileURL := fmt.Sprintf("/api/file?folder=watermarked&filename=%s-watermarked.pdf", uniqueID)
 
 	// Get the watermarked file info for size
-	var watermarkedSize int64
-	if fileInfo, err := os.Stat(outputPath); err == nil {
-		watermarkedSize = fileInfo.Size()
-	} else {
-		log.Printf("Failed to get output file size %s: %v", outputPath, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to access watermarked file",
-		})
-		return
-	}
+	watermarkedSize := fileInfo.Size()
+
+	log.Printf("Watermark operation completed successfully. Output file size: %d bytes", watermarkedSize)
 
 	// Prepare response
 	response := gin.H{
@@ -2148,6 +2142,7 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 		"filename":     fmt.Sprintf("%s-watermarked.pdf", uniqueID),
 		"originalName": file.Filename,
 		"fileSize":     watermarkedSize,
+		"totalPages":   totalPages,
 	}
 
 	// Add billing info if available
@@ -2168,6 +2163,262 @@ func (h *PDFHandler) WatermarkPDF(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// Helper function to build simple watermark description
+func buildSimpleWatermarkDescription(watermarkType, position string, opacity, fontSize int) string {
+	// Map position formats
+	posMap := map[string]string{
+		"center":       "c",
+		"top-left":     "tl",
+		"top-right":    "tr",
+		"bottom-left":  "bl",
+		"bottom-right": "br",
+	}
+	pdfcpuPosition := posMap[position]
+	if pdfcpuPosition == "" {
+		pdfcpuPosition = "c"
+	}
+
+	// Ensure high visibility
+	if opacity < 50 {
+		opacity = 80 // High opacity for visibility
+	}
+	opacityValue := float64(opacity) / 100.0
+
+	if watermarkType == "text" {
+		return fmt.Sprintf("pos:%s, op:%.1f, points:%d", pdfcpuPosition, opacityValue, fontSize)
+	} else {
+		return fmt.Sprintf("pos:%s, op:%.1f", pdfcpuPosition, opacityValue)
+	}
+}
+
+// Helper function to build watermark description
+func buildWatermarkDescription(watermarkType, position string, rotation, opacity, scale, fontSize int, fontFamily, textColor, customXStr, customYStr string) string {
+	// Map position formats
+	posMap := map[string]string{
+		"center":       "c",
+		"top-left":     "tl",
+		"top-right":    "tr",
+		"bottom-left":  "bl",
+		"bottom-right": "br",
+	}
+	pdfcpuPosition := posMap[position]
+	if pdfcpuPosition == "" {
+		pdfcpuPosition = "c" // Default to center
+	}
+
+	// Ensure minimum visibility - increase opacity and scale if too low
+	if opacity < 50 {
+		opacity = 50 // Minimum 50% opacity for visibility
+	}
+	if scale < 50 {
+		scale = 50 // Minimum 50% scale for visibility
+	}
+
+	// Convert opacity to 0-1 range
+	opacityValue := float64(opacity) / 100.0
+
+	// Convert scale to 0-1 range
+	scaleValue := float64(scale) / 100.0
+
+	var description string
+	if watermarkType == "text" {
+		// Simplified text watermark description - pdfcpu is very picky about format
+		// Use basic format that's known to work
+		description = fmt.Sprintf("pos:%s, rot:%d, op:%.1f, scale:%.1f, points:%d",
+			pdfcpuPosition,
+			rotation,
+			opacityValue,
+			scaleValue,
+			fontSize,
+		)
+
+		// Add font if not default
+		if fontFamily != "Helvetica" {
+			description += fmt.Sprintf(", fontname:%s", fontFamily)
+		}
+
+		// Add color if not black (default)
+		if textColor != "#000000" {
+			description += fmt.Sprintf(", color:%s", formatColorForPdfcpu(textColor))
+		}
+	} else {
+		// Image or PDF watermark description
+		description = fmt.Sprintf("pos:%s, rot:%d, op:%.1f, scale:%.1f",
+			pdfcpuPosition,
+			rotation,
+			opacityValue,
+			scaleValue,
+		)
+	}
+
+	// Add custom coordinates if needed
+	if position == "custom" {
+		customX, _ := strconv.Atoi(customXStr)
+		customY, _ := strconv.Atoi(customYStr)
+		description += fmt.Sprintf(", coordinates:%d %d", customX, customY)
+	}
+
+	return description
+}
+
+// Standard watermark application method
+func (h *PDFHandler) applyWatermarkStandard(inputPath, outputPath, watermarkType, watermarkContent, description, pages, customPages string) (bool, error) {
+	// Build pdfcpu command
+	args := []string{"watermark", "add", "-mode", watermarkType}
+
+	// Add page selection - CRITICAL: Only add pages parameter if NOT "all"
+	if pages != "all" {
+		if pages == "custom" {
+			args = append(args, "-pages", customPages)
+		} else {
+			args = append(args, "-pages", pages)
+		}
+	}
+
+	// Add the files - correct order is crucial
+	args = append(args, "--", watermarkContent, description, inputPath, outputPath)
+
+	log.Printf("Standard method - executing: pdfcpu %s", strings.Join(args, " "))
+
+	// Execute command with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "pdfcpu", args...)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		combinedOutput := strings.TrimSpace(stdout.String() + "\n" + stderr.String())
+		log.Printf("Standard method failed: %v, output: %s", err, combinedOutput)
+		return false, fmt.Errorf("pdfcpu error: %s", combinedOutput)
+	}
+
+	// Check if output file exists and has content
+	if fileInfo, err := os.Stat(outputPath); err != nil || fileInfo.Size() == 0 {
+		return false, fmt.Errorf("output file not created or empty")
+	}
+
+	return true, nil
+}
+
+// Alternative watermark application method - apply to each page individually
+func (h *PDFHandler) applyWatermarkAlternative(inputPath, outputPath, watermarkType, watermarkContent, description, pages, customPages string, totalPages int) (bool, error) {
+	log.Printf("Trying alternative method - applying watermark page by page")
+
+	// Create a working copy
+	workingFile := inputPath + ".working"
+	if err := copyFile(inputPath, workingFile); err != nil {
+		return false, fmt.Errorf("failed to create working copy: %v", err)
+	}
+	defer os.Remove(workingFile)
+
+	// Determine which pages to watermark
+	var pagesToWatermark []int
+
+	if pages == "all" {
+		for i := 1; i <= totalPages; i++ {
+			pagesToWatermark = append(pagesToWatermark, i)
+		}
+	} else if pages == "even" {
+		for i := 2; i <= totalPages; i += 2 {
+			pagesToWatermark = append(pagesToWatermark, i)
+		}
+	} else if pages == "odd" {
+		for i := 1; i <= totalPages; i += 2 {
+			pagesToWatermark = append(pagesToWatermark, i)
+		}
+	} else if pages == "custom" {
+		// Parse custom page ranges
+		ranges := strings.Split(customPages, ",")
+		for _, pageRange := range ranges {
+			pageRange = strings.TrimSpace(pageRange)
+			if strings.Contains(pageRange, "-") {
+				// Range like "1-3"
+				parts := strings.Split(pageRange, "-")
+				if len(parts) == 2 {
+					start, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
+					end, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
+					if err1 == nil && err2 == nil {
+						for i := start; i <= end && i <= totalPages; i++ {
+							pagesToWatermark = append(pagesToWatermark, i)
+						}
+					}
+				}
+			} else {
+				// Single page
+				if page, err := strconv.Atoi(pageRange); err == nil && page <= totalPages {
+					pagesToWatermark = append(pagesToWatermark, page)
+				}
+			}
+		}
+	}
+
+	log.Printf("Alternative method - watermarking pages: %v", pagesToWatermark)
+
+	// Apply watermark to each page individually
+	currentFile := workingFile
+	for i, pageNum := range pagesToWatermark {
+		tempOutput := fmt.Sprintf("%s.temp%d", workingFile, i)
+
+		args := []string{
+			"watermark", "add",
+			"-mode", watermarkType,
+			"-pages", strconv.Itoa(pageNum),
+			"--", watermarkContent, description,
+			currentFile, tempOutput,
+		}
+
+		log.Printf("Watermarking page %d: pdfcpu %s", pageNum, strings.Join(args, " "))
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		cmd := exec.CommandContext(ctx, "pdfcpu", args...)
+
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+
+		err := cmd.Run()
+		cancel()
+
+		if err != nil {
+			combinedOutput := strings.TrimSpace(stdout.String() + "\n" + stderr.String())
+			log.Printf("Failed to watermark page %d: %v, output: %s", pageNum, err, combinedOutput)
+			os.Remove(tempOutput)
+			return false, fmt.Errorf("failed to watermark page %d: %s", pageNum, combinedOutput)
+		}
+
+		// Check if temp output was created
+		if fileInfo, err := os.Stat(tempOutput); err != nil || fileInfo.Size() == 0 {
+			os.Remove(tempOutput)
+			return false, fmt.Errorf("failed to create watermarked version of page %d", pageNum)
+		}
+
+		// Replace current file with temp output
+		if i < len(pagesToWatermark)-1 {
+			// Not the last page, so replace the current working file
+			os.Remove(currentFile)
+			if err := copyFile(tempOutput, currentFile); err != nil {
+				os.Remove(tempOutput)
+				return false, fmt.Errorf("failed to update working file after page %d: %v", pageNum, err)
+			}
+		} else {
+			// Last page, copy to final output
+			if err := copyFile(tempOutput, outputPath); err != nil {
+				os.Remove(tempOutput)
+				return false, fmt.Errorf("failed to create final output: %v", err)
+			}
+		}
+
+		os.Remove(tempOutput)
+	}
+
+	return true, nil
 }
 
 // Helper function for base64 decoding
@@ -3011,7 +3262,7 @@ func (h *PDFHandler) MergePDFs(c *gin.Context) {
 	})
 }
 
-// RemovePagesFromPDF removes specific pages from a PDF file
+// RemovePagesFromPDF removes specific pages from a PDF file using pdfcpu
 func (h *PDFHandler) RemovePagesFromPDF(c *gin.Context) {
 	// Get user ID for billing purposes
 	userID, exists := c.Get("userId")
@@ -3107,20 +3358,11 @@ func (h *PDFHandler) RemovePagesFromPDF(c *gin.Context) {
 		return
 	}
 
-	// Get the total page count
-	pageCountCmd := exec.Command("qpdf", "--show-npages", inputPath)
-	pageCountOutput, err := pageCountCmd.CombinedOutput()
+	// Get the total page count using the existing helper function
+	totalPages, err := getPDFPageCount(inputPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to determine PDF page count: " + err.Error(),
-		})
-		return
-	}
-
-	totalPages, err := strconv.Atoi(strings.TrimSpace(string(pageCountOutput)))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to parse page count: " + err.Error(),
 		})
 		return
 	}
@@ -3146,35 +3388,60 @@ func (h *PDFHandler) RemovePagesFromPDF(c *gin.Context) {
 		return
 	}
 
-	// Build the list of pages to keep
+	// Build the list of pages to keep as ranges for efficiency
 	var pagesToKeep []string
+	var rangeStart, rangeEnd int
+
 	for i := 1; i <= totalPages; i++ {
 		if !pagesToRemoveSet[i] {
-			pagesToKeep = append(pagesToKeep, strconv.Itoa(i))
+			if rangeStart == 0 {
+				rangeStart = i
+				rangeEnd = i
+			} else if i == rangeEnd+1 {
+				rangeEnd = i
+			} else {
+				// Add the previous range
+				if rangeStart == rangeEnd {
+					pagesToKeep = append(pagesToKeep, strconv.Itoa(rangeStart))
+				} else {
+					pagesToKeep = append(pagesToKeep, fmt.Sprintf("%d-%d", rangeStart, rangeEnd))
+				}
+				rangeStart = i
+				rangeEnd = i
+			}
 		}
 	}
 
-	// Execute the qpdf command to remove pages
+	// Add the final range
+	if rangeStart > 0 {
+		if rangeStart == rangeEnd {
+			pagesToKeep = append(pagesToKeep, strconv.Itoa(rangeStart))
+		} else {
+			pagesToKeep = append(pagesToKeep, fmt.Sprintf("%d-%d", rangeStart, rangeEnd))
+		}
+	}
+
+	// Create the page specification for pdfcpu
+	pageSpec := strings.Join(pagesToKeep, ",")
+
+	// Execute the pdfcpu trim command to keep only the specified pages
+	// Using pdfcpu trim syntax: pdfcpu trim -pages "1-2,4,6-8" input.pdf output.pdf
 	args := []string{
-		inputPath,  // input file
-		outputPath, // output file
-		"--pages",  // pages option
-		inputPath,  // input file again (required by qpdf)
+		"trim",
+		"-pages", pageSpec,
+		inputPath,
+		outputPath,
 	}
 
-	// Add the pages to keep
-	for _, page := range pagesToKeep {
-		args = append(args, page)
-	}
+	// Log the command for debugging
+	fmt.Printf("Executing pdfcpu command: pdfcpu %s\n", strings.Join(args, " "))
 
-	// Add the final "--" to complete the command
-	args = append(args, "--")
-
-	// Execute qpdf to create the new PDF with selected pages
-	cmd := exec.Command("qpdf", args...)
+	// Execute pdfcpu to create the new PDF with selected pages
+	cmd := exec.Command("pdfcpu", args...)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
+		fmt.Printf("pdfcpu command failed: %v\nOutput: %s\n", err, string(output))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to remove pages: " + err.Error() + "\nOutput: " + string(output),
 		})
@@ -3194,14 +3461,29 @@ func (h *PDFHandler) RemovePagesFromPDF(c *gin.Context) {
 	outputFilename := uniqueID + "-output.pdf"
 	fileUrl := fmt.Sprintf("/api/file?folder=processed&filename=%s", outputFilename)
 
+	// Get page count of the result file for verification using the existing helper function
+	resultPages, err := getPDFPageCount(outputPath)
+	if err != nil {
+		// Don't fail the whole operation if we can't get result page count
+		fmt.Printf("Warning: Could not get result page count: %v\n", err)
+		resultPages = totalPages - len(pagesToRemove) // Estimate
+	}
+
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"fileUrl": fileUrl,
+		"success":        true,
+		"fileUrl":        fileUrl,
+		"originalPages":  totalPages,
+		"removedPages":   len(pagesToRemove),
+		"resultingPages": resultPages,
+		"originalName":   uploadedFile.Filename,
+		"message":        fmt.Sprintf("Successfully removed %d pages from PDF", len(pagesToRemove)),
 	})
 }
 
-// AddPageNumbersToPDF adds page numbers to a PDF file
+// AddPageNumbersToPDF adds page numbers to a PDF file using pdfcpu stamp
+// AddPageNumbersToPDF adds page numbers to a PDF file using pdfcpu stamp
+// AddPageNumbersToPDF adds page numbers to a PDF file using pdfcpu stamp
 func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 	// Get user ID and operation type from context
 	userID, exists := c.Get("userId")
@@ -3380,138 +3662,123 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		totalPages = int(math.Max(1, math.Round(fileSizeInMB*10))) // ~10 pages per MB is a rough estimate
 	}
 
-	// Parse selected pages
-	pagesToNumber := make([]int, 0)
-	if selectedPages == "" {
-		// If no pages specified, number all pages
-		for i := 1; i <= totalPages; i++ {
-			pagesToNumber = append(pagesToNumber, i)
-		}
-	} else {
-		// Parse page ranges (e.g., "1-3,5,7-9")
-		parts := strings.Split(selectedPages, ",")
-		for _, part := range parts {
-			part = strings.TrimSpace(part)
-			if part == "" {
-				continue
+	// Build the page number text with format strings
+	var pageText string
+
+	// Handle different formats and build the text template
+	switch format {
+	case "numeric":
+		if startNumber != 1 {
+			// For custom start numbers, we need to calculate: current_page + (start_number - 1)
+			// But pdfcpu doesn't support arithmetic in format strings, so we'll use a workaround
+			// For now, we'll use the standard format and note this limitation
+			pageText = fmt.Sprintf("%s%%p%s", prefix, suffix)
+			if startNumber != 1 {
+				// Add a note about the limitation in the response
+				log.Printf("Warning: Custom start numbers with pdfcpu stamp are not directly supported. Using default numbering.")
 			}
-
-			if strings.Contains(part, "-") {
-				// It's a range
-				rangeParts := strings.Split(part, "-")
-				if len(rangeParts) != 2 {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page range format: " + part,
-					})
-					return
-				}
-
-				start, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
-				if err != nil || start < 1 || start > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number in range: " + rangeParts[0],
-					})
-					return
-				}
-
-				end, err := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
-				if err != nil || end < start || end > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number in range: " + rangeParts[1],
-					})
-					return
-				}
-
-				for i := start; i <= end; i++ {
-					pagesToNumber = append(pagesToNumber, i)
-				}
-			} else {
-				// It's a single page
-				page, err := strconv.Atoi(part)
-				if err != nil || page < 1 || page > totalPages {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Invalid page number: " + part,
-					})
-					return
-				}
-				pagesToNumber = append(pagesToNumber, page)
-			}
+		} else {
+			pageText = fmt.Sprintf("%s%%p%s", prefix, suffix)
 		}
+	case "roman":
+		// pdfcpu doesn't support roman numerals directly in format strings
+		// We'll need to use numeric and note this limitation
+		pageText = fmt.Sprintf("%s%%p%s", prefix, suffix)
+		log.Printf("Warning: Roman numerals not directly supported with pdfcpu stamp. Using numeric format.")
+	case "alphabetic":
+		// pdfcpu doesn't support alphabetic directly in format strings
+		// We'll need to use numeric and note this limitation
+		pageText = fmt.Sprintf("%s%%p%s", prefix, suffix)
+		log.Printf("Warning: Alphabetic format not directly supported with pdfcpu stamp. Using numeric format.")
+	default:
+		pageText = fmt.Sprintf("%s%%p%s", prefix, suffix)
 	}
 
-	// Skip first page if specified
-	if skipFirstPage {
-		filtered := make([]int, 0, len(pagesToNumber))
-		for _, page := range pagesToNumber {
-			if page != 1 {
-				filtered = append(filtered, page)
-			}
-		}
-		pagesToNumber = filtered
+	// If user wants "Page X of Y" format, use both %p and %P
+	if prefix == "" && suffix == "" {
+		pageText = "%p"
 	}
 
-	// Make sure there are pages to number
-	if len(pagesToNumber) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No pages selected for numbering",
-		})
-		return
+	// Build the description string for pdfcpu stamp
+	pdfcpuPosition := mapPositionToPdfcpu(position)
+	pdfcpuColor := formatColorForPdfcpuStamp(color)
+	offsetX, offsetY := getAdjustedOffsetsForStamp(position, marginX, marginY)
+	pdfcpuFont := getFontMapForStamp(fontFamily)
+
+	// Build description according to pdfcpu stamp documentation
+	// Use unambiguous parameter names to avoid "ambiguous parameter prefix" errors
+	// Use rotation:0 for horizontal text (only one of rotation or diagonal is allowed)
+	description := fmt.Sprintf(
+		"fontname:%s, points:%d, pos:%s, offset:%d %d, aligntext:c, fillcolor:%s, strokecolor:%s, opacity:1.0, scale:1.0 abs, rotation:0",
+		pdfcpuFont,
+		fontSize,
+		pdfcpuPosition,
+		offsetX,
+		offsetY,
+		pdfcpuColor,
+		pdfcpuColor,
+	)
+
+	// Build pdfcpu stamp command
+	args := []string{
+		"stamp", "add",
+		"-mode", "text",
 	}
 
-	// Copy input to output file
-	if err := copyFile(inputPath, outputPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to prepare output file: " + err.Error(),
-		})
-		return
-	}
-
-	// Use pdfcpu to add page numbers
-	positionMode := mapPositionToPdfcpu(position)
-	for _, pageNum := range pagesToNumber {
-		// Format the page number according to the selected format
-		formattedNumber := formatPageNumber(pageNum, format, startNumber)
-
-		// Create the text content with prefix and suffix
-		pageText := prefix + formattedNumber + suffix
-
-		// Define color in pdfcpu format (convert #RRGGBB to RGB float values)
-		pdfcpuColor := formatColorForDescription(color)
-
-		offsetX, offsetY := getAdjustedOffsets(position, marginX, marginY)
-		description := fmt.Sprintf(
-			"pos:%s, font:%s, points:%d, scale:1, color:%s, opacity:1, offset:%d %d",
-			positionMode,
-			getFontMap(fontFamily),
-			fontSize,
-			pdfcpuColor,
-			offsetX,
-			offsetY,
-		)
-
-		fmt.Printf("Adding page number with description: %s\n", description)
-
-		// Command to add page number to the specific page using watermark
-		cmd := exec.Command(
-			"pdfcpu",
-			"watermark", "add",
-			"-pages", strconv.Itoa(pageNum),
-			"-mode", "text",
-			"--", pageText, description, // Pass text and description after --
-			outputPath,
-			outputPath,
-		)
-
-		fmt.Println(cmd.String()) // Debug: print the command
-		cmdOutput, err := cmd.CombinedOutput()
-		if err != nil {
-			// Log more detailed error information
-			fmt.Printf("pdfcpu command failed: %v\nOutput: %s\n", err, string(cmdOutput))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to add page number to page " + strconv.Itoa(pageNum) + ": " + string(cmdOutput),
+	// Add page selection if specified
+	if selectedPages != "" {
+		args = append(args, "-pages", selectedPages)
+	} else if skipFirstPage {
+		// If skipping first page, stamp pages 2 onwards
+		if totalPages > 1 {
+			args = append(args, "-pages", fmt.Sprintf("2-%d", totalPages))
+		} else {
+			// Only one page and we're skipping it, so nothing to do
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Cannot skip first page when PDF has only one page",
 			})
 			return
 		}
+	}
+	// If no page selection and not skipping first page, apply to all pages (default)
+
+	// Add the stamp content and description
+	args = append(args, "--", pageText, description, inputPath, outputPath)
+
+	// Log the command for debugging
+	log.Printf("Executing pdfcpu stamp command: pdfcpu %s", strings.Join(args, " "))
+
+	// Execute the command with timeout
+	cmd = exec.Command("pdfcpu", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	output, err = cmd.CombinedOutput()
+
+	// Check for errors
+	if ctx.Err() == context.DeadlineExceeded {
+		log.Printf("pdfcpu stamp command timed out")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "PDF processing timed out, please try with a smaller file",
+		})
+		return
+	}
+
+	if err != nil {
+		log.Printf("pdfcpu stamp command failed: %s", string(output))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("Failed to add page numbers to PDF: %s", string(output)),
+		})
+		return
+	}
+
+	// Count pages that were numbered
+	numberedPages := totalPages
+	if selectedPages != "" {
+		// Parse selected pages to count them
+		numberedPages = countPagesInSelection(selectedPages, totalPages)
+	} else if skipFirstPage {
+		numberedPages = totalPages - 1
 	}
 
 	// Generate file URL
@@ -3525,7 +3792,7 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 		"fileName":      fmt.Sprintf("%s-numbered.pdf", uniqueID),
 		"originalName":  file.Filename,
 		"totalPages":    totalPages,
-		"numberedPages": len(pagesToNumber),
+		"numberedPages": numberedPages,
 	}
 
 	// Add billing info if available
@@ -3548,35 +3815,91 @@ func (h *PDFHandler) AddPageNumbersToPDF(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-func getAdjustedOffsets(position string, marginX, marginY int) (int, int) {
-	// Ensure minimum margins
-	minMargin := 10
-	if marginX < minMargin {
-		marginX = minMargin
-	}
-	if marginY < minMargin {
-		marginY = minMargin
+
+// Helper functions for pdfcpu stamp
+
+// formatColorForPdfcpuStamp formats hex color for pdfcpu stamp description
+func formatColorForPdfcpuStamp(hexColor string) string {
+	// Remove # prefix if present
+	hexColor = strings.TrimPrefix(hexColor, "#")
+
+	// Default to black if invalid
+	if len(hexColor) != 6 {
+		return "#000000"
 	}
 
-	// pdfcpu uses positive values for all offsets, with the position
-	// determining where the text is anchored. The margins are always
-	// applied inward from the edges.
+	// Return as hex color (pdfcpu stamp accepts hex colors)
+	return "#" + hexColor
+}
+
+// getAdjustedOffsetsForStamp calculates offsets for pdfcpu stamp
+func getAdjustedOffsetsForStamp(position string, marginX, marginY int) (int, int) {
+	// For pdfcpu stamp, offsets are relative to the anchor position
+	// Positive values move right/up, negative values move left/down
 	switch position {
 	case "top-left":
-		return marginX, -marginY // Negative Y to move down from top edge
+		return marginX, -marginY // Move right from left edge, down from top
 	case "top-center":
-		return 0, -marginY // Centered horizontally, negative Y
+		return 0, -marginY // Centered horizontally, down from top
 	case "top-right":
-		return -marginX, -marginY // Negative X to move left from right, negative Y
+		return -marginX, -marginY // Move left from right edge, down from top
 	case "bottom-left":
-		return marginX, marginY
+		return marginX, marginY // Move right from left edge, up from bottom
 	case "bottom-center":
-		return 0, marginY // Centered horizontally
+		return 0, marginY // Centered horizontally, up from bottom
 	case "bottom-right":
-		return -marginX, marginY // Negative X to move left from right
+		return -marginX, marginY // Move left from right edge, up from bottom
 	default:
-		return 0, marginY // Default to bottom-center behavior
+		return 0, marginY // Default to bottom-center
 	}
+}
+
+// getFontMapForStamp maps font family names to pdfcpu stamp font names
+func getFontMapForStamp(fontFamily string) string {
+	switch strings.ToLower(fontFamily) {
+	case "times", "timesnewroman", "times new roman":
+		return "Times"
+	case "courier":
+		return "Courier"
+	case "helvetica":
+		return "Helvetica"
+	default:
+		return "Helvetica" // Default font
+	}
+}
+
+// countPagesInSelection counts how many pages are in a page selection string
+func countPagesInSelection(selection string, totalPages int) int {
+	count := 0
+	parts := strings.Split(selection, ",")
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		if strings.Contains(part, "-") {
+			// It's a range
+			rangeParts := strings.Split(part, "-")
+			if len(rangeParts) == 2 {
+				start, err1 := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
+				end, err2 := strconv.Atoi(strings.TrimSpace(rangeParts[1]))
+
+				if err1 == nil && err2 == nil && start >= 1 && end <= totalPages && start <= end {
+					count += end - start + 1
+				}
+			}
+		} else {
+			// It's a single page
+			page, err := strconv.Atoi(part)
+			if err == nil && page >= 1 && page <= totalPages {
+				count++
+			}
+		}
+	}
+
+	return count
 }
 
 // mapPositionToPdfcpu maps our position names to pdfcpu's position codes

@@ -124,7 +124,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	apiKeyService := services.NewApiKeyService(db)
 	emailService := services.NewEmailService(cfg)
 	pdfHandler := handlers.NewPDFHandler(balanceService, cfg)
-	pdfEditHandler := handlers.NewPDFEditHandler(balanceService, cfg)
+
 	// Initialize handlers
 	keyValidationHandler := handlers.NewKeyValidationHandler(keyValidationService)
 	balanceHandler := handlers.NewBalanceHandler(balanceService)
@@ -270,8 +270,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		pdf.Use(middleware.PDFToolAvailabilityMiddleware())
 		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
 		{
-			pdf.POST("/edit/upload", pdfEditHandler.UploadForEdit)
-			pdf.POST("/edit/save", pdfEditHandler.SaveEdit)
 			fmt.Println("Registering route: /api/pdf/compress")
 			pdf.POST("/compress", pdfHandler.CompressPDF)
 

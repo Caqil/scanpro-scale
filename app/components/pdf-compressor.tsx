@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 import {
   FileIcon,
   Cross2Icon,
@@ -41,7 +43,20 @@ import {
   DownloadIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
-import { AlertCircle } from "lucide-react";
+import {
+  AlertCircle,
+  FileText,
+  Zap,
+  Settings,
+  Archive,
+  TrendingDown,
+  Loader2,
+  Check,
+  X,
+  Info,
+  HardDrive,
+  Gauge,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguageStore } from "@/src/store/store";
 import JSZip from "jszip";
@@ -133,7 +148,6 @@ export function MultiPdfCompressor() {
         const formData = new FormData();
         formData.append("file", file);
 
-        // Map UI quality levels to the numeric values expected by the Go API
         let compressionQuality;
         switch (quality) {
           case "high":
@@ -150,11 +164,7 @@ export function MultiPdfCompressor() {
         }
         formData.append("quality", compressionQuality);
         const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/compress`;
-        console.log("Submitting to Go API URL:", apiUrl);
-        console.log("File name:", file.name, "File size:", file.size);
-        console.log("Quality setting:", compressionQuality);
 
-        // Create a new XHR request
         const xhr = new XMLHttpRequest();
         xhr.open("POST", apiUrl);
         xhr.setRequestHeader(
@@ -162,11 +172,9 @@ export function MultiPdfCompressor() {
           "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe"
         );
 
-        // Track upload progress
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
-            // Update progress for upload phase (0–50%)
             setProgress((prev) => ({
               ...prev,
               [file.name]: percentComplete / 2,
@@ -174,14 +182,11 @@ export function MultiPdfCompressor() {
           }
         };
 
-        // Handle completion
         xhr.onload = function () {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
-              console.log("API response:", data);
 
-              // Update progress to complete
               setProgress((prev) => ({ ...prev, [file.name]: 100 }));
 
               setCompressedFiles((prev) => ({
@@ -252,7 +257,6 @@ export function MultiPdfCompressor() {
           }
         };
 
-        // Handle network errors
         xhr.onerror = function () {
           const errorMessage = t("compressPdf.error.unknown");
           setFiles((prev) =>
@@ -269,7 +273,6 @@ export function MultiPdfCompressor() {
           reject(new Error("Network error"));
         };
 
-        // Send the request
         xhr.send(formData);
       } catch (err) {
         const errorMessage =
@@ -345,12 +348,10 @@ export function MultiPdfCompressor() {
 
     try {
       const zip = new JSZip();
-
       const goApiUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
       for (const file of completedFiles) {
-        // Make sure to prepend the Go API URL if the fileUrl is a relative path
         const fileUrl = file.fileUrl.startsWith("/")
           ? `${goApiUrl}${file.fileUrl}`
           : file.fileUrl;
@@ -384,62 +385,208 @@ export function MultiPdfCompressor() {
   const totalStats = getTotalStats();
   const allFilesProcessed = files.every((f) => f.status === "completed");
   const anyFilesFailed = files.some((f) => f.status === "error");
+  const completedCount = files.filter((f) => f.status === "completed").length;
+  const processingCount = files.filter((f) => f.status === "processing").length;
+  const overallProgress =
+    files.length > 0
+      ? (Object.values(progress).reduce((a, b) => a + b, 0) /
+          (files.length * 100)) *
+        100
+      : 0;
+
+  // Quality settings
+  const qualityOptions = [
+    {
+      value: "high",
+      label: "High Quality",
+      description: "Best quality, larger file size",
+      icon: "📄",
+    },
+    {
+      value: "medium",
+      label: "Medium Quality",
+      description: "Balanced quality and size",
+      icon: "⚖️",
+    },
+    {
+      value: "low",
+      label: "Maximum Compression",
+      description: "Smallest file size",
+      icon: "🗜️",
+    },
+  ];
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="border shadow-sm">
-          <CardContent className="pt-6 space-y-6">
-            <FormField
-              control={form.control}
-              name="processAllTogether"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isProcessing}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t("compressPdf.processing.title")}</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      {t("compressPdf.processing.processAllTogether")}
-                    </p>
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <Card className="border shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <TrendingDown className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Multi PDF Compressor</h1>
+              <p className="text-muted-foreground font-normal mt-1">
+                Compress multiple PDF files efficiently to reduce file sizes
+              </p>
+            </div>
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      <Form {...form}>
+        <div className="space-y-6">
+          {/* Settings Panel */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-primary" />
+                Compression Settings
+              </CardTitle>
+              <CardDescription>
+                Configure compression quality and processing options
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Quality Selection */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="quality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Compression Quality
+                      </FormLabel>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                        {qualityOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            className={cn(
+                              "relative p-4 border rounded-lg cursor-pointer transition-all hover:border-primary/50",
+                              field.value === option.value
+                                ? "border-primary bg-primary/5"
+                                : "border-muted-foreground/20"
+                            )}
+                            onClick={() => field.onChange(option.value)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">{option.icon}</span>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    checked={field.value === option.value}
+                                    onChange={() =>
+                                      field.onChange(option.value)
+                                    }
+                                    className="text-primary"
+                                  />
+                                  <Label className="font-medium cursor-pointer">
+                                    {option.label}
+                                  </Label>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {option.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Processing Options */}
+              <FormField
+                control={form.control}
+                name="processAllTogether"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 bg-muted/20">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isProcessing}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none flex-1">
+                        <FormLabel className="flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Process All Files Simultaneously
+                        </FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Enable parallel processing for faster compression of
+                          multiple files. Disable for sequential processing if
+                          you have limited system resources.
+                        </p>
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* File Upload Area */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                PDF Files
+              </CardTitle>
+              <CardDescription>
+                Upload multiple PDF files to compress
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FileDropzone
+                multiple={true}
+                disabled={isProcessing}
+                acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+                onFileAccepted={(acceptedFiles) => {
+                  setFiles((prev) => {
+                    const existingFileNames = new Set(
+                      prev.map((f) => f.file.name)
+                    );
+                    const newFiles = acceptedFiles
+                      .filter((file) => !existingFileNames.has(file.name))
+                      .map((file) => ({ file, status: "idle" as const }));
+                    return [...prev, ...newFiles];
+                  });
+                  setError(null);
+                }}
+                title="Upload PDF Files"
+                description="Drop your PDF files here or browse to select multiple files"
+                browseButtonText="Browse Files"
+                browseButtonVariant="default"
+                securityText="Your files are processed securely and automatically deleted after compression"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Files List */}
+          {files.length > 0 && (
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Archive className="h-5 w-5 text-primary" />
+                      Files Queue ({files.length})
+                    </CardTitle>
+                    <CardDescription>
+                      {completedCount > 0 && `${completedCount} completed`}
+                      {processingCount > 0 && `, ${processingCount} processing`}
+                    </CardDescription>
                   </div>
-                </FormItem>
-              )}
-            />
-            <FileDropzone
-              multiple={true}
-              disabled={isProcessing}
-              onFileAccepted={(acceptedFiles) => {
-                setFiles((prev) => {
-                  const existingFileNames = new Set(
-                    prev.map((f) => f.file.name)
-                  );
-                  const newFiles = acceptedFiles
-                    .filter((file) => !existingFileNames.has(file.name))
-                    .map((file) => ({ file, status: "idle" as const }));
-                  return [...prev, ...newFiles];
-                });
-                setError(null);
-              }}
-              title={t("fileUploader.dragAndDrop")}
-              description={`${t("fileUploader.dropHereDesc")} ${t(
-                "fileUploader.maxSize"
-              )}`}
-              browseButtonText={t("fileUploader.browse")}
-              browseButtonVariant="secondary"
-              securityText={t("fileUploader.filesSecurity")}
-            />
-            {files.length > 0 && (
-              <div className="border rounded-lg">
-                <div className="p-3 border-b bg-muted/30 flex justify-between items-center">
-                  <h3 className="font-medium">
-                    {t("compressPdf.filesToCompress")} ({files.length})
-                  </h3>
                   {!isProcessing && (
                     <Button
                       type="button"
@@ -454,228 +601,314 @@ export function MultiPdfCompressor() {
                         setProgress({});
                       }}
                     >
-                      <TrashIcon className="h-4 w-4 mr-1" /> {t("ui.clearAll")}
+                      <TrashIcon className="h-4 w-4 mr-1" />
+                      Clear All
                     </Button>
                   )}
                 </div>
-                <div className="divide-y overflow-y-auto max-h-[300px]">
-                  {files.map((fileItem) => (
-                    <div
-                      key={fileItem.file.name}
-                      className="p-3 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="h-9 w-9 rounded-md bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                          <FileIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">
-                            {fileItem.file.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatFileSize(fileItem.file.size)}
-                            {compressedFiles[fileItem.file.name] && (
-                              <span className="ml-2 text-green-600 dark:text-green-400">
-                                →{" "}
-                                {formatFileSize(
-                                  compressedFiles[fileItem.file.name]
-                                    .compressedSize
-                                )}{" "}
-                                (
-                                {
-                                  compressedFiles[fileItem.file.name]
-                                    .compressionRatio
-                                }{" "}
-                                {t("compressPdf.reduction")})
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {fileItem.status === "idle" && !isProcessing && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRemoveFile(fileItem.file.name)}
-                          >
-                            <Cross2Icon className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {fileItem.status === "processing" && (
-                          <div className="flex items-center gap-2 min-w-32">
-                            <Progress
-                              value={progress[fileItem.file.name] || 0}
-                              className="h-2 w-20"
-                            />
-                            <span className="text-xs text-muted-foreground">
-                              {progress[fileItem.file.name] || 0}%
-                            </span>
-                          </div>
-                        )}
-                        {fileItem.status === "completed" && (
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                            >
-                              <CheckCircledIcon className="h-3 w-3 mr-1" />{" "}
-                              {t("compressPdf.status.completed")}
-                            </Badge>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                              className="text-sm"
-                            >
-                              <a
-                                href={
-                                  `${process.env.NEXT_PUBLIC_API_URL}` +
-                                  compressedFiles[fileItem.file.name].fileUrl
-                                }
-                                download={
-                                  compressedFiles[fileItem.file.name].filename
-                                }
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <DownloadIcon className="h-3.5 w-3.5 mr-1" />{" "}
-                                {t("ui.download")}
-                              </a>
-                            </Button>
-                          </div>
-                        )}
-                        {fileItem.status === "error" && (
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                            >
-                              <CrossCircledIcon className="h-3 w-3 mr-1" />{" "}
-                              {t("compressPdf.status.failed")}
-                            </Badge>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handleRemoveFile(fileItem.file.name)
-                              }
-                            >
-                              <Cross2Icon className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={files.length === 0 || isProcessing}
-              className="min-w-32"
-            >
-              {isProcessing ? t("ui.processing") : t("compressPdf.compressAll")}
-            </Button>
-          </CardFooter>
-        </Card>
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {isProcessing && files.length > 1 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">
-                {t("compressPdf.overallProgress")}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {Object.values(progress).filter((p) => p === 100).length}{" "}
-                {t("compressPdf.of")} {files.length} {t("compressPdf.files")}
-              </span>
-            </div>
-            <Progress
-              value={
-                (Object.values(progress).reduce((a, b) => a + b, 0) /
-                  (files.length * 100)) *
-                100
-              }
-              className="h-2"
-            />
-          </div>
-        )}
-        {totalStats &&
-          files.length > 1 &&
-          (allFilesProcessed || anyFilesFailed) && (
-            <Card className="border-green-200 dark:border-green-900">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-green-600 dark:text-green-400 flex items-center gap-2">
-                  <CheckCircledIcon className="h-5 w-5" />{" "}
-                  {t("compressPdf.results.title")}
-                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t("compressPdf.results.totalOriginal")}
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {formatFileSize(totalStats.totalOriginalSize)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t("compressPdf.results.totalCompressed")}
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {formatFileSize(totalStats.totalCompressedSize)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t("compressPdf.results.spaceSaved")}
-                    </p>
-                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                      {formatFileSize(totalStats.totalSaved)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t("compressPdf.results.averageReduction")}
-                    </p>
-                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                      {totalStats.compressionRatio}%
-                    </p>
-                  </div>
+                <div className="space-y-3">
+                  {files.map((fileItem, index) => {
+                    const compressed = compressedFiles[fileItem.file.name];
+                    const fileProgress = progress[fileItem.file.name] || 0;
+
+                    return (
+                      <div
+                        key={fileItem.file.name}
+                        className={cn(
+                          "p-4 border rounded-lg transition-all",
+                          fileItem.status === "completed" &&
+                            "border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-900/10",
+                          fileItem.status === "processing" &&
+                            "border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-900/10",
+                          fileItem.status === "error" &&
+                            "border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-900/10",
+                          fileItem.status === "idle" &&
+                            "border-muted-foreground/20"
+                        )}
+                      >
+                        <div className="flex items-center gap-4">
+                          {/* File Icon */}
+                          <div
+                            className={cn(
+                              "h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                              fileItem.status === "completed" &&
+                                "bg-green-100 dark:bg-green-900/30",
+                              fileItem.status === "processing" &&
+                                "bg-blue-100 dark:bg-blue-900/30",
+                              fileItem.status === "error" &&
+                                "bg-red-100 dark:bg-red-900/30",
+                              fileItem.status === "idle" && "bg-muted/50"
+                            )}
+                          >
+                            {fileItem.status === "processing" ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+                            ) : fileItem.status === "completed" ? (
+                              <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            ) : fileItem.status === "error" ? (
+                              <X className="h-5 w-5 text-red-600 dark:text-red-400" />
+                            ) : (
+                              <FileIcon className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </div>
+
+                          {/* File Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium truncate">
+                                {fileItem.file.name}
+                              </p>
+                              {fileItem.status === "completed" && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                                >
+                                  <CheckCircledIcon className="h-3 w-3 mr-1" />
+                                  Completed
+                                </Badge>
+                              )}
+                              {fileItem.status === "processing" && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                                >
+                                  <Gauge className="h-3 w-3 mr-1" />
+                                  Processing
+                                </Badge>
+                              )}
+                              {fileItem.status === "error" && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                                >
+                                  <CrossCircledIcon className="h-3 w-3 mr-1" />
+                                  Failed
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>{formatFileSize(fileItem.file.size)}</span>
+                              {compressed && (
+                                <>
+                                  <span>→</span>
+                                  <span className="text-green-600 dark:text-green-400 font-medium">
+                                    {formatFileSize(compressed.compressedSize)}
+                                  </span>
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-green-600 dark:text-green-400"
+                                  >
+                                    -{compressed.compressionRatio}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Progress Bar */}
+                            {fileItem.status === "processing" && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <Progress
+                                  value={fileProgress}
+                                  className="h-2 flex-1"
+                                />
+                                <span className="text-xs text-muted-foreground min-w-[3rem]">
+                                  {Math.round(fileProgress)}%
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Error Message */}
+                            {fileItem.status === "error" && fileItem.error && (
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {fileItem.error}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2">
+                            {fileItem.status === "completed" && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <a
+                                  href={`${process.env.NEXT_PUBLIC_API_URL}${compressed?.fileUrl}`}
+                                  download={compressed?.filename}
+                                >
+                                  <DownloadIcon className="h-4 w-4 mr-1" />
+                                  Download
+                                </a>
+                              </Button>
+                            )}
+
+                            {(fileItem.status === "idle" ||
+                              fileItem.status === "error") &&
+                              !isProcessing && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleRemoveFile(fileItem.file.name)
+                                  }
+                                >
+                                  <Cross2Icon className="h-4 w-4" />
+                                </Button>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                {allFilesProcessed && files.length > 1 && (
-                  <Button
-                    className="w-full"
-                    type="button"
-                    variant="outline"
-                    onClick={handleDownloadAllAsZip}
-                  >
-                    <DownloadIcon className="h-4 w-4 mr-2" />{" "}
-                    {t("compressPdf.results.downloadAll")}
-                  </Button>
-                )}
               </CardContent>
-              <CardFooter className="text-xs text-muted-foreground">
-                {t("fileUploader.filesSecurity")}
+
+              {/* Process Button */}
+              <CardFooter className="border-t pt-6">
+                <div className="w-full space-y-4">
+                  {/* Overall Progress */}
+                  {isProcessing && files.length > 1 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          Overall Progress
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {completedCount} of {files.length} completed
+                        </span>
+                      </div>
+                      <Progress value={overallProgress} className="h-2" />
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={files.length === 0 || isProcessing}
+                    size="lg"
+                    className="w-full"
+                    onClick={form.handleSubmit(onSubmit)}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Compressing Files...
+                      </>
+                    ) : (
+                      <>
+                        <TrendingDown className="h-4 w-4 mr-2" />
+                        Compress All Files ({files.length})
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           )}
-      </form>
-    </Form>
+
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Results Summary */}
+          {totalStats &&
+            files.length > 1 &&
+            (allFilesProcessed || anyFilesFailed) && (
+              <Card className="border-green-200 dark:border-green-900">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                      <Check className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">
+                        Compression Complete!
+                      </h3>
+                      <p className="text-muted-foreground font-normal mt-1">
+                        Successfully compressed {completedCount} of{" "}
+                        {files.length} files
+                      </p>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  {/* Statistics Grid */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-muted/20 rounded-lg">
+                      <HardDrive className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Original Size
+                      </p>
+                      <p className="text-lg font-bold">
+                        {formatFileSize(totalStats.totalOriginalSize)}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/20 rounded-lg">
+                      <TrendingDown className="h-6 w-6 mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">
+                        Compressed Size
+                      </p>
+                      <p className="text-lg font-bold">
+                        {formatFileSize(totalStats.totalCompressedSize)}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <Archive className="h-6 w-6 mx-auto mb-2 text-green-600 dark:text-green-400" />
+                      <p className="text-sm text-muted-foreground">
+                        Space Saved
+                      </p>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {formatFileSize(totalStats.totalSaved)}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <Gauge className="h-6 w-6 mx-auto mb-2 text-green-600 dark:text-green-400" />
+                      <p className="text-sm text-muted-foreground">Reduction</p>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {totalStats.compressionRatio}%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Download All Button */}
+                  {allFilesProcessed && files.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="lg"
+                      className="w-full"
+                      onClick={handleDownloadAllAsZip}
+                    >
+                      <Archive className="h-4 w-4 mr-2" />
+                      Download All as ZIP
+                    </Button>
+                  )}
+                </CardContent>
+
+                <CardFooter className="border-t bg-muted/20">
+                  <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <p>
+                      Your files are processed securely and automatically
+                      deleted after compression to ensure privacy. All
+                      compression is performed server-side with optimized
+                      algorithms.
+                    </p>
+                  </div>
+                </CardFooter>
+              </Card>
+            )}
+        </div>
+      </Form>
+    </div>
   );
 }

@@ -370,16 +370,6 @@ export function PdfTools() {
           apiToolId: "sign", // Mapped to the API tool ID
         },
         {
-          id: "repair-pdf",
-          name: t("repairPdf.title"),
-          description: t("repairPdf.shortDescription"),
-          href: "/repair-pdf",
-          icon: <FileCog className="w-6 h-6 text-indigo-500" />,
-          backgroundColor: "bg-indigo-50 dark:bg-indigo-950/20",
-          iconBg: "bg-green-100 dark:bg-blue-900/30",
-          apiToolId: "repair", // Mapped to the API tool ID
-        },
-        {
           id: "pageNumber-pdf",
           name: t("pageNumber.title") || "Add Page Numbers", // New tool - Add Page Numbers
           description:

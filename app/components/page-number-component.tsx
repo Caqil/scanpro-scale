@@ -12,18 +12,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
-  ArrowDownIcon,
-  CheckIcon,
-  FileTextIcon,
+  ArrowDown,
+  Check,
+  FileText,
+  Download,
+  X,
+  RefreshCw,
+  Eye,
+  Settings,
+  Palette,
+  AlignLeft,
   DownloadIcon,
-  XIcon,
-  RefreshCwIcon,
-  EyeIcon,
+  ArrowDownIcon,
 } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { FileDropzone } from "@/components/dropzone";
@@ -124,7 +129,6 @@ export function PdfPageNumberer() {
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          // Update progress for upload phase (0–50%)
           setProgress(percentComplete / 2);
         }
       };
@@ -134,16 +138,13 @@ export function PdfPageNumberer() {
         setIsUploading(false);
 
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Success - parse the response
           try {
             const response = JSON.parse(xhr.responseText);
             console.log("API response:", response);
 
-            // Update progress to complete
             setProgress(100);
             setIsProcessing(false);
 
-            // Set page count information
             if (response.totalPages) {
               setTotalPages(response.totalPages);
             }
@@ -152,7 +153,6 @@ export function PdfPageNumberer() {
               setNumberedPages(response.numberedPages);
             }
 
-            // Format file URL to include Go API base URL if needed
             const fileUrl = response.fileUrl.startsWith("/")
               ? `${goApiUrl}${response.fileUrl}`
               : response.fileUrl;
@@ -173,7 +173,6 @@ export function PdfPageNumberer() {
             );
           }
         } else {
-          // Error
           setIsProcessing(false);
           setProgress(0);
 
@@ -195,7 +194,6 @@ export function PdfPageNumberer() {
         }
       };
 
-      // Handle network errors
       xhr.onerror = function () {
         setIsUploading(false);
         setIsProcessing(false);
@@ -208,7 +206,6 @@ export function PdfPageNumberer() {
         );
       };
 
-      // Send the request
       xhr.send(formData);
     } catch (error) {
       console.error("Error adding page numbers:", error);
@@ -244,35 +241,51 @@ export function PdfPageNumberer() {
 
     switch (options.format) {
       case "roman":
-        formattedNumber = "IV"; // Example roman numeral
+        formattedNumber = "IV";
         break;
       case "alphabetic":
-        formattedNumber = "D"; // Example alphabetic character
+        formattedNumber = "D";
         break;
       case "numeric":
       default:
-        formattedNumber = "4"; // Example number
+        formattedNumber = "4";
     }
 
     return `${options.prefix}${formattedNumber}${options.suffix}`;
   };
 
+  // Position configurations
+  const positions = [
+    { id: "top-left", label: "Top Left", icon: "↖" },
+    { id: "top-center", label: "Top Center", icon: "↑" },
+    { id: "top-right", label: "Top Right", icon: "↗" },
+    { id: "bottom-left", label: "Bottom Left", icon: "↙" },
+    { id: "bottom-center", label: "Bottom Center", icon: "↓" },
+    { id: "bottom-right", label: "Bottom Right", icon: "↘" },
+  ];
+
   return (
     <div className="w-full">
       {!numberedPdfUrl ? (
         <Card className="w-full border shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <EyeIcon className="h-5 w-5 text-primary" />
-              {t("pageNumber.title") || "Add Page Numbers to PDF"}
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Eye className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">
+                  {t("pageNumber.title") || "Add Page Numbers to PDF"}
+                </h1>
+                <p className="text-muted-foreground font-normal mt-1">
+                  {t("pageNumber.description") ||
+                    "Add customizable page numbers to your PDF document"}
+                </p>
+              </div>
             </CardTitle>
-            <CardDescription>
-              {t("pageNumber.description") ||
-                "Add customizable page numbers to your PDF document"}
-            </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="space-y-8">
             {!file ? (
               // File Upload Section
               <FileDropzone
@@ -298,10 +311,13 @@ export function PdfPageNumberer() {
               />
             ) : (
               // Options Section
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
+              <div className="space-y-8">
+                {/* File Info */}
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
                   <div className="flex items-center gap-3">
-                    <FileTextIcon className="h-10 w-10 text-muted-foreground" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                       <p className="font-medium">{file.name}</p>
                       <p className="text-sm text-muted-foreground">
@@ -315,23 +331,25 @@ export function PdfPageNumberer() {
                     onClick={resetForm}
                     disabled={isSubmitting}
                   >
-                    <XIcon className="h-5 w-5" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-md border border-red-200 dark:border-red-800">
-                    <p className="text-sm">{error}</p>
+                  <div className="bg-destructive/10 text-destructive p-4 rounded-lg border border-destructive/20">
+                    <p className="text-sm font-medium">{error}</p>
                   </div>
                 )}
 
                 {isSubmitting && (
-                  <div className="w-full bg-muted rounded-full h-2 mb-4">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                  <div className="space-y-3">
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">
                       {isUploading
                         ? t("pageNumber.ui.uploading") || "Uploading..."
                         : t("pageNumber.ui.processing") || "Processing..."}
@@ -340,402 +358,308 @@ export function PdfPageNumberer() {
                   </div>
                 )}
 
-                <div className="space-y-6 mt-6">
-                  <h3 className="text-lg font-semibold">
-                    {t("pageNumber.ui.settingsTitle") || "Page Number Settings"}
-                  </h3>
-
-                  {/* Number Format */}
-                  <div className="space-y-2">
-                    <Label>
-                      {t("pageNumber.ui.numberFormat") || "Number Format"}
-                    </Label>
-                    <Tabs
-                      defaultValue={options.format}
-                      value={options.format}
-                      onValueChange={(value) =>
-                        handleOptionChange("format", value)
-                      }
-                      className="w-full"
-                    >
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="numeric">1, 2, 3...</TabsTrigger>
-                        <TabsTrigger value="roman">I, II, III...</TabsTrigger>
-                        <TabsTrigger value="alphabetic">A, B, C...</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
-
-                  {/* Position */}
-                  <div className="space-y-2">
-                    <Label>{t("pageNumber.ui.position") || "Position"}</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "top-left"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "top-left")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.topLeft") || "Top Left"}
-                        </span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "top-center"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "top-center")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.topCenter") || "Top Center"}
-                        </span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "top-right"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "top-right")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.topRight") || "Top Right"}
-                        </span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "bottom-left"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "bottom-left")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.bottomLeft") || "Bottom Left"}
-                        </span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "bottom-center"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "bottom-center")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.bottomCenter") || "Bottom Center"}
-                        </span>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          options.position === "bottom-right"
-                            ? "default"
-                            : "outline"
-                        }
-                        className="h-20 flex-col gap-1"
-                        onClick={() =>
-                          handleOptionChange("position", "bottom-right")
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <div className="w-5 h-5 border rounded flex items-center justify-center">
-                          <span className="text-[8px]">1</span>
-                        </div>
-                        <span className="text-xs">
-                          {t("pageNumber.ui.bottomRight") || "Bottom Right"}
-                        </span>
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Font Settings */}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fontFamily">
-                        {t("pageNumber.ui.fontFamily") || "Font Family"}
-                      </Label>
-                      <select
-                        id="fontFamily"
-                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none"
-                        value={options.fontFamily}
-                        onChange={(e) =>
-                          handleOptionChange("fontFamily", e.target.value)
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <option value="Helvetica">Helvetica</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Courier">Courier</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="fontSize">
-                        {t("pageNumber.ui.fontSize") || "Font Size"}
-                      </Label>
+                <div className="grid lg:grid-cols-2 gap-8">
+                  {/* Settings Panel */}
+                  <div className="space-y-6">
+                    {/* Number Format Section */}
+                    <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Input
-                          id="fontSize"
-                          type="number"
-                          min="6"
-                          max="72"
-                          value={options.fontSize}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              "fontSize",
-                              parseInt(e.target.value) || 12
-                            )
-                          }
-                          className="w-full"
-                          disabled={isSubmitting}
-                        />
-                        <span className="text-sm">pt</span>
+                        <AlignLeft className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Number Format</h3>
                       </div>
+                      <Tabs
+                        value={options.format}
+                        onValueChange={(value) =>
+                          handleOptionChange("format", value)
+                        }
+                        className="w-full"
+                      >
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="numeric" className="text-sm">
+                            1, 2, 3...
+                          </TabsTrigger>
+                          <TabsTrigger value="roman" className="text-sm">
+                            I, II, III...
+                          </TabsTrigger>
+                          <TabsTrigger value="alphabetic" className="text-sm">
+                            A, B, C...
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="color">
-                        {t("pageNumber.ui.color") || "Color"}
-                      </Label>
+
+                    <Separator />
+
+                    {/* Position Section */}
+                    <div className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Input
-                          id="color"
-                          type="color"
-                          value={options.color}
-                          onChange={(e) =>
-                            handleOptionChange("color", e.target.value)
-                          }
-                          className="w-12 h-10 p-1"
-                          disabled={isSubmitting}
-                        />
-                        <span className="text-sm">{options.color}</span>
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Position</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {positions.map((pos) => (
+                          <Button
+                            key={pos.id}
+                            type="button"
+                            variant={
+                              options.position === pos.id
+                                ? "default"
+                                : "outline"
+                            }
+                            className="h-16 flex-col gap-1 text-xs"
+                            onClick={() =>
+                              handleOptionChange("position", pos.id)
+                            }
+                            disabled={isSubmitting}
+                          >
+                            <span className="text-lg">{pos.icon}</span>
+                            <span>{pos.label}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Styling Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Palette className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Styling</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fontFamily">Font Family</Label>
+                          <select
+                            id="fontFamily"
+                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            value={options.fontFamily}
+                            onChange={(e) =>
+                              handleOptionChange("fontFamily", e.target.value)
+                            }
+                            disabled={isSubmitting}
+                          >
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Times New Roman">
+                              Times New Roman
+                            </option>
+                            <option value="Courier">Courier</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="fontSize">Font Size</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="fontSize"
+                              type="number"
+                              min="6"
+                              max="72"
+                              value={options.fontSize}
+                              onChange={(e) =>
+                                handleOptionChange(
+                                  "fontSize",
+                                  parseInt(e.target.value) || 12
+                                )
+                              }
+                              className="flex-1"
+                              disabled={isSubmitting}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              pt
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="color">Color</Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            id="color"
+                            type="color"
+                            value={options.color}
+                            onChange={(e) =>
+                              handleOptionChange("color", e.target.value)
+                            }
+                            className="w-16 h-10 p-1 rounded-md"
+                            disabled={isSubmitting}
+                          />
+                          <Input
+                            type="text"
+                            value={options.color}
+                            onChange={(e) =>
+                              handleOptionChange("color", e.target.value)
+                            }
+                            className="flex-1"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Advanced Options */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">
+                        Advanced Options
+                      </h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="startNumber">Start From</Label>
+                          <Input
+                            id="startNumber"
+                            type="number"
+                            min="1"
+                            value={options.startNumber}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                "startNumber",
+                                parseInt(e.target.value) || 1
+                              )
+                            }
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="prefix">Prefix</Label>
+                          <Input
+                            id="prefix"
+                            type="text"
+                            value={options.prefix}
+                            onChange={(e) =>
+                              handleOptionChange("prefix", e.target.value)
+                            }
+                            placeholder="Page "
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="suffix">Suffix</Label>
+                          <Input
+                            id="suffix"
+                            type="text"
+                            value={options.suffix}
+                            onChange={(e) =>
+                              handleOptionChange("suffix", e.target.value)
+                            }
+                            placeholder=" of 10"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="selectedPages">Pages to Number</Label>
+                          <Input
+                            id="selectedPages"
+                            type="text"
+                            value={options.selectedPages}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                "selectedPages",
+                                e.target.value
+                              )
+                            }
+                            placeholder="1,3,5-10 (leave blank for all pages)"
+                            disabled={isSubmitting}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Use commas for individual pages and hyphens for
+                            ranges
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label
+                            htmlFor="skipFirstPage"
+                            className="cursor-pointer"
+                          >
+                            Skip first page
+                          </Label>
+                          <Switch
+                            id="skipFirstPage"
+                            checked={options.skipFirstPage}
+                            onCheckedChange={(checked) =>
+                              handleOptionChange("skipFirstPage", checked)
+                            }
+                            disabled={isSubmitting}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Number Customization */}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="startNumber">
-                        {t("pageNumber.ui.startFrom") || "Start From"}
-                      </Label>
-                      <Input
-                        id="startNumber"
-                        type="number"
-                        min="1"
-                        value={options.startNumber}
-                        onChange={(e) =>
-                          handleOptionChange(
-                            "startNumber",
-                            parseInt(e.target.value) || 1
-                          )
-                        }
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="prefix">
-                        {t("pageNumber.ui.prefix") || "Prefix"}
-                      </Label>
-                      <Input
-                        id="prefix"
-                        type="text"
-                        value={options.prefix}
-                        onChange={(e) =>
-                          handleOptionChange("prefix", e.target.value)
-                        }
-                        placeholder="e.g., 'Page '"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="suffix">
-                        {t("pageNumber.ui.suffix") || "Suffix"}
-                      </Label>
-                      <Input
-                        id="suffix"
-                        type="text"
-                        value={options.suffix}
-                        onChange={(e) =>
-                          handleOptionChange("suffix", e.target.value)
-                        }
-                        placeholder="e.g., ' of 10'"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Margins */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="marginX">
-                        {t("pageNumber.ui.horizontalMargin") ||
-                          "Horizontal Margin (px)"}
-                      </Label>
-                      <div className="pt-2 px-2">
-                        <Slider
-                          id="marginX"
-                          min={10}
-                          max={100}
-                          step={1}
-                          value={[options.marginX]}
-                          onValueChange={(value) =>
-                            handleOptionChange("marginX", value[0])
-                          }
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <div className="text-center text-sm">
-                        {options.marginX}px
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="marginY">
-                        {t("pageNumber.ui.verticalMargin") ||
-                          "Vertical Margin (px)"}
-                      </Label>
-                      <div className="pt-2 px-2">
-                        <Slider
-                          id="marginY"
-                          min={10}
-                          max={100}
-                          step={1}
-                          value={[options.marginY]}
-                          onValueChange={(value) =>
-                            handleOptionChange("marginY", value[0])
-                          }
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <div className="text-center text-sm">
-                        {options.marginY}px
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Page Selection Options */}
+                  {/* Preview Panel */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="selectedPages">
-                        {t("pageNumber.ui.pagesToNumber") || "Pages to Number"}
-                      </Label>
-                      <div className="text-sm text-muted-foreground">
-                        (
-                        {t("pageNumber.ui.pagesHint") ||
-                          "Leave blank for all pages"}
-                        )
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold">Live Preview</h3>
                     </div>
-                    <Input
-                      id="selectedPages"
-                      type="text"
-                      value={options.selectedPages}
-                      onChange={(e) =>
-                        handleOptionChange("selectedPages", e.target.value)
-                      }
-                      placeholder="e.g., 1,3,5-10"
-                      disabled={isSubmitting}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {t("pageNumber.ui.pagesExample") ||
-                        "Use commas for individual pages and hyphens for ranges (e.g., 1,3,5-10)"}
-                    </p>
-                  </div>
-
-                  {/* Skip First Page Option */}
-                  <div className="flex items-center justify-between space-y-0 pb-2">
-                    <Label htmlFor="skipFirstPage" className="cursor-pointer">
-                      {t("pageNumber.ui.skipFirstPage") ||
-                        "Skip first page (e.g., for cover pages)"}
-                    </Label>
-                    <Switch
-                      id="skipFirstPage"
-                      checked={options.skipFirstPage}
-                      onCheckedChange={(checked) =>
-                        handleOptionChange("skipFirstPage", checked)
-                      }
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  {/* Preview */}
-                  <div className="mt-6 border rounded-lg p-4 bg-muted/20">
-                    <h4 className="text-sm font-medium mb-2">
-                      {t("pageNumber.ui.preview") || "Preview:"}
-                    </h4>
-                    <div className="flex items-center justify-center bg-background p-4 rounded-lg border relative">
-                      <div className="w-64 h-32 bg-white/50 dark:bg-gray-800/50 rounded border flex items-center justify-center relative">
-                        {/* Simulate page number based on position */}
+                    <div className="sticky top-4">
+                      <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6 rounded-xl border shadow-inner">
                         <div
-                          className={`absolute text-sm px-1 py-0.5 rounded ${
-                            options.position.includes("top")
-                              ? "top-2"
-                              : options.position.includes("bottom")
-                              ? "bottom-2"
-                              : "top-1/2 -translate-y-1/2"
-                          } ${
-                            options.position.includes("left")
-                              ? "left-2"
-                              : options.position.includes("right")
-                              ? "right-2"
-                              : options.position.includes("center")
-                              ? "left-1/2 -translate-x-1/2"
-                              : ""
-                          }`}
-                          style={{
-                            fontFamily: options.fontFamily,
-                            fontSize: `${options.fontSize * 0.8}px`,
-                            color: options.color,
-                          }}
+                          className="relative mx-auto"
+                          style={{ width: "280px", height: "400px" }}
                         >
-                          {getFormatPreview()}
+                          {/* PDF Page Container */}
+                          <div className="w-full h-full bg-white dark:bg-gray-50 rounded-lg shadow-lg border border-gray-200 dark:border-gray-300 relative overflow-hidden">
+                            {/* PDF Content Simulation */}
+                            <div className="p-6 space-y-3">
+                              <div className="h-4 bg-gradient-to-r from-gray-300 to-gray-200 rounded-full w-3/4"></div>
+                              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-full"></div>
+                              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-5/6"></div>
+                              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-2/3"></div>
+                              <div className="mt-6 space-y-2">
+                                <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-full"></div>
+                                <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-4/5"></div>
+                                <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-full"></div>
+                                <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full w-3/4"></div>
+                              </div>
+                            </div>
+
+                            {/* Page Number */}
+                            <div
+                              className={`absolute transition-all duration-200 ${
+                                options.position.includes("top")
+                                  ? "top-4"
+                                  : "bottom-4"
+                              } ${
+                                options.position.includes("left")
+                                  ? "left-4"
+                                  : options.position.includes("right")
+                                  ? "right-4"
+                                  : "left-1/2 transform -translate-x-1/2"
+                              }`}
+                              style={{
+                                fontFamily: options.fontFamily,
+                                fontSize: `${Math.max(
+                                  options.fontSize * 1.2,
+                                  14
+                                )}px`,
+                                color: options.color,
+                                fontWeight: "500",
+                                textShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                              }}
+                            >
+                              {getFormatPreview()}
+                            </div>
+
+                            {/* Page corners shadow effect */}
+                            <div className="absolute inset-0 border border-gray-300 dark:border-gray-400 rounded-lg pointer-events-none"></div>
+                          </div>
+
+                          {/* Shadow beneath */}
+                          <div className="absolute -bottom-2 -right-2 w-full h-full bg-gray-400/20 dark:bg-gray-600/20 rounded-lg -z-10"></div>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {t("pageNumber.ui.pagePreview") || "Page preview"}
-                        </span>
+
+                        <div className="mt-4 text-center">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Preview: Page Number Position
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {getFormatPreview()} •{" "}
+                            {options.position.replace("-", " ")}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -744,30 +668,33 @@ export function PdfPageNumberer() {
             )}
           </CardContent>
 
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between pt-6 border-t">
             {file && (
               <>
                 <Button
                   variant="outline"
                   onClick={resetForm}
                   disabled={isSubmitting}
+                  className="px-6"
                 >
-                  <XIcon className="h-4 w-4 mr-2" />
-                  {t("pageNumber.ui.cancel") || "Cancel"}
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
                 </Button>
-                <Button onClick={applyPageNumbering} disabled={isSubmitting}>
+                <Button
+                  onClick={applyPageNumbering}
+                  disabled={isSubmitting}
+                  size="lg"
+                  className="px-8"
+                >
                   {isSubmitting ? (
                     <>
-                      <RefreshCwIcon className="h-4 w-4 mr-2 animate-spin" />
-                      {t("pageNumber.ui.processingProgress")?.replace(
-                        "{progress}",
-                        Math.round(progress).toString()
-                      ) || `Processing... (${Math.round(progress)}%)`}
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Processing... ({Math.round(progress)}%)
                     </>
                   ) : (
                     <>
-                      <EyeIcon className="h-4 w-4 mr-2" />
-                      {t("pageNumber.ui.addPageNumbers") || "Add Page Numbers"}
+                      <Eye className="h-4 w-4 mr-2" />
+                      Add Page Numbers
                     </>
                   )}
                 </Button>
@@ -779,71 +706,83 @@ export function PdfPageNumberer() {
         // Success Section
         <Card className="w-full border shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <CheckIcon className="h-5 w-5" />
-              {t("pageNumber.ui.successTitle") ||
-                "Page Numbers Added Successfully"}
+            <CardTitle className="flex items-center gap-3 text-green-600 dark:text-green-400">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Check className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">
+                  Page Numbers Added Successfully
+                </h1>
+                <p className="text-muted-foreground font-normal mt-1">
+                  Your PDF has been processed and is ready to download
+                </p>
+              </div>
             </CardTitle>
-            <CardDescription>
-              {t("pageNumber.ui.successDesc") ||
-                "Your PDF has been processed and is ready to download"}
-            </CardDescription>
           </CardHeader>
 
-          <CardContent className="flex flex-col items-center justify-center text-center py-6">
-            <div className="mb-6 p-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 mx-auto w-20 h-20 flex items-center justify-center">
-              <CheckIcon className="h-10 w-10" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              {t("pageNumber.ui.readyMessage") || "Your PDF is ready!"}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              {t("pageNumber.ui.readyDesc") ||
-                "Your PDF file has been processed and page numbers have been added according to your settings."}
-            </p>
-
-            {/* Stats about the processed PDF */}
-            {(totalPages > 0 || numberedPages > 0) && (
-              <div className="bg-muted/30 rounded-lg p-4 mb-6 w-full max-w-xs">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {totalPages > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-muted-foreground">Total Pages</span>
-                      <span className="font-medium text-lg">{totalPages}</span>
-                    </div>
-                  )}
-                  {numberedPages > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-muted-foreground">
-                        Pages Numbered
-                      </span>
-                      <span className="font-medium text-lg">
-                        {numberedPages}
-                      </span>
-                    </div>
-                  )}
-                </div>
+          <CardContent className="py-8">
+            <div className="text-center space-y-6">
+              <div className="mx-auto w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                <Check className="h-12 w-12 text-green-600 dark:text-green-400" />
               </div>
-            )}
 
-            <Button
-              size="lg"
-              className="px-8"
-              onClick={() => {
-                if (numberedPdfUrl) {
-                  window.location.href = numberedPdfUrl;
-                }
-              }}
-            >
-              <DownloadIcon className="h-4 w-4 mr-2" />
-              {t("pageNumber.ui.download") || "Download PDF"}
-            </Button>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">
+                  Your PDF is ready!
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Your PDF file has been processed and page numbers have been
+                  added according to your settings.
+                </p>
+              </div>
+
+              {(totalPages > 0 || numberedPages > 0) && (
+                <div className="bg-muted/30 rounded-xl p-6 max-w-xs mx-auto">
+                  <div className="grid grid-cols-2 gap-6">
+                    {totalPages > 0 && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-primary">
+                          {totalPages}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Total Pages
+                        </div>
+                      </div>
+                    )}
+                    {numberedPages > 0 && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {numberedPages}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Pages Numbered
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                size="lg"
+                className="px-8 py-3"
+                onClick={() => {
+                  if (numberedPdfUrl) {
+                    window.location.href = numberedPdfUrl;
+                  }
+                }}
+              >
+                <DownloadIcon className="h-5 w-5 mr-2" />
+                Download PDF
+              </Button>
+            </div>
           </CardContent>
 
           <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
-            <Button variant="ghost" onClick={resetForm}>
+            <Button variant="ghost" onClick={resetForm} className="px-6">
               <ArrowDownIcon className="h-4 w-4 mr-2" />
-              {t("pageNumber.ui.processAnother") || "Process Another PDF"}
+              Process Another PDF
             </Button>
           </CardFooter>
         </Card>
