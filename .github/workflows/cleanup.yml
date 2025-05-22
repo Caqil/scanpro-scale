@@ -21,7 +21,7 @@ jobs:
       - name: Set up variables
         id: vars
         run: |
-          echo "MAX_AGE=${{ github.event.inputs.maxAge || '60' }}" >> $GITHUB_ENV
+          echo "MAX_AGE=${{ '60' }}" >> $GITHUB_ENV
           echo "API_URL=${{ secrets.API_URL }}" >> $GITHUB_ENV
 
       - name: Run cleanup with API key authentication
