@@ -1,8 +1,5 @@
 "use client";
-import {
-  Pencil1Icon,
-  FileTextIcon,
-} from "@radix-ui/react-icons";
+import { Pencil1Icon, FileTextIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { LanguageLink } from "@/components/language-link";
 import { useLanguageStore } from "@/src/store/store";
@@ -71,25 +68,22 @@ export function TextEditorFeaturesSection() {
   const features = [
     {
       title: t("pdfTextEditor.features.preserve"),
-      description:
-        "Maintain exact positioning, fonts, and formatting of your original document",
+      description: t("pdfTextEditor.features.preserve"),
       icon: "🎯",
     },
     {
       title: t("pdfTextEditor.features.visual"),
-      description:
-        "Interactive interface to select and edit text blocks visually",
+      description: t("pdfTextEditor.features.visual"),
       icon: "👆",
     },
     {
       title: t("pdfTextEditor.features.multipage"),
-      description: "Edit text across multiple pages with easy page navigation",
+      description: t("pdfTextEditor.features.multipage"),
       icon: "📄",
     },
     {
       title: t("pdfTextEditor.features.fonts"),
-      description:
-        "View font family and size information for each text element",
+      description: t("pdfTextEditor.features.fonts"),
       icon: "🔤",
     },
   ];
@@ -120,34 +114,34 @@ export function TextEditorUseCasesSection() {
   const { t } = useLanguageStore();
   const useCases = [
     {
-      title: "Document Translation",
-      description:
-        "Translate PDF content while preserving original layout and formatting",
+      title: t("pdfTextEditor.useCases.documentTranslation.title"),
+      description: t("pdfTextEditor.useCases.documentTranslation.description"),
       icon: "🌐",
     },
     {
-      title: "Content Correction",
-      description:
-        "Fix typos, update information, or correct errors in existing PDFs",
+      title: t("pdfTextEditor.useCases.contentCorrection.title"),
+      description: t("pdfTextEditor.useCases.contentCorrection.description"),
       icon: "✏️",
     },
     {
-      title: "Template Customization",
-      description:
-        "Customize PDF templates by editing text fields and content areas",
+      title: t("pdfTextEditor.useCases.templateCustomization.title"),
+      description: t(
+        "pdfTextEditor.useCases.templateCustomization.description"
+      ),
       icon: "📋",
     },
     {
-      title: "Rebranding Documents",
-      description:
-        "Update company names, addresses, and branding information in PDFs",
+      title: t("pdfTextEditor.useCases.rebrandingDocuments.title"),
+      description: t("pdfTextEditor.useCases.rebrandingDocuments.description"),
       icon: "🏢",
     },
   ];
 
   return (
     <div className="mb-12 bg-muted/30 p-6 rounded-xl">
-      <h2 className="text-2xl font-bold mb-6 text-center">Common Use Cases</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        {t("pdfTextEditor.useCases.title")}
+      </h2>
       <div className="grid md:grid-cols-2 gap-6">
         {useCases.map((useCase, index) => (
           <div key={index} className="flex gap-4">
@@ -170,29 +164,29 @@ export function TextEditorRelatedToolsSection() {
   const tools = [
     {
       href: "/convert",
-      name: "Convert PDF",
-      description: "Convert PDFs to editable formats",
+      name: t("pdfTextEditor.relatedTools.convertPDF.title"),
+      description: t("pdfTextEditor.relatedTools.convertPDF.description"),
       bg: "bg-blue-100 dark:bg-blue-900/30",
       icon: "🔄",
     },
     {
       href: "/watermark-pdf",
-      name: "Watermark PDF",
-      description: "Add text watermarks to documents",
+      name: t("pdfTextEditor.relatedTools.watermarkPDF.title"),
+      description: t("pdfTextEditor.relatedTools.watermarkPDF.description"),
       bg: "bg-green-100 dark:bg-green-900/30",
       icon: "🏷️",
     },
     {
       href: "/merge-pdf",
-      name: "Merge PDF",
-      description: "Combine multiple PDF files",
+      name: t("pdfTextEditor.relatedTools.mergePDF.title"),
+      description: t("pdfTextEditor.relatedTools.mergePDF.description"),
       bg: "bg-purple-100 dark:bg-purple-900/30",
       icon: "📎",
     },
     {
       href: "/split-pdf",
-      name: "Split PDF",
-      description: "Extract pages from PDFs",
+      name: t("pdfTextEditor.relatedTools.splitPDF.title"),
+      description: t("pdfTextEditor.relatedTools.splitPDF.description"),
       bg: "bg-orange-100 dark:bg-orange-900/30",
       icon: "✂️",
     },
@@ -200,7 +194,9 @@ export function TextEditorRelatedToolsSection() {
 
   return (
     <div className="mb-12">
-      <h2 className="text-2xl font-bold mb-6 text-center">Related PDF Tools</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        {t("pdfTextEditor.relatedTools.title")}
+      </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {tools.map((tool) => (
           <LanguageLink
@@ -222,8 +218,27 @@ export function TextEditorRelatedToolsSection() {
       </div>
       <div className="text-center mt-6">
         <LanguageLink href="/pdf-tools">
-          <Button variant="outline">View All PDF Tools</Button>
+          <Button variant="outline">
+            {t("pdfTextEditor.relatedTools.viewAllPDFTools")}
+          </Button>
         </LanguageLink>
+      </div>
+    </div>
+  );
+}
+
+export default function SeoContent() {
+  const { t } = useLanguageStore();
+
+  return (
+    <div className="container max-w-5xl py-12 mx-auto">
+      <div className="mt-12 text-muted-foreground">
+        <h2 className="text-2xl font-bold mb-4">
+          {t("pdfTextEditor.seoContent.title")}
+        </h2>
+        <p>{t("pdfTextEditor.seoContent.paragraph1")}</p>
+        <p className="mt-4">{t("pdfTextEditor.seoContent.paragraph2")}</p>
+        <p className="mt-4">{t("pdfTextEditor.seoContent.paragraph3")}</p>
       </div>
     </div>
   );

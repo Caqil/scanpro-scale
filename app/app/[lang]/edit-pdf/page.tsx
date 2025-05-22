@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import {
+import SeoContent, {
   TextEditorHeaderSection,
   HowToEditTextSection,
   TextEditorFeaturesSection,
@@ -33,7 +33,7 @@ export default function EditPdfTextPage() {
       <TextEditorHeaderSection />
 
       <div className="mb-12">
-        <Suspense fallback={<div>Loading PDF Text Editor...</div>}>
+        <Suspense fallback={<div>{"loading...."}</div>}>
           <PdfTextEditor />
         </Suspense>
       </div>
@@ -42,28 +42,7 @@ export default function EditPdfTextPage() {
       <TextEditorFeaturesSection />
       <TextEditorUseCasesSection />
       <TextEditorRelatedToolsSection />
-
-      {/* SEO Content */}
-      <div className="mt-12 text-muted-foreground">
-        <h2 className="text-2xl font-bold mb-4">Advanced PDF Text Editing</h2>
-        <p>
-          Our PDF text editor provides professional-grade text editing
-          capabilities for PDF documents. Unlike simple PDF editors, our tool
-          preserves the exact positioning and formatting of your original
-          document while allowing you to modify text content.
-        </p>
-        <p className="mt-4">
-          The extraction process uses advanced algorithms to identify text
-          blocks, font information, and positioning data. This ensures that when
-          you save your edited PDF, it maintains the professional appearance of
-          the original document.
-        </p>
-        <p className="mt-4">
-          Perfect for businesses, legal documents, forms, and any PDF where you
-          need to make text changes without affecting the overall layout and
-          design.
-        </p>
-      </div>
+      <SeoContent />
     </div>
   );
 }

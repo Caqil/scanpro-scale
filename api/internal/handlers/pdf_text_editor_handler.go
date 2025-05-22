@@ -23,14 +23,17 @@ type PDFTextEditorHandler struct {
 }
 
 type TextBlock struct {
-	Text  string  `json:"text"`
-	X0    float64 `json:"x0"`
-	Y0    float64 `json:"y0"`
-	X1    float64 `json:"x1"`
-	Y1    float64 `json:"y1"`
-	Font  string  `json:"font"`
-	Size  float64 `json:"size"`
-	Color int     `json:"color"`
+	Text   string  `json:"text"`
+	X0     float64 `json:"x0"`
+	Y0     float64 `json:"y0"`
+	X1     float64 `json:"x1"`
+	Y1     float64 `json:"y1"`
+	Font   string  `json:"font"`
+	Size   float64 `json:"size"`
+	Color  int     `json:"color"`
+	Flags  int     `json:"flags,omitempty"`
+	Width  float64 `json:"width,omitempty"`
+	Height float64 `json:"height,omitempty"`
 }
 
 type PDFPage struct {
@@ -41,7 +44,12 @@ type PDFPage struct {
 }
 
 type PDFTextData struct {
-	Pages []PDFPage `json:"pages"`
+	Pages    []PDFPage `json:"pages"`
+	Metadata struct {
+		TotalPages       int    `json:"total_pages"`
+		TotalTextBlocks  int    `json:"total_text_blocks"`
+		ExtractionMethod string `json:"extraction_method"`
+	} `json:"metadata"`
 }
 
 func NewPDFTextEditorHandler(balanceService *services.BalanceService, cfg *config.Config) *PDFTextEditorHandler {
@@ -51,20 +59,7 @@ func NewPDFTextEditorHandler(balanceService *services.BalanceService, cfg *confi
 	}
 }
 
-// ExtractTextToPDF godoc
-// @Summary Extract text from PDF to JSON format for editing
-// @Description Extracts all text blocks with positions from a PDF file
-// @Tags pdf
-// @Accept multipart/form-data
-// @Produce json
-// @Param file formData file true "PDF file to extract text from (max 50MB)"
-// @Security ApiKeyAuth
-// @Success 200 {object} object{success=boolean,message=string,extractedData=object,sessionId=string,originalName=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
-// @Failure 400 {object} object{error=string}
-// @Failure 401 {object} object{error=string}
-// @Failure 402 {object} object{error=string,details=object{balance=number,freeOperationsRemaining=integer,operationCost=number}}
-// @Failure 500 {object} object{error=string}
-// @Router /api/pdf/extract-text [post]
+// ExtractTextToPDF extracts text from PDF using Python
 func (h *PDFTextEditorHandler) ExtractTextToPDF(c *gin.Context) {
 	// Get user ID and process billing
 	userID, exists := c.Get("userId")
@@ -129,6 +124,19 @@ func (h *PDFTextEditorHandler) ExtractTextToPDF(c *gin.Context) {
 		return
 	}
 
+	// Check if we actually extracted any text
+	totalTextBlocks := 0
+	for _, page := range extractedData.Pages {
+		totalTextBlocks += len(page.Texts)
+	}
+
+	if totalTextBlocks == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No text found in the PDF. The PDF may contain only images or be password protected.",
+		})
+		return
+	}
+
 	// Save extracted data to session
 	sessionDir := filepath.Join(h.config.PublicDir, "editor-sessions")
 	if err := os.MkdirAll(sessionDir, 0755); err != nil {
@@ -154,10 +162,15 @@ func (h *PDFTextEditorHandler) ExtractTextToPDF(c *gin.Context) {
 		return
 	}
 
+	// Update metadata
+	extractedData.Metadata.TotalPages = len(extractedData.Pages)
+	extractedData.Metadata.TotalTextBlocks = totalTextBlocks
+	extractedData.Metadata.ExtractionMethod = "PyMuPDF"
+
 	// Return response
 	response := gin.H{
 		"success":       true,
-		"message":       "Text extracted successfully",
+		"message":       fmt.Sprintf("Text extracted successfully from %d pages with %d text blocks", len(extractedData.Pages), totalTextBlocks),
 		"extractedData": extractedData,
 		"sessionId":     sessionID,
 		"originalName":  file.Filename,
@@ -177,20 +190,7 @@ func (h *PDFTextEditorHandler) ExtractTextToPDF(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// SaveEditedPDF godoc
-// @Summary Save edited text data back to PDF
-// @Description Creates a new PDF from edited text data
-// @Tags pdf
-// @Accept json
-// @Produce json
-// @Param sessionId formData string true "Session ID from text extraction"
-// @Param editedData formData string true "JSON string of edited text data"
-// @Security ApiKeyAuth
-// @Success 200 {object} object{success=boolean,message=string,fileUrl=string,filename=string,billing=object{usedFreeOperation=boolean,freeOperationsRemaining=integer,currentBalance=number,operationCost=number}}
-// @Failure 400 {object} object{error=string}
-// @Failure 401 {object} object{error=string}
-// @Failure 500 {object} object{error=string}
-// @Router /api/pdf/save-edited-text [post]
+// SaveEditedPDF creates a new PDF from edited text data
 func (h *PDFTextEditorHandler) SaveEditedPDF(c *gin.Context) {
 	// Get user ID and process billing
 	userID, exists := c.Get("userId")
@@ -278,19 +278,7 @@ func (h *PDFTextEditorHandler) SaveEditedPDF(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetEditSession godoc
-// @Summary Get existing edit session data
-// @Description Retrieves previously extracted text data for editing
-// @Tags pdf
-// @Accept json
-// @Produce json
-// @Param sessionId query string true "Session ID"
-// @Security ApiKeyAuth
-// @Success 200 {object} object{success=boolean,extractedData=object,sessionId=string}
-// @Failure 400 {object} object{error=string}
-// @Failure 404 {object} object{error=string}
-// @Failure 500 {object} object{error=string}
-// @Router /api/pdf/edit-session [get]
+// GetEditSession retrieves session data
 func (h *PDFTextEditorHandler) GetEditSession(c *gin.Context) {
 	sessionID := c.Query("sessionId")
 	if sessionID == "" {
@@ -300,7 +288,6 @@ func (h *PDFTextEditorHandler) GetEditSession(c *gin.Context) {
 		return
 	}
 
-	// Load session data
 	sessionFile := filepath.Join(h.config.PublicDir, "editor-sessions", sessionID+".json")
 	if _, err := os.Stat(sessionFile); os.IsNotExist(err) {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -332,137 +319,231 @@ func (h *PDFTextEditorHandler) GetEditSession(c *gin.Context) {
 	})
 }
 
-// Helper function to extract text using Python script
+// extractTextWithPython extracts text using PyMuPDF
 func (h *PDFTextEditorHandler) extractTextWithPython(pdfPath string) (*PDFTextData, error) {
-	// Create a temporary Python script
-	pythonScript := `
-import fitz  # PyMuPDF
-import json
+	pythonScript := `#!/usr/bin/env python3
 import sys
+import json
+
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    print(json.dumps({"error": "PyMuPDF not installed"}))
+    sys.exit(1)
 
 def extract_text_with_positions(pdf_path):
-    doc = fitz.open(pdf_path)
-    data = {"pages": []}
+    try:
+        doc = fitz.open(pdf_path)
+        data = {"pages": []}
 
-    for page_num in range(len(doc)):
-        page = doc[page_num]
-        page_data = {
-            "page_number": page_num + 1,
-            "width": page.rect.width,
-            "height": page.rect.height,
-            "texts": []
-        }
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            page_rect = page.rect
+            page_data = {
+                "page_number": page_num + 1,
+                "width": float(page_rect.width),
+                "height": float(page_rect.height),
+                "texts": []
+            }
 
-        for block in page.get_text("dict")["blocks"]:
-            if block["type"] == 0:  # Text block
-                for line in block["lines"]:
-                    for span in line["spans"]:
-                        text_info = {
-                            "text": span["text"],
-                            "x0": span["bbox"][0],
-                            "y0": span["bbox"][1],
-                            "x1": span["bbox"][2],
-                            "y1": span["bbox"][3],
-                            "font": span["font"],
-                            "size": span["size"],
-                            "color": span["color"]
-                        }
-                        page_data["texts"].append(text_info)
-        data["pages"].append(page_data)
+            blocks = page.get_text("dict")
+            for block in blocks.get("blocks", []):
+                if block.get("type") == 0:  # Text block
+                    for line in block.get("lines", []):
+                        for span in line.get("spans", []):
+                            text_content = span.get("text", "").strip()
+                            if not text_content:
+                                continue
+                                
+                            bbox = span.get("bbox", [0, 0, 0, 0])
+                            font_info = span.get("font", "Helvetica")
+                            font_size = span.get("size", 12)
+                            color = span.get("color", 0)
+                            flags = span.get("flags", 0)
+                            
+                            text_info = {
+                                "text": text_content,
+                                "x0": float(bbox[0]),
+                                "y0": float(bbox[1]),
+                                "x1": float(bbox[2]),
+                                "y1": float(bbox[3]),
+                                "font": font_info,
+                                "size": float(font_size),
+                                "color": int(color),
+                                "flags": int(flags),
+                                "width": float(bbox[2] - bbox[0]),
+                                "height": float(bbox[3] - bbox[1])
+                            }
+                            
+                            page_data["texts"].append(text_info)
+            
+            # Sort text blocks by position (top to bottom, left to right)
+            page_data["texts"].sort(key=lambda x: (x["y0"], x["x0"]))
+            data["pages"].append(page_data)
 
-    doc.close()
-    return data
+        doc.close()
+        return data
+        
+    except Exception as e:
+        return {"error": f"Failed to extract text: {str(e)}"}
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print(json.dumps({"error": "Usage: script.py <pdf_path>"}))
+        sys.exit(1)
+    
     pdf_path = sys.argv[1]
-    extracted_data = extract_text_with_positions(pdf_path)
-    print(json.dumps(extracted_data))
+    result = extract_text_with_positions(pdf_path)
+    print(json.dumps(result))
 `
 
-	// Write Python script to temp file
 	tempDir := h.config.TempDir
-	scriptPath := filepath.Join(tempDir, "extract_text.py")
-	if err := os.WriteFile(scriptPath, []byte(pythonScript), 0644); err != nil {
+	scriptPath := filepath.Join(tempDir, "extract_text_"+uuid.New().String()+".py")
+	if err := os.WriteFile(scriptPath, []byte(pythonScript), 0755); err != nil {
 		return nil, fmt.Errorf("failed to create Python script: %w", err)
 	}
 	defer os.Remove(scriptPath)
 
-	// Execute Python script
 	cmd := exec.Command("python3", scriptPath, pdfPath)
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute extraction script: %w", err)
+		return nil, fmt.Errorf("failed to execute Python script: %w", err)
 	}
 
-	// Parse output
+	var result map[string]interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse Python output: %w", err)
+	}
+
+	if errMsg, exists := result["error"]; exists {
+		return nil, fmt.Errorf("Python script error: %v", errMsg)
+	}
+
 	var data PDFTextData
 	if err := json.Unmarshal(output, &data); err != nil {
-		return nil, fmt.Errorf("failed to parse extraction output: %w", err)
+		return nil, fmt.Errorf("failed to convert Python output: %w", err)
 	}
 
 	return &data, nil
 }
 
-// Helper function to create PDF from edited data using Python script
+// createPDFFromData creates a PDF from text data using Python
 func (h *PDFTextEditorHandler) createPDFFromData(data PDFTextData, outputPath string) error {
-	// Create a temporary Python script
-	pythonScript := `
-import json
+	pythonScript := `#!/usr/bin/env python3
 import sys
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+import json
+
+try:
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.colors import Color
+except ImportError:
+    print("ReportLab not installed")
+    sys.exit(1)
 
 def create_pdf_from_json(data, output_path):
-    c = canvas.Canvas(output_path, pagesize=letter)
-    
-    for page in data["pages"]:
-        c.setPageSize((page["width"], page["height"]))
+    try:
+        c = canvas.Canvas(output_path)
         
-        for text_info in page["texts"]:
-            try:
-                c.setFont(text_info["font"], text_info["size"])
-            except:
-                c.setFont("Helvetica", text_info["size"])  # Fallback font
+        for page in data["pages"]:
+            # Set page size
+            page_width = page.get("width", 612)
+            page_height = page.get("height", 792)
+            c.setPageSize((page_width, page_height))
             
-            # Convert color
-            color_int = text_info["color"]
-            r = ((color_int >> 16) & 255) / 255.0
-            g = ((color_int >> 8) & 255) / 255.0
-            b = (color_int & 255) / 255.0
-            c.setFillColorRGB(r, g, b)
+            for text_info in page["texts"]:
+                try:
+                    # Set font
+                    font_name = text_info.get("font", "Helvetica")
+                    font_size = text_info.get("size", 12)
+                    
+                    # Map font names to ReportLab fonts
+                    if "Times" in font_name:
+                        if "Bold" in font_name:
+                            font_name = "Times-Bold"
+                        elif "Italic" in font_name:
+                            font_name = "Times-Italic"
+                        else:
+                            font_name = "Times-Roman"
+                    elif "Courier" in font_name:
+                        if "Bold" in font_name:
+                            font_name = "Courier-Bold"
+                        elif "Oblique" in font_name:
+                            font_name = "Courier-Oblique"
+                        else:
+                            font_name = "Courier"
+                    else:
+                        if "Bold" in font_name:
+                            font_name = "Helvetica-Bold"
+                        elif "Oblique" in font_name or "Italic" in font_name:
+                            font_name = "Helvetica-Oblique"
+                        else:
+                            font_name = "Helvetica"
+                    
+                    c.setFont(font_name, font_size)
+                    
+                    # Set color
+                    color_int = text_info.get("color", 0)
+                    if color_int == 0:
+                        c.setFillColorRGB(0, 0, 0)  # Black
+                    else:
+                        r = ((color_int >> 16) & 255) / 255.0
+                        g = ((color_int >> 8) & 255) / 255.0
+                        b = (color_int & 255) / 255.0
+                        c.setFillColorRGB(r, g, b)
+                    
+                    # Draw text
+                    x = text_info.get("x0", 0)
+                    y = page_height - text_info.get("y0", 0)  # Flip Y coordinate
+                    text = text_info.get("text", "")
+                    
+                    c.drawString(x, y, text)
+                    
+                except Exception as e:
+                    print(f"Error drawing text block: {e}")
+                    continue
             
-            # Draw text (adjust Y coordinate)
-            c.drawString(text_info["x0"], page["height"] - text_info["y0"], text_info["text"])
+            c.showPage()
         
-        c.showPage()
-    
-    c.save()
+        c.save()
+        print("PDF created successfully")
+        
+    except Exception as e:
+        print(f"Error creating PDF: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    data_str = sys.argv[1]
+    if len(sys.argv) != 3:
+        print("Usage: script.py <json_data> <output_path>")
+        sys.exit(1)
+    
+    json_data = sys.argv[1]
     output_path = sys.argv[2]
-    data = json.loads(data_str)
-    create_pdf_from_json(data, output_path)
+    
+    try:
+        data = json.loads(json_data)
+        create_pdf_from_json(data, output_path)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 `
 
-	// Write Python script to temp file
 	tempDir := h.config.TempDir
-	scriptPath := filepath.Join(tempDir, "create_pdf.py")
-	if err := os.WriteFile(scriptPath, []byte(pythonScript), 0644); err != nil {
+	scriptPath := filepath.Join(tempDir, "create_pdf_"+uuid.New().String()+".py")
+	if err := os.WriteFile(scriptPath, []byte(pythonScript), 0755); err != nil {
 		return fmt.Errorf("failed to create Python script: %w", err)
 	}
 	defer os.Remove(scriptPath)
 
-	// Convert data to JSON string
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	// Execute Python script
 	cmd := exec.Command("python3", scriptPath, string(jsonData), outputPath)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to execute PDF creation script: %w", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to execute PDF creation script: %w, output: %s", err, string(output))
 	}
 
 	return nil
