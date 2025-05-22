@@ -22,7 +22,7 @@ jobs:
         id: vars
         run: |
           echo "MAX_AGE=${{ github.event.inputs.maxAge || '60' }}" >> $GITHUB_ENV
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL || 'https://mega-pdf.com' }}" >> $GITHUB_ENV
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL || 'https://api.mega-pdf.com' }}" >> $GITHUB_ENV
 
       - name: Login to get JWT token
         id: login
