@@ -217,7 +217,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		api.POST("/track-usage", middleware.AuthMiddleware(cfg.JWTSecret), trackUsageHandler.TrackOperation)
 		fmt.Println("Registering route: /api/ocr")
 		api.POST("/ocr", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.OcrPdf)
-
 		fmt.Println("Registering route: /api/ocr/extract")
 		api.POST("/ocr/extract", middleware.ApiKeyMiddleware(keyValidationService), ocrHandler.ExtractText)
 		api.GET("/pricing", adminHandler.GetPricingSettings)
@@ -270,6 +269,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		pdf.Use(middleware.PDFToolAvailabilityMiddleware())
 		pdf.Use(middleware.ApiKeyMiddleware(keyValidationService))
 		{
+			pdf.GET("/cleanup", cleanupHandler.Cleanup)
 			fmt.Println("Registering route: /api/pdf/compress")
 			pdf.POST("/compress", pdfHandler.CompressPDF)
 
@@ -333,7 +333,7 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		admin.Use(middleware.AdminMiddleware())
 		{
-			admin.GET("/cleanup", cleanupHandler.Cleanup)
+
 			admin.GET("/dashboard", adminHandler.GetDashboardStats)
 			admin.GET("/users", adminHandler.GetUsers)
 			admin.GET("/users/:id", adminHandler.GetUser)

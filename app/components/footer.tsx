@@ -77,29 +77,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">
-              {t("footer.contactUs") || "Contact Us"}
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <Mail className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  support@mega-pdf.com
-                </span>
-              </li>
-              <li className="flex items-start">
-                <Phone className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  +6281369978737
-                </span>
-              </li>
-              <li className="flex items-start">
-                <MapPin className="h-5 w-5 mr-2 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  {"Pangkalpinang, 33124"}
-                </span>
-              </li>
-            </ul>
+           
           </div>
 
           <div className="space-y-4">

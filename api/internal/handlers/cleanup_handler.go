@@ -96,8 +96,9 @@ func (h *CleanupHandler) cleanupFiles(threshold time.Time, verbose bool) (*Clean
 		filepath.Join(h.config.PublicDir, "processed"),
 		filepath.Join(h.config.PublicDir, "watermarked"),
 		filepath.Join(h.config.PublicDir, "compressed"),
+		filepath.Join(h.config.PublicDir, "conversions"),
 		filepath.Join(h.config.PublicDir, "merged"),
-		filepath.Join(h.config.PublicDir, "split"),
+		filepath.Join(h.config.PublicDir, "splits"),
 	}
 
 	// Append public directories to the list if they exist
@@ -184,7 +185,7 @@ func isPDFOrTempFile(filename string) bool {
 	// Check for temp file patterns
 	tempPatterns := []string{
 		".tmp", ".temp", ".part",
-		"watermark", "compressed", "merged", "split",
+		"watermark", "compressed", "merged", "splits",
 		"rotated", "protected", "signed", "unlocked", "ocr", "pagenumbers", "rotations", "watermarked", "conversions",
 	}
 

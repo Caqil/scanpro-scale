@@ -22,48 +22,15 @@ jobs:
         id: vars
         run: |
           echo "MAX_AGE=${{ github.event.inputs.maxAge || '60' }}" >> $GITHUB_ENV
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL || 'https://api.mega-pdf.com' }}" >> $GITHUB_ENV
+          echo "API_URL=${{ secrets.API_URL }}" >> $GITHUB_ENV
 
-      - name: Login to get JWT token
-        id: login
-        run: |
-          # Login and extract token
-          LOGIN_RESPONSE=$(curl -s -X POST "${{ env.API_BASE_URL }}/api/auth/login" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "email": "${{ secrets.ADMIN_EMAIL }}",
-              "password": "${{ secrets.ADMIN_PASSWORD }}"
-            }')
-
-          # Check for errors
-          if echo "$LOGIN_RESPONSE" | grep -q "error"; then
-            echo "Login failed with response:"
-            echo "$LOGIN_RESPONSE"
-            exit 1
-          fi
-
-          # Extract token
-          TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
-
-          if [ -z "$TOKEN" ]; then
-            echo "Failed to extract token from response:"
-            echo "$LOGIN_RESPONSE"
-            exit 1
-          fi
-
-          # Save token in a secure way
-          echo "::add-mask::$TOKEN"
-          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
-
-          echo "Successfully logged in and obtained JWT token"
-
-      - name: Run cleanup with JWT authentication
+      - name: Run cleanup with API key authentication
         run: |
           echo "Running cleanup for files older than ${{ env.MAX_AGE }} minutes..."
 
           CLEANUP_RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X GET "${{ env.API_BASE_URL }}/api/admin/cleanup?maxAge=${{ env.MAX_AGE }}" \
-            -H "Authorization: Bearer ${{ env.TOKEN }}")
+            -X GET "${{ env.API_URL }}?maxAge=${{ env.MAX_AGE }}" \
+            -H "X-API-Key: ${{ secrets.API_KEY }}")
 
           HTTP_CODE=$(echo "$CLEANUP_RESPONSE" | tail -n1)
           RESPONSE_BODY=$(echo "$CLEANUP_RESPONSE" | sed '$d')

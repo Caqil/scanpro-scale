@@ -2,10 +2,11 @@
 
 import React, { useState, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useLanguageStore } from "@/src/store/store";
 import {
@@ -19,6 +20,8 @@ import {
   EyeIcon,
   SaveIcon,
   Trash2Icon,
+  FileTextIcon,
+  AlertTriangleIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,8 +29,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileDropzone } from "./dropzone";
 import { useAuth } from "@/src/context/auth-context";
+import { cn } from "@/lib/utils";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
@@ -290,42 +295,66 @@ export function PdfRemove() {
 
   const renderPageThumbnails = () => {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
         {pages.map((_, index) => {
           const isSelected = selectedPages.has(index);
           return (
             <div
               key={index}
-              className={`relative cursor-pointer transition-all duration-200 ${
-                isSelected ? "opacity-50" : ""
-              }`}
+              className={cn(
+                "relative cursor-pointer transition-all duration-200 group",
+                "rounded-lg border-2 overflow-hidden",
+                isSelected
+                  ? "border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              )}
               onClick={() => handlePageClick(index)}
             >
-              <div className="border rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow">
+              {/* Page Content */}
+              <div className="relative bg-white dark:bg-gray-900">
                 <Document file={file}>
                   <Page
                     pageNumber={index + 1}
-                    width={150}
+                    width={window.innerWidth < 640 ? 120 : 150}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
+                    className="w-full"
                   />
                 </Document>
+
+                {/* Selection Checkbox */}
                 <div className="absolute top-2 right-2 z-10">
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => {}}
                     onClick={(e) => handlePageSelect(e, index)}
-                    className="bg-white border-gray-400"
+                    className="bg-white shadow-md border-2 w-5 h-5 sm:w-6 sm:h-6"
                   />
                 </div>
+
+                {/* Selection Overlay */}
                 {isSelected && (
-                  <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex items-center justify-center pointer-events-none">
-                    <XCircleIcon className="h-12 w-12 text-red-500" />
+                  <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center pointer-events-none">
+                    <div className="bg-red-500 rounded-full p-2 sm:p-3">
+                      <XCircleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                    </div>
                   </div>
                 )}
+
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
               </div>
-              <div className="text-center mt-2 text-sm font-medium">
-                {t("removePdf.page") || "Page"} {index + 1}
+
+              {/* Page Label */}
+              <div className="p-2 bg-gray-50 dark:bg-gray-800 text-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t("removePdf.page") || "Page"} {index + 1}
+                </span>
+                {isSelected && (
+                  <Badge variant="destructive" className="ml-2 text-xs">
+                    Remove
+                  </Badge>
+                )}
               </div>
             </div>
           );
@@ -347,192 +376,236 @@ export function PdfRemove() {
   // Show insufficient balance message
   if (insufficientBalance) {
     return (
-      <div className="bg-muted/30 rounded-lg p-4 w-full">
-        <div className="flex flex-col min-h-[600px] bg-background rounded-lg border shadow-sm">
-          <div className="flex-1 flex items-center justify-center p-6">
-            <Card className="w-full max-w-md">
-              <CardContent className="p-8 text-center">
-                <div className="mb-6 p-4 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 mx-auto w-20 h-20 flex items-center justify-center">
-                  <XCircleIcon className="h-10 w-10" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-3">
-                  {t("common.insufficientBalance") || "Insufficient Balance"}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {t("common.insufficientBalanceDesc") ||
-                    "You don't have enough balance to perform this operation. Please add funds to your account."}
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <Button variant="outline" onClick={reset}>
-                    <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    {t("ui.reupload") || "Start Over"}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      (window.location.href = "/dashboard/billing")
-                    }
-                  >
-                    {t("common.addFunds") || "Add Funds"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      <div className="w-full max-w-4xl mx-auto">
+        <Card className="border shadow-sm">
+          <CardContent className="p-6 sm:p-8">
+            <div className="text-center max-w-md mx-auto">
+              <div className="mb-6 p-4 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 mx-auto w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+                <AlertTriangleIcon className="h-8 w-8 sm:h-10 sm:w-10" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-3">
+                {t("common.insufficientBalance") || "Insufficient Balance"}
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm sm:text-base">
+                {t("common.insufficientBalanceDesc") ||
+                  "You don't have enough balance to perform this operation. Please add funds to your account."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={reset} size="sm">
+                  <RefreshCwIcon className="h-4 w-4 mr-2" />
+                  {t("ui.reupload") || "Start Over"}
+                </Button>
+                <Button
+                  onClick={() => (window.location.href = "/dashboard/billing")}
+                  size="sm"
+                >
+                  {t("common.addFunds") || "Add Funds"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="bg-muted/30 rounded-lg p-4 w-full">
-      <div className="flex flex-col min-h-[600px] bg-background rounded-lg border shadow-sm">
+    <div className="w-full max-w-6xl mx-auto">
+      <Card className="border shadow-sm">
         {/* File Upload Section */}
         {!file && (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <FileDropzone
-              multiple={false}
-              maxFiles={1}
-              acceptedFileTypes={{ "application/pdf": [".pdf"] }}
-              disabled={processing}
-              onFileAccepted={(acceptedFiles) => {
-                if (acceptedFiles.length > 0) {
-                  const uploadedFile = acceptedFiles[0];
-                  setFile(uploadedFile);
-                  setSelectedPages(new Set());
-                  setProcessedPdfUrl("");
-                  processPdf(uploadedFile);
+          <CardContent className="p-6 sm:p-8">
+            <div className="max-w-2xl mx-auto">
+              <FileDropzone
+                multiple={false}
+                maxFiles={1}
+                acceptedFileTypes={{ "application/pdf": [".pdf"] }}
+                disabled={processing}
+                onFileAccepted={(acceptedFiles) => {
+                  if (acceptedFiles.length > 0) {
+                    const uploadedFile = acceptedFiles[0];
+                    setFile(uploadedFile);
+                    setSelectedPages(new Set());
+                    setProcessedPdfUrl("");
+                    processPdf(uploadedFile);
+                  }
+                }}
+                title={t("removePdf.uploadTitle") || "Upload Your PDF"}
+                description={
+                  t("removePdf.uploadDesc") ||
+                  "Upload a PDF file to remove pages. Your file will be processed securely."
                 }
-              }}
-              title={t("removePdf.uploadTitle") || "Upload Your PDF"}
-              description={
-                t("removePdf.uploadDesc") ||
-                "Upload a PDF file to remove pages. Your file will be processed securely."
-              }
-              browseButtonText={t("ui.browse") || "Browse Files"}
-              browseButtonVariant="default"
-              securityText={
-                t("ui.filesSecurity") ||
-                "Your files are secure and never stored permanently"
-              }
-            />
-          </div>
+                browseButtonText={t("ui.browse") || "Browse Files"}
+                browseButtonVariant="default"
+                securityText={
+                  t("ui.filesSecurity") ||
+                  "Your files are secure and never stored permanently"
+                }
+              />
+            </div>
+          </CardContent>
         )}
 
         {/* Page Selection Section */}
         {file && !processing && !processedPdfUrl && pages.length > 0 && (
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-semibold">
-                  {t("removePdf.selectPages") || "Select Pages to Remove"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {t("removePdf.selectPagesDesc") ||
-                    "Click on pages to mark them for removal"}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedPages.size}{" "}
-                  {t("removePdf.pagesSelected") || "pages selected"} ·{" "}
-                  {getRemainingPages().length}{" "}
-                  {t("removePdf.pagesRemaining") || "pages remaining"}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => reset()}>
-                  <RefreshCwIcon className="h-4 w-4 mr-2" />
-                  {t("ui.clearAll") || "Clear All"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  <CheckIcon className="h-4 w-4 mr-2" />
-                  {selectedPages.size === pages.length - 1
-                    ? t("removePdf.clearSelection") || "Clear Selection"
-                    : t("removePdf.selectMax") || "Select Max"}
-                </Button>
-                {selectedPages.size > 0 && (
-                  <Button size="sm" onClick={handleSaveDocument}>
-                    <SaveIcon className="h-4 w-4 mr-2" />
-                    {t("removePdf.saveDocument") || "Save Document"}
-                  </Button>
-                )}
-              </div>
-            </div>
+          <>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-2">
+                  <CardTitle className="text-lg sm:text-xl">
+                    <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 inline mr-2" />
+                    {t("removePdf.selectPages") || "Select Pages to Remove"}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {t("removePdf.selectPagesDesc") ||
+                      "Click on pages to mark them for removal"}
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Badge variant="destructive" className="text-xs">
+                      {selectedPages.size}{" "}
+                      {t("removePdf.pagesSelected") || "pages selected"}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {getRemainingPages().length}{" "}
+                      {t("removePdf.pagesRemaining") || "pages remaining"}
+                    </Badge>
+                  </div>
+                </div>
 
-            {renderPageThumbnails()}
-          </div>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => reset()}
+                    className="text-xs sm:text-sm"
+                  >
+                    <RefreshCwIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {t("ui.clearAll") || "Clear All"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="text-xs sm:text-sm"
+                  >
+                    <CheckIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {selectedPages.size === pages.length - 1
+                      ? t("removePdf.clearSelection") || "Clear Selection"
+                      : t("removePdf.selectMax") || "Select Max"}
+                  </Button>
+                  {selectedPages.size > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={handleSaveDocument}
+                      className="text-xs sm:text-sm"
+                    >
+                      <SaveIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      {t("removePdf.saveDocument") || "Save Document"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              {/* Warning Alert */}
+              {selectedPages.size > 0 && (
+                <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
+                  <AlertTriangleIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
+                    {selectedPages.size === 1
+                      ? `1 page will be removed from your PDF.`
+                      : `${selectedPages.size} pages will be removed from your PDF.`}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Page Thumbnails */}
+              <div className="space-y-4">{renderPageThumbnails()}</div>
+            </CardContent>
+          </>
         )}
 
         {/* Processing Section */}
         {file && processing && !processedPdfUrl && (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="bg-background rounded-lg p-8 shadow-sm border w-96 text-center">
-              <LoaderIcon className="h-16 w-16 animate-spin text-primary mb-6 mx-auto" />
-              <h3 className="text-xl font-semibold mb-3">
+          <CardContent className="p-6 sm:p-8">
+            <div className="text-center max-w-md mx-auto">
+              <LoaderIcon className="h-12 w-12 sm:h-16 sm:w-16 animate-spin text-primary mb-6 mx-auto" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">
                 {t("removePdf.processing") || "Processing PDF..."}
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                 {t("removePdf.messages.processing") ||
                   "Please wait while we process your PDF."}
               </p>
-              <Progress value={progress} className="w-full h-2" />
+              <div className="space-y-2">
+                <Progress value={progress} className="w-full h-2" />
+                <p className="text-xs text-muted-foreground">
+                  {progress}% complete
+                </p>
+              </div>
             </div>
-          </div>
+          </CardContent>
         )}
 
         {/* Success Section */}
         {file && !processing && processedPdfUrl && (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <Card className="w-full max-w-md">
-              <CardContent className="p-8 text-center">
-                <div className="mb-6 p-4 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 mx-auto w-20 h-20 flex items-center justify-center">
-                  <CheckIcon className="h-10 w-10" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-3">
-                  {t("removePdf.messages.success") ||
-                    "Pages Removed Successfully!"}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {t("removePdf.messages.downloadReady") ||
-                    "Your processed PDF is ready for download."}
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <Button variant="outline" onClick={reset}>
-                    <RefreshCwIcon className="h-4 w-4 mr-2" />
-                    {t("ui.reupload") || "Start Over"}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      window.open(
-                        `${process.env.NEXT_PUBLIC_API_URL}${processedPdfUrl}`,
-                        "_blank"
-                      )
-                    }
-                  >
-                    <DownloadIcon className="h-4 w-4 mr-2" />
-                    {t("ui.download") || "Download"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <CardContent className="p-6 sm:p-8">
+            <div className="text-center max-w-md mx-auto">
+              <div className="mb-6 p-4 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 mx-auto w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+                <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-3">
+                {t("removePdf.messages.success") ||
+                  "Pages Removed Successfully!"}
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm sm:text-base">
+                {t("removePdf.messages.downloadReady") ||
+                  "Your processed PDF is ready for download."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={reset} size="sm">
+                  <RefreshCwIcon className="h-4 w-4 mr-2" />
+                  {t("ui.reupload") || "Start Over"}
+                </Button>
+                <Button
+                  onClick={() =>
+                    window.open(
+                      `${process.env.NEXT_PUBLIC_API_URL}${processedPdfUrl}`,
+                      "_blank"
+                    )
+                  }
+                  size="sm"
+                >
+                  <DownloadIcon className="h-4 w-4 mr-2" />
+                  {t("ui.download") || "Download"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
         )}
 
         {/* Error Section */}
         {error && (
-          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
-            <Card className="w-full max-w-md">
-              <CardContent className="p-8 text-center">
-                <div className="mb-6 p-4 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 mx-auto w-20 h-20 flex items-center justify-center">
-                  <XCircleIcon className="h-10 w-10" />
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+            <Card className="w-full max-w-md mx-4">
+              <CardContent className="p-6 sm:p-8 text-center">
+                <div className="mb-6 p-4 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 mx-auto w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+                  <XCircleIcon className="h-8 w-8 sm:h-10 sm:w-10" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-3">
+                <h3 className="text-xl sm:text-2xl font-semibold mb-3">
                   {t("common.error") || "Error"}
                 </h3>
-                <p className="text-muted-foreground mb-6">{error}</p>
+                <p className="text-muted-foreground mb-6 text-sm sm:text-base">
+                  {error}
+                </p>
                 <Button
                   onClick={() => {
                     setError(null);
                     setProcessing(false);
                   }}
+                  size="sm"
                 >
                   {t("ui.tryAgain") || "Try Again"}
                 </Button>
@@ -540,25 +613,26 @@ export function PdfRemove() {
             </Card>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Page Preview Modal */}
       <Dialog
         open={previewPage !== null}
         onOpenChange={() => setPreviewPage(null)}
       >
-        <DialogContent className="w-[90vw] max-w-6xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 pb-2">
-            <DialogTitle>
+        <DialogContent className="w-[95vw] sm:w-[90vw] max-w-6xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-4 pb-2 border-b">
+            <DialogTitle className="text-lg sm:text-xl">
               {t("removePdf.pagePreview") || "Page Preview"}{" "}
               {previewPage !== null ? previewPage + 1 : ""}
             </DialogTitle>
           </DialogHeader>
 
           {previewPage !== null && (
-            <div className="flex flex-col flex-1 p-4 pt-0 gap-3">
-              {/* Zoom Controls */}
-              <div className="flex items-center justify-between flex-shrink-0">
+            <div className="flex flex-col flex-1 p-4 pt-0 gap-3 min-h-0">
+              {/* Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-shrink-0">
+                {/* Zoom Controls */}
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -589,10 +663,12 @@ export function PdfRemove() {
                     onClick={() => setPreviewScale(1)}
                   >
                     <EyeIcon className="h-4 w-4 mr-2" />
-                    Fit
+                    <span className="hidden sm:inline">Fit</span>
                   </Button>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Action Button */}
+                <div className="flex justify-center sm:justify-end">
                   {selectedPages.has(previewPage) ? (
                     <Button
                       variant="destructive"
@@ -600,8 +676,11 @@ export function PdfRemove() {
                       onClick={(e) => handlePageSelect(e, previewPage)}
                     >
                       <XCircleIcon className="h-4 w-4 mr-2" />
-                      {t("removePdf.removeFromDocument") ||
-                        "Remove from Document"}
+                      <span className="hidden sm:inline">
+                        {t("removePdf.removeFromDocument") ||
+                          "Remove from Document"}
+                      </span>
+                      <span className="sm:hidden">Remove</span>
                     </Button>
                   ) : (
                     <Button
@@ -611,14 +690,17 @@ export function PdfRemove() {
                       disabled={selectedPages.size >= pages.length - 1}
                     >
                       <Trash2Icon className="h-4 w-4 mr-2" />
-                      {t("removePdf.markForRemoval") || "Mark for Removal"}
+                      <span className="hidden sm:inline">
+                        {t("removePdf.markForRemoval") || "Mark for Removal"}
+                      </span>
+                      <span className="sm:hidden">Mark</span>
                     </Button>
                   )}
                 </div>
               </div>
 
               {/* Page Display */}
-              <div className="flex-1 border rounded-lg bg-gray-50 overflow-auto min-h-0">
+              <div className="flex-1 border rounded-lg bg-gray-50 dark:bg-gray-900 overflow-auto min-h-0">
                 <div className="p-4 flex items-center justify-center min-h-full">
                   <div
                     style={{
@@ -631,7 +713,7 @@ export function PdfRemove() {
                         pageNumber={previewPage + 1}
                         renderTextLayer={false}
                         renderAnnotationLayer={false}
-                        height={window.innerHeight * 0.6}
+                        height={Math.min(window.innerHeight * 0.6, 800)}
                       />
                     </Document>
                   </div>
@@ -639,7 +721,7 @@ export function PdfRemove() {
               </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center flex-shrink-0">
+              <div className="flex justify-between items-center flex-shrink-0 gap-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -647,12 +729,16 @@ export function PdfRemove() {
                     setPreviewPage((prev) => Math.max(0, prev! - 1))
                   }
                   disabled={previewPage === 0}
+                  className="min-w-0"
                 >
-                  Previous Page
+                  <span className="hidden sm:inline">Previous Page</span>
+                  <span className="sm:hidden">Previous</span>
                 </Button>
-                <span className="text-sm font-medium">
-                  Page {previewPage + 1} of {pages.length}
-                </span>
+                <div className="text-center">
+                  <span className="text-sm font-medium">
+                    Page {previewPage + 1} of {pages.length}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -662,8 +748,10 @@ export function PdfRemove() {
                     )
                   }
                   disabled={previewPage === pages.length - 1}
+                  className="min-w-0"
                 >
-                  Next Page
+                  <span className="hidden sm:inline">Next Page</span>
+                  <span className="sm:hidden">Next</span>
                 </Button>
               </div>
             </div>
