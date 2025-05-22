@@ -26,10 +26,10 @@ jobs:
 
       - name: Run cleanup with API key authentication
         run: |
-          echo "Running cleanup for files older than ${{ env.MAX_AGE }} minutes..."
+          echo "Running cleanup for files older than 60 minutes..."
 
           CLEANUP_RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X GET "${{ env.API_URL }}?maxAge=${{ env.MAX_AGE }}" \
+            -X GET "${{ env.API_URL }}?maxAge=60" \
             -H "X-API-Key: ${{ secrets.API_KEY }}")
 
           HTTP_CODE=$(echo "$CLEANUP_RESPONSE" | tail -n1)
