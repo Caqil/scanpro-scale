@@ -301,6 +301,15 @@ export function PdfTools() {
           iconBg: "bg-green-100 dark:bg-yellow-900/30",
           apiToolId: "ocr", // Mapped to the API tool ID
         },
+        {
+          id: "edit-pdf",
+          name: t("pdfTextEditor.title"),
+          description: t("pdfTextEditor.description"),
+          icon: <ArrowRightIcon className="h-6 w-6 text-red-500" />,
+          iconBg: "bg-red-100 dark:bg-red-900/30",
+          href: "/edit-pdf",
+          apiToolId: "edit", // Mapped to the API tool ID
+        },
       ],
     },
     {

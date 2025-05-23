@@ -3811,12 +3811,12 @@ export default {
           "title": "Split PDF Pages Easily",
           "description": "Extract specific pages from PDF documents to create new files or reorganize content efficiently."
         },
-        "seoContent": {
+      "seoContent": {
       "title": "Advanced PDF Text Editing for Professional Documents",
       "paragraph1": "Our advanced PDF text editor offers professional-grade text editing capabilities for PDF documents. Unlike basic PDF editors, our tool ensures precise text modifications while preserving the exact positioning, formatting, and layout of your original PDF, delivering high-quality results for all users.",
       "paragraph2": "Utilizing cutting-edge algorithms, our PDF editor extracts text blocks, font details, and positioning data with unmatched accuracy. This ensures that your edited PDF maintains the professional appearance and integrity of the original document, making it ideal for critical updates.",
       "paragraph3": "Perfect for businesses, legal documents, forms, contracts, and any PDF requiring text changes without compromising the overall design. Edit PDF text online effortlessly, whether for professional, educational, or personal use, with our intuitive and powerful editing tools."
-    },
+      },
         "viewAllPDFTools": "View All PDF Tools for Comprehensive Document Management"
       }
     }

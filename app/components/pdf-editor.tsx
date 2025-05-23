@@ -1,8 +1,41 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Pencil1Icon,
+  Cross2Icon,
+  CheckIcon,
+  EyeOpenIcon,
+  MagnifyingGlassIcon,
+  ListBulletIcon,
+  TrashIcon,
+  DotsVerticalIcon,
+  CopyIcon,
+  ClipboardIcon,
+  ImageIcon,
+} from "@radix-ui/react-icons";
 
-// Types
+// Updated Types with Image Support
 interface TextBlock {
   text: string;
   x0: number;
@@ -12,6 +45,21 @@ interface TextBlock {
   font: string;
   size: number;
   color: number;
+  flags?: number;
+  width?: number;
+  height?: number;
+}
+
+interface ImageBlock {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  width: number;
+  height: number;
+  image_data: string; // base64 encoded
+  format: string;
+  image_id: string;
 }
 
 interface PDFPage {
@@ -19,10 +67,17 @@ interface PDFPage {
   width: number;
   height: number;
   texts: TextBlock[];
+  images: ImageBlock[];
 }
 
 interface PDFTextData {
   pages: PDFPage[];
+  metadata?: {
+    total_pages: number;
+    total_text_blocks: number;
+    total_images: number;
+    extraction_method: string;
+  };
 }
 
 // Utility function for class names
@@ -35,7 +90,6 @@ const showToast = (
   message: string,
   type: "success" | "error" | "info" = "info"
 ) => {
-  // Simple alert for now - in real app would use proper toast library
   if (type === "error") {
     alert(`Error: ${message}`);
   } else {
@@ -107,11 +161,11 @@ const EnhancedFileDropzone = ({ onFileAccepted, disabled }: any) => {
         </div>
         <div>
           <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            PDF Text Editor
+            PDF Text & Image Editor
           </h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-2 px-4">
-            Upload your PDF and edit text content directly with our advanced
-            editor
+            Upload your PDF and edit text content with full image preservation
+            using our advanced visual editor
           </p>
         </div>
       </div>
@@ -170,12 +224,12 @@ const EnhancedFileDropzone = ({ onFileAccepted, disabled }: any) => {
                 : "Choose PDF file or drag & drop"}
             </p>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Supports PDF files up to 50MB • Text will be extracted
+              Supports PDF files up to 50MB • Text and images will be extracted
               automatically
             </p>
           </div>
 
-          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 pointer-events-none">
+          <Button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 pointer-events-none">
             <svg
               className="h-4 w-4 mr-2"
               fill="none"
@@ -190,7 +244,7 @@ const EnhancedFileDropzone = ({ onFileAccepted, disabled }: any) => {
               />
             </svg>
             Browse Files
-          </button>
+          </Button>
         </div>
 
         {/* Animated border on drag */}
@@ -199,23 +253,23 @@ const EnhancedFileDropzone = ({ onFileAccepted, disabled }: any) => {
         )}
       </div>
 
-      {/* Features - Responsive Grid */}
+      {/* Features - Updated for images */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
           {
             icon: "👁️",
             title: "Visual Editor",
-            desc: "Edit text with visual positioning",
+            desc: "Click and edit text directly",
           },
           {
-            icon: "📝",
-            title: "List Editor",
-            desc: "Organized text block editing",
+            icon: "🖼️",
+            title: "Image Support",
+            desc: "View and preserve all images",
           },
           {
             icon: "⚡",
-            title: "Instant Preview",
-            desc: "See changes in real-time",
+            title: "LibreOffice-like",
+            desc: "Familiar editing experience",
           },
         ].map((feature, i) => (
           <div
@@ -243,8 +297,9 @@ const EnhancedProgress = ({ progress, isUploading, isProcessing }: any) => {
   const getStageInfo = () => {
     if (isUploading) return { label: "Uploading PDF...", icon: "📤" };
     if (isProcessing) {
-      if (progress < 70)
+      if (progress < 40)
         return { label: "Extracting text blocks...", icon: "📄" };
+      if (progress < 70) return { label: "Extracting images...", icon: "🖼️" };
       if (progress < 90) return { label: "Analyzing structure...", icon: "⚙️" };
       return { label: "Finalizing...", icon: "✅" };
     }
@@ -283,76 +338,729 @@ const EnhancedProgress = ({ progress, isUploading, isProcessing }: any) => {
   );
 };
 
-// Mobile Action Menu
-const MobileActionMenu = ({
-  hasUnsavedChanges,
-  onSave,
-  onReset,
-  onStartOver,
-  isProcessing,
-}: any) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Enhanced Visual Text Editor Component with Image Support
+const LibreOfficeVisualEditor = ({
+  textBlocks,
+  imageBlocks,
+  pageWidth,
+  pageHeight,
+  onTextBlockUpdate,
+  onTextBlockDelete,
+  className = "",
+}: {
+  textBlocks: TextBlock[];
+  imageBlocks: ImageBlock[];
+  pageWidth: number;
+  pageHeight: number;
+  onTextBlockUpdate: (index: number, updatedBlock: TextBlock) => void;
+  onTextBlockDelete: (index: number) => void;
+  className?: string;
+}) => {
+  const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
+  const [selectedBlockType, setSelectedBlockType] = useState<"text" | "image">(
+    "text"
+  );
+  const [editingBlock, setEditingBlock] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [scale, setScale] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlightedBlocks, setHighlightedBlocks] = useState<number[]>([]);
+  const [copiedText, setCopiedText] = useState("");
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+  const [containerSize, setContainerSize] = useState({
+    width: 800,
+    height: 600,
+  });
+
+  // Calculate scale to fit the page in the container
+  useEffect(() => {
+    const updateScale = () => {
+      if (canvasRef.current) {
+        const containerWidth = canvasRef.current.clientWidth - 40;
+        const containerHeight = Math.min(700, window.innerHeight * 0.7);
+        const scaleX = containerWidth / pageWidth;
+        const scaleY = containerHeight / pageHeight;
+        const newScale = Math.min(scaleX, scaleY, 1.5);
+        setScale(newScale);
+        setContainerSize({ width: containerWidth, height: containerHeight });
+      }
+    };
+
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [pageWidth, pageHeight]);
+
+  // Search functionality (text only)
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const matches = textBlocks
+        .map((block, index) => ({ block, index }))
+        .filter(({ block }) =>
+          block.text.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map(({ index }) => index);
+      setHighlightedBlocks(matches);
+    } else {
+      setHighlightedBlocks([]);
+    }
+  }, [searchTerm, textBlocks]);
+
+  // Auto-focus on edit input
+  useEffect(() => {
+    if (editingBlock !== null && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingBlock]);
+
+  const handleBlockClick = (
+    index: number,
+    type: "text" | "image",
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation();
+
+    if (type === "image") {
+      // For images, just select but don't edit
+      setSelectedBlock(index);
+      setSelectedBlockType("image");
+      setEditingBlock(null);
+      setEditingText("");
+      return;
+    }
+
+    // Text block handling
+    if (editingBlock === index && selectedBlockType === "text") {
+      return;
+    }
+
+    // If we're editing another block, save it first
+    if (
+      editingBlock !== null &&
+      selectedBlockType === "text" &&
+      editingText !== textBlocks[editingBlock].text
+    ) {
+      const updatedBlock = { ...textBlocks[editingBlock], text: editingText };
+      onTextBlockUpdate(editingBlock, updatedBlock);
+    }
+
+    // Start editing this text block
+    setSelectedBlock(index);
+    setSelectedBlockType("text");
+    setEditingBlock(index);
+    setEditingText(textBlocks[index].text);
+  };
+
+  const handleCanvasClick = () => {
+    // Save current editing if any
+    if (
+      editingBlock !== null &&
+      selectedBlockType === "text" &&
+      editingText !== textBlocks[editingBlock].text
+    ) {
+      const updatedBlock = { ...textBlocks[editingBlock], text: editingText };
+      onTextBlockUpdate(editingBlock, updatedBlock);
+    }
+
+    setSelectedBlock(null);
+    setSelectedBlockType("text");
+    setEditingBlock(null);
+    setEditingText("");
+  };
+
+  const handleTextChange = (newText: string) => {
+    setEditingText(newText);
+  };
+
+  const handleTextKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSaveEdit();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancelEdit();
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editingBlock !== null && selectedBlockType === "text") {
+      const updatedBlock = { ...textBlocks[editingBlock], text: editingText };
+      onTextBlockUpdate(editingBlock, updatedBlock);
+      setEditingBlock(null);
+      setEditingText("");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBlock(null);
+    setEditingText("");
+  };
+
+  const handleDeleteBlock = (index: number) => {
+    if (selectedBlockType === "text") {
+      if (window.confirm("Are you sure you want to delete this text block?")) {
+        onTextBlockDelete(index);
+        setSelectedBlock(null);
+        setEditingBlock(null);
+      }
+    }
+  };
+
+  const handleCopyText = (text: string) => {
+    setCopiedText(text);
+    navigator.clipboard.writeText(text);
+    showToast("Text copied to clipboard", "success");
+  };
+
+  const handlePasteText = (index: number) => {
+    if (copiedText && selectedBlockType === "text") {
+      const updatedBlock = { ...textBlocks[index], text: copiedText };
+      onTextBlockUpdate(index, updatedBlock);
+      showToast("Text pasted", "success");
+    }
+  };
+
+  const getTextBlockStyle = (block: TextBlock, index: number) => {
+    const isSelected = selectedBlock === index && selectedBlockType === "text";
+    const isEditing = editingBlock === index;
+    const isHighlighted = highlightedBlocks.includes(index);
+
+    // Convert color integer to RGB
+    const r = (block.color >> 16) & 255;
+    const g = (block.color >> 8) & 255;
+    const b = block.color & 255;
+
+    // Calculate original dimensions
+    const originalWidth = (block.x1 - block.x0) * scale;
+    const originalHeight = (block.y1 - block.y0) * scale;
+
+    // Minimum touch-friendly dimensions
+    const minTouchSize = 44;
+    const minWidth = Math.max(originalWidth, minTouchSize);
+    const minHeight = Math.max(originalHeight, Math.max(minTouchSize, 20));
+
+    // Calculate centering offset for small blocks
+    const widthOffset = Math.max(0, (minWidth - originalWidth) / 2);
+    const heightOffset = Math.max(0, (minHeight - originalHeight) / 2);
+
+    return {
+      position: "absolute" as const,
+      left: block.x0 * scale - widthOffset,
+      top: block.y0 * scale - heightOffset,
+      width: minWidth,
+      height: minHeight,
+      minWidth: minTouchSize,
+      minHeight: Math.max(minTouchSize, 20),
+      fontSize: Math.max(block.size * scale * 0.8, 10),
+      fontFamily: block.font.includes("Times")
+        ? "Times, serif"
+        : block.font.includes("Courier")
+        ? "Courier, monospace"
+        : "Arial, sans-serif",
+      border: isEditing
+        ? "2px solid #10b981"
+        : isSelected
+        ? "2px solid #3b82f6"
+        : isHighlighted
+        ? "2px solid #f59e0b"
+        : originalWidth < 30 || originalHeight < 20
+        ? "2px dashed rgba(59, 130, 246, 0.5)"
+        : "1px solid rgba(59, 130, 246, 0.2)",
+      backgroundColor: isEditing
+        ? "rgba(16, 185, 129, 0.15)"
+        : isSelected
+        ? "rgba(59, 130, 246, 0.15)"
+        : isHighlighted
+        ? "rgba(245, 158, 11, 0.15)"
+        : originalWidth < 30 || originalHeight < 20
+        ? "rgba(59, 130, 246, 0.1)"
+        : "rgba(255, 255, 255, 0.8)",
+      cursor: isEditing ? "text" : "pointer",
+      padding: originalWidth < 30 ? "6px 8px" : "2px 4px",
+      borderRadius: "4px",
+      transition: "all 0.2s ease",
+      overflow: "hidden",
+      display: "flex",
+      alignItems: originalHeight < 20 ? "center" : "flex-start",
+      justifyContent: originalWidth < 30 ? "center" : "flex-start",
+      color: `rgb(${r}, ${g}, ${b})`,
+      lineHeight: "1.2",
+      wordWrap: "break-word" as const,
+      boxShadow: isEditing
+        ? "0 4px 12px rgba(16, 185, 129, 0.3)"
+        : isSelected
+        ? "0 2px 8px rgba(59, 130, 246, 0.3)"
+        : isHighlighted
+        ? "0 2px 8px rgba(245, 158, 11, 0.3)"
+        : originalWidth < 30 || originalHeight < 20
+        ? "0 2px 4px rgba(59, 130, 246, 0.2)"
+        : "none",
+      zIndex: isEditing ? 20 : isSelected ? 10 : isHighlighted ? 5 : 1,
+      outline:
+        originalWidth < 30 || originalHeight < 20
+          ? "1px dotted rgba(59, 130, 246, 0.3)"
+          : "none",
+      outlineOffset: "2px",
+    };
+  };
+
+  const getImageBlockStyle = (block: ImageBlock, index: number) => {
+    const isSelected = selectedBlock === index && selectedBlockType === "image";
+
+    return {
+      position: "absolute" as const,
+      left: block.x0 * scale,
+      top: block.y0 * scale,
+      width: block.width * scale,
+      height: block.height * scale,
+      border: isSelected
+        ? "3px solid #8b5cf6"
+        : "1px solid rgba(139, 92, 246, 0.3)",
+      borderRadius: "4px",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      overflow: "hidden",
+      boxShadow: isSelected
+        ? "0 4px 12px rgba(139, 92, 246, 0.4)"
+        : "0 1px 3px rgba(0, 0, 0, 0.1)",
+      zIndex: isSelected ? 8 : 2,
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+    };
+  };
+
+  const scaledPageWidth = pageWidth * scale;
+  const scaledPageHeight = pageHeight * scale;
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-      >
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+    <div className={`space-y-4 ${className}`}>
+      {/* Controls */}
+      <div className="space-y-4">
+        {/* Main controls */}
+        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+          <div className="flex items-center gap-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <EyeOpenIcon className="h-5 w-5" />
+              Visual Editor (LibreOffice-like)
+            </h3>
+            <div className="text-sm text-muted-foreground flex flex-wrap gap-2">
+              <span>{textBlocks.length} text blocks</span>
+              <span>•</span>
+              <span>{imageBlocks.length} images</span>
+              <span>•</span>
+              <span>Scale: {Math.round(scale * 100)}%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setScale(Math.max(0.2, scale - 0.1))}
+              disabled={scale <= 0.2}
+            >
+              Zoom Out
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setScale(Math.min(3, scale + 0.1))}
+              disabled={scale >= 3}
+            >
+              Zoom In
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (canvasRef.current) {
+                  const containerWidth = canvasRef.current.clientWidth - 40;
+                  const newScale = containerWidth / pageWidth;
+                  setScale(Math.min(newScale, 2));
+                }
+              }}
+            >
+              Fit Width
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setScale(1)}>
+              Reset Zoom
+            </Button>
+          </div>
+        </div>
 
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-          <div className="p-2">
-            <button
-              onClick={() => {
-                onSave();
-                setIsOpen(false);
-              }}
-              disabled={!hasUnsavedChanges || isProcessing}
-              className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+        {/* Search */}
+        <div className="flex items-center gap-2 p-3 bg-muted/20 rounded-lg">
+          <MagnifyingGlassIcon className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search text in this page..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+          {highlightedBlocks.length > 0 && (
+            <span className="text-sm text-muted-foreground">
+              {highlightedBlocks.length} matches
+            </span>
+          )}
+          {searchTerm && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchTerm("")}
             >
-              💾 Save PDF
-            </button>
-            <button
-              onClick={() => {
-                onReset();
-                setIsOpen(false);
-              }}
-              disabled={!hasUnsavedChanges}
-              className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p className="text-sm text-blue-700 dark:text-blue-300">
+          <strong>Click</strong> on any text to start editing directly.{" "}
+          <strong>Images</strong> are preserved and displayed but cannot be
+          edited. Small text blocks have enlarged click areas for easy tapping.{" "}
+          <strong>Enter</strong> to save, <strong>Escape</strong> to cancel.
+          Works just like LibreOffice!
+        </p>
+      </div>
+
+      {/* Visual Canvas */}
+      <div className="border rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
+        <div
+          ref={canvasRef}
+          className="relative bg-white dark:bg-gray-100 border border-gray-300 mx-auto overflow-auto shadow-lg"
+          style={{
+            width: Math.min(scaledPageWidth, containerSize.width),
+            height: Math.min(scaledPageHeight, containerSize.height),
+            maxWidth: "100%",
+            maxHeight: "75vh",
+          }}
+          onClick={handleCanvasClick}
+        >
+          {/* Page background grid */}
+          <div
+            className="absolute inset-0 opacity-5"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, #000 1px, transparent 1px),
+                linear-gradient(to bottom, #000 1px, transparent 1px)
+              `,
+              backgroundSize: `${25 * scale}px ${25 * scale}px`,
+            }}
+          />
+
+          {/* Page dimensions indicator */}
+          <div className="absolute top-2 left-2 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+            {Math.round(pageWidth)} × {Math.round(pageHeight)} px
+          </div>
+
+          {/* Content type indicator */}
+          <div className="absolute top-2 right-2 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+            📝 {textBlocks.length} text • 🖼️ {imageBlocks.length} images
+          </div>
+
+          {/* Image blocks (rendered first, behind text) */}
+          {imageBlocks.map((block, index) => (
+            <div
+              key={`image-${index}`}
+              style={getImageBlockStyle(block, index)}
+              onClick={(e) => handleBlockClick(index, "image", e)}
+              title={`Image: ${block.image_id} (${
+                block.format
+              })\nSize: ${Math.round(block.width)} × ${Math.round(
+                block.height
+              )} px`}
+              className="group hover:shadow-lg transition-all duration-200"
             >
-              🔄 Reset Changes
-            </button>
-            <button
-              onClick={() => {
-                onStartOver();
-                setIsOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 mt-1"
-            >
-              🆕 New PDF
-            </button>
+              {block.image_data && block.format !== "placeholder" ? (
+                <img
+                  src={`data:image/${block.format};base64,${block.image_data}`}
+                  alt={`Image ${index + 1}`}
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                />
+              ) : (
+                // Placeholder for missing images
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+                  <div className="text-center">
+                    <ImageIcon className="h-8 w-8 mx-auto mb-1" />
+                    <div className="text-xs">Image</div>
+                    <div className="text-xs">{block.format}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Image indicator */}
+              <div
+                className={`absolute -top-4 -left-1 w-6 h-4 rounded-full text-xs flex items-center justify-center font-bold text-white ${
+                  selectedBlock === index && selectedBlockType === "image"
+                    ? "bg-purple-600"
+                    : "bg-purple-400"
+                }`}
+              >
+                🖼️
+              </div>
+
+              {/* Image selection indicator */}
+              {selectedBlock === index && selectedBlockType === "image" && (
+                <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs text-purple-600 bg-white px-2 py-1 rounded shadow whitespace-nowrap">
+                  Image preserved in PDF
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Text blocks */}
+          {textBlocks.map((block, index) => {
+            const originalWidth = (block.x1 - block.x0) * scale;
+            const originalHeight = (block.y1 - block.y0) * scale;
+            const isSmallBlock = originalWidth < 30 || originalHeight < 20;
+
+            return (
+              <div
+                key={`text-${index}`}
+                style={getTextBlockStyle(block, index)}
+                onClick={(e) => handleBlockClick(index, "text", e)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                }}
+                title={
+                  editingBlock === index
+                    ? "Editing - Press Enter to save, Escape to cancel"
+                    : `Click to edit: "${block.text.substring(0, 50)}${
+                        block.text.length > 50 ? "..." : ""
+                      }"${
+                        isSmallBlock
+                          ? " (Small text - click anywhere in this area)"
+                          : ""
+                      }`
+                }
+                className={`group hover:shadow-lg transition-all duration-200 ${
+                  isSmallBlock
+                    ? "hover:scale-105 hover:bg-blue-50"
+                    : "hover:shadow-md"
+                }`}
+              >
+                {editingBlock === index ? (
+                  <textarea
+                    ref={editInputRef}
+                    value={editingText}
+                    onChange={(e) => handleTextChange(e.target.value)}
+                    onKeyDown={handleTextKeyDown}
+                    onBlur={handleSaveEdit}
+                    className="w-full h-full bg-transparent border-none outline-none resize-none p-0 m-0"
+                    style={{
+                      fontSize: "inherit",
+                      fontFamily: "inherit",
+                      color: "inherit",
+                      lineHeight: "1.2",
+                      minHeight: "20px",
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      fontSize: "inherit",
+                      lineHeight: "1.2",
+                      wordBreak: "break-word",
+                      display: "-webkit-box",
+                      WebkitLineClamp: Math.max(
+                        1,
+                        Math.floor(
+                          ((block.y1 - block.y0) * scale) /
+                            (block.size * scale * 1.2)
+                        )
+                      ),
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      width: "100%",
+                      textAlign: isSmallBlock ? "center" : "left",
+                    }}
+                  >
+                    {block.text}
+                  </span>
+                )}
+
+                {/* Enhanced action buttons for small blocks */}
+                {selectedBlock === index &&
+                  selectedBlockType === "text" &&
+                  editingBlock !== index && (
+                    <div
+                      className={`absolute ${
+                        isSmallBlock ? "-top-10" : "-top-8"
+                      } -right-1 flex gap-1 z-30`}
+                    >
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBlockClick(index, "text", e);
+                        }}
+                        title="Edit text"
+                      >
+                        <Pencil1Icon className="h-3 w-3" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DotsVerticalIcon className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            onClick={() => handleCopyText(block.text)}
+                          >
+                            <CopyIcon className="h-4 w-4 mr-2" />
+                            Copy Text
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handlePasteText(index)}
+                            disabled={!copiedText}
+                          >
+                            <ClipboardIcon className="h-4 w-4 mr-2" />
+                            Paste Text
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteBlock(index)}
+                            className="text-red-600"
+                          >
+                            <TrashIcon className="h-4 w-4 mr-2" />
+                            Delete Block
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
+
+                {/* Enhanced block number indicator */}
+                <div
+                  className={`absolute ${
+                    isSmallBlock ? "-top-6" : "-top-4"
+                  } -left-1 ${
+                    isSmallBlock ? "w-6 h-5" : "w-5 h-4"
+                  } rounded-full text-xs flex items-center justify-center font-bold text-white ${
+                    editingBlock === index
+                      ? "bg-green-600"
+                      : selectedBlock === index && selectedBlockType === "text"
+                      ? "bg-blue-600"
+                      : highlightedBlocks.includes(index)
+                      ? "bg-yellow-500"
+                      : "bg-gray-400"
+                  }`}
+                >
+                  {index + 1}
+                </div>
+
+                {/* Small block indicator */}
+                {isSmallBlock &&
+                  selectedBlock !== index &&
+                  editingBlock !== index && (
+                    <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs text-blue-600 bg-white px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Small text - click to edit
+                    </div>
+                  )}
+              </div>
+            );
+          })}
+
+          {/* Empty state */}
+          {textBlocks.length === 0 && imageBlocks.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <Pencil1Icon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No content found on this page</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Current editing info */}
+      {editingBlock !== null && (
+        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-green-800 dark:text-green-200">
+              Editing Text Block #{editingBlock + 1}
+            </h4>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSaveEdit} variant="default">
+                <CheckIcon className="h-4 w-4 mr-1" />
+                Save
+              </Button>
+              <Button size="sm" onClick={handleCancelEdit} variant="outline">
+                <Cross2Icon className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+          <p className="text-sm text-green-700 dark:text-green-300">
+            Characters: {editingText.length} | Press Enter to save, Escape to
+            cancel
+          </p>
+        </div>
+      )}
+
+      {/* Selected image info */}
+      {selectedBlock !== null && selectedBlockType === "image" && (
+        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-purple-800 dark:text-purple-200">
+              Selected Image #{selectedBlock + 1}
+            </h4>
+          </div>
+          <div className="text-sm text-purple-700 dark:text-purple-300">
+            <p>Format: {imageBlocks[selectedBlock].format}</p>
+            <p>
+              Size: {Math.round(imageBlocks[selectedBlock].width)} ×{" "}
+              {Math.round(imageBlocks[selectedBlock].height)} px
+            </p>
+            <p>Images are preserved automatically when saving the PDF</p>
           </div>
         </div>
       )}
 
-      {/* Backdrop */}
-      {isOpen && (
-        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+      {/* Search Results Summary */}
+      {highlightedBlocks.length > 0 && (
+        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MagnifyingGlassIcon className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                Found {highlightedBlocks.length} text matches for "{searchTerm}"
+              </span>
+            </div>
+            <div className="flex gap-1">
+              {highlightedBlocks.slice(0, 5).map((blockIndex) => (
+                <Button
+                  key={blockIndex}
+                  size="sm"
+                  variant="outline"
+                  className="h-6 w-8 p-0 text-xs"
+                  onClick={() => {
+                    setSelectedBlock(blockIndex);
+                    setSelectedBlockType("text");
+                  }}
+                >
+                  {blockIndex + 1}
+                </Button>
+              ))}
+              {highlightedBlocks.length > 5 && (
+                <span className="text-xs text-muted-foreground flex items-center">
+                  +{highlightedBlocks.length - 5} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -374,7 +1082,7 @@ export function PdfTextEditor() {
     null
   );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [activeTab, setActiveTab] = useState("list");
+  const [activeTab, setActiveTab] = useState("visual");
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if mobile on mount and resize
@@ -388,7 +1096,7 @@ export function PdfTextEditor() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fixed keyboard shortcuts
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -452,7 +1160,7 @@ export function PdfTextEditor() {
     setIsProcessing(false);
     setIsUploading(false);
     setProgress(0);
-    setActiveTab("list");
+    setActiveTab("visual");
   }, [hasUnsavedChanges]);
 
   const handleFileUpload = async (acceptedFiles: File[]) => {
@@ -460,7 +1168,6 @@ export function PdfTextEditor() {
 
     const pdfFile = acceptedFiles[0];
 
-    // Validate file size
     if (pdfFile.size > 50 * 1024 * 1024) {
       showToast(
         "File too large - Please select a file smaller than 50MB",
@@ -528,14 +1235,20 @@ export function PdfTextEditor() {
                     0
                   );
 
+                  const totalImages = data.extractedData.pages.reduce(
+                    (sum: number, page: PDFPage) =>
+                      sum + (page.images?.length || 0),
+                    0
+                  );
+
                   showToast(
-                    `Text extracted successfully! Found ${data.extractedData.pages.length} pages with ${totalBlocks} text blocks`,
+                    `Content extracted successfully! Found ${data.extractedData.pages.length} pages with ${totalBlocks} text blocks and ${totalImages} images`,
                     "success"
                   );
                 } else {
-                  setError("No text found in the PDF");
+                  setError("No content found in the PDF");
                   showToast(
-                    "No text found - The PDF appears to be empty or contains only images",
+                    "No content found - The PDF appears to be empty or password protected",
                     "error"
                   );
                 }
@@ -548,16 +1261,16 @@ export function PdfTextEditor() {
 
           try {
             const errorData = JSON.parse(xhr.responseText);
-            setError(errorData.error || "Text extraction failed");
+            setError(errorData.error || "Content extraction failed");
             showToast(
-              `Text extraction failed: ${
+              `Content extraction failed: ${
                 errorData.error || "Unknown error occurred"
               }`,
               "error"
             );
           } catch (e) {
             setError("Unknown error occurred");
-            showToast("Text extraction failed", "error");
+            showToast("Content extraction failed", "error");
           }
         }
       };
@@ -576,7 +1289,7 @@ export function PdfTextEditor() {
       setIsProcessing(false);
       setProgress(0);
       setError("Unknown error occurred");
-      showToast("Text extraction failed", "error");
+      showToast("Content extraction failed", "error");
     }
   };
 
@@ -600,7 +1313,6 @@ export function PdfTextEditor() {
     try {
       const apiKey = "sk_d6c1daa54dbc95956b281fa02c544e7273ed10df60b211fe";
 
-      // Simulate progress
       const progressInterval = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
@@ -621,7 +1333,7 @@ export function PdfTextEditor() {
         setIsProcessing(false);
 
         showToast(
-          "PDF saved successfully! Your edited PDF is ready for download",
+          "PDF saved successfully! Your edited PDF with preserved images is ready for download",
           "success"
         );
       } else {
@@ -652,6 +1364,17 @@ export function PdfTextEditor() {
     [extractedData]
   );
 
+  const deleteTextBlock = useCallback(
+    (pageIndex: number, textIndex: number) => {
+      if (!extractedData) return;
+      const newData = JSON.parse(JSON.stringify(extractedData));
+      newData.pages[pageIndex].texts.splice(textIndex, 1);
+      setExtractedData(newData);
+      setHasUnsavedChanges(true);
+    },
+    [extractedData]
+  );
+
   const handleReset = useCallback(() => {
     if (!hasUnsavedChanges) return;
 
@@ -672,6 +1395,14 @@ export function PdfTextEditor() {
     if (!extractedData) return 0;
     return extractedData.pages.reduce(
       (sum, page) => sum + page.texts.length,
+      0
+    );
+  };
+
+  const getTotalImages = () => {
+    if (!extractedData) return 0;
+    return extractedData.pages.reduce(
+      (sum, page) => sum + (page.images?.length || 0),
       0
     );
   };
@@ -764,12 +1495,9 @@ export function PdfTextEditor() {
                       {error}
                     </p>
                   </div>
-                  <button
-                    onClick={handleStartOver}
-                    className="px-3 py-1 text-sm border border-red-300 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20"
-                  >
+                  <Button onClick={handleStartOver} variant="outline" size="sm">
                     Try Again
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -781,8 +1509,8 @@ export function PdfTextEditor() {
 
   // Main editor interface
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-4 sm:space-y-6">
-      {/* Header - Responsive */}
+    <div className="max-w-7xl mx-auto p-4 space-y-4 sm:space-y-6">
+      {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-xl shadow-lg">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -804,7 +1532,7 @@ export function PdfTextEditor() {
               </div>
               <div className="min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg sm:text-xl font-bold">
-                  PDF Text Editor
+                  PDF Text & Image Editor
                   {hasUnsavedChanges && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 w-fit">
                       Unsaved Changes
@@ -815,6 +1543,8 @@ export function PdfTextEditor() {
                   <span>📄 {extractedData?.pages.length} pages</span>
                   <span className="hidden sm:inline">•</span>
                   <span>📝 {getTotalTextBlocks()} text blocks</span>
+                  <span className="hidden sm:inline">•</span>
+                  <span>🖼️ {getTotalImages()} images</span>
                   {file && (
                     <>
                       <span className="hidden sm:inline">•</span>
@@ -826,43 +1556,31 @@ export function PdfTextEditor() {
             </div>
 
             {/* Actions */}
-            {isMobile ? (
-              <MobileActionMenu
-                hasUnsavedChanges={hasUnsavedChanges}
-                onSave={handleSaveEditedPDF}
-                onReset={handleReset}
-                onStartOver={handleStartOver}
-                isProcessing={isProcessing}
-              />
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleReset}
-                  disabled={!hasUnsavedChanges}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  🔄 Reset
-                </button>
-                <button
-                  onClick={handleSaveEditedPDF}
-                  disabled={!hasUnsavedChanges || isProcessing}
-                  className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  💾 Save PDF
-                </button>
-                <button
-                  onClick={handleStartOver}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  🆕 New PDF
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleReset}
+                disabled={!hasUnsavedChanges}
+                variant="outline"
+                size="sm"
+              >
+                🔄 Reset
+              </Button>
+              <Button
+                onClick={handleSaveEditedPDF}
+                disabled={!hasUnsavedChanges || isProcessing}
+                size="sm"
+              >
+                💾 Save PDF
+              </Button>
+              <Button onClick={handleStartOver} variant="outline" size="sm">
+                🆕 New PDF
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Page Navigation - Responsive */}
+      {/* Page Navigation */}
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md">
         <div className="p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -871,52 +1589,29 @@ export function PdfTextEditor() {
                 Page {currentPage + 1} of {extractedData?.pages.length}
               </h3>
               <div className="flex items-center gap-1">
-                <button
+                <Button
                   onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
                   disabled={currentPage === 0}
-                  className="p-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="outline"
+                  size="sm"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                <button
+                  ←
+                </Button>
+                <Button
                   onClick={() =>
                     setCurrentPage(
                       Math.min(extractedData!.pages.length - 1, currentPage + 1)
                     )
                   }
                   disabled={currentPage === extractedData!.pages.length - 1}
-                  className="p-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="outline"
+                  size="sm"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
+                  →
+                </Button>
               </div>
             </div>
 
-            {/* Keyboard shortcuts info - Hidden on mobile */}
             {!isMobile && (
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>⌨️ Ctrl+S: Save • Ctrl+R: Reset • Ctrl+←→: Navigate</span>
@@ -924,365 +1619,286 @@ export function PdfTextEditor() {
             )}
           </div>
 
-          {/* Page thumbnails for quick navigation - Responsive */}
+          {/* Page thumbnails */}
           {extractedData && extractedData.pages.length > 1 && (
             <div className="flex gap-1 mt-3 sm:mt-4 flex-wrap">
               {extractedData.pages.map((_, index) => (
-                <button
+                <Button
                   key={index}
                   onClick={() => setCurrentPage(index)}
-                  className={cn(
-                    "h-7 w-7 sm:h-8 sm:w-8 text-xs rounded border",
-                    currentPage === index
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  )}
+                  variant={currentPage === index ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 w-7 sm:h-8 sm:w-8 text-xs p-0"
                 >
                   {index + 1}
-                </button>
+                </Button>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Editor */}
+      {/* Editor Tabs */}
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
-        <div className="p-3 sm:p-6">
-          {extractedData?.pages[currentPage] && (
-            <div className="border rounded-lg sm:rounded-xl overflow-hidden">
-              {/* Page Header */}
-              <div className="p-3 sm:p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div>
-                    <h4 className="font-semibold text-base sm:text-lg">
-                      Page {extractedData.pages[currentPage].page_number}
-                    </h4>
-                    <p className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
-                      <span>
-                        📝 {extractedData.pages[currentPage].texts.length} text
-                        blocks
-                      </span>
-                      <span>
-                        📐 {Math.round(extractedData.pages[currentPage].width)}{" "}
-                        × {Math.round(extractedData.pages[currentPage].height)}{" "}
-                        px
-                      </span>
-                    </p>
-                  </div>
-                  {selectedTextBlock !== null && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
-                      Editing Block #{selectedTextBlock + 1}
-                    </span>
-                  )}
-                </div>
-              </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="border-b px-4 sm:px-6 pt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="visual" className="flex items-center gap-2">
+                <EyeOpenIcon className="h-4 w-4" />
+                Visual Editor
+              </TabsTrigger>
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <ListBulletIcon className="h-4 w-4" />
+                List Editor
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-              {/* Text Blocks List */}
-              <div className="p-3 sm:p-4">
-                {extractedData.pages[currentPage].texts.length > 0 ? (
-                  <div className="space-y-3 max-h-[50vh] sm:max-h-[600px] overflow-y-auto">
-                    {extractedData.pages[currentPage].texts.map(
-                      (textBlock, textIndex) => (
-                        <div
-                          key={textIndex}
-                          className={cn(
-                            "group border rounded-lg transition-all duration-200 hover:shadow-md",
-                            selectedTextBlock === textIndex
-                              ? "border-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 shadow-lg ring-2 ring-blue-200"
-                              : "border-gray-200 hover:border-blue-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
-                          )}
-                        >
-                          {/* Text Block Header */}
-                          <div
-                            className="p-3 sm:p-4 cursor-pointer"
-                            onClick={() =>
-                              setSelectedTextBlock(
-                                selectedTextBlock === textIndex
-                                  ? null
-                                  : textIndex
-                              )
-                            }
-                          >
-                            <div className="flex items-center justify-between mb-2 sm:mb-3">
-                              <div className="flex items-center gap-2 sm:gap-3">
-                                <div
-                                  className={cn(
-                                    "w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
-                                    selectedTextBlock === textIndex
-                                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                                      : "bg-gray-300 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
-                                  )}
-                                >
-                                  {textIndex + 1}
+          <div className="p-4 sm:p-6">
+            {extractedData?.pages[currentPage] && (
+              <>
+                <TabsContent value="visual" className="mt-0">
+                  <LibreOfficeVisualEditor
+                    textBlocks={extractedData.pages[currentPage].texts}
+                    imageBlocks={extractedData.pages[currentPage].images || []}
+                    pageWidth={extractedData.pages[currentPage].width}
+                    pageHeight={extractedData.pages[currentPage].height}
+                    onTextBlockUpdate={(index, updatedBlock) => {
+                      updateTextBlock(currentPage, index, updatedBlock.text);
+                    }}
+                    onTextBlockDelete={(index) => {
+                      deleteTextBlock(currentPage, index);
+                    }}
+                  />
+                </TabsContent>
+
+                <TabsContent value="list" className="mt-0">
+                  {/* List editor content */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-base sm:text-lg">
+                        Content List
+                      </h4>
+                      <div className="text-sm text-gray-500 flex gap-4">
+                        <span>
+                          {extractedData.pages[currentPage].texts.length} text
+                          blocks
+                        </span>
+                        <span>
+                          {
+                            (extractedData.pages[currentPage].images || [])
+                              .length
+                          }{" "}
+                          images
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Images Section */}
+                    {(extractedData.pages[currentPage].images || []).length >
+                      0 && (
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                          <ImageIcon className="h-4 w-4" />
+                          Images (
+                          {
+                            (extractedData.pages[currentPage].images || [])
+                              .length
+                          }
+                          )
+                        </h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {(extractedData.pages[currentPage].images || []).map(
+                            (imageBlock, imageIndex) => (
+                              <div
+                                key={imageIndex}
+                                className="border rounded-lg p-3 bg-purple-50 dark:bg-purple-900/10"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-medium">
+                                    Image #{imageIndex + 1}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {imageBlock.format}
+                                  </span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                                  <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-mono">
-                                    {textBlock.font.length > 8 && isMobile
-                                      ? textBlock.font.substring(0, 8) + "..."
-                                      : textBlock.font}
-                                  </span>
-                                  <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
-                                    {Math.round(textBlock.size)}px
-                                  </span>
-                                  <span className="text-xs text-gray-500 hidden sm:inline">
-                                    ({Math.round(textBlock.x0)},{" "}
-                                    {Math.round(textBlock.y0)})
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {selectedTextBlock === textIndex && (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                                    ✏️{" "}
-                                    <span className="hidden sm:inline ml-1">
-                                      Editing
-                                    </span>
-                                  </span>
-                                )}
-                                <div
-                                  className={cn(
-                                    "p-1 rounded transition-colors",
-                                    selectedTextBlock === textIndex
-                                      ? "text-blue-600"
-                                      : "text-gray-400 group-hover:text-blue-600"
-                                  )}
-                                >
-                                  <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+
+                                <div className="aspect-video bg-gray-100 rounded mb-2 overflow-hidden">
+                                  {imageBlock.image_data &&
+                                  imageBlock.format !== "placeholder" ? (
+                                    <img
+                                      src={`data:image/${imageBlock.format};base64,${imageBlock.image_data}`}
+                                      alt={`Image ${imageIndex + 1}`}
+                                      className="w-full h-full object-contain"
                                     />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Preview of text when not editing */}
-                            {selectedTextBlock !== textIndex && (
-                              <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded p-2 sm:p-3">
-                                <span className="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">
-                                  Text Content:
-                                </span>
-                                <p className="mt-1 leading-relaxed break-words line-clamp-2">
-                                  "
-                                  {textBlock.text || (
-                                    <span className="text-gray-400 italic">
-                                      Empty text block
-                                    </span>
-                                  )}
-                                  "
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Editable Text Area (shown when selected) */}
-                          {selectedTextBlock === textIndex && (
-                            <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/10 dark:to-purple-950/10">
-                              <div className="space-y-3 pt-3 sm:pt-4">
-                                <div className="flex items-center justify-between">
-                                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                    ✏️ Edit Text Content:
-                                  </label>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedTextBlock(null);
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 p-1"
-                                  >
-                                    <svg
-                                      className="h-4 w-4"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                      />
-                                    </svg>
-                                  </button>
-                                </div>
-
-                                <div className="relative">
-                                  <textarea
-                                    className="w-full p-3 sm:p-4 text-xs sm:text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm"
-                                    value={textBlock.text}
-                                    onChange={(e) =>
-                                      updateTextBlock(
-                                        currentPage,
-                                        textIndex,
-                                        e.target.value
-                                      )
-                                    }
-                                    rows={Math.max(
-                                      3,
-                                      Math.ceil(
-                                        textBlock.text.length /
-                                          (isMobile ? 40 : 60)
-                                      )
-                                    )}
-                                    placeholder="Enter text content..."
-                                    autoFocus
-                                  />
-
-                                  {/* Character count and instructions */}
-                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 mt-2 text-xs text-gray-500">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                      <span>
-                                        📝 {textBlock.text.length} characters
-                                      </span>
-                                      {textBlock.text.length > 100 && (
-                                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
-                                          Long text
-                                        </span>
-                                      )}
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                      <ImageIcon className="h-8 w-8" />
                                     </div>
-                                    <span className="text-xs">
-                                      👆 Tap header to close
-                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="text-xs text-gray-500 space-y-1">
+                                  <div>
+                                    Size: {Math.round(imageBlock.width)} ×{" "}
+                                    {Math.round(imageBlock.height)}px
+                                  </div>
+                                  <div>
+                                    Position: ({Math.round(imageBlock.x0)},{" "}
+                                    {Math.round(imageBlock.y0)})
+                                  </div>
+                                  <div className="text-purple-600">
+                                    ✓ Preserved in PDF
                                   </div>
                                 </div>
-
-                                {/* Quick actions - Mobile optimized */}
-                                <div className="flex flex-wrap items-center gap-1 sm:gap-2 pt-2 border-t">
-                                  <button
-                                    onClick={() => {
-                                      updateTextBlock(
-                                        currentPage,
-                                        textIndex,
-                                        textBlock.text.toUpperCase()
-                                      );
-                                    }}
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
-                                  >
-                                    UPPER
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      updateTextBlock(
-                                        currentPage,
-                                        textIndex,
-                                        textBlock.text.toLowerCase()
-                                      );
-                                    }}
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
-                                  >
-                                    lower
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const titleCase = textBlock.text.replace(
-                                        /\w\S*/g,
-                                        (txt) =>
-                                          txt.charAt(0).toUpperCase() +
-                                          txt.substr(1).toLowerCase()
-                                      );
-                                      updateTextBlock(
-                                        currentPage,
-                                        textIndex,
-                                        titleCase
-                                      );
-                                    }}
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
-                                  >
-                                    Title
-                                  </button>
-                                </div>
                               </div>
-                            </div>
+                            )
                           )}
                         </div>
-                      )
+                      </div>
                     )}
+
+                    {/* Text Blocks Section */}
+                    {extractedData.pages[currentPage].texts.length > 0 ? (
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                          <Pencil1Icon className="h-4 w-4" />
+                          Text Blocks (
+                          {extractedData.pages[currentPage].texts.length})
+                        </h5>
+                        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                          {extractedData.pages[currentPage].texts.map(
+                            (textBlock, textIndex) => (
+                              <div
+                                key={textIndex}
+                                className="border rounded-lg p-4 space-y-3"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                                      {textIndex + 1}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                                      <span className="px-2 py-1 bg-gray-100 rounded">
+                                        {textBlock.font}
+                                      </span>
+                                      <span className="px-2 py-1 bg-gray-100 rounded">
+                                        {Math.round(textBlock.size)}px
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    onClick={() =>
+                                      deleteTextBlock(currentPage, textIndex)
+                                    }
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600"
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <Textarea
+                                  value={textBlock.text}
+                                  onChange={(e) =>
+                                    updateTextBlock(
+                                      currentPage,
+                                      textIndex,
+                                      e.target.value
+                                    )
+                                  }
+                                  rows={Math.max(
+                                    2,
+                                    Math.ceil(textBlock.text.length / 80)
+                                  )}
+                                  className="resize-none"
+                                />
+
+                                <div className="text-xs text-gray-500">
+                                  Position: ({Math.round(textBlock.x0)},{" "}
+                                  {Math.round(textBlock.y0)}) • Size:{" "}
+                                  {Math.round(textBlock.x1 - textBlock.x0)} ×{" "}
+                                  {Math.round(textBlock.y1 - textBlock.y0)}px •
+                                  Characters: {textBlock.text.length}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <ListBulletIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>No text blocks found on this page</p>
+                      </div>
+                    )}
+
+                    {/* Empty state for no content */}
+                    {extractedData.pages[currentPage].texts.length === 0 &&
+                      (extractedData.pages[currentPage].images || []).length ===
+                        0 && (
+                        <div className="text-center py-12 text-gray-500">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg
+                              className="h-8 w-8"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <h3 className="font-medium mb-2">No content found</h3>
+                          <p className="text-sm">
+                            This page doesn't contain any text or images.
+                          </p>
+                        </div>
+                      )}
                   </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <svg
-                        className="h-6 w-6 sm:h-8 sm:w-8"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="font-medium mb-2 text-sm sm:text-base">
-                      No text blocks found
-                    </h3>
-                    <p className="text-xs sm:text-sm">
-                      This page doesn't contain any editable text blocks.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+                </TabsContent>
+              </>
+            )}
+          </div>
+        </Tabs>
       </div>
 
-      {/* Success Result - Mobile optimized */}
+      {/* Success Result */}
       {editedFileUrl && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl shadow-lg">
           <div className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mx-auto sm:mx-0">
-                <svg
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <CheckIcon className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h3 className="font-semibold text-green-800 dark:text-green-200 text-lg">
                   PDF Saved Successfully! 🎉
                 </h3>
                 <p className="text-green-700 dark:text-green-300 mt-1 text-sm sm:text-base">
-                  Your edited PDF has been generated and is ready for download.
+                  Your edited PDF with preserved images is ready for download.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4">
-                  <a
-                    href={`${
-                      process.env.NEXT_PUBLIC_API_URL || ""
-                    }/api/file?folder=edited&filename=${encodeURIComponent(
-                      editedFileUrl
-                    )}`}
-                    download
-                    className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-medium"
-                  >
-                    💾 Download Edited PDF
-                  </a>
-                  <button
-                    onClick={handleStartOver}
-                    className="inline-flex items-center justify-center px-4 py-2 border border-green-300 text-green-700 rounded-lg font-medium hover:bg-green-50"
-                  >
+                  <Button asChild>
+                    <a
+                      href={`${
+                        process.env.NEXT_PUBLIC_API_URL || ""
+                      }/api/file?folder=edited&filename=${encodeURIComponent(
+                        editedFileUrl
+                      )}`}
+                      download
+                    >
+                      💾 Download Edited PDF
+                    </a>
+                  </Button>
+                  <Button onClick={handleStartOver} variant="outline">
                     🆕 Edit Another PDF
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

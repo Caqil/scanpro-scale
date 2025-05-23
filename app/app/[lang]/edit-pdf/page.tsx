@@ -29,7 +29,7 @@ export async function generateMetadata({
 
 export default function EditPdfTextPage() {
   return (
-    <div className="container max-w-5xl py-12 mx-auto">
+    <div className="container w-full py-12 mx-auto">
       <TextEditorHeaderSection />
 
       <div className="mb-12">
