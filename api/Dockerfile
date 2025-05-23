@@ -61,9 +61,9 @@ ENV PATH="/root/go/bin:$PATH"
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python packages in the virtual environment
+# Install Python packages in the virtual environment (including PyMuPDF for text editing)
 RUN pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir ocrmypdf PyPDF2
+    pip3 install --no-cache-dir ocrmypdf PyPDF2 PyMuPDF reportlab
 
 # Create necessary directories
 RUN mkdir -p /app/uploads /app/public /app/temp
