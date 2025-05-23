@@ -3490,5 +3490,119 @@ balancePanel: {
     minimumDeposit: "Jumlah setoran minimum adalah $5.00",
     depositFailed: "Gagal memproses setoran"
   }
+},
+pdfTextEditor: {
+  title: "Editor Teks PDF",
+  description: "Ekstrak, edit, dan modifikasi teks dalam dokumen PDF dengan kontrol posisi yang presisi menggunakan alat editor teks PDF kami yang canggih dan ramah pengguna.",
+  noFileSelected: "Tidak Ada File PDF yang Dipilih - Unggah Dokumen PDF Anda untuk Mulai Mengedit Teks dengan Lancar",
+  extractText: "Ekstrak Konten Teks PDF Secara Instan untuk Pengeditan yang Mudah",
+  savePDF: "Simpan Dokumen PDF yang Telah Diedit dengan Semua Perubahan Terapkan",
+  reset: "Atur Ulang Semua Perubahan ke Konten PDF Asli Secara Instan",
+  startOver: "Unggah File PDF Baru untuk Memulai Pengeditan Teks",
+  editAnother: "Edit Dokumen PDF Lain dengan Cepat dan Efisien",
+  pages: "Halaman Dokumen PDF untuk Dukungan Pengeditan Multi-Halaman",
+  page: "Halaman PDF Individu untuk Pengeditan Teks yang Ditargetkan",
+  textBlocks: "Blok Teks PDF Tersedia untuk Pengeditan yang Presisi",
+  pageInfo: "Informasi Halaman PDF dan Opsi Pengeditan yang Detail",
+  editText: "Edit Konten Teks PDF Secara Langsung dengan Mudah...",
+  unsavedChanges: "Perubahan yang Belum Disimpan Terdeteksi di Dokumen PDF Anda",
+  extractSuccess: "Teks PDF Berhasil Diekstrak untuk Pengeditan yang Lancar",
+  extractFailed: "Gagal Mengekstrak Teks dari Dokumen PDF - Coba Lagi",
+  saveSuccess: "Dokumen PDF yang Telah Diedit Berhasil Disimpan dengan Semua Pembaruan",
+  saveFailed: "Gagal Menyimpan File PDF yang Diedit - Silakan Coba Lagi",
+  saveSuccessDesc: "Dokumen PDF yang telah diedit telah dibuat dengan semua perubahan diterapkan dan siap untuk diunduh segera ke perangkat Anda untuk dibagikan atau disimpan.",
+  downloadEdited: "Unduh File PDF yang Telah Diedit Sekarang dengan Semua Perubahan",
+  noDataToSave: "Tidak Ada Data PDF yang Tersedia untuk Disimpan Saat Ini",
+  resetSuccess: "Dokumen PDF Berhasil Diatur Ulang ke Keadaan Aslinya",
+  resetFailed: "Gagal Mengatur Ulang PDF ke Konten Asli - Coba Lagi",
+  uploading: "Mengunggah File PDF Anda untuk Pemrosesan dan Pengeditan Teks...",
+  processing: "Memproses Dokumen PDF Anda untuk Pengeditan dan Modifikasi Teks...",
+  extractingText: "Mengekstrak Teks dari File PDF Anda Secara Otomatis untuk Pengeditan...",
+  readyToEdit: "Dokumen PDF Anda Siap untuk Pengeditan Teks dan Kustomisasi yang Lancar",
+  networkError: "Kesalahan Jaringan Terjadi Selama Pemrosesan PDF - Periksa Koneksi Anda",
+  unknownError: "Kesalahan Tidak Diketahui Terjadi dalam Proses Pengeditan PDF - Silakan Coba Lagi",
+  tryAgain: "Coba Edit Dokumen PDF Anda Lagi untuk Hasil Terbaik",
+  dragAndDrop: "Seret dan Jatuhkan File PDF Anda untuk Memulai Pengeditan Secara Instan",
+  dropHereDesc: "Jatuhkan file PDF Anda di sini atau klik untuk menelusuri untuk ekstraksi dan pengeditan teks yang mudah dan otomatis. Editor PDF canggih kami membuat modifikasi teks menjadi sederhana, efisien, dan dapat diakses oleh semua pengguna, memastikan hasil berkualitas profesional setiap saat.",
+  howToEdit: "Cara Mengedit Teks PDF Secara Online dengan Cepat, Mudah, dan Akurat",
+  editInstructions: "Gunakan Editor Visual untuk melihat dan mengedit teks yang diposisikan persis seperti yang muncul di halaman PDF, atau beralih ke Editor Daftar untuk pengeditan teks yang terorganisir dan terstruktur. Klik blok teks mana pun untuk memilih dan memodifikasi konten dengan mudah, memastikan pembaruan yang presisi pada dokumen PDF Anda sambil mempertahankan tata letak dan format aslinya.",
+  visualEditor: "Editor Teks PDF Visual untuk Pengeditan Teks yang Presisi dan Intuitif",
+  listEditor: "Editor Teks PDF Berbasis Daftar untuk Pengeditan yang Terorganisir dan Terstruktur",
+  editingPage: "Mengedit Halaman PDF Tertentu dengan Presisi Tinggi",
+  previousPage: "Navigasi ke Halaman PDF Sebelumnya untuk Pengeditan yang Berkelanjutan",
+  nextPage: "Navigasi ke Halaman PDF Berikutnya untuk Pengeditan yang Lancar",
+  editingBlock: "Mengedit Blok Teks PDF Tertentu dengan Akurasi",
+  editing: "Mengedit Konten PDF Secara Aktif dengan Pembaruan Real-Time",
+  editTextContent: "Edit Konten Teks PDF Secara Langsung dengan Presisi:",
+  clickToClose: "Klik Header untuk Menutup Antarmuka Editor PDF dengan Cepat",
+  noTextBlocks: "Tidak Ada Blok Teks yang Ditemukan di Halaman PDF Ini untuk Pengeditan",
+  quickJump: "Lompat Cepat ke Halaman PDF Tertentu untuk Pengeditan yang Ditargetkan",
+  howTo: {
+    title: "Panduan Langkah demi Langkah untuk Mengedit Teks dalam Dokumen PDF Secara Online",
+    step1: {
+      title: "Unggah Dokumen PDF Anda untuk Pengeditan Teks",
+      description: "Unggah file PDF Anda ke editor canggih kami untuk secara otomatis mengekstrak semua elemen teks, mempersiapkannya untuk pengeditan dan modifikasi yang lancar dan presisi."
+    },
+    step2: {
+      title: "Edit Konten Teks PDF Secara Langsung dan Intuitif",
+      description: "Klik pada blok teks mana pun dalam PDF untuk mengedit kontennya secara langsung, membuat pembaruan cepat, intuitif, dan akurat dengan alat pengeditan teks PDF kami yang kuat."
+    },
+    step3: {
+      title: "Simpan Perubahan PDF Anda dengan Mudah dan Unduh",
+      description: "Simpan teks yang telah diedit untuk menghasilkan dokumen PDF baru dengan semua perubahan diterapkan, siap untuk diunduh segera, dibagikan, atau digunakan secara profesional."
+    }
+  },
+  features: {
+    title: "Fitur Kuat dari Alat Editor Teks PDF Canggih Kami",
+    preserve: "Pertahankan Format, Tata Letak, dan Posisi Teks Asli PDF untuk Hasil Profesional dan Berkualitas Tinggi",
+    visual: "Pemilihan dan Pengeditan Blok Teks Visual untuk Modifikasi PDF yang Akurat dan Intuitif dengan Pratinjau Real-Time",
+    multipage: "Dukungan Penuh untuk Dokumen PDF Multi-Halaman, Memungkinkan Pengeditan Komprehensif di Semua Halaman",
+    fonts: "Tampilkan Informasi Font dan Ukuran yang Detail untuk Kontrol Presisi atas Pengeditan dan Kustomisasi Teks PDF"
+  },
+  useCases: {
+    title: "Kasus Penggunaan Umum untuk Pengeditan dan Modifikasi Teks PDF",
+    documentTranslation: {
+      title: "Terjemahan Dokumen untuk File PDF",
+      description: "Terjemahkan konten PDF ke dalam beberapa bahasa sambil mempertahankan tata letak, format, dan desain asli untuk dokumen multibahasa yang profesional."
+    },
+    contentCorrection: {
+      title: "Koreksi Konten dalam Dokumen PDF",
+      description: "Perbaiki kesalahan ketik, perbarui informasi yang usang, atau koreksi kesalahan dalam file PDF yang ada dengan presisi dan kecepatan."
+    },
+    templateCustomization: {
+      title: "Kustomisasi dan Pengeditan Template PDF",
+      description: "Kustomisasi template PDF dengan mengedit bidang teks, area konten, dan elemen lain untuk memenuhi kebutuhan spesifik Anda."
+    },
+    rebrandingDocuments: {
+      title: "Rebranding Dokumen PDF dengan Efisien",
+      description: "Perbarui nama perusahaan, alamat, logo, dan informasi merek dalam file PDF dengan cepat dan profesional."
+    }
+  },
+  relatedTools: {
+    title: "Alat PDF Terkait untuk Peningkatan Produktivitas dan Manajemen Dokumen",
+    convertPDF: {
+      title: "Konversi PDF ke Format yang Dapat Diedit",
+      description: "Konversi file PDF Anda ke format yang dapat diedit seperti Word, Excel, atau format lain untuk kustomisasi dan pengeditan lebih lanjut."
+    },
+    watermarkPDF: {
+      title: "Tambahkan Watermark ke Dokumen PDF",
+      description: "Tambahkan watermark teks atau gambar ke file PDF Anda dengan mudah untuk keperluan merek, keamanan, atau profesional."
+    },
+    mergePDF: {
+      title: "Gabungkan Beberapa File PDF",
+      description: "Gabungkan beberapa dokumen PDF menjadi satu file untuk organisasi, berbagi, dan manajemen yang efisien."
+    },
+    splitPDF: {
+      title: "Pisahkan Halaman PDF dengan Mudah",
+      description: "Ekstrak halaman tertentu dari dokumen PDF untuk membuat file baru atau mengatur ulang konten secara efisien."
+    }
+  },
+  seoContent: {
+    title: "Pengeditan Teks PDF Canggih untuk Dokumen Profesional",
+    paragraph1: "Editor teks PDF canggih kami menawarkan kemampuan pengeditan teks tingkat profesional untuk dokumen PDF. Berbeda dengan editor PDF dasar, alat kami memastikan modifikasi teks yang presisi sambil mempertahankan posisi, format, dan tata letak asli PDF Anda, memberikan hasil berkualitas tinggi untuk semua pengguna.",
+    paragraph2: "Memanfaatkan algoritma mutakhir, editor PDF kami mengekstrak blok teks, detail font, dan data posisi dengan akurasi tak tertandingi. Ini memastikan bahwa PDF yang telah diedit tetap mempertahankan penampilan dan integritas profesional dari dokumen asli, menjadikannya ideal untuk pembaruan penting.",
+    paragraph3: "Sempurna untuk bisnis, dokumen hukum, formulir, kontrak, dan PDF apa pun yang memerlukan perubahan teks tanpa mengorbankan desain keseluruhan. Edit teks PDF secara online dengan mudah, baik untuk keperluan profesional, pendidikan, atau pribadi, dengan alat pengeditan kami yang intuitif dan kuat."
+  },
+  viewAllPDFTools: "Lihat Semua Alat PDF untuk Manajemen Dokumen yang Komprehensif"
 }
 }

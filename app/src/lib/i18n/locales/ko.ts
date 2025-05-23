@@ -3564,5 +3564,119 @@ balancePanel: {
     minimumDeposit: "최소 입금액은 5.00달러입니다",
     depositFailed: "입금 처리에 실패했습니다"
   }
+},
+pdfTextEditor: {
+  title: "PDF 텍스트 에디터",
+  description: "고급스럽고 사용자 친화적인 PDF 텍스트 에디터 도구를 사용하여 PDF 문서의 텍스트를 손쉽게 추출, 편집 및 수정하며 정확한 위치 제어를 제공합니다.",
+  noFileSelected: "PDF 파일이 선택되지 않았습니다 - PDF 문서를 업로드하여 텍스트 편집을 원활하게 시작하세요",
+  extractText: "PDF 텍스트 콘텐츠를 즉시 추출하여 쉬운 편집 가능",
+  savePDF: "모든 변경 사항을 적용하여 편집된 PDF 문서를 저장",
+  reset: "모든 변경 사항을 원래 PDF 콘텐츠로 즉시 재설정",
+  startOver: "새 PDF 파일을 업로드하여 텍스트 편집 시작",
+  editAnother: "다른 PDF 문서를 빠르고 효율적으로 편집",
+  pages: "다중 페이지 편집을 지원하는 PDF 문서 페이지",
+  page: "타겟 텍스트 편집을 위한 개별 PDF 페이지",
+  textBlocks: "정확한 편집이 가능한 PDF 텍스트 블록",
+  pageInfo: "PDF 페이지 정보 및 상세 편집 옵션",
+  editText: "PDF 텍스트 콘텐츠를 직접 쉽게 편집...",
+  unsavedChanges: "PDF 문서에서 저장되지 않은 변경 사항이 감지되었습니다",
+  extractSuccess: "PDF 텍스트가 원활한 편집을 위해 성공적으로 추출되었습니다",
+  extractFailed: "PDF 문서에서 텍스트 추출에 실패했습니다 - 다시 시도하세요",
+  saveSuccess: "편집된 PDF 문서가 모든 업데이트를 적용하여 성공적으로 저장되었습니다",
+  saveFailed: "편집된 PDF 파일 저장에 실패했습니다 - 다시 시도하세요",
+  saveSuccessDesc: "편집된 PDF 문서가 모든 변경 사항을 적용하여 생성되었으며, 즉시 다운로드하여 공유하거나 저장할 준비가 되었습니다.",
+  downloadEdited: "모든 변경 사항이 적용된 편집된 PDF 파일을 지금 다운로드",
+  noDataToSave: "현재 저장할 수 있는 PDF 데이터가 없습니다",
+  resetSuccess: "PDF 문서가 원래 상태로 성공적으로 재설정되었습니다",
+  resetFailed: "PDF를 원래 콘텐츠로 재설정하지 못했습니다 - 다시 시도하세요",
+  uploading: "PDF 파일을 처리 및 텍스트 편집을 위해 업로드 중...",
+  processing: "텍스트 편집 및 수정을 위해 PDF 문서를 처리 중...",
+  extractingText: "PDF 파일에서 텍스트를 자동으로 추출하여 편집 준비 중...",
+  readyToEdit: "PDF 문서가 원활한 텍스트 편집 및 사용자 정의를 위해 준비되었습니다",
+  networkError: "PDF 처리 중 네트워크 오류가 발생했습니다 - 연결을 확인하세요",
+  unknownError: "PDF 편집 과정에서 알 수 없는 오류가 발생했습니다 - 다시 시도하세요",
+  tryAgain: "최상의 결과를 위해 PDF 문서를 다시 편집해 보세요",
+  dragAndDrop: "PDF 파일을 드래그 앤 드롭하여 즉시 편집 시작",
+  dropHereDesc: "PDF 파일을 여기에 드롭하거나 클릭하여 찾아보고, 쉽고 자동화된 텍스트 추출 및 편집을 수행하세요. 우리의 고급 PDF 에디터는 텍스트 수정을 간단하고 효율적이며 모든 사용자가 접근 가능하게 만들며, 매번 전문적인 품질의 결과를 보장합니다.",
+  howToEdit: "PDF 텍스트를 온라인에서 빠르고 쉽게 정확하게 편집하는 방법",
+  editInstructions: "비주얼 에디터를 사용하여 PDF 페이지에 표시된 대로 정확히 배치된 텍스트를 보고 편집하거나, 리스트 에디터로 전환하여 체계적이고 구조화된 텍스트 편집을 수행하세요. 텍스트 블록을 클릭하여 선택하고 콘텐츠를 쉽게 수정하여, 원래 레이아웃과 형식을 유지하면서 PDF 문서에 정확한 업데이트를 보장합니다.",
+  visualEditor: "정확하고 직관적인 텍스트 편집을 위한 비주얼 PDF 텍스트 에디터",
+  listEditor: "체계적이고 구조화된 편집을 위한 리스트 기반 PDF 텍스트 에디터",
+  editingPage: "높은 정밀도로 특정 PDF 페이지를 편집",
+  previousPage: "계속 편집하기 위해 이전 PDF 페이지로 이동",
+  nextPage: "원활한 편집을 위해 다음 PDF 페이지로 이동",
+  editingBlock: "정확하게 특정 PDF 텍스트 블록을 편집",
+  editing: "실시간 업데이트로 PDF 콘텐츠를 적극적으로 편집",
+  editTextContent: "PDF 텍스트 콘텐츠를 직접 정확하게 편집:",
+  clickToClose: "헤더를 클릭하여 PDF 에디터 인터페이스를 빠르게 닫기",
+  noTextBlocks: "이 PDF 페이지에서 편집할 텍스트 블록이 발견되지 않았습니다",
+  quickJump: "타겟 편집을 위해 특정 PDF 페이지로 빠르게 이동",
+  howTo: {
+    title: "PDF 문서의 텍스트를 온라인으로 편집하는 단계별 가이드",
+    step1: {
+      title: "텍스트 편집을 위해 PDF 문서를 업로드",
+      description: "PDF 파일을 고급 에디터에 업로드하여 모든 텍스트 요소를 자동으로 추출하여 원활하고 정확한 편집 및 수정 준비를 합니다."
+    },
+    step2: {
+      title: "PDF 텍스트 콘텐츠를 직접 직관적으로 편집",
+      description: "PDF 내의 텍스트 블록을 클릭하여 콘텐츠를 직접 편집하여, 강력한 PDF 텍스트 편집 도구로 빠르고 직관적이며 정확한 업데이트를 수행합니다."
+    },
+    step3: {
+      title: "PDF 변경 사항을 쉽게 저장하고 다운로드",
+      description: "편집된 텍스트를 저장하여 모든 변경 사항이 적용된 새로운 PDF 문서를 생성하여 즉시 다운로드, 공유 또는 전문적인 사용 준비를 합니다."
+    }
+  },
+  features: {
+    title: "고급 PDF 텍스트 에디터 도구의 강력한 기능",
+    preserve: "전문적이고 고품질의 결과를 위해 원래 PDF의 형식, 레이아웃 및 텍스트 위치를 유지",
+    visual: "실시간 미리보기로 정확하고 직관적인 PDF 수정のための 비주얼 텍스트 블록 선택 및 편집",
+    multipage: "다중 페이지 PDF 문서를 완벽히 지원하여 모든 페이지에서 포괄적인 편집 가능",
+    fonts: "PDF 텍스트 편집 및 사용자 정의에 대한 정확한 제어를 위한 상세한 폰트 및 크기 정보 표시"
+  },
+  useCases: {
+    title: "PDF 텍스트 편집 및 수정의 일반적인 사용 사례",
+    documentTranslation: {
+      title: "PDF 파일의 문서 번역",
+      description: "원래 레이아웃, 형식 및 디자인을 유지하면서 PDF 콘텐츠를 여러 언어로 번역하여 전문적인 다국어 문서를 생성합니다."
+    },
+    contentCorrection: {
+      title: "PDF 문서의 콘텐츠 수정",
+      description: "기존 PDF 파일의 오타 수정, 오래된 정보 업데이트 또는 오류 수정을 빠르고 정확하게 수행합니다."
+    },
+    templateCustomization: {
+      title: "PDF 템플릿 사용자 정의 및 편집",
+      description: "텍스트 필드, 콘텐츠 영역 및 기타 요소를 편집하여 특정 요구 사항을 충족하도록 PDF 템플릿을 사용자 정의합니다."
+    },
+    rebrandingDocuments: {
+      title: "PDF 문서의 효율적인 리브랜딩",
+      description: "회사 이름, 주소, 로고 및 브랜드 정보를 PDF 파일에서 빠르고 전문적으로 업데이트합니다."
+    }
+  },
+  relatedTools: {
+    title: "생산성 및 문서 관리를 향상시키는 관련 PDF 도구",
+    convertPDF: {
+      title: "PDF를 편집 가능한 형식으로 변환",
+      description: "PDF 파일을 Word, Excel 또는 기타 형식으로 변환하여 추가 사용자 정의 및 편집을 수행합니다."
+    },
+    watermarkPDF: {
+      title: "PDF 문서에 워터마크 추가",
+      description: "브랜딩, 보안 또는 전문적인 목적으로 PDF 파일에 텍스트 또는 이미지 워터마크를 쉽게 추가합니다."
+    },
+    mergePDF: {
+      title: "여러 PDF 파일 병합",
+      description: "여러 PDF 문서를 하나의 파일로 결합하여 효율적인 정리, 공유 및 관리를 수행합니다."
+    },
+    splitPDF: {
+      title: "PDF 페이지를 쉽게 분할",
+      description: "PDF 문서에서 특정 페이지를 추출하여 새로운 파일을 생성하거나 콘텐츠를 효율적으로 재구성합니다."
+    }
+  },
+  seoContent: {
+    title: "전문 문서를 위한 고급 PDF 텍스트 편집",
+    paragraph1: "우리의 고급 PDF 텍스트 에디터는 PDF 문서를 위한 전문가 수준의 텍스트 편집 기능을 제공합니다. 기본 PDF 에디터와 달리, 우리의 도구는 원래 PDF의 정확한 위치, 형식 및 레이아웃을 유지하면서 정확한 텍스트 수정으로 모든 사용자에게 고품질의 결과를 제공합니다.",
+    paragraph2: "최첨단 알고리즘을 활용하여 우리의 PDF 에디터는 텍스트 블록, 폰트 세부 정보 및 위치 데이터를 비교할 수 없는 정확도로 추출합니다. 이를 통해 편집된 PDF가 원본 문서의 전문적인 외관과 무결성을 유지하여 중요한 업데이트에 이상적입니다.",
+    paragraph3: "비즈니스, 법률 문서, 양식, 계약 또는 전체 디자인을 손상시키지 않고 텍스트 변경이 필요한 PDF에 적합합니다. 직관적이고 강력한 편집 도구를 사용하여 전문, 교육 또는 개인 용도로 PDF 텍스트를 쉽게 온라인으로 편집하세요."
+  },
+  viewAllPDFTools: "포괄적인 문서 관리를 위한 모든 PDF 도구 보기"
 }
 }

@@ -3560,5 +3560,119 @@ balancePanel: {
     minimumDeposit: "Der Mindesteinzahlungsbetrag beträgt 5,00 $",
     depositFailed: "Einzahlung konnte nicht verarbeitet werden"
   }
+},
+pdfTextEditor: {
+  title: "PDF-Texteditor",
+  description: "Extrahieren, bearbeiten und ändern Sie Text in PDF-Dokumenten mühelos mit präziser Positionskontrolle mit unserem fortschrittlichen, benutzerfreundlichen PDF-Texteditor-Tool.",
+  noFileSelected: "Keine PDF-Datei ausgewählt - Laden Sie Ihr PDF-Dokument hoch, um mit der nahtlosen Textbearbeitung zu beginnen",
+  extractText: "PDF-Textinhalt sofort zur einfachen Bearbeitung extrahieren",
+  savePDF: "Speichern Sie Ihr bearbeitetes PDF-Dokument mit allen Änderungen",
+  reset: "Setzen Sie alle Änderungen sofort auf den ursprünglichen PDF-Inhalt zurück",
+  startOver: "Laden Sie eine neue PDF-Datei hoch, um mit der Textbearbeitung zu beginnen",
+  editAnother: "Bearbeiten Sie ein weiteres PDF-Dokument schnell und effizient",
+  pages: "PDF-Dokumentseiten für die Unterstützung der Bearbeitung mehrerer Seiten",
+  page: "Einzelne PDF-Seite für gezielte Textbearbeitung",
+  textBlocks: "PDF-Textblöcke für präzise Bearbeitung verfügbar",
+  pageInfo: "PDF-Seiteninformationen und detaillierte Bearbeitungsoptionen",
+  editText: "PDF-Textinhalt direkt und einfach bearbeiten...",
+  unsavedChanges: "Nicht gespeicherte Änderungen in Ihrem PDF-Dokument erkannt",
+  extractSuccess: "PDF-Text erfolgreich zur nahtlosen Bearbeitung extrahiert",
+  extractFailed: "Extrahieren des Textes aus dem PDF-Dokument fehlgeschlagen - Bitte versuchen Sie es erneut",
+  saveSuccess: "Bearbeitetes PDF-Dokument erfolgreich mit allen Aktualisierungen gespeichert",
+  saveFailed: "Speichern der bearbeiteten PDF-Datei fehlgeschlagen - Bitte versuchen Sie es erneut",
+  saveSuccessDesc: "Ihr bearbeitetes PDF-Dokument wurde mit allen Änderungen erstellt und steht zum sofortigen Download auf Ihr Gerät zum Teilen oder Speichern bereit.",
+  downloadEdited: "Laden Sie Ihre bearbeitete PDF-Datei jetzt mit allen Änderungen herunter",
+  noDataToSave: "Derzeit keine PDF-Daten zum Speichern verfügbar",
+  resetSuccess: "PDF-Dokument erfolgreich auf den ursprünglichen Zustand zurückgesetzt",
+  resetFailed: "Zurücksetzen des PDFs auf den ursprünglichen Inhalt fehlgeschlagen - Bitte versuchen Sie es erneut",
+  uploading: "Ihre PDF-Datei wird zum Verarbeiten und Bearbeiten von Text hochgeladen...",
+  processing: "Ihr PDF-Dokument wird zur Textbearbeitung und -änderung verarbeitet...",
+  extractingText: "Text wird automatisch aus Ihrer PDF-Datei zur Bearbeitung extrahiert...",
+  readyToEdit: "Ihr PDF-Dokument ist zur nahtlosen Textbearbeitung und -anpassung bereit",
+  networkError: "Netzwerkfehler während der PDF-Verarbeitung aufgetreten - Überprüfen Sie Ihre Verbindung",
+  unknownError: "Unbekannter Fehler im PDF-Bearbeitungsprozess aufgetreten - Bitte versuchen Sie es erneut",
+  tryAgain: "Versuchen Sie, Ihr PDF-Dokument erneut zu bearbeiten, um die besten Ergebnisse zu erzielen",
+  dragAndDrop: "Ziehen Sie Ihre PDF-Datei per Drag & Drop, um sofort mit der Bearbeitung zu beginnen",
+  dropHereDesc: "Legen Sie Ihre PDF-Datei hier ab oder klicken Sie, um nach einfachen, automatischen Textextraktions- und Bearbeitungsmöglichkeiten zu suchen. Unser fortschrittlicher PDF-Editor macht die Textänderung einfach, effizient und für alle Benutzer zugänglich und sorgt jedes Mal für professionelle Ergebnisse.",
+  howToEdit: "So bearbeiten Sie PDF-Text online schnell, einfach und genau",
+  editInstructions: "Verwenden Sie den visuellen Editor, um Text anzuzeigen und zu bearbeiten, der genau so positioniert ist, wie er auf der PDF-Seite erscheint, oder wechseln Sie zum Listen-Editor für organisierte, strukturierte Textbearbeitung. Klicken Sie auf einen beliebigen Textblock, um den Inhalt mühelos auszuwählen und zu ändern, und stellen Sie so präzise Aktualisierungen Ihres PDF-Dokuments sicher, während das ursprüngliche Layout und die Formatierung erhalten bleiben.",
+  visualEditor: "Visueller PDF-Texteditor für präzise und intuitive Textbearbeitung",
+  listEditor: "Listenbasierter PDF-Texteditor für organisierte und strukturierte Bearbeitung",
+  editingPage: "Bearbeiten einer bestimmten PDF-Seite mit hoher Präzision",
+  previousPage: "Navigieren Sie zur vorherigen PDF-Seite, um mit der Bearbeitung fortzufahren",
+  nextPage: "Navigieren Sie zur nächsten PDF-Seite für nahtlose Bearbeitung",
+  editingBlock: "Bearbeiten eines bestimmten PDF-Textblocks mit Genauigkeit",
+  editing: "Aktive Bearbeitung von PDF-Inhalten mit Echtzeit-Updates",
+  editTextContent: "PDF-Textinhalt direkt und präzise bearbeiten:",
+  clickToClose: "Klicken Sie auf die Kopfzeile, um die PDF-Editor-Oberfläche schnell zu schließen",
+  noTextBlocks: "Auf dieser PDF-Seite wurden keine Textblöcke zur Bearbeitung gefunden",
+  quickJump: "Springen Sie schnell zu einer bestimmten PDF-Seite für gezielte Bearbeitung",
+  howTo: {
+    title: "Schritt-für-Schritt-Anleitung zum Bearbeiten von Text in PDF-Dokumenten online",
+    step1: {
+      title: "Laden Sie Ihr PDF-Dokument zur Textbearbeitung hoch",
+      description: "Laden Sie Ihre PDF-Datei in unseren fortschrittlichen Editor hoch, um automatisch alle Textelemente zu extrahieren und sie für eine nahtlose, präzise Bearbeitung und Änderung vorzubereiten."
+    },
+    step2: {
+      title: "Bearbeiten Sie PDF-Textinhalt direkt und intuitiv",
+      description: "Klicken Sie auf einen beliebigen Textblock innerhalb der PDF, um dessen Inhalt direkt zu bearbeiten, und machen Sie Updates schnell, intuitiv und genau mit unseren leistungsstarken PDF-Textbearbeitungstools."
+    },
+    step3: {
+      title: "Speichern Sie Ihre PDF-Änderungen einfach und laden Sie sie herunter",
+      description: "Speichern Sie Ihren bearbeiteten Text, um ein neues PDF-Dokument mit allen angewendeten Änderungen zu generieren, das sofort zum Download, zur Freigabe oder zur beruflichen Nutzung bereit ist."
+    }
+  },
+  features: {
+    title: "Leistungsstarke Funktionen unseres fortschrittlichen PDF-Texteditor-Tools",
+    preserve: "Behalten Sie die ursprüngliche PDF-Formatierung, das Layout und die Textpositionierung für professionelle, hochwertige Ergebnisse bei",
+    visual: "Visuelle Textblockauswahl und -bearbeitung für genaue, intuitive PDF-Modifikationen mit Echtzeit-Vorschauen",
+    multipage: "Vollständige Unterstützung für mehrseitige PDF-Dokumente, die eine umfassende Bearbeitung über alle Seiten ermöglicht",
+    fonts: "Detaillierte Schrift- und Größentinformationen für eine präzise Steuerung der PDF-Textbearbeitung und -Anpassung anzeigen"
+  },
+  useCases: {
+    title: "Häufige Anwendungsfälle für die PDF-Textbearbeitung und -Änderung",
+    documentTranslation: {
+      title: "Dokumentübersetzung für PDF-Dateien",
+      description: "Übersetzen Sie PDF-Inhalte in mehrere Sprachen und behalten Sie dabei das ursprüngliche Layout, die Formatierung und das Design für professionelle, mehrsprachige Dokumente bei."
+    },
+    contentCorrection: {
+      title: "Inhaltskorrektur in PDF-Dokumenten",
+      description: "Korrigieren Sie einfach Tippfehler, aktualisieren Sie veraltete Informationen oder beheben Sie Fehler in vorhandenen PDF-Dateien mit Präzision und Geschwindigkeit."
+    },
+    templateCustomization: {
+      title: "PDF-Vorlagenanpassung und -Bearbeitung",
+      description: "Passen Sie PDF-Vorlagen an, indem Sie Textfelder, Inhaltsbereiche und andere Elemente bearbeiten, um Ihren spezifischen Anforderungen gerecht zu werden."
+    },
+    rebrandingDocuments: {
+      title: "Effizientes Rebranding von PDF-Dokumenten",
+      description: "Aktualisieren Sie Firmennamen, Adressen, Logos und Markeninformationen in PDF-Dateien schnell und professionell."
+    }
+  },
+  relatedTools: {
+    title: "Verwandte PDF-Tools für verbesserte Produktivität und Dokumentenverwaltung",
+    convertPDF: {
+      title: "PDF in bearbeitbare Formate konvertieren",
+      description: "Konvertieren Sie Ihre PDF-Dateien in bearbeitbare Formate wie Word, Excel oder andere Formate zur weiteren Anpassung und Bearbeitung."
+    },
+    watermarkPDF: {
+      title: "Wasserzeichen zu PDF-Dokumenten hinzufügen",
+      description: "Fügen Sie Ihren PDF-Dateien einfach Text- oder Bildwasserzeichen für Branding, Sicherheit oder professionelle Zwecke hinzu."
+    },
+    mergePDF: {
+      title: "Mehrere PDF-Dateien zusammenführen",
+      description: "Kombinieren Sie mehrere PDF-Dokumente zu einer einzigen Datei für eine optimierte Organisation, Freigabe und Verwaltung."
+    },
+    splitPDF: {
+      title: "PDF-Seiten einfach aufteilen",
+      description: "Extrahieren Sie bestimmte Seiten aus PDF-Dokumenten, um neue Dateien zu erstellen oder Inhalte effizient zu reorganisieren."
+    },
+  seoContent: {
+  title: "Fortgeschrittene PDF-Textbearbeitung für professionelle Dokumente",
+  paragraph1: "Unser fortschrittlicher PDF-Texteditor bietet professionelle Textbearbeitungsfunktionen für PDF-Dokumente. Im Gegensatz zu grundlegenden PDF-Editoren stellt unser Tool sicher, dass Textänderungen präzise vorgenommen werden, während die genaue Positionierung, Formatierung und das Layout Ihres Original-PDF erhalten bleiben, was für alle Benutzer hochwertige Ergebnisse liefert.",
+  paragraph2: "Unser PDF-Editor verwendet modernste Algorithmen, um Textblöcke, Schriftdetails und Positionsdaten mit unübertroffener Genauigkeit zu extrahieren. Dadurch wird sichergestellt, dass Ihr bearbeitetes PDF das professionelle Erscheinungsbild und die Integrität des Originaldokuments beibehält, was es ideal für kritische Aktualisierungen macht.",
+  paragraph3: "Perfekt für Unternehmen, Rechtsdokumente, Formulare, Verträge und jedes PDF, das Textänderungen erfordert, ohne das Gesamtdesign zu beeinträchtigen. Bearbeiten Sie PDF-Text online mühelos, egal ob für berufliche, Bildungs- oder persönliche Zwecke, mit unseren intuitiven und leistungsstarken Bearbeitungstools."
+  },
+    viewAllPDFTools: "Alle PDF-Tools für umfassende Dokumentenverwaltung anzeigen"
+  }
 }
 }

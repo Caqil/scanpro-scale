@@ -1,4 +1,4 @@
-/* eslint import/no-anonymous-default-export: [2, {"allowObject": true}] */
+/* eslint import/no-anonymous-default-export: [2, {"allowObject: true}] */
 export default {
   metadata: {
     title: "MegaPDF - Free PDF Converter, Editor, OCR & Unlock PDF",
@@ -3706,118 +3706,118 @@ export default {
         depositFailed: "Failed to process deposit"
       }
   },
-   "pdfTextEditor": {
-      "title": "PDF Text Editor",
-      "description": "Effortlessly extract, edit, and modify text in PDF documents with precise positioning control using our advanced, user-friendly PDF text editor tool.",
-      "noFileSelected": "No PDF File Selected - Upload Your PDF Document to Start Editing Text Seamlessly",
-      "extractText": "Extract PDF Text Content Instantly for Easy Editing",
-      "savePDF": "Save Your Edited PDF Document with All Changes Applied",
-      "reset": "Reset All Changes to Original PDF Content Instantly",
-      "startOver": "Upload a New PDF File to Begin Editing Text",
-      "editAnother": "Edit Another PDF Document Quickly and Efficiently",
-      "pages": "PDF Document Pages for Multi-Page Editing Support",
-      "page": "Individual PDF Page for Targeted Text Editing",
-      "textBlocks": "PDF Text Blocks Available for Precise Editing",
-      "pageInfo": "PDF Page Information and Detailed Editing Options",
-      "editText": "Edit PDF Text Content Directly with Ease...",
-      "unsavedChanges": "Unsaved Changes Detected in Your PDF Document",
-      "extractSuccess": "PDF Text Extracted Successfully for Seamless Editing",
-      "extractFailed": "Failed to Extract Text from PDF Document - Try Again",
-      "saveSuccess": "Edited PDF Document Saved Successfully with All Updates",
-      "saveFailed": "Failed to Save Edited PDF File - Please Retry",
-      "saveSuccessDesc": "Your edited PDF document has been generated with all changes applied and is ready for immediate download to your device for sharing or storage.",
-      "downloadEdited": "Download Your Edited PDF File Now with All Changes",
-      "noDataToSave": "No PDF Data Available to Save at This Time",
-      "resetSuccess": "PDF Document Successfully Reset to Its Original State",
-      "resetFailed": "Failed to Reset PDF to Original Content - Try Again",
-      "uploading": "Uploading Your PDF File for Processing and Text Editing...",
-      "processing": "Processing Your PDF Document for Text Editing and Modification...",
-      "extractingText": "Extracting Text from Your PDF File Automatically for Editing...",
-      "readyToEdit": "Your PDF Document Is Ready for Seamless Text Editing and Customization",
-      "networkError": "Network Error Occurred During PDF Processing - Check Your Connection",
-      "unknownError": "Unknown Error Occurred in PDF Editing Process - Please Retry",
-      "tryAgain": "Try Editing Your PDF Document Again for Best Results",
-      "dragAndDrop": "Drag and Drop Your PDF File to Begin Editing Instantly",
-      "dropHereDesc": "Drop your PDF file here or click to browse for easy, automatic text extraction and editing. Our advanced PDF editor makes text modification simple, efficient, and accessible for all users, ensuring professional-quality results every time.",
-      "howToEdit": "How to Edit PDF Text Online Quickly, Easily, and Accurately",
-      "editInstructions": "Use the Visual Editor to view and edit text positioned exactly as it appears on the PDF page, or switch to the List Editor for organized, structured text editing. Click any text block to select and modify content effortlessly, ensuring precise updates to your PDF document while maintaining its original layout and formatting.",
-      "visualEditor": "Visual PDF Text Editor for Precise and Intuitive Text Editing",
-      "listEditor": "List-Based PDF Text Editor for Organized and Structured Editing",
-      "editingPage": "Editing a Specific PDF Page with High Precision",
-      "previousPage": "Navigate to Previous PDF Page for Continued Editing",
-      "nextPage": "Navigate to Next PDF Page for Seamless Editing",
-      "editingBlock": "Editing a Specific PDF Text Block with Accuracy",
-      "editing": "Actively Editing PDF Content with Real-Time Updates",
-      "editTextContent": "Edit PDF Text Content Directly with Precision:",
-      "clickToClose": "Click Header to Close the PDF Editor Interface Quickly",
-      "noTextBlocks": "No Text Blocks Found on This PDF Page for Editing",
-      "quickJump": "Quickly Jump to a Specific PDF Page for Targeted Editing",
-      "howTo": {
-        "title": "Step-by-Step Guide to Editing Text in PDF Documents Online",
-        "step1": {
-          "title": "Upload Your PDF Document for Text Editing",
-          "description": "Upload your PDF file to our advanced editor to automatically extract all text elements, preparing them for seamless, precise editing and modification."
+  pdfTextEditor: {
+      title: "PDF Text Editor",
+      description: "Effortlessly extract, edit, and modify text in PDF documents with precise positioning control using our advanced, user-friendly PDF text editor tool.",
+      noFileSelected: "No PDF File Selected - Upload Your PDF Document to Start Editing Text Seamlessly",
+      extractText: "Extract PDF Text Content Instantly for Easy Editing",
+      savePDF: "Save Your Edited PDF Document with All Changes Applied",
+      reset: "Reset All Changes to Original PDF Content Instantly",
+      startOver: "Upload a New PDF File to Begin Editing Text",
+      editAnother: "Edit Another PDF Document Quickly and Efficiently",
+      pages: "PDF Document Pages for Multi-Page Editing Support",
+      page: "Individual PDF Page for Targeted Text Editing",
+      textBlocks: "PDF Text Blocks Available for Precise Editing",
+      pageInfo: "PDF Page Information and Detailed Editing Options",
+      editText: "Edit PDF Text Content Directly with Ease...",
+      unsavedChanges: "Unsaved Changes Detected in Your PDF Document",
+      extractSuccess: "PDF Text Extracted Successfully for Seamless Editing",
+      extractFailed: "Failed to Extract Text from PDF Document - Try Again",
+      saveSuccess: "Edited PDF Document Saved Successfully with All Updates",
+      saveFailed: "Failed to Save Edited PDF File - Please Retry",
+      saveSuccessDesc: "Your edited PDF document has been generated with all changes applied and is ready for immediate download to your device for sharing or storage.",
+      downloadEdited: "Download Your Edited PDF File Now with All Changes",
+      noDataToSave: "No PDF Data Available to Save at This Time",
+      resetSuccess: "PDF Document Successfully Reset to Its Original State",
+      resetFailed: "Failed to Reset PDF to Original Content - Try Again",
+      uploading: "Uploading Your PDF File for Processing and Text Editing...",
+      processing: "Processing Your PDF Document for Text Editing and Modification...",
+      extractingText: "Extracting Text from Your PDF File Automatically for Editing...",
+      readyToEdit: "Your PDF Document Is Ready for Seamless Text Editing and Customization",
+      networkError: "Network Error Occurred During PDF Processing - Check Your Connection",
+      unknownError: "Unknown Error Occurred in PDF Editing Process - Please Retry",
+      tryAgain: "Try Editing Your PDF Document Again for Best Results",
+      dragAndDrop: "Drag and Drop Your PDF File to Begin Editing Instantly",
+      dropHereDesc: "Drop your PDF file here or click to browse for easy, automatic text extraction and editing. Our advanced PDF editor makes text modification simple, efficient, and accessible for all users, ensuring professional-quality results every time.",
+      howToEdit: "How to Edit PDF Text Online Quickly, Easily, and Accurately",
+      editInstructions: "Use the Visual Editor to view and edit text positioned exactly as it appears on the PDF page, or switch to the List Editor for organized, structured text editing. Click any text block to select and modify content effortlessly, ensuring precise updates to your PDF document while maintaining its original layout and formatting.",
+      visualEditor: "Visual PDF Text Editor for Precise and Intuitive Text Editing",
+      listEditor: "List-Based PDF Text Editor for Organized and Structured Editing",
+      editingPage: "Editing a Specific PDF Page with High Precision",
+      previousPage: "Navigate to Previous PDF Page for Continued Editing",
+      nextPage: "Navigate to Next PDF Page for Seamless Editing",
+      editingBlock: "Editing a Specific PDF Text Block with Accuracy",
+      editing: "Actively Editing PDF Content with Real-Time Updates",
+      editTextContent: "Edit PDF Text Content Directly with Precision:",
+      clickToClose: "Click Header to Close the PDF Editor Interface Quickly",
+      noTextBlocks: "No Text Blocks Found on This PDF Page for Editing",
+      quickJump: "Quickly Jump to a Specific PDF Page for Targeted Editing",
+      howTo: {
+        title: "Step-by-Step Guide to Editing Text in PDF Documents Online",
+        step1: {
+          title: "Upload Your PDF Document for Text Editing",
+          description: "Upload your PDF file to our advanced editor to automatically extract all text elements, preparing them for seamless, precise editing and modification."
         },
-        "step2": {
-          "title": "Edit PDF Text Content Directly and Intuitively",
-          "description": "Click on any text block within the PDF to edit its content directly, making updates quick, intuitive, and accurate with our powerful PDF text editing tools."
+        step2: {
+          title: "Edit PDF Text Content Directly and Intuitively",
+          description: "Click on any text block within the PDF to edit its content directly, making updates quick, intuitive, and accurate with our powerful PDF text editing tools."
         },
-        "step3": {
-          "title": "Save Your PDF Changes Easily and Download",
-          "description": "Save your edited text to generate a new PDF document with all changes applied, ready for immediate download, sharing, or professional use."
+        step3: {
+          title: "Save Your PDF Changes Easily and Download",
+          description: "Save your edited text to generate a new PDF document with all changes applied, ready for immediate download, sharing, or professional use."
         }
       },
-      "features": {
-        "title": "Powerful Features of Our Advanced PDF Text Editor Tool",
-        "preserve": "Preserve Original PDF Formatting, Layout, and Text Positioning for Professional, High-Quality Results",
-        "visual": "Visual Text Block Selection and Editing for Accurate, Intuitive PDF Modifications with Real-Time Previews",
-        "multipage": "Full Support for Multi-Page PDF Documents, Enabling Comprehensive Editing Across All Pages",
-        "fonts": "Display Detailed Font and Size Information for Precise Control Over PDF Text Editing and Customization"
+      features: {
+        title: "Powerful Features of Our Advanced PDF Text Editor Tool",
+        preserve: "Preserve Original PDF Formatting, Layout, and Text Positioning for Professional, High-Quality Results",
+        visual: "Visual Text Block Selection and Editing for Accurate, Intuitive PDF Modifications with Real-Time Previews",
+        multipage: "Full Support for Multi-Page PDF Documents, Enabling Comprehensive Editing Across All Pages",
+        fonts: "Display Detailed Font and Size Information for Precise Control Over PDF Text Editing and Customization"
       },
-      "useCases": {
-        "title": "Common Use Cases for PDF Text Editing and Modification",
-        "documentTranslation": {
-          "title": "Document Translation for PDF Files",
-          "description": "Translate PDF content into multiple languages while preserving the original layout, formatting, and design for professional, multilingual documents."
+      useCases: {
+        title: "Common Use Cases for PDF Text Editing and Modification",
+        documentTranslation: {
+          title: "Document Translation for PDF Files",
+          description: "Translate PDF content into multiple languages while preserving the original layout, formatting, and design for professional, multilingual documents."
         },
-        "contentCorrection": {
-          "title": "Content Correction in PDF Documents",
-          "description": "Easily fix typos, update outdated information, or correct errors in existing PDF files with precision and speed."
+        contentCorrection: {
+          title: "Content Correction in PDF Documents",
+          description: "Easily fix typos, update outdated information, or correct errors in existing PDF files with precision and speed."
         },
-        "templateCustomization": {
-          "title": "PDF Template Customization and Editing",
-          "description": "Customize PDF templates by editing text fields, content areas, and other elements to meet your specific requirements."
+        templateCustomization: {
+          title: "PDF Template Customization and Editing",
+          description: "Customize PDF templates by editing text fields, content areas, and other elements to meet your specific requirements."
         },
-        "rebrandingDocuments": {
-          "title": "Rebranding PDF Documents Efficiently",
-          "description": "Update company names, addresses, logos, and branding information in PDF files quickly and professionally."
+        rebrandingDocuments: {
+          title: "Rebranding PDF Documents Efficiently",
+          description: "Update company names, addresses, logos, and branding information in PDF files quickly and professionally."
         }
       },
-      "relatedTools": {
-        "title": "Related PDF Tools for Enhanced Productivity and Document Management",
-        "convertPDF": {
-          "title": "Convert PDF to Editable Formats",
-          "description": "Convert your PDF files to editable formats like Word, Excel, or other formats for further customization and editing."
+      relatedTools: {
+        title: "Related PDF Tools for Enhanced Productivity and Document Management",
+        convertPDF: {
+          title: "Convert PDF to Editable Formats",
+          description: "Convert your PDF files to editable formats like Word, Excel, or other formats for further customization and editing."
         },
-        "watermarkPDF": {
-          "title": "Add Watermarks to PDF Documents",
-          "description": "Easily add text or image watermarks to your PDF files for branding, security, or professional purposes."
+        watermarkPDF: {
+          title: "Add Watermarks to PDF Documents",
+          description: "Easily add text or image watermarks to your PDF files for branding, security, or professional purposes."
         },
-        "mergePDF": {
-          "title": "Merge Multiple PDF Files",
-          "description": "Combine multiple PDF documents into a single file for streamlined organization, sharing, and management."
+        mergePDF: {
+          title: "Merge Multiple PDF Files",
+          description: "Combine multiple PDF documents into a single file for streamlined organization, sharing, and management."
         },
-        "splitPDF": {
-          "title": "Split PDF Pages Easily",
-          "description": "Extract specific pages from PDF documents to create new files or reorganize content efficiently."
+        splitPDF: {
+          title: "Split PDF Pages Easily",
+          description: "Extract specific pages from PDF documents to create new files or reorganize content efficiently."
         },
-      "seoContent": {
-      "title": "Advanced PDF Text Editing for Professional Documents",
-      "paragraph1": "Our advanced PDF text editor offers professional-grade text editing capabilities for PDF documents. Unlike basic PDF editors, our tool ensures precise text modifications while preserving the exact positioning, formatting, and layout of your original PDF, delivering high-quality results for all users.",
-      "paragraph2": "Utilizing cutting-edge algorithms, our PDF editor extracts text blocks, font details, and positioning data with unmatched accuracy. This ensures that your edited PDF maintains the professional appearance and integrity of the original document, making it ideal for critical updates.",
-      "paragraph3": "Perfect for businesses, legal documents, forms, contracts, and any PDF requiring text changes without compromising the overall design. Edit PDF text online effortlessly, whether for professional, educational, or personal use, with our intuitive and powerful editing tools."
+      seoContent: {
+      title: "Advanced PDF Text Editing for Professional Documents",
+      paragraph1: "Our advanced PDF text editor offers professional-grade text editing capabilities for PDF documents. Unlike basic PDF editors, our tool ensures precise text modifications while preserving the exact positioning, formatting, and layout of your original PDF, delivering high-quality results for all users.",
+      paragraph2: "Utilizing cutting-edge algorithms, our PDF editor extracts text blocks, font details, and positioning data with unmatched accuracy. This ensures that your edited PDF maintains the professional appearance and integrity of the original document, making it ideal for critical updates.",
+      paragraph3: "Perfect for businesses, legal documents, forms, contracts, and any PDF requiring text changes without compromising the overall design. Edit PDF text online effortlessly, whether for professional, educational, or personal use, with our intuitive and powerful editing tools."
       },
-        "viewAllPDFTools": "View All PDF Tools for Comprehensive Document Management"
+        viewAllPDFTools: "View All PDF Tools for Comprehensive Document Management"
       }
     }
 

@@ -3563,5 +3563,119 @@ export default {
           minimumDeposit: "最低存款金额为5.00美元",
           depositFailed: "存款处理失败"
         }
-    }
+    },
+    pdfTextEditor: {
+        title: "PDF文本编辑器",
+        description: "使用我们先进且用户友好的PDF文本编辑工具，轻松提取、编辑和修改PDF文档中的文本，并实现精确的位置控制。",
+        noFileSelected: "未选择PDF文件 - 上传您的PDF文档以无缝开始编辑文本",
+        extractText: "即时提取PDF文本内容以便于编辑",
+        savePDF: "保存应用了所有更改的编辑过的PDF文档",
+        reset: "立即将所有更改重置为原始PDF内容",
+        startOver: "上传新的PDF文件以开始编辑文本",
+        editAnother: "快速高效地编辑另一个PDF文档",
+        pages: "支持多页编辑的PDF文档页面",
+        page: "用于目标文本编辑的单个PDF页面",
+        textBlocks: "可用于精确编辑的PDF文本块",
+        pageInfo: "PDF页面信息和详细的编辑选项",
+        editText: "直接轻松编辑PDF文本内容...",
+        unsavedChanges: "在您的PDF文档中检测到未保存的更改",
+        extractSuccess: "PDF文本已成功提取以进行无缝编辑",
+        extractFailed: "无法从PDF文档中提取文本 - 请重试",
+        saveSuccess: "编辑过的PDF文档已成功保存并包含所有更新",
+        saveFailed: "无法保存编辑过的PDF文件 - 请重试",
+        saveSuccessDesc: "您的编辑过的PDF文档已生成，应用了所有更改，可立即下载到您的设备以进行共享或存储。",
+        downloadEdited: "现在下载包含所有更改的编辑过的PDF文件",
+        noDataToSave: "目前没有可保存的PDF数据",
+        resetSuccess: "PDF文档已成功重置为原始状态",
+        resetFailed: "无法将PDF重置为原始内容 - 请重试",
+        uploading: "正在上传您的PDF文件以进行处理和文本编辑...",
+        processing: "正在处理您的PDF文档以进行文本编辑和修改...",
+        extractingText: "正在从您的PDF文件中自动提取文本以进行编辑...",
+        readyToEdit: "您的PDF文档已准备好进行无缝文本编辑和自定义",
+        networkError: "PDF处理过程中发生网络错误 - 请检查您的连接",
+        unknownError: "PDF编辑过程中发生未知错误 - 请重试",
+        tryAgain: "再次尝试编辑您的PDF文档以获得最佳结果",
+        dragAndDrop: "拖放您的PDF文件以立即开始编辑",
+        dropHereDesc: "将您的PDF文件拖放到此处或点击浏览以进行简单、自动的文本提取和编辑。我们先进的PDF编辑器使文本修改简单、高效且对所有用户都易于访问，每次都能保证专业品质的结果。",
+        howToEdit: "如何快速、轻松、准确地在网上编辑PDF文本",
+        editInstructions: "使用可视化编辑器查看和编辑PDF页面上显示的精确位置的文本，或者切换到列表编辑器进行有组织、结构化的文本编辑。点击任何文本块即可轻松选择和修改内容，确保在保持原始布局和格式的同时对PDF文档进行精确更新。",
+        visualEditor: "用于精确和直观文本编辑的可视化PDF文本编辑器",
+        listEditor: "基于列表的PDF文本编辑器，用于有组织和结构化的编辑",
+        editingPage: "以高精度编辑特定PDF页面",
+        previousPage: "导航到上一PDF页面以继续编辑",
+        nextPage: "导航到下一PDF页面以进行无缝编辑",
+        editingBlock: "以精确方式编辑特定PDF文本块",
+        editing: "实时更新地积极编辑PDF内容",
+        editTextContent: "直接以精确方式编辑PDF文本内容：",
+        clickToClose: "点击标题快速关闭PDF编辑器界面",
+        noTextBlocks: "此PDF页面上未找到可编辑的文本块",
+        quickJump: "快速跳转到特定PDF页面进行目标编辑",
+        howTo: {
+          title: "在线编辑PDF文档文本的分步指南",
+          step1: {
+            title: "上传您的PDF文档以进行文本编辑",
+            description: "将您的PDF文件上传到我们先进的编辑器，自动提取所有文本元素，为无缝且精确的编辑和修改做好准备。"
+          },
+          step2: {
+            title: "直接且直观地编辑PDF文本内容",
+            description: "点击PDF内的任何文本块以直接编辑其内容，使用我们强大的PDF文本编辑工具进行快速、直观且精确的更新。"
+          },
+          step3: {
+            title: "轻松保存PDF更改并下载",
+            description: "保存编辑过的文本以生成应用了所有更改的新PDF文档，随时可下载、共享或用于专业用途。"
+          }
+        },
+        features: {
+          title: "我们先进PDF文本编辑工具的强大功能",
+          preserve: "保留原始PDF格式、布局和文本定位，以获得专业、高质量的结果",
+          visual: "通过实时预览进行精确、直观的PDF修改的视觉文本块选择和编辑",
+          multipage: "全面支持多页PDF文档，可在所有页面上进行全面编辑",
+          fonts: "显示详细的字体和大小信息，以精确控制PDF文本编辑和自定义"
+        },
+        useCases: {
+          title: "PDF文本编辑和修改的常见使用场景",
+          documentTranslation: {
+            title: "PDF文件的文档翻译",
+            description: "将PDF内容翻译成多种语言，同时保留原始布局、格式和设计，适用于专业的多语言文档。"
+          },
+          contentCorrection: {
+            title: "PDF文档的内容更正",
+            description: "轻松修复现有PDF文件中的拼写错误、更新过时信息或更正错误，操作精准且快速。"
+          },
+          templateCustomization: {
+            title: "PDF模板自定义和编辑",
+            description: "通过编辑文本字段、内容区域和其他元素，自定义PDF模板以满足您的特定需求。"
+          },
+          rebrandingDocuments: {
+            title: "高效重新品牌化PDF文档",
+            description: "在PDF文件中快速、专业地更新公司名称、地址、标志和品牌信息。"
+          }
+        },
+        relatedTools: {
+          title: "提升生产力和文档管理的相关PDF工具",
+          convertPDF: {
+            title: "将PDF转换为可编辑格式",
+            description: "将您的PDF文件转换为Word、Excel或其他可编辑格式，以进行进一步的自定义和编辑。"
+          },
+          watermarkPDF: {
+            title: "为PDF文档添加水印",
+            description: "为品牌、安全或专业目的，轻松为您的PDF文件添加文本或图像水印。"
+          },
+          mergePDF: {
+            title: "合并多个PDF文件",
+            description: "将多个PDF文档合并为一个文件，以简化组织、共享和管理。"
+          },
+          splitPDF: {
+            title: "轻松拆分PDF页面",
+            description: "从PDF文档中提取特定页面以创建新文件或高效地重新组织内容。"
+          }
+        },
+        seoContent: {
+          title: "专业文档的高级PDF文本编辑",
+          paragraph1: "我们的高级PDF文本编辑器为PDF文档提供专业级的文本编辑功能。与基本PDF编辑器不同，我们的工具确保精确的文本修改，同时保留原始PDF的精确定位、格式和布局，为所有用户提供高质量的结果。",
+          paragraph2: "利用尖端算法，我们的PDF编辑器以无与伦比的精度提取文本块、字体细节和定位数据。这确保您的编辑过的PDF保持原始文档的专业外观和完整性，非常适合关键更新。",
+          paragraph3: "适用于企业、法律文档、表格、合同或任何需要文本更改但不影响整体设计的PDF。使用我们直观且强大的编辑工具，无论是专业、教育还是个人用途，都能轻松在线编辑PDF文本。"
+        },
+        viewAllPDFTools: "查看所有PDF工具以进行全面的文档管理"
+      }
 }

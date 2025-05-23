@@ -3565,5 +3565,119 @@ export default {
           minimumDeposit: "Minimum yatırma miktarı $5.00'dır",
           depositFailed: "Yatırma işlemi başarısız oldu"
         }
-    }
+    },
+    pdfTextEditor: {
+        title: "PDF Metin Düzenleyici",
+        description: "Gelişmiş ve kullanıcı dostu PDF metin düzenleyici aracımızla, PDF belgelerindeki metni zahmetsizce çıkarın, düzenleyin ve değiştirin, hassas konumlandırma kontrolü ile.",
+        noFileSelected: "Hiçbir PDF Dosyası Seçilmedi - Metin Düzenlemeye Başlamak için PDF Belgenizi Yükleyin",
+        extractText: "Kolay Düzenleme için PDF Metin İçeriğini Anında Çıkar",
+        savePDF: "Tüm Değişiklikleri Uygulayarak Düzenlenmiş PDF Belgenizi Kaydedin",
+        reset: "Tüm Değişiklikleri Orijinal PDF İçeriğine Anında Sıfırla",
+        startOver: "Metin Düzenlemeye Başlamak için Yeni bir PDF Dosyası Yükleyin",
+        editAnother: "Başka Bir PDF Belgesini Hızlı ve Verimli Bir Şekilde Düzenleyin",
+        pages: "Çok Sayfalı Düzenleme Desteği için PDF Belge Sayfaları",
+        page: "Hedefli Metin Düzenleme için Tekil PDF Sayfası",
+        textBlocks: "Hassas Düzenleme için Mevcut PDF Metin Blokları",
+        pageInfo: "PDF Sayfa Bilgisi ve Ayrıntılı Düzenleme Seçenekleri",
+        editText: "PDF Metin İçeriğini Doğrudan Kolayca Düzenleyin...",
+        unsavedChanges: "PDF Belgenizde Kaydedilmemiş Değişiklikler Tespit Edildi",
+        extractSuccess: "Sorunsuz Düzenleme için PDF Metni Başarıyla Çıkarıldı",
+        extractFailed: "PDF Belgesinden Metin Çıkarma Başarısız Oldu - Tekrar Deneyin",
+        saveSuccess: "Tüm Güncellemelerle Düzenlenmiş PDF Belgesi Başarıyla Kaydedildi",
+        saveFailed: "Düzenlenmiş PDF Dosyasını Kaydetme Başarısız Oldu - Lütfen Tekrar Deneyin",
+        saveSuccessDesc: "Düzenlenmiş PDF belgeniz tüm değişiklikler uygulanarak oluşturuldu ve paylaşım veya depolama için cihazınıza anında indirilmeye hazır.",
+        downloadEdited: "Tüm Değişikliklerle Düzenlenmiş PDF Dosyanızı Şimdi İndirin",
+        noDataToSave: "Şu Anda Kaydedilecek PDF Verisi Yok",
+        resetSuccess: "PDF Belgesi Orijinal Durumuna Başarıyla Sıfırlandı",
+        resetFailed: "PDF'yi Orijinal İçeriğe Sıfırlama Başarısız Oldu - Tekrar Deneyin",
+        uploading: "PDF Dosyanız İşleme ve Metin Düzenleme için Yükleniyor...",
+        processing: "PDF Belgeniz Metin Düzenleme ve Değiştirme için İşleniyor...",
+        extractingText: "PDF Dosyanızdan Metin Otomatik Olarak Çıkarılıyor ve Düzenlemeye Hazırlanıyor...",
+        readyToEdit: "PDF Belgeniz Sorunsuz Metin Düzenleme ve Özelleştirme için Hazır",
+        networkError: "PDF İşleme Sırasında Ağ Hatası Oluştu - Bağlantınızı Kontrol Edin",
+        unknownError: "PDF Düzenleme Sürecinde Bilinmeyen Bir Hata Oluştu - Lütfen Tekrar Deneyin",
+        tryAgain: "En İyi Sonuçlar için PDF Belgenizi Tekrar Düzenlemeyi Deneyin",
+        dragAndDrop: "PDF Dosyanızı Sürükleyip Bırakarak Anında Düzenlemeye Başlayın",
+        dropHereDesc: "PDF dosyanızı buraya bırakın veya kolay ve otomatik metin çıkarma ve düzenleme için göz atmak üzere tıklayın. Gelişmiş PDF düzenleyicimiz, metin değişikliklerini basit, verimli ve tüm kullanıcılar için erişilebilir hale getirir, her zaman profesyonel kalitede sonuçlar sunar.",
+        howToEdit: "PDF Metnini Çevrimiçi Olarak Hızlı, Kolay ve Doğru Bir Şekilde Düzenleme",
+        editInstructions: "PDF sayfasında göründüğü gibi konumlandırılmış metni görüntülemek ve düzenlemek için Görsel Düzenleyiciyi kullanın veya düzenli ve yapılandırılmış metin düzenleme için Liste Düzenleyiciye geçin. Herhangi bir metin bloğuna tıklayarak içeriği zahmetsizce seçin ve değiştirin, orijinal düzeni ve formatı korurken PDF belgenize hassas güncellemeler sağlayın.",
+        visualEditor: "Hassas ve Sezgisel Metin Düzenleme için Görsel PDF Metin Düzenleyici",
+        listEditor: "Düzenli ve Yapılandırılmış Düzenleme için Liste Tabanlı PDF Metin Düzenleyici",
+        editingPage: "Yüksek Hassasiyetle Belirli Bir PDF Sayfasını Düzenleme",
+        previousPage: "Düzenlemeye Devam Etmek için Önceki PDF Sayfasına Git",
+        nextPage: "Sorunsuz Düzenleme için Sonraki PDF Sayfasına Git",
+        editingBlock: "Belirli Bir PDF Metin Bloğunu Doğrulukla Düzenleme",
+        editing: "Gerçek Zamanlı Güncellemelerle PDF İçeriğini Aktif Olarak Düzenleme",
+        editTextContent: "PDF Metin İçeriğini Doğrudan Hassasiyetle Düzenleyin:",
+        clickToClose: "PDF Düzenleyici Arayüzünü Hızla Kapatmak için Başlığa Tıklayın",
+        noTextBlocks: "Bu PDF Sayfasında Düzenleme için Metin Bloğu Bulunamadı",
+        quickJump: "Hedefli Düzenleme için Belirli Bir PDF Sayfasına Hızla Atla",
+        howTo: {
+          title: "PDF Belgelerindeki Metni Çevrimiçi Düzenleme için Adım Adım Kılavuz",
+          step1: {
+            title: "Metin Düzenleme için PDF Belgenizi Yükleyin",
+            description: "PDF dosyanızı gelişmiş düzenleyicimize yükleyerek tüm metin öğelerini otomatik olarak çıkarın, sorunsuz ve hassas düzenleme ve değiştirme için hazırlayın."
+          },
+          step2: {
+            title: "PDF Metin İçeriğini Doğrudan ve Sezgisel Olarak Düzenleyin",
+            description: "PDF içindeki herhangi bir metin bloğuna tıklayarak içeriğini doğrudan düzenleyin, güçlü PDF metin düzenleme araçlarımızla hızlı, sezgisel ve doğru güncellemeler yapın."
+          },
+          step3: {
+            title: "PDF Değişikliklerinizi Kolayca Kaydedin ve İndirin",
+            description: "Düzenlenmiş metni kaydederek tüm değişikliklerin uygulandığı yeni bir PDF belgesi oluşturun, anında indirme, paylaşım veya profesyonel kullanım için hazır olun."
+          }
+        },
+        features: {
+          title: "Gelişmiş PDF Metin Düzenleyici Aracımızın Güçlü Özellikleri",
+          preserve: "Profesyonel, yüksek kaliteli sonuçlar için orijinal PDF formatını, düzenini ve metin konumlandırmasını koruyun",
+          visual: "Gerçek zamanlı önizlemelerle doğru ve sezgisel PDF değişiklikleri için görsel metin bloğu seçimi ve düzenleme",
+          multipage: "Tüm sayfalarda kapsamlı düzenlemeyi mümkün kılan çok sayfalı PDF belgeleri için tam destek",
+          fonts: "PDF metin düzenleme ve özelleştirme üzerinde hassas kontrol için ayrıntılı yazı tipi ve boyut bilgisi görüntüleme"
+        },
+        useCases: {
+          title: "PDF Metin Düzenleme ve Değiştirme için Yaygın Kullanım Senaryoları",
+          documentTranslation: {
+            title: "PDF Dosyaları için Belge Çevirisi",
+            description: "Orijinal düzeni, formatı ve tasarımı koruyarak PDF içeriğini birden fazla dile çevirin, profesyonel çok dilli belgeler için."
+          },
+          contentCorrection: {
+            title: "PDF Belgelerindeki İçerik Düzeltme",
+            description: "Mevcut PDF dosyalarındaki yazım hatalarını, güncel olmayan bilgileri veya hataları hızlı ve doğru bir şekilde düzeltin."
+          },
+          templateCustomization: {
+            title: "PDF Şablon Özelleştirme ve Düzenleme",
+            description: "Metin alanlarını, içerik alanlarını ve diğer öğeleri düzenleyerek PDF şablonlarını özel gereksinimlerinize uygun şekilde özelleştirin."
+          },
+          rebrandingDocuments: {
+            title: "PDF Belgelerinin Verimli Bir Şekilde Yeniden Markalaştırılması",
+            description: "Şirket adlarını, adresleri, logoları ve marka bilgilerini PDF dosyalarında hızlı ve profesyonel bir şekilde güncelleyin."
+          }
+        },
+        relatedTools: {
+          title: "Verimlilik ve Belge Yönetimini Artırmak için İlgili PDF Araçları",
+          convertPDF: {
+            title: "PDF'yi Düzenlenebilir Formatlara Dönüştür",
+            description: "PDF dosyalarınızı Word, Excel veya diğer formatlara dönüştürerek daha fazla özelleştirme ve düzenleme yapın."
+          },
+          watermarkPDF: {
+            title: "PDF Belgelerine Filigran Ekle",
+            description: "Marka, güvenlik veya profesyonel amaçlar için PDF dosyalarınıza kolayca metin veya resim filigranları ekleyin."
+          },
+          mergePDF: {
+            title: "Birden Fazla PDF Dosyasını Birleştir",
+            description: "Birden fazla PDF belgesini tek bir dosyada birleştirerek düzenli bir organizasyon, paylaşım ve yönetim sağlayın."
+          },
+          splitPDF: {
+            title: "PDF Sayfalarını Kolayca Ayır",
+            description: "PDF belgelerinden belirli sayfaları çıkararak yeni dosyalar oluşturun veya içeriği verimli bir şekilde yeniden düzenleyin."
+          }
+        },
+        seoContent: {
+          title: "Profesyonel Belgeler için Gelişmiş PDF Metin Düzenleme",
+          paragraph1: "Gelişmiş PDF metin düzenleyicimiz, PDF belgeleri için profesyonel düzeyde metin düzenleme yetenekleri sunar. Temel PDF düzenleyicilerden farklı olarak, aracımız orijinal PDF'nizin tam konumlandırmasını, formatını ve düzenini korurken hassas metin değişiklikleri sağlar, tüm kullanıcılar için yüksek kaliteli sonuçlar sunar.",
+          paragraph2: "Son teknoloji algoritmalar kullanarak, PDF düzenleyicimiz metin bloklarını, yazı tipi ayrıntılarını ve konumlandırma verilerini eşsiz bir doğrulukla çıkarır. Bu, düzenlenmiş PDF'nizin orijinal belgenin profesyonel görünümünü ve bütünlüğünü korumasını sağlar, kritik güncellemeler için idealdir.",
+          paragraph3: "İşletmeler, yasal belgeler, formlar, sözleşmeler ve genel tasarımı bozmadan metin değişikliği gerektiren herhangi bir PDF için mükemmel. Sezgisel ve güçlü düzenleme araçlarımızla, profesyonel, eğitim veya kişisel kullanım için PDF metnini çevrimiçi olarak zahmetsizce düzenleyin."
+        },
+        viewAllPDFTools: "Kapsamlı Belge Yönetimi için Tüm PDF Araçlarını Görüntüle"
+      }
 }

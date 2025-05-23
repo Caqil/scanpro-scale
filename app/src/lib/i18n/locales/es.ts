@@ -3481,5 +3481,119 @@ balancePanel: {
     minimumDeposit: "El monto mínimo de depósito es $5.00",
     depositFailed: "No se pudo procesar el depósito"
   }
+},
+pdfTextEditor: {
+  title: "Editor de texto PDF",
+  description: "Extrae, edita y modifica texto en documentos PDF sin esfuerzo con control de posicionamiento preciso utilizando nuestra herramienta avanzada y fácil de usar de editor de texto PDF.",
+  noFileSelected: "No se ha seleccionado ningún archivo PDF - Sube tu documento PDF para comenzar a editar texto sin problemas",
+  extractText: "Extrae el contenido de texto PDF al instante para una edición fácil",
+  savePDF: "Guarda tu documento PDF editado con todos los cambios aplicados",
+  reset: "Restablece todos los cambios al contenido original del PDF al instante",
+  startOver: "Sube un nuevo archivo PDF para comenzar a editar texto",
+  editAnother: "Edita otro documento PDF de forma rápida y eficiente",
+  pages: "Páginas del documento PDF para soporte de edición multipágina",
+  page: "Página individual de PDF para edición de texto específica",
+  textBlocks: "Bloques de texto PDF disponibles para edición precisa",
+  pageInfo: "Información de la página PDF y opciones de edición detalladas",
+  editText: "Edita el contenido de texto PDF directamente con facilidad...",
+  unsavedChanges: "Se han detectado cambios no guardados en tu documento PDF",
+  extractSuccess: "Texto PDF extraído con éxito para una edición sin problemas",
+  extractFailed: "Error al extraer texto del documento PDF - Inténtalo de nuevo",
+  saveSuccess: "Documento PDF editado guardado con éxito con todas las actualizaciones",
+  saveFailed: "Error al guardar el archivo PDF editado - Por favor, inténtalo de nuevo",
+  saveSuccessDesc: "Tu documento PDF editado ha sido generado con todos los cambios aplicados y está listo para descargar inmediatamente en tu dispositivo para compartir o almacenar.",
+  downloadEdited: "Descarga tu archivo PDF editado ahora con todos los cambios",
+  noDataToSave: "No hay datos PDF disponibles para guardar en este momento",
+  resetSuccess: "Documento PDF restablecido con éxito a su estado original",
+  resetFailed: "Error al restablecer el PDF al contenido original - Inténtalo de nuevo",
+  uploading: "Subiendo tu archivo PDF para procesamiento y edición de texto...",
+  processing: "Procesando tu documento PDF para edición y modificación de texto...",
+  extractingText: "Extrayendo texto de tu archivo PDF automáticamente para edición...",
+  readyToEdit: "Tu documento PDF está listo para edición y personalización de texto sin problemas",
+  networkError: "Error de red durante el procesamiento del PDF - Comprueba tu conexión",
+  unknownError: "Error desconocido en el proceso de edición de PDF - Por favor, inténtalo de nuevo",
+  tryAgain: "Intenta editar tu documento PDF de nuevo para obtener los mejores resultados",
+  dragAndDrop: "Arrastra y suelta tu archivo PDF para comenzar a editar al instante",
+  dropHereDesc: "Suelta tu archivo PDF aquí o haz clic para buscar una extracción y edición de texto fácil y automática. Nuestro editor de PDF avanzado hace que la modificación de texto sea simple, eficiente y accesible para todos los usuarios, garantizando resultados de calidad profesional cada vez.",
+  howToEdit: "Cómo editar texto PDF en línea de forma rápida, fácil y precisa",
+  editInstructions: "Utiliza el Editor Visual para ver y editar texto posicionado exactamente como aparece en la página PDF, o cambia al Editor de Lista para una edición de texto organizada y estructurada. Haz clic en cualquier bloque de texto para seleccionarlo y modificar el contenido sin esfuerzo, asegurando actualizaciones precisas en tu documento PDF mientras mantienes su diseño y formato original.",
+  visualEditor: "Editor de texto PDF visual para edición de texto precisa e intuitiva",
+  listEditor: "Editor de texto PDF basado en lista para edición organizada y estructurada",
+  editingPage: "Editando una página específica de PDF con alta precisión",
+  previousPage: "Navega a la página anterior del PDF para continuar editando",
+  nextPage: "Navega a la página siguiente del PDF para una edición sin problemas",
+  editingBlock: "Editando un bloque de texto específico de PDF con precisión",
+  editing: "Editando activamente contenido PDF con actualizaciones en tiempo real",
+  editTextContent: "Edita el contenido de texto PDF directamente con precisión:",
+  clickToClose: "Haz clic en el encabezado para cerrar rápidamente la interfaz del editor PDF",
+  noTextBlocks: "No se encontraron bloques de texto en esta página PDF para editar",
+  quickJump: "Salta rápidamente a una página específica de PDF para edición específica",
+  howTo: {
+    title: "Guía paso a paso para editar texto en documentos PDF en línea",
+    step1: {
+      title: "Sube tu documento PDF para editar texto",
+      description: "Sube tu archivo PDF a nuestro editor avanzado para extraer automáticamente todos los elementos de texto, preparándolos para una edición y modificación precisa y sin problemas."
+    },
+    step2: {
+      title: "Edita el contenido de texto PDF directamente e intuitivamente",
+      description: "Haz clic en cualquier bloque de texto dentro del PDF para editar su contenido directamente, haciendo actualizaciones rápidas, intuitivas y precisas con nuestras potentes herramientas de edición de texto PDF."
+    },
+    step3: {
+      title: "Guarda los cambios de tu PDF fácilmente y descarga",
+      description: "Guarda tu texto editado para generar un nuevo documento PDF con todos los cambios aplicados, listo para descargar, compartir o usar profesionalmente de inmediato."
+    }
+  },
+  features: {
+    title: "Potentes características de nuestra herramienta avanzada de editor de texto PDF",
+    preserve: "Preserva el formato, diseño y posicionamiento de texto original del PDF para resultados profesionales y de alta calidad",
+    visual: "Selección y edición visual de bloques de texto para modificaciones de PDF precisas e intuitivas con vistas previas en tiempo real",
+    multipage: "Soporte completo para documentos PDF multipágina, permitiendo una edición exhaustiva en todas las páginas",
+    fonts: "Muestra información detallada de fuente y tamaño para un control preciso sobre la edición y personalización de texto PDF"
+  },
+  useCases: {
+    title: "Casos de uso comunes para edición y modificación de texto PDF",
+    documentTranslation: {
+      title: "Traducción de documentos para archivos PDF",
+      description: "Traduce contenido PDF a múltiples idiomas manteniendo el diseño, formato y diseño original para documentos profesionales y multilingües."
+    },
+    contentCorrection: {
+      title: "Corrección de contenido en documentos PDF",
+      description: "Corrige fácilmente errores tipográficos, actualiza información obsoleta o corrige errores en archivos PDF existentes con precisión y velocidad."
+    },
+    templateCustomization: {
+      title: "Personalización y edición de plantillas PDF",
+      description: "Personaliza plantillas PDF editando campos de texto, áreas de contenido y otros elementos para cumplir con tus requisitos específicos."
+    },
+    rebrandingDocuments: {
+      title: "Re-branding eficiente de documentos PDF",
+      description: "Actualiza nombres de empresas, direcciones, logos e información de marca en archivos PDF de forma rápida y profesional."
+    }
+  },
+  relatedTools: {
+    title: "Herramientas PDF relacionadas para mayor productividad y gestión de documentos",
+    convertPDF: {
+      title: "Convertir PDF a formatos editables",
+      description: "Convierte tus archivos PDF a formatos editables como Word, Excel u otros formatos para mayor personalización y edición."
+    },
+    watermarkPDF: {
+      title: "Agregar marcas de agua a documentos PDF",
+      description: "Agrega fácilmente marcas de agua de texto o imagen a tus archivos PDF para branding, seguridad o propósitos profesionales."
+    },
+    mergePDF: {
+      title: "Combinar múltiples archivos PDF",
+      description: "Combina múltiples documentos PDF en un solo archivo para una organización, compartición y gestión optimizadas."
+    },
+    splitPDF: {
+      title: "Dividir páginas PDF fácilmente",
+      description: "Extrae páginas específicas de documentos PDF para crear nuevos archivos o reorganizar contenido eficientemente."
+    },
+  seoContent: {
+  title: "Edición avanzada de texto PDF para documentos profesionales",
+  paragraph1: "Nuestro avanzado editor de texto PDF ofrece capacidades de edición de texto de nivel profesional para documentos PDF. A diferencia de los editores de PDF básicos, nuestra herramienta garantiza modificaciones de texto precisas mientras preserva el posicionamiento, formato y diseño exactos de tu PDF original, proporcionando resultados de alta calidad para todos los usuarios.",
+  paragraph2: "Utilizando algoritmos de vanguardia, nuestro editor de PDF extrae bloques de texto, detalles de fuentes y datos de posicionamiento con una precisión inigualable. Esto asegura que tu PDF editado mantenga la apariencia profesional e integridad del documento original, haciéndolo ideal para actualizaciones críticas.",
+  paragraph3: "Perfecto para empresas, documentos legales, formularios, contratos y cualquier PDF que requiera cambios de texto sin comprometer el diseño general. Edita texto PDF en línea sin esfuerzo, ya sea para uso profesional, educativo o personal, con nuestras herramientas de edición intuitivas y potentes."
+  },
+    viewAllPDFTools: "Ver todas las herramientas PDF para una gestión integral de documentos"
+  }
 }
 }
