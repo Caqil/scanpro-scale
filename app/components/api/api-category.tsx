@@ -1,3 +1,4 @@
+// For app/components/api/api-category.tsx (updated version)
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import {
   Lock,
   PencilRuler,
   FileText,
+  FileSignature,
+  Type,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -44,7 +47,7 @@ const categories = [
   {
     title: "Editing API",
     description:
-      "Add signatures, watermarks, page numbers, and more to PDF documents.",
+      "Add watermarks, page numbers, remove pages, and enhance your PDF documents.",
     icon: PencilRuler,
     path: "editing",
   },
@@ -54,6 +57,20 @@ const categories = [
       "Extract text from scanned documents and create searchable PDFs with OCR.",
     icon: FileText,
     path: "ocr",
+  },
+  {
+    title: "Signing API",
+    description:
+      "Add signatures to PDF documents with customizable positioning and scaling.",
+    icon: FileSignature,
+    path: "signing",
+  },
+  {
+    title: "Text Editor API",
+    description:
+      "Extract, edit, and update text content in PDFs while preserving layout and images.",
+    icon: Type,
+    path: "text-editor",
   },
   {
     title: "Getting Started",
@@ -66,7 +83,7 @@ const categories = [
 
 export default function APICategories() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
       {categories.map((category) => (
         <Card
           key={category.title}
