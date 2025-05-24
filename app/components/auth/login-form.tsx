@@ -22,7 +22,7 @@ interface LoginFormProps {
 export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
   const { t } = useLanguageStore();
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, oauthLogin } = useAuth();
 
   // Form state
   const [email, setEmail] = useState("");
@@ -109,18 +109,18 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     }
   };
 
+  // Handle OAuth sign in
   const handleOAuthSignIn = (provider: string) => {
-    // Sanitize provider to prevent XSS
-    const sanitizedProvider = encodeURIComponent(provider);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-
-    // Validate URL
-    if (!apiUrl.match(/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {
-      setError("Invalid OAuth configuration");
-      return;
+    try {
+      // Use the auth context oauthLogin function
+      oauthLogin(provider, callbackUrl);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : t("auth.unknownError") || "An error occurred"
+      );
     }
-
-    window.location.href = `${apiUrl}/api/auth/${sanitizedProvider}`;
   };
 
   return (

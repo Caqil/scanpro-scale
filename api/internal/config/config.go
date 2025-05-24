@@ -27,8 +27,11 @@ type Config struct {
 	EmailFrom          string
 	ContactRecipient   string
 	AppURL             string
+	APIUrl             string
 	Debug              bool
-
+	GoogleClientID     string
+	GoogleClientSecret string
+	OAuthRedirectURL   string
 	// DB Config
 	DBHost            string
 	DBPort            int
@@ -70,7 +73,11 @@ func LoadConfig() *Config {
 		EmailFrom:          getEnv("EMAIL_FROM", "noreply@mega-pdf.com"),
 		ContactRecipient:   getEnv("CONTACT_RECIPIENT_EMAIL", ""),
 		AppURL:             getEnv("APP_URL", "http://localhost:8080"),
+		APIUrl:             getEnv("API_URL", "http://localhost:8080"),
 		Debug:              getEnv("DEBUG", "false") == "true",
+		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		OAuthRedirectURL:   getEnv("OAUTH_REDIRECT_URL", "http://localhost:8080/api/auth/google/callback"),
 
 		// Database config
 		DBHost:            getEnv("DB_HOST", "127.0.0.1"),

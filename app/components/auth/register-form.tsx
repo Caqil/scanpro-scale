@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { LanguageLink } from "../language-link";
 import { Separator } from "../ui/separator";
 import { useAuth } from "@/src/context/auth-context";
+import { FaGoogle } from "react-icons/fa";
 
 interface StrengthData {
   text: string;
@@ -23,7 +24,7 @@ interface StrengthData {
 export function RegisterForm() {
   const { t } = useLanguageStore();
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, oauthLogin } = useAuth();
 
   // Form state
   const [name, setName] = useState<string>("");
@@ -70,7 +71,6 @@ export function RegisterForm() {
 
     setPasswordStrength(strength);
   }, [password]);
-
   // Get strength text and color
   const getStrengthData = (): StrengthData => {
     if (passwordStrength <= 25)
@@ -200,15 +200,16 @@ export function RegisterForm() {
   };
 
   const handleOAuthSignIn = (provider: string) => {
-    // Sanitize provider to prevent XSS
-    const sanitizedProvider = encodeURIComponent(provider);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    // Validate URL
-    if (!apiUrl.match(/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {
-      setError("Invalid OAuth configuration");
-      return;
+    try {
+      // Use the auth context oauthLogin function
+      oauthLogin(provider, "/en/dashboard");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : t("auth.unknownError") || "An error occurred"
+      );
     }
-    window.location.href = `${apiUrl}/api/auth/${sanitizedProvider}`;
   };
 
   const strengthData = getStrengthData();
@@ -284,7 +285,18 @@ export function RegisterForm() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button
+          variant="outline"
+          onClick={() => handleOAuthSignIn("google")}
+          className="flex-1 relative overflow-hidden group h-11 transition-all"
+          disabled={loading}
+        >
+          <FaGoogle className="w-4 h-4 mr-2" />
+          <span>{t("auth.googleSignUp") || "Sign up with Google"}</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+        </Button>
+      </div>
       <div className="flex flex-col sm:flex-row gap-4"></div>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

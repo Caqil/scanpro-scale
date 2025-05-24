@@ -142,6 +142,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	toolStatusHandler := handlers.NewToolStatusHandler()
 	pdfTextEditorHandler := handlers.NewPDFTextEditorHandler(balanceService, cfg)
 	cleanupHandler := handlers.NewCleanupHandler(cfg)
+	oauthService := services.NewOAuthService(db, cfg.JWTSecret, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.OAuthRedirectURL)
+	oauthHandler := handlers.NewOAuthHandler(oauthService, cfg.AppURL, cfg.APIUrl)
 	signPdfHandler := handlers.NewSignPdfHandler(
 		cfg.UploadDir,
 		filepath.Join(cfg.PublicDir, "signatures"),
@@ -224,6 +226,11 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 		auth := api.Group("/auth")
 		{
+			fmt.Println("Registering route: /api/auth/google")
+			auth.GET("/google", oauthHandler.GoogleAuth)
+
+			fmt.Println("Registering route: /api/auth/google/callback")
+			auth.GET("/google/callback", oauthHandler.GoogleCallback)
 			fmt.Println("Registering route: /api/auth/register")
 			auth.POST("/register", authHandler.Register)
 

@@ -30,6 +30,7 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUserData: () => Promise<void>;
+  oauthLogin: (provider: string, callbackUrl?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,7 +100,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkAuth();
   }, [apiUrl]);
+  const oauthLogin = (provider: string, callbackUrl?: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
+    // Validate provider
+    if (!["google", "github", "facebook"].includes(provider)) {
+      console.error(`Invalid OAuth provider: ${provider}`);
+      return;
+    }
+
+    // Build the URL with optional callback
+    let url = `${apiUrl}/api/auth/${provider}`;
+    if (callbackUrl) {
+      url += `?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    }
+
+    // Redirect to OAuth URL
+    window.location.href = url;
+  };
   // Refresh user data (fetch full profile)
   const refreshUserData = async () => {
     try {
@@ -263,6 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         refreshUserData,
+        oauthLogin,
       }}
     >
       {children}
