@@ -1,11 +1,11 @@
-// api/internal/middleware/auth_middleware.go
+// internal/middleware/auth_middleware.go
 package middleware
 
 import (
 	"net/http"
 	"strings"
 
-	"github.com/MegaPDF/megapdf-official/api/internal/db" // Add this import
+	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +13,14 @@ import (
 // AuthMiddleware authenticates users via JWT token
 func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// IMPORTANT: Skip authentication for password reset endpoints
+		if strings.Contains(c.Request.URL.Path, "/api/auth/validate") ||
+			strings.Contains(c.Request.URL.Path, "/api/auth/reset-password") {
+			// Skip authentication for these endpoints
+			c.Next()
+			return
+		}
+
 		var token string
 
 		// First, try to get token from Authorization header
@@ -37,7 +45,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
-		// Validate token - use the global DB instance instead of nil
+		// Validate token
 		authService := services.NewAuthService(db.DB, jwtSecret)
 		userID, err := authService.ValidateToken(token)
 		if err != nil {

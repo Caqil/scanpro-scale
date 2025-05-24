@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/config"
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
@@ -11,6 +13,7 @@ import (
 	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -205,11 +208,27 @@ func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
 		return
 	}
+
+	// IMPORTANT: Hard-code frontend URL for development
+	frontendURL := "http://localhost:3000"
+
+	// If config.AppURL is set properly, use that instead
+	if h.config != nil && h.config.AppURL != "" && h.config.AppURL != "http://localhost:8080" {
+		frontendURL = h.config.AppURL
+	}
+
+	fmt.Printf("\n*** PASSWORD RESET REQUEST ***\n")
+	fmt.Printf("Email: %s\n", req.Email)
+	fmt.Printf("Frontend URL: %s\n", frontendURL)
+	fmt.Printf("Config AppURL: %s\n", h.config.AppURL)
+	fmt.Printf("*****************************\n\n")
+
 	token, err := h.service.RequestPasswordReset(req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process reset request"})
 		return
 	}
+
 	if token == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
@@ -217,6 +236,7 @@ func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 		})
 		return
 	}
+
 	if h.emailService != nil {
 		emailResult, err := h.emailService.SendPasswordResetEmail(req.Email, token.Token)
 		if err != nil || !emailResult.Success {
@@ -233,11 +253,18 @@ func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 			})
 			return
 		}
+
 		devDetails := gin.H{}
 		if c.GetString("mode") == "development" {
+			// In development mode, show the token and preview URL
+			resetUrl := fmt.Sprintf("%s/en/reset-password?token=%s", frontendURL, token.Token)
 			devDetails["devToken"] = token.Token
+			devDetails["devResetUrl"] = resetUrl
 			devDetails["previewUrl"] = emailResult.MessageUrl
+
+			fmt.Printf("DEV MODE: Reset URL for testing: %s\n", resetUrl)
 		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"success":    true,
 			"message":    "Password reset link has been sent",
@@ -245,11 +272,15 @@ func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 		})
 	} else {
 		if c.GetString("mode") == "development" {
+			resetUrl := fmt.Sprintf("%s/en/reset-password?token=%s", frontendURL, token.Token)
 			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"message": "Password reset link would be sent (email service not configured)",
-				"token":   token.Token,
+				"success":  true,
+				"message":  "DEVELOPMENT MODE: Password reset link would be sent in production",
+				"token":    token.Token,
+				"resetUrl": resetUrl,
 			})
+
+			fmt.Printf("DEV MODE: Reset URL for testing: %s\n", resetUrl)
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Email service not configured",
@@ -258,17 +289,43 @@ func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 	}
 }
 
+// internal/handlers/auth_handler.go (partial)
+
 func (h *AuthHandler) ValidateResetToken(c *gin.Context) {
+	// Log the request for debugging
+	fmt.Printf("\n*** VALIDATE TOKEN REQUEST ***\n")
+	fmt.Printf("Headers: %v\n", c.Request.Header)
+	fmt.Printf("Token: %s\n", c.Query("token"))
+	fmt.Printf("Request URL: %s\n", c.Request.URL.String())
+	fmt.Printf("RemoteAddr: %s\n", c.Request.RemoteAddr)
+	fmt.Printf("******************************\n\n")
+
 	token := c.Query("token")
 	if token == "" {
+		fmt.Println("Token is missing in request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required", "valid": false})
 		return
 	}
+
+	// Add extra debug logs
+	fmt.Printf("Validating token: %s\n", token)
+
 	valid, err := h.service.ValidateResetToken(token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate token", "valid": false})
+		fmt.Printf("Error validating token: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Failed to validate token: %v", err),
+			"valid": false,
+		})
 		return
 	}
+
+	fmt.Printf("Token validation result: %v\n", valid)
+
+	// Set CORS headers again to be safe
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	c.JSON(http.StatusOK, gin.H{
 		"valid": valid,
 		"message": map[bool]string{
@@ -442,6 +499,49 @@ func (h *AuthHandler) ResendVerificationEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Verification email sent successfully",
+	})
+}
+
+// GetResetTokenInfo provides information about a reset token without validating credentials
+func (h *AuthHandler) GetResetTokenInfo(c *gin.Context) {
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required", "valid": false})
+		return
+	}
+
+	// Look up the token directly in the database
+	var resetToken models.PasswordResetToken
+	result := db.DB.Where("token = ?", token).First(&resetToken)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// Token not found in database
+		c.JSON(http.StatusOK, gin.H{
+			"valid":   false,
+			"message": "Token is invalid or does not exist",
+		})
+		return
+	} else if result.Error != nil {
+		// Other database error
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"valid": false,
+			"error": "Database error: " + result.Error.Error(),
+		})
+		return
+	}
+
+	// Check if token has expired
+	isValid := resetToken.Expires.After(time.Now())
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid": isValid,
+		"message": map[bool]string{
+			true:  "Token is valid",
+			false: "Token has expired",
+		}[isValid],
+		"email":   resetToken.Email, // Include email for debugging only
+		"expires": resetToken.Expires,
+		"created": resetToken.CreatedAt,
 	})
 }
 

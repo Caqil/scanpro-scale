@@ -6,14 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowLeft, CheckCircle, Mail } from "lucide-react";
+import { AlertCircle, ArrowLeft, Mail } from "lucide-react";
 import { useLanguageStore } from "@/src/store/store";
 import { toast } from "sonner";
 import { LanguageLink } from "@/components/language-link";
-
-interface EnhancedForgotPasswordFormProps {
-  lang?: string;
-}
 
 export function EnhancedForgotPasswordForm() {
   const { t } = useLanguageStore();
@@ -62,17 +58,19 @@ export function EnhancedForgotPasswordForm() {
     setLoading(true);
 
     try {
+      // Make sure we're using the correct API URL
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "https://api.mega-pdf.com";
+
       // Call the Go API endpoint for password reset
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const res = await fetch(`${apiUrl}/api/auth/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+        credentials: "include", // Important for cross-domain cookies
+      });
 
       if (!res.ok) {
         const data = await res.json();
@@ -89,6 +87,7 @@ export function EnhancedForgotPasswordForm() {
     } catch (error) {
       // We don't show the exact error for security reasons
       // Just tell the user that if the email exists, they'll receive instructions
+      console.error("Reset password error:", error);
       setEmailSent(true);
     } finally {
       setLoading(false);
@@ -97,7 +96,7 @@ export function EnhancedForgotPasswordForm() {
 
   // Handle going back to login
   const handleBackToLogin = () => {
-    router.push(`en/login`);
+    router.push(`/en/login`);
   };
 
   if (emailSent) {

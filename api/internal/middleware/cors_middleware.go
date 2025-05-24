@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,11 +14,33 @@ func CORSMiddleware() gin.HandlerFunc {
 		// Get origin from request
 		origin := c.Request.Header.Get("Origin")
 
-		// Set CORS headers based on origin
+		// Allowed origins
+		allowedOrigins := []string{
+			"https://mega-pdf.com",
+			"https://www.mega-pdf.com",
+			"http://localhost:3000", // For development
+		}
+
+		// Check if origin is allowed
+		allowed := false
 		if origin != "" {
+			for _, allowedOrigin := range allowedOrigins {
+				if strings.HasPrefix(origin, allowedOrigin) {
+					allowed = true
+					break
+				}
+			}
+		}
+
+		// Set CORS headers based on origin
+		if allowed {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-		} else {
+		} else if origin == "" {
+			// If no origin specified, allow all for API clients
 			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		} else {
+			// For unknown origins, default to main site
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "https://mega-pdf.com")
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")

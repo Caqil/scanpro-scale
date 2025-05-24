@@ -245,14 +245,14 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			auth.POST("/reset-password/confirm", authHandler.ResetPassword)
 
 			fmt.Println("Registering route: /api/auth/validate")
-			auth.GET("/validate", authHandler.ValidateResetToken)
+			auth.GET("/validate", authHandler.ValidateToken)
 			fmt.Println("Registering route: /api/auth/validate-token")
 
 			// Email verification routes
 			fmt.Println("Registering route: /api/auth/verify-email")
 			auth.GET("/verify-email", authHandler.VerifyEmail)
 			auth.POST("/verify-email", middleware.AuthMiddleware(cfg.JWTSecret), authHandler.ResendVerificationEmail)
-
+			auth.GET("/token-info", authHandler.GetResetTokenInfo)
 			fmt.Println("Registering route: /api/auth/logout")
 			auth.POST("/logout", func(c *gin.Context) {
 				// Clear the auth cookie by setting it to expire immediately

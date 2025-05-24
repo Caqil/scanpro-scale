@@ -432,7 +432,22 @@ func (s *EmailService) SendVerificationEmail(to, token string, name string) (*Em
 
 // SendPasswordResetEmail sends a password reset email
 func (s *EmailService) SendPasswordResetEmail(to, token string) (*EmailResult, error) {
-	resetUrl := fmt.Sprintf("%s/en/reset-password?token=%s", s.config.AppURL, token)
+	// DIRECT FIX: Use localhost:3000 explicitly for local development
+	frontendURL := "http://localhost:3000"
+
+	// If config.AppURL is set and not pointing to the API, use that instead
+	if s.config != nil && s.config.AppURL != "" && s.config.AppURL != "http://localhost:8080" {
+		frontendURL = s.config.AppURL
+	}
+
+	resetUrl := fmt.Sprintf("%s/en/reset-password?token=%s", frontendURL, token)
+
+	// Debug logging
+	fmt.Printf("\n*** RESET PASSWORD LINK ***\n")
+	fmt.Printf("Generated URL: %s\n", resetUrl)
+	fmt.Printf("Using frontend URL: %s\n", frontendURL)
+	fmt.Printf("Config AppURL: %s\n", s.config.AppURL)
+	fmt.Printf("****************************\n\n")
 
 	contentTemplate := `
       <h2 style="font-size: 24px; font-weight: 700; color: #ff6666; margin-top: 0;">Password Reset Request</h2>
