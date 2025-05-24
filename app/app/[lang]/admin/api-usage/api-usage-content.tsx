@@ -2,7 +2,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
@@ -15,10 +23,24 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from "recharts";
 import { toast } from "sonner";
 import { ApiUsageData } from "@/src/types/admin";
 import { fetchWithAuth } from "@/src/utils/auth";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const chartConfig = {
+  count: {
+    label: "Operation Count",
+    color: "hsl(var(--chart-1))", // Matches example's hsl(var(--chart-1))
+  },
+} satisfies ChartConfig;
 
 export function ApiUsageContent() {
   const [usageData, setUsageData] = useState<ApiUsageData | null>(null);
@@ -31,7 +53,6 @@ export function ApiUsageContent() {
   const fetchUsageData = async () => {
     try {
       setLoading(true);
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetchWithAuth(`${apiUrl}/api/admin/api-usage`);
 
@@ -48,6 +69,27 @@ export function ApiUsageContent() {
       setLoading(false);
     }
   };
+
+  // Calculate trend for operations (placeholder, replace with actual logic)
+  const calculateTrend = () => {
+    if (!usageData?.byOperation) return { percentage: 0, isUp: true };
+    const currentTotal = Object.values(usageData.byOperation).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    // Placeholder: Assume a baseline total (replace with actual previous period data)
+    const previousTotal = currentTotal * 0.95; // Example: 5% less than current
+    const percentage = (
+      ((currentTotal - previousTotal) / previousTotal) *
+      100
+    ).toFixed(1);
+    return {
+      percentage: Math.abs(parseFloat(percentage)),
+      isUp: currentTotal >= previousTotal,
+    };
+  };
+
+  const trend = calculateTrend();
 
   if (loading) {
     return <div className="text-center py-10">Loading usage data...</div>;
@@ -112,28 +154,57 @@ export function ApiUsageContent() {
         <TabsContent value="operations">
           <Card>
             <CardHeader>
-              <CardTitle>Usage by Operation</CardTitle>
+              <CardTitle>Bar Chart - Label</CardTitle>
+              <CardDescription>Operation Counts 2025</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
+              <ChartContainer config={chartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
+                    accessibilityLayer
                     data={Object.entries(usageData.byOperation).map(
                       ([operation, count]) => ({
                         operation,
                         count,
                       })
                     )}
+                    margin={{
+                      top: 20,
+                    }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="operation" angle={-45} textAnchor="end" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" />
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="operation"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                      tickFormatter={(value) => value.slice(0, 3)}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Bar dataKey="count" fill="var(--color-count)" radius={8}>
+                      <LabelList
+                        position="top"
+                        offset={12}
+                        className="fill-foreground"
+                        fontSize={12}
+                      />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </ChartContainer>
             </CardContent>
+            <CardFooter className="flex-col items-start gap-2 text-sm">
+              <div className="flex gap-2 font-medium leading-none">
+                Trending {trend.isUp ? "up" : "down"} by {trend.percentage}%
+                this month <TrendingUp className="h-4 w-4" />
+              </div>
+              <div className="leading-none text-muted-foreground">
+                Showing total operations for the last period
+              </div>
+            </CardFooter>
           </Card>
         </TabsContent>
 

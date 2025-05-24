@@ -78,11 +78,11 @@
   --ring: oklch(0.708 0 0);
 
   /* Chart colors updated to harmonize with red */
-  --chart-1: oklch(0.6 0.25 27); /* Primary red */
-  --chart-2: oklch(0.55 0.23 27); /* Slightly darker red */
-  --chart-3: oklch(0.5 0.22 27); /* Deep red */
-  --chart-4: oklch(0.65 0.2 27); /* Light red */
-  --chart-5: oklch(0.45 0.18 27); /* Muted red */
+  --chart-1: 347 77% 50%;
+  --chart-2: 352 83% 91%;
+  --chart-3: 350 80% 72%;
+  --chart-4: 351 83% 82%;
+  --chart-5: 349 77% 62%;
 
   /* Sidebar colors */
   --sidebar: oklch(0.985 0 0);
@@ -119,11 +119,11 @@
   --ring: oklch(0.556 0 0);
 
   /* Chart colors for dark mode */
-  --chart-1: oklch(0.7 0.23 27);
-  --chart-2: oklch(0.65 0.22 27);
-  --chart-3: oklch(0.6 0.21 27);
-  --chart-4: oklch(0.75 0.2 27);
-  --chart-5: oklch(0.55 0.18 27);
+  --chart-1: 347 77% 50%;
+  --chart-2: 349 77% 62%;
+  --chart-3: 350 80% 72%;
+  --chart-4: 351 83% 82%;
+  --chart-5: 352 83% 91%;
 
   /* Sidebar colors for dark mode */
   --sidebar: oklch(0.205 0 0);

@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Code, Key, FileOutput, ArrowLeft } from "lucide-react";
+import { Code, Key, FileOutput, ArrowLeft, KeySquareIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function ConversionApiPage() {
@@ -34,11 +34,13 @@ export default function ConversionApiPage() {
           Word, Excel, images, and more with our powerful API.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <Button size="lg" className="rounded-full">
-            Get API Key <Key className="ml-2 h-5 w-5" />
+          <Button variant="default" size="lg" className="rounded-full" asChild>
+            <Link href="/en/dashboard">
+              <KeySquareIcon className="mr-2 h-5 w-15" /> Get API Key
+            </Link>
           </Button>
           <Button variant="outline" size="lg" className="rounded-full" asChild>
-            <LanguageLink href="/developer/api">
+            <LanguageLink href="/en/developer/api">
               <ArrowLeft className="mr-2 h-5 w-5" /> Back to API Documentation
             </LanguageLink>
           </Button>
@@ -69,7 +71,7 @@ export default function ConversionApiPage() {
 
               <h2 className="text-2xl font-semibold mt-8">Endpoint</h2>
               <div className="bg-muted p-4 rounded-md font-mono text-sm">
-                <code>POST https://mega-pdf.com/api/convert</code>
+                <code>POST https://api.mega-pdf.com/api/convert</code>
               </div>
 
               <h2 className="text-2xl font-semibold mt-8">Authentication</h2>
@@ -84,7 +86,7 @@ export default function ConversionApiPage() {
 x-api-key: your-api-key
 
 // Query parameter example
-https://mega-pdf.com/api/convert?api_key=your-api-key
+https://api.mega-pdf.com/api/convert?api_key=your-api-key
 `}</code>
                 </pre>
               </div>
@@ -212,7 +214,7 @@ https://mega-pdf.com/api/convert?api_key=your-api-key
               <Card className="bg-muted/50">
                 <CardContent className="p-4">
                   <pre className="text-sm font-mono overflow-auto">
-                    <code>{`curl -X POST https://mega-pdf.com/api/convert \\
+                    <code>{`curl -X POST https://api.mega-pdf.com/api/convert \\
   -H "x-api-key: your-api-key" \\
   -F "file=@/path/to/document.pdf" \\
   -F "outputFormat=docx"
@@ -264,7 +266,7 @@ https://mega-pdf.com/api/convert?api_key=your-api-key
 formData.append('file', fs.createReadStream('document.pdf'));
 formData.append('outputFormat', 'docx');
 
-fetch('https://mega-pdf.com/api/convert', {
+fetch('https://api.mega-pdf.com/api/convert', {
   method: 'POST',
   headers: {
     'x-api-key': 'your-api-key'

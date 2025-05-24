@@ -1,3 +1,4 @@
+// For app/app/[lang]/developer/api/manipulation/page.tsx
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FilePlus, ArrowLeft } from "lucide-react";
+import { FilePlus, ArrowLeft, KeySquareIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function ManipulationApiPage() {
@@ -34,11 +35,13 @@ export default function ManipulationApiPage() {
           to enhance your document processing workflows.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <Button size="lg" className="rounded-full">
-            Get API Key <FilePlus className="ml-2 h-5 w-5" />
+          <Button variant="default" size="lg" className="rounded-full" asChild>
+            <Link href="/en/dashboard">
+              <KeySquareIcon className="mr-2 h-5 w-15" /> Get API Key
+            </Link>
           </Button>
           <Button variant="outline" size="lg" className="rounded-full" asChild>
-            <Link href="/developer/api">
+            <Link href="/en/developer/api">
               <ArrowLeft className="mr-2 h-5 w-5" /> Back to API Documentation
             </Link>
           </Button>
@@ -48,18 +51,18 @@ export default function ManipulationApiPage() {
       {/* Tabs Section */}
       <section className="space-y-8">
         <Tabs defaultValue="merge" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 bg-muted/50 p-2 rounded-lg">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 gap-2 bg-muted/50 rounded-lg">
             <TabsTrigger value="merge" className="rounded-md">
               Merge API
             </TabsTrigger>
-            <TabsTrigger value="compress" className="rounded-md" disabled>
-              Compress API (Coming Soon)
+            <TabsTrigger value="compress" className="rounded-md">
+              Compress API
             </TabsTrigger>
-            <TabsTrigger value="split" className="rounded-md" disabled>
-              Split API (Coming Soon)
+            <TabsTrigger value="split" className="rounded-md">
+              Split API
             </TabsTrigger>
-            <TabsTrigger value="rotate" className="rounded-md" disabled>
-              Rotate API (Coming Soon)
+            <TabsTrigger value="rotate" className="rounded-md">
+              Rotate API
             </TabsTrigger>
           </TabsList>
 
@@ -84,7 +87,7 @@ export default function ManipulationApiPage() {
 
                   <h2 className="text-2xl font-semibold mt-8">Endpoint</h2>
                   <div className="bg-muted p-4 rounded-md font-mono text-sm">
-                    <code>POST https://mega-pdf.com/api/merge</code>
+                    <code>POST https://api.mega-pdf.com/api/pdf/merge</code>
                   </div>
 
                   <h2 className="text-2xl font-semibold mt-8">
@@ -101,7 +104,7 @@ export default function ManipulationApiPage() {
 x-api-key: your-api-key
 
 // Query parameter example
-https://mega-pdf.com/api/merge?api_key=your-api-key
+https://api.mega-pdf.com/api/pdf/merge?api_key=your-api-key
 `}</code>
                     </pre>
                   </div>
@@ -162,7 +165,7 @@ https://mega-pdf.com/api/merge?api_key=your-api-key
                   <Card className="bg-muted/50">
                     <CardContent className="p-4">
                       <pre className="text-sm font-mono overflow-auto">
-                        <code>{`curl -X POST https://mega-pdf.com/api/merge \\
+                        <code>{`curl -X POST https://api.mega-pdf.com/api/pdf/merge \\
   -H "x-api-key: your-api-key" \\
   -F "files=@/path/to/doc1.pdf" \\
   -F "files=@/path/to/doc2.pdf" \\
@@ -189,7 +192,13 @@ https://mega-pdf.com/api/merge?api_key=your-api-key
   "filename": "uuid-merged.pdf",
   "mergedSize": 1234567,
   "totalInputSize": 2345678,
-  "fileCount": 2
+  "fileCount": 2,
+  "billing": {
+    "usedFreeOperation": true,
+    "freeOperationsRemaining": 9,
+    "currentBalance": 10.50,
+    "operationCost": 0.00
+  }
 }`}</code>
                       </pre>
                     </CardContent>
@@ -218,7 +227,7 @@ formData.append('files', fs.createReadStream('doc1.pdf'));
 formData.append('files', fs.createReadStream('doc2.pdf'));
 formData.append('order', JSON.stringify([0, 1]));
 
-fetch('https://mega-pdf.com/api/merge', {
+fetch('https://api.mega-pdf.com/api/pdf/merge', {
   method: 'POST',
   headers: {
     'x-api-key': 'your-api-key'
@@ -243,7 +252,7 @@ fetch('https://mega-pdf.com/api/merge', {
             </Card>
           </TabsContent>
 
-          {/* Placeholder Tabs for Other Tools */}
+          {/* Compress API Tab */}
           <TabsContent value="compress">
             <Card className="border-none shadow-lg">
               <CardHeader>
@@ -251,48 +260,623 @@ fetch('https://mega-pdf.com/api/merge', {
                   Compress API
                 </CardTitle>
                 <CardDescription className="text-lg">
-                  Coming Soon
+                  Reduce PDF file size while maintaining quality
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-base leading-7">
-                  The Compress API will allow you to reduce the file size of
-                  PDFs while maintaining quality. Check back soon for
-                  documentation and availability.
-                </p>
+              <CardContent className="space-y-8">
+                <div className="prose max-w-none dark:prose-invert">
+                  <p className="text-base leading-7">
+                    The Compress API allows you to reduce the file size of PDFs
+                    while preserving quality. This is useful for sharing,
+                    storing, or uploading large PDF files.
+                  </p>
+
+                  <h2 className="text-2xl font-semibold mt-8">Endpoint</h2>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <code>POST https://api.mega-pdf.com/api/pdf/compress</code>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Authentication
+                  </h2>
+                  <p className="text-base leading-7">
+                    Authenticate requests using an API key in the{" "}
+                    <code>x-api-key</code> header.
+                  </p>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <pre>
+                      <code>{`// Header example
+x-api-key: your-api-key
+`}</code>
+                    </pre>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Request Parameters
+                  </h2>
+                  <p className="text-base leading-7">
+                    The API accepts <code>multipart/form-data</code> requests
+                    with the following parameters:
+                  </p>
+                  <Table className="border rounded-md">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">
+                          Parameter
+                        </TableHead>
+                        <TableHead className="font-semibold">Type</TableHead>
+                        <TableHead className="font-semibold">
+                          Description
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Required
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          <code>file</code>
+                        </TableCell>
+                        <TableCell>File</TableCell>
+                        <TableCell>PDF file to compress (max 50MB)</TableCell>
+                        <TableCell>Yes</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Example Request
+                  </h2>
+                  <p className="text-base leading-7">
+                    Compress a PDF using cURL:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`curl -X POST https://api.mega-pdf.com/api/pdf/compress \\
+  -H "x-api-key: your-api-key" \\
+  -F "file=@/path/to/document.pdf"
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Response Format
+                  </h2>
+                  <p className="text-base leading-7">
+                    Successful responses include the compressed file URL and
+                    compression statistics:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": true,
+  "message": "PDF compression successful with 75.20% reduction",
+  "fileUrl": "/api/file?folder=compressions&filename=uuid-compressed.pdf",
+  "filename": "uuid-compressed.pdf",
+  "originalName": "document.pdf",
+  "originalSize": 2345678,
+  "compressedSize": 582749,
+  "compressionRatio": "75.20%",
+  "billing": {
+    "currentBalance": 10.50,
+    "freeOperationsRemaining": 9,
+    "operationCost": 0.00,
+    "usedFreeOperation": true
+  }
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                  <p className="text-base leading-7">Error responses:</p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": false,
+  "error": "Failed to compress PDF: Invalid file format"
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">Code Examples</h2>
+                  <p className="text-base leading-7">
+                    Using the Compress API with JavaScript:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`const formData = new FormData();
+formData.append('file', fs.createReadStream('document.pdf'));
+
+fetch('https://api.mega-pdf.com/api/pdf/compress', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'your-api-key'
+  },
+  body: formData
+})
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Compression successful:');
+      console.log('File URL:', data.fileUrl);
+      console.log('Original size:', data.originalSize, 'bytes');
+      console.log('Compressed size:', data.compressedSize, 'bytes');
+      console.log('Compression ratio:', data.compressionRatio);
+    } else {
+      console.error('Compression failed:', data.error);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Split API Tab */}
           <TabsContent value="split">
             <Card className="border-none shadow-lg">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold">Split API</CardTitle>
                 <CardDescription className="text-lg">
-                  Coming Soon
+                  Divide a PDF into multiple documents based on various criteria
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-base leading-7">
-                  The Split API will enable splitting a PDF into multiple
-                  documents based on page ranges or other criteria. Check back
-                  soon for documentation and availability.
-                </p>
+              <CardContent className="space-y-8">
+                <div className="prose max-w-none dark:prose-invert">
+                  <p className="text-base leading-7">
+                    The Split API enables you to divide a PDF document into
+                    multiple separate PDF files. You can split by page ranges,
+                    extract specific pages, or split every N pages
+                    automatically.
+                  </p>
+
+                  <h2 className="text-2xl font-semibold mt-8">Endpoint</h2>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <code>POST https://api.mega-pdf.com/api/pdf/split</code>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Authentication
+                  </h2>
+                  <p className="text-base leading-7">
+                    Authenticate requests using an API key in the{" "}
+                    <code>x-api-key</code> header.
+                  </p>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <pre>
+                      <code>{`// Header example
+x-api-key: your-api-key
+`}</code>
+                    </pre>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Request Parameters
+                  </h2>
+                  <p className="text-base leading-7">
+                    The API accepts <code>multipart/form-data</code> requests
+                    with the following parameters:
+                  </p>
+                  <Table className="border rounded-md">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">
+                          Parameter
+                        </TableHead>
+                        <TableHead className="font-semibold">Type</TableHead>
+                        <TableHead className="font-semibold">
+                          Description
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Required
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          <code>file</code>
+                        </TableCell>
+                        <TableCell>File</TableCell>
+                        <TableCell>PDF file to split (max 50MB)</TableCell>
+                        <TableCell>Yes</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <code>splitMethod</code>
+                        </TableCell>
+                        <TableCell>String</TableCell>
+                        <TableCell>
+                          Split method: <code>range</code>, <code>extract</code>
+                          , or <code>every</code>
+                        </TableCell>
+                        <TableCell>Yes</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <code>pageRanges</code>
+                        </TableCell>
+                        <TableCell>String</TableCell>
+                        <TableCell>
+                          Page ranges for splitting (e.g.,{" "}
+                          <code>1-3,4,5-7</code>)
+                        </TableCell>
+                        <TableCell>
+                          Required if splitMethod is "range"
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <code>everyNPages</code>
+                        </TableCell>
+                        <TableCell>Integer</TableCell>
+                        <TableCell>Split every N pages</TableCell>
+                        <TableCell>
+                          Required if splitMethod is "every"
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Example Request
+                  </h2>
+                  <p className="text-base leading-7">
+                    Split a PDF by page ranges using cURL:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`curl -X POST https://api.mega-pdf.com/api/pdf/split \\
+  -H "x-api-key: your-api-key" \\
+  -F "file=@/path/to/document.pdf" \\
+  -F "splitMethod=range" \\
+  -F "pageRanges=1-3,5,7-9"
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Response Format
+                  </h2>
+                  <p className="text-base leading-7">
+                    For small jobs that complete immediately, the response
+                    includes all split files:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": true,
+  "message": "PDF split into 3 files",
+  "originalName": "document.pdf",
+  "totalPages": 15,
+  "splitParts": [
+    {
+      "fileUrl": "/api/file?folder=splits&filename=uuid-split-1.pdf",
+      "filename": "uuid-split-1.pdf",
+      "pages": [1, 2, 3],
+      "pageCount": 3
+    },
+    {
+      "fileUrl": "/api/file?folder=splits&filename=uuid-split-2.pdf",
+      "filename": "uuid-split-2.pdf",
+      "pages": [5],
+      "pageCount": 1
+    },
+    {
+      "fileUrl": "/api/file?folder=splits&filename=uuid-split-3.pdf",
+      "filename": "uuid-split-3.pdf",
+      "pages": [7, 8, 9],
+      "pageCount": 3
+    }
+  ],
+  "isLargeJob": false
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                  <p className="text-base leading-7">
+                    For large jobs, processing happens in the background:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": true,
+  "message": "PDF splitting started",
+  "jobId": "uuid-job-identifier",
+  "statusUrl": "/api/pdf/split/status?id=uuid-job-identifier",
+  "originalName": "document.pdf",
+  "totalPages": 150,
+  "estimatedSplits": 25,
+  "isLargeJob": true
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                  <p className="text-base leading-7">Job status response:</p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "id": "uuid-job-identifier",
+  "status": "processing", // or "completed", "error"
+  "progress": 75,
+  "total": 25,
+  "completed": 18,
+  "results": [
+    {
+      "fileUrl": "/api/file?folder=splits&filename=uuid-split-1.pdf",
+      "filename": "uuid-split-1.pdf",
+      "pages": [1, 2, 3],
+      "pageCount": 3
+    },
+    // more split files...
+  ],
+  "error": null
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">Code Examples</h2>
+                  <p className="text-base leading-7">
+                    Using the Split API with JavaScript:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`const formData = new FormData();
+formData.append('file', fs.createReadStream('document.pdf'));
+formData.append('splitMethod', 'every');
+formData.append('everyNPages', '5');
+
+fetch('https://api.mega-pdf.com/api/pdf/split', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'your-api-key'
+  },
+  body: formData
+})
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      if (data.isLargeJob) {
+        console.log('Large job started, check status at:', data.statusUrl);
+        // Poll status endpoint for results
+        checkJobStatus(data.statusUrl);
+      } else {
+        console.log('PDF split successfully into', data.splitParts.length, 'files');
+        // Process the split parts
+        data.splitParts.forEach(part => {
+          console.log('Part with pages', part.pages, 'available at', part.fileUrl);
+        });
+      }
+    } else {
+      console.error('Split failed:', data.error);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+
+// Function to poll job status for large jobs
+function checkJobStatus(statusUrl) {
+  fetch('https://mega-pdf.com' + statusUrl)
+    .then(response => response.json())
+    .then(status => {
+      console.log('Job progress:', status.progress + '%');
+      
+      if (status.status === 'completed') {
+        console.log('Job completed!', status.results.length, 'files created');
+      } else if (status.status === 'error') {
+        console.error('Job failed:', status.error);
+      } else {
+        // Still processing, poll again after a delay
+        setTimeout(() => checkJobStatus(statusUrl), 2000);
+      }
+    });
+}
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Rotate API Tab */}
           <TabsContent value="rotate">
             <Card className="border-none shadow-lg">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold">Rotate API</CardTitle>
                 <CardDescription className="text-lg">
-                  Coming Soon
+                  Rotate pages in a PDF document by a specified angle
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-base leading-7">
-                  The Rotate API will allow rotating pages within a PDF
-                  document. Check back soon for documentation and availability.
-                </p>
+              <CardContent className="space-y-8">
+                <div className="prose max-w-none dark:prose-invert">
+                  <p className="text-base leading-7">
+                    The Rotate API allows you to rotate pages in a PDF document
+                    by a specified angle (90, 180, or 270 degrees). You can
+                    rotate all pages or specify specific pages to rotate.
+                  </p>
+
+                  <h2 className="text-2xl font-semibold mt-8">Endpoint</h2>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <code>POST https://api.mega-pdf.com/api/pdf/rotate</code>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Authentication
+                  </h2>
+                  <p className="text-base leading-7">
+                    Authenticate requests using an API key in the{" "}
+                    <code>x-api-key</code> header.
+                  </p>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm">
+                    <pre>
+                      <code>{`// Header example
+x-api-key: your-api-key
+`}</code>
+                    </pre>
+                  </div>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Request Parameters
+                  </h2>
+                  <p className="text-base leading-7">
+                    The API accepts <code>multipart/form-data</code> requests
+                    with the following parameters:
+                  </p>
+                  <Table className="border rounded-md">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">
+                          Parameter
+                        </TableHead>
+                        <TableHead className="font-semibold">Type</TableHead>
+                        <TableHead className="font-semibold">
+                          Description
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Required
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          <code>file</code>
+                        </TableCell>
+                        <TableCell>File</TableCell>
+                        <TableCell>PDF file to rotate (max 50MB)</TableCell>
+                        <TableCell>Yes</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <code>angle</code>
+                        </TableCell>
+                        <TableCell>Integer</TableCell>
+                        <TableCell>
+                          Rotation angle in degrees (90, 180, or 270)
+                        </TableCell>
+                        <TableCell>Yes</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <code>pages</code>
+                        </TableCell>
+                        <TableCell>String</TableCell>
+                        <TableCell>
+                          Pages to rotate (e.g., <code>1-3,5,7-9</code>), empty
+                          for all pages
+                        </TableCell>
+                        <TableCell>No (default: all)</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Example Request
+                  </h2>
+                  <p className="text-base leading-7">
+                    Rotate specific pages in a PDF using cURL:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`curl -X POST https://api.mega-pdf.com/api/pdf/rotate \\
+  -H "x-api-key: your-api-key" \\
+  -F "file=@/path/to/document.pdf" \\
+  -F "angle=90" \\
+  -F "pages=1-3,5"
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">
+                    Response Format
+                  </h2>
+                  <p className="text-base leading-7">
+                    Successful responses include the rotated file URL:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": true,
+  "message": "PDF rotated by 90 degrees successfully",
+  "fileUrl": "/api/file?folder=rotations&filename=uuid-rotated.pdf",
+  "filename": "uuid-rotated.pdf",
+  "originalName": "document.pdf",
+  "billing": {
+    "currentBalance": 10.50,
+    "freeOperationsRemaining": 9,
+    "operationCost": 0.00,
+    "usedFreeOperation": true
+  }
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                  <p className="text-base leading-7">Error responses:</p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`{
+  "success": false,
+  "error": "Invalid rotation angle. Must be 90, 180, or 270 degrees"
+}`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  <h2 className="text-2xl font-semibold mt-8">Code Examples</h2>
+                  <p className="text-base leading-7">
+                    Using the Rotate API with JavaScript:
+                  </p>
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <pre className="text-sm font-mono overflow-auto">
+                        <code>{`const formData = new FormData();
+formData.append('file', fs.createReadStream('document.pdf'));
+formData.append('angle', '180');
+// Rotate all pages by not specifying the pages parameter
+
+fetch('https://api.mega-pdf.com/api/pdf/rotate', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'your-api-key'
+  },
+  body: formData
+})
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Rotation successful:', data.fileUrl);
+    } else {
+      console.error('Rotation failed:', data.error);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+`}</code>
+                      </pre>
+                    </CardContent>
+                  </Card>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Code, ExternalLink, Key } from "lucide-react";
+import { Code, ExternalLink, Key, KeySquareIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -16,12 +17,14 @@ export default function Hero() {
         Powerful PDF processing capabilities for your applications
       </p>
       <div className="mt-6 flex flex-wrap gap-4 justify-center">
-        <Button size="lg">
-          Get API Key <Key className="ml-2 h-4 w-4" />
+        <Button variant="default" size="lg" className="rounded-full" asChild>
+          <Link href="/en/dashboard">
+            <KeySquareIcon className="mr-2 h-5 w-15" /> Get API Key
+          </Link>
         </Button>
         <Button variant="outline" size="lg" asChild>
           <a
-            href="https://github.com"
+            href="https://github.com/MegaPDF"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -37,7 +37,7 @@ export default function ApiDocumentationPage() {
 
               <h3>Base URL</h3>
               <div className="bg-muted p-3 rounded-md">
-                <code>https://mega-pdf.com/api</code>
+                <code>https://api.mega-pdf.com/api</code>
               </div>
 
               <h3>Authentication</h3>
