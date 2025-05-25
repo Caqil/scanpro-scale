@@ -721,7 +721,6 @@ const LibreOfficeVisualEditor = ({
           <strong>Images</strong> are preserved and displayed but cannot be
           edited. Small text blocks have enlarged click areas for easy tapping.{" "}
           <strong>Enter</strong> to save, <strong>Escape</strong> to cancel.
-          Works just like LibreOffice!
         </p>
       </div>
 

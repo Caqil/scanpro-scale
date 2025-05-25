@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -29,15 +27,6 @@ import {
 } from "lucide-react";
 import { FileDropzone } from "./dropzone";
 import { useAuth } from "@/src/context/auth-context";
-
-// Interfaces for type safety
-interface Position {
-  value: string;
-  label: string;
-}
-
-// List of font names available in pdfcpu
-const FONT_NAMES = ["Helvetica", "Courier", "Times", "Symbol", "ZapfDingbats"];
 
 // Define position key type for type safety
 type PositionKey = "c" | "tl" | "tc" | "tr" | "l" | "r" | "bl" | "bc" | "br";
@@ -75,25 +64,20 @@ export function WatermarkPDF() {
 
   // Watermark content
   const [textWatermark, setTextWatermark] = useState<string>("CONFIDENTIAL");
-  const [svgWatermark, setSvgWatermark] = useState<string>("");
+  const [imageWatermark, setImageWatermark] = useState<File | null>(null);
 
   // Page selection
   const [pageSelection, setPageSelection] = useState<string>("");
 
-  // Common watermark parameters
+  // Common watermark parameters - simplified to match the backend
   const [position, setPosition] = useState<PositionKey>("c");
   const [opacity, setOpacity] = useState<number>(50);
   const [rotation, setRotation] = useState<number>(0);
   const [scale, setScale] = useState<number>(100);
-
-  // Text-specific parameters
-  const [fontName, setFontName] = useState<string>("Helvetica");
-  const [fontSize, setFontSize] = useState<number>(24);
   const [watermarkColor, setWatermarkColor] = useState<string>("#808080");
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const svgPreviewRef = useRef<SVGSVGElement>(null);
 
   // Handle file upload
   const handleFileUpload = (acceptedFiles: File[]): void => {
@@ -105,38 +89,14 @@ export function WatermarkPDF() {
     }
   };
 
-  // Handle SVG watermark upload
-  const handleSvgWatermarkUpload = (acceptedFiles: File[]): void => {
+  // Handle image watermark upload
+  const handleImageWatermarkUpload = (acceptedFiles: File[]): void => {
     if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setSvgWatermark(result);
-      };
-      reader.onerror = () => {
-        toast.error(
-          t("watermarkPdf.messages.svgReadError") || "Failed to read SVG file"
-        );
-      };
-      reader.readAsText(file);
+      setImageWatermark(acceptedFiles[0]);
     }
   };
 
-  // Update SVG preview
-  useEffect(() => {
-    if (svgPreviewRef.current && activeTab === "svg") {
-      const svg = svgPreviewRef.current;
-      const watermarkGroup = svg.querySelector("#watermark-group");
-      if (watermarkGroup && svgWatermark) {
-        watermarkGroup.innerHTML = svgWatermark
-          .replace(/<\?xml[^>]*\>/, "")
-          .replace(/<!DOCTYPE[^>]*\>/, "");
-      }
-    }
-  }, [svgWatermark, activeTab]);
-
-  // Calculate watermark position with A4 dimensions
+  // Calculate watermark position with A4 dimensions (for preview only)
   const getWatermarkPosition = () => {
     const pageWidth = 595; // A4 width in points
     const pageHeight = 842; // A4 height in points
@@ -157,7 +117,7 @@ export function WatermarkPDF() {
     return posMap[position];
   };
 
-  // Get text anchor based on position
+  // Get text anchor based on position (for preview only)
   const getTextAnchor = (): string => {
     if (["tl", "l", "bl"].includes(position)) {
       return "start";
@@ -168,7 +128,7 @@ export function WatermarkPDF() {
     }
   };
 
-  // Get text dominant-baseline based on position
+  // Get text dominant-baseline based on position (for preview only)
   const getTextBaseline = (): string => {
     if (["tl", "tc", "tr"].includes(position)) {
       return "hanging";
@@ -177,40 +137,6 @@ export function WatermarkPDF() {
     } else {
       return "middle";
     }
-  };
-  const buildWatermarkDescription = (): string => {
-    const parts: string[] = [];
-
-    // Common parameters
-    parts.push(`pos:${position}`);
-
-    if (scale !== 100) {
-      const scaleValue = scale / 100;
-      parts.push(`scale:${scaleValue.toFixed(2)}`);
-    }
-
-    if (opacity !== 50) {
-      const opacityValue = opacity / 100;
-      parts.push(`op:${opacityValue.toFixed(2)}`);
-    }
-
-    // Always include rotation to ensure no default is applied
-    parts.push(`rot:${rotation}`);
-
-    // Text-specific parameters
-    if (activeTab === "text") {
-      if (fontName !== "Helvetica") parts.push(`fontname:${fontName}`);
-      if (fontSize !== 24) parts.push(`points:${fontSize}`);
-
-      if (watermarkColor !== "#808080") {
-        const r = parseInt(watermarkColor.slice(1, 3), 16) / 255;
-        const g = parseInt(watermarkColor.slice(3, 5), 16) / 255;
-        const b = parseInt(watermarkColor.slice(5, 7), 16) / 255;
-        parts.push(`fillc:${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)}`);
-      }
-    }
-
-    return parts.join(", ");
   };
 
   // Apply watermark to PDF
@@ -229,9 +155,10 @@ export function WatermarkPDF() {
       return;
     }
 
-    if (activeTab === "svg" && !svgWatermark) {
+    if (activeTab === "image" && !imageWatermark) {
       toast.error(
-        t("watermarkPdf.messages.noSvg") || "Please upload an SVG watermark"
+        t("watermarkPdf.messages.noImage") ||
+          "Please upload an image for the watermark"
       );
       return;
     }
@@ -260,18 +187,29 @@ export function WatermarkPDF() {
       formData.append("file", file);
       formData.append("watermarkType", activeTab);
 
-      const description = buildWatermarkDescription();
-      formData.append("description", description);
-
-      if (pageSelection) {
-        formData.append("pageSelection", pageSelection);
-      }
-
+      // Add content based on watermark type
       if (activeTab === "text") {
         formData.append("content", textWatermark);
-      } else if (activeTab === "svg" && svgWatermark) {
-        const blob = new Blob([svgWatermark], { type: "image/svg+xml" });
-        formData.append("content", blob, "watermark.svg");
+      } else if (activeTab === "image" && imageWatermark) {
+        formData.append("content", imageWatermark);
+      }
+
+      // Add all parameters individually
+      // Important: Make sure the position code is sent exactly as is
+      formData.append("position", position); // Send the position code (c, tl, tr, etc.) directly
+      formData.append("opacity", opacity.toString());
+      formData.append("rotation", rotation.toString());
+      formData.append("scale", scale.toString());
+      formData.append("textColor", watermarkColor);
+
+      // Log what we're sending to help with debugging
+      console.log("Sending position:", position);
+
+      if (pageSelection) {
+        formData.append("pages", "custom");
+        formData.append("customPages", pageSelection);
+      } else {
+        formData.append("pages", "all");
       }
 
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/watermark`;
@@ -352,7 +290,7 @@ export function WatermarkPDF() {
     setProcessedPdfUrl("");
     setError(null);
     setInsufficientBalance(false);
-    setSvgWatermark("");
+    setImageWatermark(null);
     setTextWatermark("CONFIDENTIAL");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -526,7 +464,10 @@ export function WatermarkPDF() {
                     <FileTextIcon className="h-4 w-4" />
                     {t("watermarkPdf.types.text.title") || "Text Watermark"}
                   </TabsTrigger>
-                  <TabsTrigger value="svg" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="image"
+                    className="flex items-center gap-2"
+                  >
                     <svg
                       className="h-4 w-4"
                       viewBox="0 0 24 24"
@@ -536,7 +477,7 @@ export function WatermarkPDF() {
                       <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
                       <polyline points="13 2 13 9 20 9" />
                     </svg>
-                    {t("watermarkPdf.types.svg.title") || "SVG Watermark"}
+                    {t("watermarkPdf.imageWatermark") || "Image Watermark"}
                   </TabsTrigger>
                 </TabsList>
 
@@ -559,45 +500,6 @@ export function WatermarkPDF() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="fontName">
-                        {t("watermarkPdf.fontName") || "Font"}
-                      </Label>
-                      <Select value={fontName} onValueChange={setFontName}>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              t("watermarkPdf.selectFont") || "Select Font"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FONT_NAMES.map((font) => (
-                            <SelectItem key={font} value={font}>
-                              {font}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="fontSize">
-                        {t("watermarkPdf.fontSize") || "Font Size"} ({fontSize})
-                      </Label>
-                      <Slider
-                        id="fontSize"
-                        min={8}
-                        max={72}
-                        step={1}
-                        value={[fontSize]}
-                        onValueChange={(values) => setFontSize(values[0])}
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-
                   <div>
                     <Label htmlFor="watermarkColor">
                       {t("watermarkPdf.color") || "Color"}
@@ -617,27 +519,30 @@ export function WatermarkPDF() {
                   </div>
                 </TabsContent>
 
-                {/* SVG Watermark Tab */}
-                <TabsContent value="svg" className="space-y-6">
+                {/* Image Watermark Tab */}
+                <TabsContent value="image" className="space-y-6">
                   <div className="border rounded-lg p-6">
                     <Label className="block mb-2">
-                      {t("watermarkPdf.selectSvg") ||
-                        "Select SVG for Watermark"}
+                      {t("watermarkPdf.selectImage") ||
+                        "Select Image for Watermark"}
                     </Label>
                     <FileDropzone
                       multiple={false}
                       maxFiles={1}
-                      acceptedFileTypes={{ "image/svg+xml": [".svg"] }}
+                      acceptedFileTypes={{
+                        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".svg"],
+                      }}
                       disabled={processing}
-                      onFileAccepted={handleSvgWatermarkUpload}
+                      onFileAccepted={handleImageWatermarkUpload}
                       title={
-                        svgWatermark
-                          ? t("watermarkPdf.svgSelected") || "SVG Selected"
-                          : t("watermarkPdf.uploadSvgTitle") || "Upload an SVG"
+                        imageWatermark
+                          ? t("watermarkPdf.imageSelected") || "Image Selected"
+                          : t("watermarkPdf.uploadImageTitle") ||
+                            "Upload an Image"
                       }
                       description={
-                        t("watermarkPdf.uploadSvgDesc") ||
-                        "Select an SVG file to use as a watermark (max. 2MB)"
+                        t("watermarkPdf.uploadImageDesc") ||
+                        "Select an image file to use as a watermark (max. 2MB)"
                       }
                       browseButtonText={t("ui.browse") || "Browse Files"}
                       browseButtonVariant="outline"
@@ -645,11 +550,14 @@ export function WatermarkPDF() {
                     />
                   </div>
 
-                  {svgWatermark && (
+                  {imageWatermark && (
                     <div className="flex items-center gap-2">
                       <CheckIcon className="h-4 w-4 text-green-500" />
                       <span className="text-green-500 font-medium">
-                        {t("watermarkPdf.svgSelected") || "SVG selected"}
+                        {t("watermarkPdf.imageSelected") || "Image selected"}
+                      </span>
+                      <span className="text-muted-foreground">
+                        ({imageWatermark.name})
                       </span>
                     </div>
                   )}
@@ -768,7 +676,6 @@ export function WatermarkPDF() {
                 <CardContent className="p-4">
                   <div className="border rounded-lg overflow-hidden">
                     <svg
-                      ref={svgPreviewRef}
                       width="295"
                       height="500"
                       viewBox="0 0 595 842"
@@ -802,66 +709,74 @@ export function WatermarkPDF() {
                         strokeDasharray="5,5"
                       />
 
-                      <g id="watermark-group">
-                        {activeTab === "text" ? (
-                          <g
-                            transform={`
-                              translate(${getWatermarkPosition().x}, ${
-                              getWatermarkPosition().y
-                            })
-                              ${rotation !== 0 ? `rotate(${rotation})` : ""}
-                              scale(${scale / 100})
-                            `}
+                      {/* Preview watermark */}
+                      {activeTab === "text" && (
+                        <g
+                          transform={`
+    translate(${getWatermarkPosition().x}, ${getWatermarkPosition().y})
+    ${rotation !== 0 ? `rotate(${-rotation})` : ""}
+    scale(${scale / 100})
+  `}
+                        >
+                          {/* Text shadow/outline for better visibility */}
+                          <text
+                            x="0"
+                            y="0"
+                            fontFamily="Helvetica"
+                            fontSize={24}
+                            fill="rgba(255, 255, 255, 0.7)"
+                            stroke="rgba(255, 255, 255, 0.7)"
+                            strokeWidth={0.5}
+                            textAnchor={getTextAnchor()}
+                            dominantBaseline={getTextBaseline()}
+                            opacity={opacity / 100}
                           >
-                            {/* Text shadow/outline for better visibility */}
-                            <text
-                              x="0"
-                              y="0"
-                              fontFamily={fontName}
-                              fontSize={fontSize}
-                              fill="rgba(255, 255, 255, 0.7)"
-                              stroke="rgba(255, 255, 255, 0.7)"
-                              strokeWidth={0.5}
-                              textAnchor={getTextAnchor()}
-                              dominantBaseline={getTextBaseline()}
-                              opacity={opacity / 100}
-                            >
-                              {textWatermark}
-                            </text>
-                            <text
-                              x="0"
-                              y="0"
-                              fontFamily={fontName}
-                              fontSize={fontSize}
-                              fill={watermarkColor}
-                              textAnchor={getTextAnchor()}
-                              dominantBaseline={getTextBaseline()}
-                              opacity={opacity / 100}
-                            >
-                              {textWatermark}
-                            </text>
-                          </g>
-                        ) : (
-                          svgWatermark && (
-                            <g
-                              transform={`
-                                translate(${getWatermarkPosition().x}, ${
-                                getWatermarkPosition().y
-                              })
-                                ${rotation !== 0 ? `rotate(${rotation})` : ""}
-                                scale(${scale / 100})
-                                translate(-50%, -50%)
-                              `}
-                            >
-                              <g
-                                dangerouslySetInnerHTML={{
-                                  __html: svgWatermark,
-                                }}
-                              />
-                            </g>
-                          )
-                        )}
-                      </g>
+                            {textWatermark}
+                          </text>
+                          <text
+                            x="0"
+                            y="0"
+                            fontFamily="Helvetica"
+                            fontSize={24}
+                            fill={watermarkColor}
+                            textAnchor={getTextAnchor()}
+                            dominantBaseline={getTextBaseline()}
+                            opacity={opacity / 100}
+                          >
+                            {textWatermark}
+                          </text>
+                        </g>
+                      )}
+
+                      {activeTab === "image" && imageWatermark && (
+                        <g
+                          transform={`
+    translate(${getWatermarkPosition().x}, ${getWatermarkPosition().y})
+    ${rotation !== 0 ? `rotate(${-rotation})` : ""}
+    scale(${scale / 100})
+  `}
+                        >
+                          <rect
+                            x="-50"
+                            y="-50"
+                            width="100"
+                            height="100"
+                            fill={watermarkColor}
+                            opacity={opacity / 100}
+                          />
+                          <text
+                            x="0"
+                            y="0"
+                            fontFamily="Helvetica"
+                            fontSize={14}
+                            fill="#fff"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            [Image]
+                          </text>
+                        </g>
+                      )}
                     </svg>
                   </div>
                 </CardContent>

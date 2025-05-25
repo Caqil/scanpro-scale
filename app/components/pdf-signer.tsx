@@ -39,6 +39,7 @@ import {
   PanelBottomIcon,
 } from "lucide-react";
 import { SignatureCanvas } from "./sign/signature-canvas";
+import { useAuth } from "@/src/context/auth-context";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.mjs`;
 
@@ -83,6 +84,7 @@ interface Props {
  * Features drag-and-drop functionality, page navigation, and real-time element manipulation.
  */
 export function PdfSigner({ initialTool = "signature" }: Props) {
+  const { isAuthenticated } = useAuth();
   const { t } = useLanguageStore();
   const [isMobileView, setIsMobileView] = useState<boolean>(false);
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
@@ -124,8 +126,9 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
   const stampInputRef = useRef<HTMLInputElement>(null);
   const [scale, setScale] = useState<number>(1);
   const touchStartRef = useRef<{ distance: number | null }>({ distance: null });
-
-  // Check screen size for responsive layout
+  const [error, setError] = useState<string | null>(null);
+  const [insufficientBalance, setInsufficientBalance] =
+    useState<boolean>(false);
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobileView(window.innerWidth < 768);
@@ -422,36 +425,6 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     setSelectedElement(selectedElement === element.id ? null : element.id);
   };
 
-  const handleElementMoveStart = (
-    event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
-    element: SignatureElement
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (
-      event.target instanceof HTMLElement &&
-      event.target.closest(".signature-element")
-    ) {
-      setIsDragging(true);
-      setDraggedElement(element);
-      if ("touches" in event) {
-        document.body.style.overflow = "hidden";
-      }
-
-      // Capture the PDF scale ratio for accurate positioning
-      if (canvasRef.current && pages[currentPage]) {
-        const pdfElement = canvasRef.current.querySelector(".react-pdf__Page");
-        if (pdfElement) {
-          const pdfWidth = pdfElement.clientWidth;
-          const pdfScale = pdfWidth / pages[currentPage].originalWidth;
-
-          // Store the scale as a data attribute for later use
-          canvasRef.current.dataset.pdfScale = pdfScale.toString();
-        }
-      }
-    }
-  };
-
   const handleCanvasMouseMove = (
     event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
   ) => {
@@ -566,10 +539,21 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+  // Updated handleSavePdf method to match the watermark component pattern
+  const handleSavePdf = async (): Promise<void> => {
+    if (!file || pages.length === 0) {
+      toast.error(t("signPdf.messages.noFile") || "Please upload a PDF file");
+      return;
+    }
 
-  // Save PDF with signatures
-  const handleSavePdf = async () => {
-    if (!file || pages.length === 0) return;
+    // Validate that we have a signature element
+    if (elements.length === 0) {
+      toast.error(
+        t("signPdf.messages.noSignature") ||
+          "Please add a signature or other element"
+      );
+      return;
+    }
 
     setProcessing(true);
     setProgress(0);
@@ -577,48 +561,304 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("elements", JSON.stringify(elements));
-      formData.append("pages", JSON.stringify(pages));
-      formData.append("performOcr", "true");
-      formData.append("ocrLanguage", "eng");
 
-      const response = await fetch("/api/pdf/sign", {
-        method: "POST",
-        body: formData,
-      });
+      // Use the first element as the signature (or the selected element if there is one)
+      const element = selectedElement
+        ? elements.find((el) => el.id === selectedElement)
+        : elements[0];
 
-      if (!response.ok) {
-        throw new Error("Failed to save PDF");
+      if (!element) {
+        throw new Error("No signature element found");
       }
 
-      const result = await response.json();
+      // Set content based on element type
+      if (
+        element.type === "signature" &&
+        element.data !== "Signature Placeholder"
+      ) {
+        // For signature images
+        if (element.data.startsWith("data:image")) {
+          // Convert data URL to blob
+          const base64Data = element.data.split(",")[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
 
-      if (result.success) {
-        let pdfUrl = result.fileUrl;
-        let pdfName = result.originalName || "signed-document.pdf";
+          for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+            const slice = byteCharacters.slice(offset, offset + 1024);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+          }
 
-        if (result.ocrComplete) {
-          pdfUrl = result.searchablePdfUrl;
-          pdfName = result.searchablePdfFilename || "searchable-document.pdf";
-        } else if (!result.ocrComplete && result.ocrError) {
-          console.warn("OCR requested but failed:", result.ocrError);
-          toast.error(t("signPdf.messages.ocrFailed"));
+          const blob = new Blob(byteArrays, { type: "image/png" });
+          formData.append("content", blob, "signature.png");
+        } else {
+          // Text signature
+          formData.append("content", element.data);
+        }
+      } else if (
+        element.type === "text" ||
+        element.type === "name" ||
+        element.type === "date"
+      ) {
+        // For text elements
+        formData.append("content", element.data);
+      } else if (element.type === "stamp" && element.data.startsWith("data:")) {
+        // For image stamps
+        const base64Data = element.data.split(",")[1];
+        const byteCharacters = atob(base64Data);
+        const byteArrays = [];
+
+        for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+          const slice = byteCharacters.slice(offset, offset + 1024);
+          const byteNumbers = new Array(slice.length);
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          byteArrays.push(byteArray);
         }
 
-        setSignedPdfUrl(pdfUrl);
-        setProgress(100);
-        toast.success(t("signPdf.messages.signed"));
-
-        return { url: pdfUrl, name: pdfName };
+        const blob = new Blob(byteArrays, { type: "image/svg+xml" });
+        formData.append("content", blob, "stamp.svg");
       } else {
-        throw new Error(result.error || "Unknown error");
+        // Default to text
+        formData.append("content", element.data || "Signature");
       }
-    } catch (error) {
-      console.error("Error saving PDF:", error);
-      toast.error(t("signPdf.messages.error"));
-    } finally {
-      setProcessing(false);
+
+      // Map element position to closest position code (c, tl, tc, tr, etc.)
+      const positionCode = mapPositionToCode(
+        element.position,
+        pages[currentPage]
+      );
+      console.log("Mapped position code:", positionCode);
+
+      // Add all parameters individually - same as watermark component
+      formData.append("position", positionCode);
+      formData.append("opacity", "100"); // Fixed 100% opacity for signatures
+      formData.append("rotation", element.rotation.toString());
+
+      // Calculate scale relative to page width
+      const pageWidth = pages[currentPage].width;
+      const relativeScale = Math.round((element.size.width / pageWidth) * 100);
+      formData.append("scale", relativeScale.toString());
+
+      // Set page selection
+      formData.append("pages", "custom");
+      formData.append("customPages", (element.page + 1).toString()); // pdfcpu uses 1-based page numbering
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/pdf/sign`;
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl);
+
+      // Add credentials if authenticated
+      if (isAuthenticated) {
+        xhr.withCredentials = true;
+      }
+
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setProgress(percentComplete / 2);
+        }
+      };
+
+      // Handle response
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            setProgress(100);
+            setSignedPdfUrl(data.fileUrl);
+            setProcessing(false);
+            toast.success(
+              t("signPdf.messages.signed") || "PDF signed successfully!"
+            );
+          } catch (parseError) {
+            handleError("Failed to parse server response");
+          }
+        } else if (xhr.status === 402) {
+          handleInsufficientBalanceError();
+        } else {
+          let errorMessage = "Operation failed";
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            errorMessage = errorData.error || errorMessage;
+          } catch (jsonError) {
+            console.error("Failed to parse error response:", jsonError);
+          }
+          errorMessage = `${errorMessage} (Status: ${xhr.status})`;
+          handleError(errorMessage);
+        }
+      };
+
+      xhr.onerror = () => handleError("A network error occurred");
+      xhr.send(formData);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      handleError(errorMessage);
     }
+  };
+
+  // Helper function to map position coordinates to position code
+  const mapPositionToCode = (position: Position, page: PdfPage): string => {
+    // Calculate relative position within the page (as percentages)
+    const relX = position.x / page.width;
+    const relY = position.y / page.height;
+
+    // Horizontal position
+    let horzPos = "";
+    if (relX < 0.33) {
+      horzPos = "l"; // left
+    } else if (relX > 0.66) {
+      horzPos = "r"; // right
+    } else {
+      horzPos = "c"; // center
+    }
+
+    // Vertical position
+    let vertPos = "";
+    if (relY < 0.33) {
+      vertPos = "t"; // top
+    } else if (relY > 0.66) {
+      vertPos = "b"; // bottom
+    } else {
+      vertPos = "c"; // center
+    }
+
+    // Special case for center
+    if (vertPos === "c" && horzPos === "c") {
+      return "c";
+    }
+
+    // Combine vertical and horizontal
+    return vertPos + horzPos;
+  };
+
+  // Handle errors
+  const handleError = (message: string): void => {
+    setError(message);
+    setProgress(0);
+    setProcessing(false);
+    toast.error(t("signPdf.messages.error") || "Signing Failed", {
+      description: message,
+    });
+  };
+
+  // Handle insufficient balance errors
+  const handleInsufficientBalanceError = (): void => {
+    setInsufficientBalance(true);
+    setProgress(0);
+    setProcessing(false);
+    toast.error(t("common.insufficientBalance") || "Insufficient Balance", {
+      description:
+        t("common.insufficientBalanceDesc") ||
+        "You don't have enough balance to perform this operation",
+    });
+  };
+
+  // Updated handleElementMoveStart to capture exact page positioning
+  const handleElementMoveStart = (
+    event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+    element: SignatureElement
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (
+      event.target instanceof HTMLElement &&
+      event.target.closest(".signature-element")
+    ) {
+      setIsDragging(true);
+      setDraggedElement(element);
+      if ("touches" in event) {
+        document.body.style.overflow = "hidden";
+      }
+
+      // Capture the PDF scale ratio for accurate positioning
+      if (canvasRef.current && pages[currentPage]) {
+        const pdfElement = canvasRef.current.querySelector(".react-pdf__Page");
+        if (pdfElement) {
+          const pdfWidth = pdfElement.clientWidth;
+          const pdfHeight = pdfElement.clientHeight;
+          const pdfScaleX = pdfWidth / pages[currentPage].originalWidth;
+          const pdfScaleY = pdfHeight / pages[currentPage].originalHeight;
+
+          // Store the scale as data attributes for later use
+          canvasRef.current.dataset.pdfScaleX = pdfScaleX.toString();
+          canvasRef.current.dataset.pdfScaleY = pdfScaleY.toString();
+
+          // Map element position to the closest matching position code
+          updateElementPosition(element);
+        }
+      }
+    }
+  };
+
+  // Helper function to map element position to position code
+  const updateElementPosition = (element: SignatureElement) => {
+    if (!canvasRef.current || !pages[currentPage]) return;
+
+    const pdfElement = canvasRef.current.querySelector(".react-pdf__Page");
+    if (!pdfElement) return;
+
+    const pdfWidth = pages[currentPage].originalWidth;
+    const pdfHeight = pages[currentPage].originalHeight;
+
+    // Calculate relative position within the page
+    const relX = element.position.x / pdfWidth;
+    const relY = element.position.y / pdfHeight;
+
+    // Map to position code
+    let positionCode = "c"; // Default to center
+
+    // Vertical position
+    let vertPos = "";
+    if (relY < 0.33) {
+      vertPos = "t"; // top
+    } else if (relY > 0.66) {
+      vertPos = "b"; // bottom
+    }
+
+    // Horizontal position
+    let horzPos = "";
+    if (relX < 0.33) {
+      horzPos = "l"; // left
+    } else if (relX > 0.66) {
+      horzPos = "r"; // right
+    }
+
+    // Combine or use center
+    if (vertPos || horzPos) {
+      positionCode = vertPos + horzPos;
+      if (positionCode.length === 1) {
+        // If only one dimension is set, set the other to center
+        if (vertPos) {
+          positionCode = vertPos + "c";
+        } else {
+          positionCode = "c" + horzPos;
+        }
+      }
+    } else {
+      positionCode = "c";
+    }
+
+    // Update the element's position code
+    setElements((prevElements) =>
+      prevElements.map((el) =>
+        el.id === element.id
+          ? {
+              ...el,
+              positionCode: positionCode,
+            }
+          : el
+      )
+    );
   };
 
   // Signature element component - memoized to prevent unnecessary re-renders
@@ -2556,11 +2796,12 @@ export function PdfSigner({ initialTool = "signature" }: Props) {
                     Start Over
                   </Button>
                   <Button
-                    onClick={() => {
-                      if (signedPdfUrl) {
-                        window.open(signedPdfUrl, "_blank");
-                      }
-                    }}
+                    onClick={() =>
+                      window.open(
+                        `${process.env.NEXT_PUBLIC_API_URL}${signedPdfUrl}`,
+                        "_blank"
+                      )
+                    }
                   >
                     <DownloadIcon className="h-4 w-4 mr-2" />
                     Download Signed PDF
