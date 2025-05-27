@@ -285,7 +285,7 @@ export function RegisterForm() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* <div className="flex flex-col sm:flex-row gap-4">
         <Button
           variant="outline"
           onClick={() => handleOAuthSignIn("google")}
@@ -296,7 +296,7 @@ export function RegisterForm() {
           <span>{t("auth.googleSignUp") || "Sign up with Google"}</span>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </Button>
-      </div>
+      </div> */}
       <div className="flex flex-col sm:flex-row gap-4"></div>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

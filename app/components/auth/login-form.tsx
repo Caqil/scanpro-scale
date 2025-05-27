@@ -109,19 +109,19 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
     }
   };
 
-  // Handle OAuth sign in
-  const handleOAuthSignIn = (provider: string) => {
-    try {
-      // Use the auth context oauthLogin function
-      oauthLogin(provider, callbackUrl);
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : t("auth.unknownError") || "An error occurred"
-      );
-    }
-  };
+  // // Handle OAuth sign in
+  // const handleOAuthSignIn = (provider: string) => {
+  //   try {
+  //     // Use the auth context oauthLogin function
+  //     oauthLogin(provider, callbackUrl);
+  //   } catch (error) {
+  //     setError(
+  //       error instanceof Error
+  //         ? error.message
+  //         : t("auth.unknownError") || "An error occurred"
+  //     );
+  //   }
+  // };
 
   return (
     <div className="space-y-6">
@@ -134,7 +134,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
+      {/* 
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
           variant="outline"
@@ -146,7 +146,7 @@ export function LoginForm({ callbackUrl = "/en/dashboard" }: LoginFormProps) {
           <span>{t("auth.googleSignIn") || "Google"}</span>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </Button>
-      </div>
+      </div> */}
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
