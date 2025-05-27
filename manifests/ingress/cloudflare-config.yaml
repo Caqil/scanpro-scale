@@ -23,6 +23,7 @@ data:
       - hostname: db.mega-pdf.com
         service: http://phpmyadmin-service.megapdf-api.svc.cluster.local:80
       
+      
       # www subdomain
       - hostname: www.mega-pdf.com
         service: http://megapdf.megapdf.svc.cluster.local:3000
