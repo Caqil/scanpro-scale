@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true, // Enables React Strict Mode for better development experience
   swcMinify: true, // Uses SWC for faster minification
   eslint: {

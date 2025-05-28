@@ -1,59 +1,68 @@
-// internal/middleware/cors_middleware.go
+// api/internal/middleware/cors.go
 package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// CORSMiddleware handles CORS for all API requests
 func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Get origin from request
+	return gin.HandlerFunc(func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 
-		// Allowed origins
+		// Define allowed origins
 		allowedOrigins := []string{
 			"https://mega-pdf.com",
 			"https://www.mega-pdf.com",
-			"http://localhost:3000", // For development
+			"https://admin.mega-pdf.com", // ADD YOUR ACTUAL ADMIN DOMAIN HERE
+			"http://localhost:3000",      // for development
+			"http://localhost:3001",      // for admin development
+		}
+
+		// Add environment-specific origins
+		if appURL := os.Getenv("NEXT_PUBLIC_APP_URL"); appURL != "" {
+			allowedOrigins = append(allowedOrigins, appURL)
+		}
+
+		if adminURL := os.Getenv("ADMIN_URL"); adminURL != "" {
+			allowedOrigins = append(allowedOrigins, adminURL)
 		}
 
 		// Check if origin is allowed
-		allowed := false
-		if origin != "" {
-			for _, allowedOrigin := range allowedOrigins {
-				if strings.HasPrefix(origin, allowedOrigin) {
-					allowed = true
-					break
-				}
+		isAllowed := false
+		for _, allowedOrigin := range allowedOrigins {
+			if origin == allowedOrigin {
+				isAllowed = true
+				break
 			}
 		}
 
-		// Set CORS headers based on origin
-		if allowed {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-		} else if origin == "" {
-			// If no origin specified, allow all for API clients
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		} else {
-			// For unknown origins, default to main site
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "https://mega-pdf.com")
+		// In development, allow all localhost origins
+		if os.Getenv("GO_ENV") == "development" || os.Getenv("DEBUG") == "true" {
+			if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
+				isAllowed = true
+			}
 		}
 
+		if isAllowed {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+
+		// Set other CORS headers
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, x-api-key")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-		c.Writer.Header().Set("Access-Control-Max-Age", "3600")
 
 		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
+			c.Header("Access-Control-Max-Age", "86400") // 24 hours
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
 
 		c.Next()
-	}
+	})
 }
