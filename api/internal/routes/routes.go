@@ -372,12 +372,6 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			admin.POST("/settings/pdf-tools/enable-all", pdfToolsHandler.EnableAllTools)
 			admin.POST("/settings/pdf-tools/disable-all", pdfToolsHandler.DisableAllTools)
 			admin.GET("/settings/pdf-tools/categories", pdfToolsHandler.GetToolsByCategory)
-			admin.GET("/settings", settingsHandler.GetAllSettings)
-			admin.GET("/settings/:category", settingsHandler.GetSettings)
-			admin.POST("/settings/:category", settingsHandler.UpdateSettings)
-			admin.POST("/settings/apply", settingsHandler.ApplySettings)
-			admin.GET("/settings/export", settingsHandler.ExportSettings)
-			admin.POST("/settings/import", settingsHandler.ImportSettings)
 		}
 		keys := api.Group("/keys")
 		keys.Use(middleware.AuthMiddleware(cfg.JWTSecret))
