@@ -2,118 +2,109 @@
 package config
 
 import (
-	"os"
-	"strconv"
+	"errors"
 	"strings"
+	"time"
 
-	"github.com/MegaPDF/megapdf-official/api/internal/db"
+	"github.com/MegaPDF/megapdf-official/api/internal/repository"
 )
 
-// Config holds all the application configuration
-type Config struct {
-	Port               int
-	JWTSecret          string
-	TempDir            string
-	UploadDir          string
-	PublicDir          string
-	PayPalClientID     string
-	PayPalClientSecret string
-	PayPalAPIBase      string
-	SMTPHost           string
-	SMTPPort           int
-	SMTPUser           string
-	SMTPPass           string
-	SMTPSecure         bool
-	EmailFrom          string
-	ContactRecipient   string
-	AppURL             string
-	APIUrl             string
-	Debug              bool
-	GoogleClientID     string
-	GoogleClientSecret string
-	OAuthRedirectURL   string
-	// DB Config
-	DBHost            string
-	DBPort            int
-	DBName            string
-	DBUser            string
-	DBPassword        string
-	DBCharset         string
-	DBCollation       string
-	DBTimezone        string
-	DBMaxIdleConns    int
-	DBMaxOpenConns    int
-	DBConnMaxLifetime string
+// Config uses the repository.Config struct as our configuration
+type Config = repository.Config
+
+var globalConfig *Config
+var configRepo *repository.ConfigRepository
+
+// Initialize initializes the config package
+func Initialize() {
+	configRepo = repository.NewConfigRepository()
 }
 
-// LoadConfig loads configuration from environment variables
-func LoadConfig() *Config {
-	port, _ := strconv.Atoi(getEnv("PORT", "8080"))
-	smtpPort, _ := strconv.Atoi(getEnv("SMTP_PORT", "587"))
-	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "3306"))
-	dbMaxIdleConns, _ := strconv.Atoi(getEnv("DB_MAX_IDLE_CONNS", "10"))
-	dbMaxOpenConns, _ := strconv.Atoi(getEnv("DB_MAX_OPEN_CONNS", "100"))
-	dbConnMaxLifetime := getEnv("DB_CONN_MAX_LIFETIME", "1h")
-
-	return &Config{
-		Port: port,
-
-		JWTSecret:          getEnv("JWT_SECRET", "your-default-secret-key"),
-		TempDir:            getEnv("TEMP_DIR", "temp"),
-		UploadDir:          getEnv("UPLOAD_DIR", "uploads"),
-		PublicDir:          getEnv("PUBLIC_DIR", "public"),
-		PayPalClientID:     getEnv("PAYPAL_CLIENT_ID", ""),
-		PayPalClientSecret: getEnv("PAYPAL_CLIENT_SECRET", ""),
-		PayPalAPIBase:      getEnv("PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com"),
-		SMTPHost:           getEnv("SMTP_HOST", ""),
-		SMTPPort:           smtpPort,
-		SMTPUser:           getEnv("SMTP_USER", ""),
-		SMTPPass:           getEnv("SMTP_PASS", ""),
-		SMTPSecure:         getEnv("SMTP_SECURE", "false") == "true",
-		EmailFrom:          getEnv("EMAIL_FROM", "noreply@mega-pdf.com"),
-		ContactRecipient:   getEnv("CONTACT_RECIPIENT_EMAIL", ""),
-		AppURL:             getEnv("APP_URL", "http://localhost:8080"),
-		APIUrl:             getEnv("API_URL", "http://localhost:8080"),
-		Debug:              getEnv("DEBUG", "false") == "true",
-		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
-		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
-		OAuthRedirectURL:   getEnv("OAUTH_REDIRECT_URL", "http://localhost:8080/api/auth/google/callback"),
-
-		// Database config
-		DBHost:            getEnv("DB_HOST", "127.0.0.1"),
-		DBPort:            dbPort,
-		DBName:            getEnv("DB_NAME", ""),
-		DBUser:            getEnv("DB_USER", ""),
-		DBPassword:        getEnv("DB_PASSWORD", ""),
-		DBCharset:         getEnv("DB_CHARSET", "utf8mb4"),
-		DBCollation:       getEnv("DB_COLLATION", "utf8mb4_unicode_ci"),
-		DBTimezone:        getEnv("DB_TIMEZONE", "UTC"),
-		DBMaxIdleConns:    dbMaxIdleConns,
-		DBMaxOpenConns:    dbMaxOpenConns,
-		DBConnMaxLifetime: dbConnMaxLifetime,
+// LoadConfig loads configuration from the database
+func LoadConfig() (*Config, error) {
+	if configRepo == nil {
+		return nil, errors.New("config repository not initialized")
 	}
+
+	// Load config from database
+	config, err := configRepo.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	globalConfig = config
+	return config, nil
 }
 
-// InitDB initializes the database with the config settings
-func InitDB() error {
-	_, err := db.InitDB()
-	return err
+// GetConfig returns the current configuration
+func GetConfig() *Config {
+	if globalConfig == nil {
+		// Try to load it (ignore error, will use defaults if necessary)
+		config, _ := LoadConfig()
+		if config != nil {
+			globalConfig = config
+		} else {
+			// Use default config if loading fails
+			globalConfig = &Config{
+				Port:      8080,
+				TempDir:   "temp",
+				UploadDir: "uploads",
+				PublicDir: "public",
+				Debug:     false,
+			}
+		}
+	}
+	return globalConfig
 }
 
-// getEnv gets an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
+// RefreshConfig reloads configuration from the database
+func RefreshConfig() (*Config, error) {
+	if configRepo == nil {
+		return nil, errors.New("config repository not initialized")
+	}
+
+	config, err := configRepo.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	globalConfig = config
+	return config, nil
+}
+
+// GetRateLimitDuration returns the rate limit duration
+func GetRateLimitDuration(cfg *Config) time.Duration {
+	if cfg == nil {
+		cfg = GetConfig()
+	}
+	return time.Duration(cfg.RateLimitPeriod) * time.Second
+}
+
+// GetSplitAsSlice splits a string into a slice
+func GetSplitAsSlice(value string, defaultValue string) []string {
 	if value == "" {
-		return defaultValue
+		value = defaultValue
 	}
-	return value
-}
-
-// GetEnvAsSlice splits a comma-separated environment variable into a slice
-func GetEnvAsSlice(key, defaultValue string) []string {
-	value := getEnv(key, defaultValue)
 	if value == "" {
 		return []string{}
 	}
 	return strings.Split(value, ",")
+}
+
+// InitializeDefaultSettings initializes default settings in the database
+func InitializeDefaultSettings() error {
+	if configRepo == nil {
+		return errors.New("config repository not initialized")
+	}
+
+	return configRepo.InitializeDefaultSettings()
+}
+
+// SaveConfig saves the configuration to the database
+func SaveConfig(config *Config) error {
+	if configRepo == nil {
+		return errors.New("config repository not initialized")
+	}
+
+	return configRepo.SaveConfig(config)
 }

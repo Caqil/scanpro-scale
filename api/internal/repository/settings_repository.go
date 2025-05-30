@@ -4,6 +4,7 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/MegaPDF/megapdf-official/api/internal/db"
 	"github.com/MegaPDF/megapdf-official/api/internal/models"
@@ -82,6 +83,8 @@ func (r *SettingsRepository) SaveSetting(category, key string, value interface{}
 			Key:         key,
 			Value:       string(valueJSON),
 			Description: description,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 		return db.DB.Create(&setting).Error
 	} else if result.Error != nil {
@@ -89,10 +92,12 @@ func (r *SettingsRepository) SaveSetting(category, key string, value interface{}
 	}
 
 	// Update existing record
-	return db.DB.Model(&setting).Updates(map[string]interface{}{
-		"value":       string(valueJSON),
-		"description": description,
-	}).Error
+	setting.Value = string(valueJSON)
+	setting.UpdatedAt = time.Now()
+	if description != "" {
+		setting.Description = description
+	}
+	return db.DB.Save(&setting).Error
 }
 
 // SaveSettings saves multiple settings for a category
@@ -117,6 +122,8 @@ func (r *SettingsRepository) SaveSettings(category string, settings map[string]i
 					Key:         key,
 					Value:       string(valueJSON),
 					Description: description,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
 				}
 				if err := tx.Create(&setting).Error; err != nil {
 					return err
@@ -125,11 +132,86 @@ func (r *SettingsRepository) SaveSettings(category string, settings map[string]i
 				return result.Error
 			} else {
 				// Update existing setting
-				if err := tx.Model(&setting).Update("value", string(valueJSON)).Error; err != nil {
+				setting.Value = string(valueJSON)
+				setting.UpdatedAt = time.Now()
+				if description != "" {
+					setting.Description = description
+				}
+				if err := tx.Save(&setting).Error; err != nil {
 					return err
 				}
 			}
 		}
 		return nil
 	})
+}
+
+// InitializeDefaultSettings creates default settings if they don't exist
+func (r *SettingsRepository) InitializeDefaultSettings() error {
+	// Get default settings
+	defaultSettings := models.DefaultSettings()
+
+	// Use a transaction
+	return db.DB.Transaction(func(tx *gorm.DB) error {
+		// For each category
+		for category, settings := range defaultSettings {
+			// Check if category has any settings
+			var count int64
+			if err := tx.Model(&models.Setting{}).Where("category = ?", category).Count(&count).Error; err != nil {
+				return err
+			}
+
+			// If no settings in this category, create defaults
+			if count == 0 {
+				for key, value := range settings {
+					valueJSON, err := json.Marshal(value)
+					if err != nil {
+						return err
+					}
+
+					// Create setting
+					setting := models.Setting{
+						ID:          uuid.New().String(),
+						Category:    category,
+						Key:         key,
+						Value:       string(valueJSON),
+						Description: "Default setting",
+						CreatedAt:   time.Now(),
+						UpdatedAt:   time.Now(),
+					}
+
+					if err := tx.Create(&setting).Error; err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+}
+
+// GetAllSettings returns settings from all categories
+func (r *SettingsRepository) GetAllSettings() (map[string]map[string]interface{}, error) {
+	var settings []models.Setting
+	if err := db.DB.Find(&settings).Error; err != nil {
+		return nil, err
+	}
+
+	// Group settings by category
+	result := make(map[string]map[string]interface{})
+	for _, setting := range settings {
+		if result[setting.Category] == nil {
+			result[setting.Category] = make(map[string]interface{})
+		}
+
+		var value interface{}
+		if err := json.Unmarshal([]byte(setting.Value), &value); err != nil {
+			continue // Skip if value can't be parsed
+		}
+
+		result[setting.Category][setting.Key] = value
+	}
+
+	return result, nil
 }

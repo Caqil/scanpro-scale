@@ -4,96 +4,90 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
-	"github.com/MegaPDF/megapdf-official/api/docs"
-	"github.com/MegaPDF/megapdf-official/api/internal/config"
-	"github.com/MegaPDF/megapdf-official/api/internal/db" // Add this import
+	"github.com/MegaPDF/megapdf-official/api/internal/bootstrap"
 	"github.com/MegaPDF/megapdf-official/api/internal/routes"
+	"github.com/MegaPDF/megapdf-official/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 // @title MegaPDF API
-// @description API for MegaPDF document processing service
 // @version 1.0
-// @host localhost:8080
+// @description API for MegaPDF PDF processing tools
+// @termsOfService https://mega-pdf.com/terms
+// @contact.name API Support
+// @contact.url https://mega-pdf.com/contact
+// @contact.email support@mega-pdf.com
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
 // @BasePath /api
-// @schemes http https
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name x-api-key
-
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description Type "Bearer" followed by a space and the JWT token
 func main() {
-	// Load .env file if it exists
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
-	}
-	docs.SwaggerInfo.BasePath = "/"
-	// Load configuration
-	cfg := config.LoadConfig()
+	// Load .env file if it exists (just for bootstrap)
+	godotenv.Load()
 
-	// Set Gin mode
-	if !cfg.Debug {
-		gin.SetMode(gin.ReleaseMode)
+	// Bootstrap the application
+	if err := bootstrap.Bootstrap(); err != nil {
+		log.Fatalf("Failed to bootstrap application: %v", err)
 	}
 
-	// Initialize database
-	db, err := db.InitDB() // Use db.InitDB instead of config.InitDB
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
-	}
+	// Get configuration
+	configService := services.NewConfigService()
+	cfg := configService.GetConfig()
 
-	// Create gin router
-	r := gin.Default()
-
-	// Set up routes
-	routes.SetupRoutes(r, db, cfg)
-	printRoutes(r)
-	// Create necessary directories
+	// Create required directories
 	createDirs(cfg)
 
+	// Set Gin mode
+	if cfg.Debug {
+		gin.SetMode(gin.DebugMode)
+		fmt.Println("Running in DEBUG mode")
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+		fmt.Println("Running in RELEASE mode")
+	}
+
+	// Create Gin router
+	r := gin.New()
+
+	// Setup routes
+	routes.SetupRoutes(r, cfg)
+
 	// Start server
-	port := fmt.Sprintf(":%d", cfg.Port)
-	fmt.Printf("Starting server on http://localhost%s\n", port)
-	if err := r.Run(port); err != nil {
+	portStr := fmt.Sprintf(":%d", cfg.Port)
+	fmt.Printf("Starting server on port %d\n", cfg.Port)
+	if err := r.Run(portStr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
-func printRoutes(r *gin.Engine) {
-	routes := r.Routes()
-	fmt.Println("\nRegistered Routes:")
-	fmt.Println("=================")
-	for _, route := range routes {
-		fmt.Printf("%s %s\n", route.Method, route.Path)
-	}
-	fmt.Println("=================\n")
-}
-func createDirs(cfg *config.Config) {
+
+// createDirs creates the required directories
+func createDirs(cfg *services.Config) {
 	dirs := []string{
 		cfg.TempDir,
 		cfg.UploadDir,
 		cfg.PublicDir,
-		cfg.PublicDir + "/conversions",
-		cfg.PublicDir + "/compressions",
-		cfg.PublicDir + "/merges",
-		cfg.PublicDir + "/splits",
-		cfg.PublicDir + "/rotations",
-		cfg.PublicDir + "/watermarked",
-		cfg.PublicDir + "/watermarks", // Added
-		cfg.PublicDir + "/protected",
-		cfg.PublicDir + "/pagenumbers",
-		cfg.PublicDir + "/unlocked",
-		cfg.PublicDir + "/ocr",
-		cfg.PublicDir + "/edited",
-		cfg.PublicDir + "/processed",
-		cfg.PublicDir + "/unwatermarked", // Added
-		cfg.PublicDir + "/redacted",      // Added
-		cfg.PublicDir + "/repaired",      // Added
-		cfg.PublicDir + "/signatures",    // Added
+		filepath.Join(cfg.PublicDir, "signatures"),
+		filepath.Join(cfg.PublicDir, "conversions"),
+		filepath.Join(cfg.PublicDir, "compressions"),
+		filepath.Join(cfg.PublicDir, "merges"),
+		filepath.Join(cfg.PublicDir, "splits"),
+		filepath.Join(cfg.PublicDir, "rotations"),
+		filepath.Join(cfg.PublicDir, "watermarked"),
+		filepath.Join(cfg.PublicDir, "watermarks"),
+		filepath.Join(cfg.PublicDir, "protected"),
+		filepath.Join(cfg.PublicDir, "pagenumbers"),
+		filepath.Join(cfg.PublicDir, "unlocked"),
+		filepath.Join(cfg.PublicDir, "ocr"),
+		filepath.Join(cfg.PublicDir, "edited"),
+		filepath.Join(cfg.PublicDir, "processed"),
+		filepath.Join(cfg.PublicDir, "unwatermarked"),
+		filepath.Join(cfg.PublicDir, "redacted"),
+		filepath.Join(cfg.PublicDir, "repaired"),
 	}
 
 	for _, dir := range dirs {
